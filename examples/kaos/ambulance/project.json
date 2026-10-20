@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "dialect": "kaosprop",
+  "framework": "kaos",
+  "models": [
+    {
+      "path": "ambulance.txt",
+      "native": {
+        "kaos": "ambulance.kaos"
+      }
+    }
+  ],
+  "projectResources": {},
+  "outputs": []
+}

@@ -3,7 +3,10 @@
  * section per framework, after the engines', each holding DSM3-goals'
  * welcome model with a card that draws it; opened from there, the model is
  * for its framework's mode, with the framework recorded beside it, and
- * reads clean. The examples are read from examples/ on disk, as GitHub
+ * reads clean. KAOS's section also holds the KAOS stress test's projects
+ * (goal-controller#181): KAOSTools' and ADS's London Ambulance models and
+ * REJ'13's carpooling, each with its `.kaos` source, cited, opening in
+ * kaosprop's mode. The examples are read from examples/ on disk, as GitHub
  * would serve them.
  */
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -28,6 +31,7 @@ import {
 import manifest from '@/lib/examples-manifest.json';
 import { modelTabsFor } from '@/components/workbench/modelTabs';
 import { modelSettingsOf } from '@/lib/project';
+import { writeModelMode } from '@/lib/workbench/pistar';
 import { previewOf } from '@/scripts/examplePreview.mjs';
 import { location } from './support/navigation';
 
@@ -103,15 +107,17 @@ describe('Home: the KAOS and NFR seeds (#171)', () => {
     // after the engines' listed sections (piStar-ext's the last of them)
     const after = folders.indexOf('pistar-ext/');
     expect(folders.slice(after + 1, after + 3)).toEqual(['kaos/', 'nfr/']);
-    for (const [folder, name] of [
-      ['kaos', 'kaos-welcome.txt'],
-      ['nfr', 'nfr-welcome.txt'],
+    for (const [folder, names] of [
+      ['kaos', ['ambulance', 'carpooling', 'kaos-welcome.txt', 'las']],
+      ['nfr', ['nfr-welcome.txt']],
     ] as const) {
       const buttons = within(await section(folder)).getAllByRole('button', {
         name: /^Open the .* example/,
       });
-      expect(buttons, folder).toHaveLength(1);
-      expect(buttons[0]!.getAttribute('aria-label'), folder).toContain(name);
+      expect(buttons, folder).toHaveLength(names.length);
+      names.forEach((name, i) =>
+        expect(buttons[i]!.getAttribute('aria-label'), folder).toContain(name),
+      );
     }
   });
 
@@ -148,7 +154,55 @@ describe('Home: the KAOS and NFR seeds (#171)', () => {
       screen
         .getAllByRole('button', { name: /^Open the .* example/ })
         .map((button) => button.getAttribute('aria-label')),
-    ).toEqual([expect.stringContaining('kaos-welcome.txt')]);
+    ).toEqual([
+      expect.stringContaining('ambulance'),
+      expect.stringContaining('carpooling'),
+      expect.stringContaining('kaos-welcome.txt'),
+      expect.stringContaining('las'),
+    ]);
+  });
+
+  it('cites the KAOS stress test’s sources under KAOS: RE’12, REJ’13, RE’15, SEAMS’17 and the two repositories (#181)', async () => {
+    home();
+    const links = within(await section('kaos'))
+      .getAllByRole('link')
+      .map((link) => link.getAttribute('href'));
+    for (const url of [
+      'https://doi.org/10.1109/RE.2012.6345805',
+      'https://doi.org/10.1007/s00766-013-0168-5',
+      'https://doi.org/10.1109/RE.2015.7320413',
+      'https://doi.org/10.1109/SEAMS.2017.5',
+      'https://github.com/ancailliau/KAOSTools',
+      'https://github.com/ancailliau/ADS',
+    ])
+      expect(links).toContain(url);
+  });
+
+  it('opens a KAOS stress-test seed as its project, in kaosprop’s mode, its .kaos beside its model (#181)', async () => {
+    const wb = home();
+    fireEvent.click(
+      await screen.findByRole('button', { name: /Open the .*carpooling/ }),
+    );
+    await waitFor(() => expect(wb().fileName).toBe('carpooling.txt'));
+    expect(wb().mode).toBe('kaosprop');
+    expect(modelSettingsOf(wb().text)).toMatchObject({
+      mode: 'kaosprop',
+      framework: 'kaos',
+    });
+    // the model is the example's, byte for byte, its mode recorded as every
+    // example's is when it opens; its native file in sync
+    expect(wb().text).toBe(
+      writeModelMode(
+        read('examples/kaos/carpooling/carpooling.txt'),
+        'kaosprop',
+      ),
+    );
+    await waitFor(() =>
+      expect(wb().nativeStates.map((s) => s.slot.path)).toEqual([
+        'carpooling.kaos',
+      ]),
+    );
+    expect(wb().nativeStates[0]!.sync).toBeNull();
   });
 
   it('opens the KAOS seed for its framework’s mode, clean', async () => {

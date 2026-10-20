@@ -864,6 +864,30 @@
     "outputs": []
   },
   {
+    "path": "kaos/ambulance",
+    "group": "kaos",
+    "name": "ambulance",
+    "form": "file",
+    "dialect": "kaosprop",
+    "root": "kaos/ambulance",
+    "files": ["README.md", "ambulance.kaos", "ambulance.txt", "project.json"],
+    "models": ["ambulance.txt"],
+    "projectResources": {},
+    "outputs": []
+  },
+  {
+    "path": "kaos/carpooling",
+    "group": "kaos",
+    "name": "carpooling",
+    "form": "file",
+    "dialect": "kaosprop",
+    "root": "kaos/carpooling",
+    "files": ["README.md", "carpooling.kaos", "carpooling.txt", "project.json"],
+    "models": ["carpooling.txt"],
+    "projectResources": {},
+    "outputs": []
+  },
+  {
     "path": "kaos/kaos-welcome.txt",
     "group": "kaos",
     "name": "kaos-welcome.txt",
@@ -871,6 +895,24 @@
     "root": "kaos",
     "files": ["kaos-welcome.txt"],
     "models": ["kaos-welcome.txt"],
+    "projectResources": {},
+    "outputs": []
+  },
+  {
+    "path": "kaos/las",
+    "group": "kaos",
+    "name": "las",
+    "form": "file",
+    "dialect": "kaosprop",
+    "root": "kaos/las",
+    "files": [
+      "README.md",
+      "las.expected.csv",
+      "las.kaos",
+      "las.txt",
+      "project.json"
+    ],
+    "models": ["las.txt"],
     "projectResources": {},
     "outputs": []
   },

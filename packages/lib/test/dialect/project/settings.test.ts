@@ -24,6 +24,7 @@ import {
   withEngineOptions,
 } from '../../../../ui/lib/workbench/projectSettings';
 import {
+  frameworkOfMode,
   isEngineMode,
   planConversion,
   readModelMode,
@@ -368,7 +369,10 @@ describe('ui Explorer: examples opened as projects', () => {
                 customProperties: {
                   ...model.diagram?.customProperties,
                   engine: mode,
-                  ...(isFrameworkMode(mode) && { framework: mode }),
+                  // a framework's mode, or a framework engine's (kaosprop, #181)
+                  ...(frameworkOfMode(mode as ModelMode) !== 'istar-2.0' && {
+                    framework: frameworkOfMode(mode as ModelMode),
+                  }),
                 },
               },
             },

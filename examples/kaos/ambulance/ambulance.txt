@@ -1,0 +1,4056 @@
+{
+  "actors": [],
+  "orphans": [
+    {
+      "id": "achieve_incident_resolved",
+      "text": "Achieve [Incident Resolved]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": "",
+        "RSR": "95%"
+      },
+      "x": 5000,
+      "y": 80
+    },
+    {
+      "id": "achieve_incident_reported",
+      "text": "Achieve [Incident Reported]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 40,
+      "y": 180
+    },
+    {
+      "id": "achieve_ambulance_intervention",
+      "text": "Achieve [Ambulance Intervention]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 4040,
+      "y": 180
+    },
+    {
+      "id": "achieve_incident_resolved_by_intervention",
+      "text": "Achieve [Incident Resolved By Ambulance Intervention]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 8840,
+      "y": 180
+    },
+    {
+      "id": "achieve_ambulance_mobilization",
+      "text": "Achieve [Ambulance Mobilization]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 3240,
+      "y": 280
+    },
+    {
+      "id": "achieve_mobilized_ambulance_intervention",
+      "text": "Achieve [Mobilized Ambulance Intervention]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 7080,
+      "y": 280
+    },
+    {
+      "id": "maintain_accurate_incident_form",
+      "text": "Maintain [Accurate Incident Form]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 360,
+      "y": 380
+    },
+    {
+      "id": "achieve_ambulance_mobilization_based_on_if",
+      "text": "Achieve [Ambulance Mobilization Based On Incident Form]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 3400,
+      "y": 380
+    },
+    {
+      "id": "achieve_ambulance_allocation_based_on_if",
+      "text": "Achieve [Ambulance Allocation Based On Incident Form]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 1480,
+      "y": 480
+    },
+    {
+      "id": "achieve_allocated_ambulance_mobilization",
+      "text": "Achieve [Allocated Ambulance Mobilization]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 4360,
+      "y": 480
+    },
+    {
+      "id": "maintain_ambulance_available",
+      "text": "Maintain [Ambulance Available]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 680,
+      "y": 580
+    },
+    {
+      "id": "achieve_ambulance_allocation_based_on_if_when_available",
+      "text": "Achieve [Ambulance Allocation Based On Incident Form When Ambulance Available]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 1480,
+      "y": 580
+    },
+    {
+      "id": "achieve_allocation_at_station",
+      "text": "Achieve [Allocated Ambulance Mobilization At Station]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 3560,
+      "y": 580
+    },
+    {
+      "id": "achieve_allocation_on_road",
+      "text": "Achieve [Allocated Ambulance Mobilization On Road]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 5480,
+      "y": 580
+    },
+    {
+      "id": "maintain_ambulance_info_available",
+      "text": "Maintain [Accurate Ambulance Information Known]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 1320,
+      "y": 680
+    },
+    {
+      "id": "achieve_ambulance_allocation_based_on_if_and_af_when_available",
+      "text": "Achieve [Ambulance Allocation Based On Incident Form And Ambulance Info When Ambulance Available]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 2120,
+      "y": 680
+    },
+    {
+      "id": "achieve_allocation_at_station_based_on_info",
+      "text": "Achieve [Allocated Ambulance Mobilization At Station Based On Location Info]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 3240,
+      "y": 680
+    },
+    {
+      "id": "achieve_allocation_on_road_based_on_info",
+      "text": "Achieve [Allocated Ambulance Mobilization On Road Based On Location Info]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 5480,
+      "y": 680
+    },
+    {
+      "id": "maintain_location_info_known",
+      "text": "Maintain [Accurate Ambulance Location Known]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 4360,
+      "y": 680
+    },
+    {
+      "id": "maintain_ambulance_availability_available",
+      "text": "Maintain [Accurate Ambulance Availability Known]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 1320,
+      "y": 780
+    },
+    {
+      "id": "accurate_availability_information_encoded",
+      "text": "Maintain [Accurate Information Encoded On MDT]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 840,
+      "y": 880
+    },
+    {
+      "id": "accurate_availability_info_based_on_ei",
+      "text": "Maintain [Availability Known Based On Encoded Information]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 1480,
+      "y": 880
+    },
+    {
+      "id": "accurate_mapping",
+      "text": "Maintain [Accurate Mapping]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 1160,
+      "y": 980
+    },
+    {
+      "id": "accurate_availability_info_based_on_ei_and_am",
+      "text": "Maintain [Availability Known Based On Encoded Information And Accurate Mapping]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 1640,
+      "y": 980
+    },
+    {
+      "id": "accurate_availability_info_sent",
+      "text": "Achieve [Availability Information Sent]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 1320,
+      "y": 1080
+    },
+    {
+      "id": "accurate_availability_info_transmitted",
+      "text": "Achieve [Availability Information Transmitted]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 1640,
+      "y": 1080
+    },
+    {
+      "id": "accurate_availability_info_recorded",
+      "text": "Maintain [Availability Information Recorded]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 1960,
+      "y": 1080
+    },
+    {
+      "id": "moborder_printed_at_station",
+      "text": "Achieve [Mobilization Order Printed At Station]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 2920,
+      "y": 780
+    },
+    {
+      "id": "achieve_allocation_when_moborder_printed",
+      "text": "Achieve [Allocated Ambulance Mobilization When Mobilization Order Printed]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 3880,
+      "y": 780
+    },
+    {
+      "id": "moborder_sent_to_printer",
+      "text": "Achieve [Mobilization Order Sent To Printer]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 2440,
+      "y": 880
+    },
+    {
+      "id": "accurate_mapping_printer",
+      "text": "Maintain [Accurate Printer Mapping]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 2440,
+      "y": 980
+    },
+    {
+      "id": "moborder_sent_to_printer_based_on_am",
+      "text": "Achieve [Mobilization Order Sent To Printer Based On Mapping]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 2600,
+      "y": 980
+    },
+    {
+      "id": "moborder_transmitted_to_printer",
+      "text": "Achieve [Mobilization Order Transmitted]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 2760,
+      "y": 880
+    },
+    {
+      "id": "moborder_printed",
+      "text": "Achieve [Mobilization Order Printed]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 3080,
+      "y": 880
+    },
+    {
+      "id": "moborder_displayed_on_mdt",
+      "text": "Achieve [Mobilization Order Displayed On MDT]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 5160,
+      "y": 780
+    },
+    {
+      "id": "achieve_allocation_when_moborder_displayed",
+      "text": "Achieve [Allocated Ambulance Mobilization When Mobilization Order Displayed]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 5960,
+      "y": 780
+    },
+    {
+      "id": "moborder_sent_to_mdt",
+      "text": "Achieve [Mobilization Order Sent To MDT]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 4840,
+      "y": 880
+    },
+    {
+      "id": "accurate_mapping_mdt",
+      "text": "Maintain [Accurate MDT Mapping]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 4840,
+      "y": 980
+    },
+    {
+      "id": "moborder_sent_to_mdt_based_on_am",
+      "text": "Achieve [Mobilization Order Sent To MDT Based On Mapping]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 5000,
+      "y": 980
+    },
+    {
+      "id": "moborder_transmitted_to_mdt",
+      "text": "Achieve [Mobilization Order Transmitted]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 5320,
+      "y": 880
+    },
+    {
+      "id": "moborder_displayed",
+      "text": "Achieve [Mobilization Order Displayed]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 5640,
+      "y": 880
+    },
+    {
+      "id": "public",
+      "text": "Public",
+      "type": "kaos.Agent",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 200,
+      "y": 180
+    },
+    {
+      "id": "staff",
+      "text": "Ambulance Staff",
+      "type": "kaos.Agent",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 9000,
+      "y": 180
+    },
+    {
+      "id": "operator",
+      "text": "Operator",
+      "type": "kaos.Agent",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 520,
+      "y": 380
+    },
+    {
+      "id": "cad",
+      "text": "CAD",
+      "type": "kaos.Agent",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 2280,
+      "y": 680
+    },
+    {
+      "id": "avls",
+      "text": "AVLS",
+      "type": "kaos.Agent",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 4520,
+      "y": 680
+    },
+    {
+      "id": "mdt",
+      "text": "MDT",
+      "type": "kaos.Agent",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 1480,
+      "y": 1080
+    },
+    {
+      "id": "ci",
+      "text": "Communication Infrastructure",
+      "type": "kaos.Agent",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 1800,
+      "y": 1080
+    },
+    {
+      "id": "printer",
+      "text": "Printer",
+      "type": "kaos.Agent",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 3240,
+      "y": 880
+    },
+    {
+      "id": "moborder_not_printed",
+      "text": "Mobilization Order Not Printed",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 3080,
+      "y": 980
+    },
+    {
+      "id": "paper_jam",
+      "text": "Paper Jam",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 2920,
+      "y": 1080
+    },
+    {
+      "id": "out_of_paper",
+      "text": "Out Of Paper",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 3080,
+      "y": 1080
+    },
+    {
+      "id": "data_lost",
+      "text": "Data Lost",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 3240,
+      "y": 1080
+    },
+    {
+      "id": "printer_off",
+      "text": "Printer Off",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 3400,
+      "y": 1080
+    },
+    {
+      "id": "moborder_not_displayed",
+      "text": "Mobilization Order Not Displayed",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 5640,
+      "y": 980
+    },
+    {
+      "id": "mdt_turned_off",
+      "text": "MDT Turned Off",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 5640,
+      "y": 1080
+    },
+    {
+      "id": "location_known_not_info_known",
+      "text": "Accurate Ambulance Location Known",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 4520,
+      "y": 780
+    },
+    {
+      "id": "avls_out_of_service",
+      "text": "AVLS Out of Service",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 4360,
+      "y": 880
+    },
+    {
+      "id": "gps_lost_connection",
+      "text": "GPS lost connection",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 4520,
+      "y": 880
+    },
+    {
+      "id": "location_innaccurate",
+      "text": "Location Innaccurate",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 4680,
+      "y": 880
+    },
+    {
+      "id": "accurate_availability_information_not_encoded",
+      "text": "Accurate Information Not Encoded On MDT",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 840,
+      "y": 980
+    },
+    {
+      "id": "forget_to_encode_status",
+      "text": "Forget To Encode Status",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 840,
+      "y": 1080
+    },
+    {
+      "id": "wrong_button_pressed",
+      "text": "Wrong Button Pressed",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 1000,
+      "y": 1080
+    },
+    {
+      "id": "mobilized_ambulance_not_intervention",
+      "text": "No Ambulance Intervention When Mobilized",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 7080,
+      "y": 380
+    },
+    {
+      "id": "service_end",
+      "text": "Service End Before Intervention",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 6440,
+      "y": 480
+    },
+    {
+      "id": "mobilization_retracted",
+      "text": "Mobilization Retracted",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 6760,
+      "y": 480
+    },
+    {
+      "id": "destination_changed",
+      "text": "Destination Changed",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 6600,
+      "y": 580
+    },
+    {
+      "id": "destination_forgotten",
+      "text": "Destination Forgotten",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 6760,
+      "y": 580
+    },
+    {
+      "id": "mobilization_cancelled",
+      "text": "Mobilization Cancelled",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 6920,
+      "y": 580
+    },
+    {
+      "id": "ambulance_stopped_or_in_wrong_direction",
+      "text": "Ambulance Stopped Or In Wrong Direction",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 7400,
+      "y": 480
+    },
+    {
+      "id": "ambulance_stopped",
+      "text": "Ambulance Stopped",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 7080,
+      "y": 580
+    },
+    {
+      "id": "ambulance_broken",
+      "text": "Ambulance Broken Down Or Accident",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 7080,
+      "y": 680
+    },
+    {
+      "id": "ambulance_stopped_in_traffic",
+      "text": "Ambulance Stopped In Traffic",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 7240,
+      "y": 680
+    },
+    {
+      "id": "ambulance_in_wrong_direction",
+      "text": "Ambulance In Wrong Direction",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 7560,
+      "y": 580
+    },
+    {
+      "id": "ambulance_lost",
+      "text": "Ambulance Lost",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 7400,
+      "y": 680
+    },
+    {
+      "id": "gps_broken",
+      "text": "GPS Broken",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 7560,
+      "y": 780
+    },
+    {
+      "id": "ambulance_in_unfamiliar_area",
+      "text": "Ambulance In Unfamiliar Area",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 7400,
+      "y": 780
+    },
+    {
+      "id": "ambulance_traffic_deviation",
+      "text": "Ambulance In Traffic Deviation",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 7720,
+      "y": 680
+    },
+    {
+      "id": "incident_not_resolved_by_intervention",
+      "text": "Incident Not Resolved By Intervention",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 9000,
+      "y": 280
+    },
+    {
+      "id": "patient_not_treated_at_location",
+      "text": "Patient Not Treated At Location",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 8360,
+      "y": 380
+    },
+    {
+      "id": "patient_unreachable_safely",
+      "text": "Patient Not Safely Reachable",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 8840,
+      "y": 480
+    },
+    {
+      "id": "fire_environment",
+      "text": "Fire Environment",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 8680,
+      "y": 580
+    },
+    {
+      "id": "hazardous_environment",
+      "text": "Hazardous Environment",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 8840,
+      "y": 580
+    },
+    {
+      "id": "unreachable_patient",
+      "text": "Unreachable Patient",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 9000,
+      "y": 580
+    },
+    {
+      "id": "critical_care_not_given",
+      "text": "Critical Care Not Given",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 8200,
+      "y": 480
+    },
+    {
+      "id": "available_ressource_not_used",
+      "text": "Available Ressource Not Used",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 8360,
+      "y": 580
+    },
+    {
+      "id": "ressource_out_of_order",
+      "text": "Ressource Out Of Order",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 8360,
+      "y": 680
+    },
+    {
+      "id": "qualification_missing_for_ressource",
+      "text": "Qualification Missing For Ressource",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 8520,
+      "y": 680
+    },
+    {
+      "id": "insufficient_ressource",
+      "text": "Insufficient Ressource",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 7880,
+      "y": 580
+    },
+    {
+      "id": "ressource_confusion",
+      "text": "Ressource Confusion",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 7880,
+      "y": 680
+    },
+    {
+      "id": "ressource_not_available",
+      "text": "Ressource Not Available",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 8040,
+      "y": 680
+    },
+    {
+      "id": "patient_not_admitted_or_transported_at_hospital",
+      "text": "Patient Not Admitted Or Transported At Hospital",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 9640,
+      "y": 380
+    },
+    {
+      "id": "wrong_info_about_patient",
+      "text": "Wrong Info About Patient",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 8200,
+      "y": 680
+    },
+    {
+      "id": "patient_not_transported",
+      "text": "patient_not_transported",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 9320,
+      "y": 480
+    },
+    {
+      "id": "patient_not_in_ambulance",
+      "text": "Patient Not In Ambulance",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 9320,
+      "y": 580
+    },
+    {
+      "id": "patient_not_in_ambulance_and_not_transported",
+      "text": "Patient Not In Ambulance And Not Transported",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 9640,
+      "y": 580
+    },
+    {
+      "id": "patient_not_transportable",
+      "text": "Patient Not Transportable",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 9640,
+      "y": 680
+    },
+    {
+      "id": "insufficient_capacity",
+      "text": "Insufficient Capacity",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 9160,
+      "y": 680
+    },
+    {
+      "id": "overweight_patient",
+      "text": "Overweight Patient",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 9320,
+      "y": 680
+    },
+    {
+      "id": "patient_cannot_reach_ambulance",
+      "text": "Patient Cannot Reach Ambulance",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 9480,
+      "y": 680
+    },
+    {
+      "id": "patient_not_admitted",
+      "text": "patient_not_admitted",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 9960,
+      "y": 480
+    },
+    {
+      "id": "available_bed_not_assigned",
+      "text": "Available Bed Not Assigned",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 9960,
+      "y": 580
+    },
+    {
+      "id": "special_unit_required",
+      "text": "Special Unit Required",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 10120,
+      "y": 580
+    },
+    {
+      "id": "no_bed",
+      "text": "No Bed Available",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 9800,
+      "y": 580
+    },
+    {
+      "id": "not_allocation_when_moborder_printed",
+      "text": "Allocated Ambulance Not Mobilized And Mobilization Order Printed",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 3880,
+      "y": 880
+    },
+    {
+      "id": "ambulance_not_at_station",
+      "text": "Allocated Ambulance Not At Station",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 3560,
+      "y": 980
+    },
+    {
+      "id": "allocated_ambulance_not_available",
+      "text": "Allocated Ambulance Not Available",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 3720,
+      "y": 980
+    },
+    {
+      "id": "printed_mobilization_order_ignored",
+      "text": "Printed Mobilization Order Ignored",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 3880,
+      "y": 980
+    },
+    {
+      "id": "crew_not_near_printer",
+      "text": "Crew Not Near Printer",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 3880,
+      "y": 1080
+    },
+    {
+      "id": "mobilization_taken_by_other_ambulance",
+      "text": "Mobilization Taken By Other Ambulance",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 4040,
+      "y": 980
+    },
+    {
+      "id": "mobilized_to_wrong_destination",
+      "text": "Mobilization For Wrong Destination",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 4200,
+      "y": 980
+    },
+    {
+      "id": "moborder_not_sent_to_mdt_based_on_am",
+      "text": "Mobilization Order Not Sent To MDT Based On Mapping",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 5000,
+      "y": 1080
+    },
+    {
+      "id": "no_line_free",
+      "text": "No Line Free",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 5000,
+      "y": 1180
+    },
+    {
+      "id": "moborder_not_sent_to_printer_based_on_am",
+      "text": "Mobilization Order Not Sent To Printer Based On Mapping",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 2600,
+      "y": 1080
+    },
+    {
+      "id": "moborder_not_transmitted_to_mdt",
+      "text": "Mobilization Order Not Transmitted To MDT",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 5320,
+      "y": 980
+    },
+    {
+      "id": "congestion",
+      "text": "Congestion",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 5160,
+      "y": 1080
+    },
+    {
+      "id": "blackspot",
+      "text": "Blackspot",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 5320,
+      "y": 1080
+    },
+    {
+      "id": "corrupted_mobilization_order",
+      "text": "Corrupted Mobilization Order",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 5480,
+      "y": 1080
+    },
+    {
+      "id": "no_allocation_when_moborder_displayed",
+      "text": "Allocated Ambulance Not Mobilized And Mobilization Order Displayed",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 5960,
+      "y": 880
+    },
+    {
+      "id": "ambulance_not_available_when_moborder_displayed",
+      "text": "Ambulance Not Available And Mobilization Order Displayed",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 5800,
+      "y": 980
+    },
+    {
+      "id": "mobilized_to_wrong_destination_when_displayed",
+      "text": "Wrong Destination",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 6280,
+      "y": 980
+    },
+    {
+      "id": "destination_confused",
+      "text": "Destination Confused",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 6280,
+      "y": 1080
+    },
+    {
+      "id": "displayed_mobilization_order_ignored",
+      "text": "Displayed Mobilization Order Ignored",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 5960,
+      "y": 980
+    },
+    {
+      "id": "crew_not_in_ambulance",
+      "text": "Crew Not In Ambulance",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 6120,
+      "y": 1080
+    },
+    {
+      "id": "crew_distracted",
+      "text": "Crew Distracted",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 5960,
+      "y": 1080
+    }
+  ],
+  "dependencies": [],
+  "links": [
+    {
+      "hub": {
+        "id": "achieve_incident_resolved-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        },
+        "x": 4711,
+        "y": 138
+      },
+      "starts": [
+        {
+          "id": "achieve_incident_resolved-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "achieve_incident_reported",
+          "target": "achieve_incident_resolved-refinement-1"
+        },
+        {
+          "id": "achieve_incident_resolved-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "achieve_ambulance_intervention",
+          "target": "achieve_incident_resolved-refinement-1"
+        },
+        {
+          "id": "achieve_incident_resolved-refinement-1-3",
+          "type": "kaos.RefinementLinkStart",
+          "source": "achieve_incident_resolved_by_intervention",
+          "target": "achieve_incident_resolved-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "achieve_incident_resolved-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "achieve_incident_resolved-refinement-1",
+        "target": "achieve_incident_resolved"
+      }
+    },
+    {
+      "hub": {
+        "id": "achieve_ambulance_intervention-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        },
+        "x": 4658,
+        "y": 238
+      },
+      "starts": [
+        {
+          "id": "achieve_ambulance_intervention-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "achieve_ambulance_mobilization",
+          "target": "achieve_ambulance_intervention-refinement-1"
+        },
+        {
+          "id": "achieve_ambulance_intervention-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "achieve_mobilized_ambulance_intervention",
+          "target": "achieve_ambulance_intervention-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "achieve_ambulance_intervention-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "achieve_ambulance_intervention-refinement-1",
+        "target": "achieve_ambulance_intervention"
+      }
+    },
+    {
+      "hub": {
+        "id": "achieve_ambulance_mobilization-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        },
+        "x": 2618,
+        "y": 338
+      },
+      "starts": [
+        {
+          "id": "achieve_ambulance_mobilization-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "maintain_accurate_incident_form",
+          "target": "achieve_ambulance_mobilization-refinement-1"
+        },
+        {
+          "id": "achieve_ambulance_mobilization-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "achieve_ambulance_mobilization_based_on_if",
+          "target": "achieve_ambulance_mobilization-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "achieve_ambulance_mobilization-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "achieve_ambulance_mobilization-refinement-1",
+        "target": "achieve_ambulance_mobilization"
+      }
+    },
+    {
+      "hub": {
+        "id": "achieve_ambulance_mobilization_based_on_if-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        },
+        "x": 3218,
+        "y": 438
+      },
+      "starts": [
+        {
+          "id": "achieve_ambulance_mobilization_based_on_if-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "achieve_ambulance_allocation_based_on_if",
+          "target": "achieve_ambulance_mobilization_based_on_if-refinement-1"
+        },
+        {
+          "id": "achieve_ambulance_mobilization_based_on_if-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "achieve_allocated_ambulance_mobilization",
+          "target": "achieve_ambulance_mobilization_based_on_if-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "achieve_ambulance_mobilization_based_on_if-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "achieve_ambulance_mobilization_based_on_if-refinement-1",
+        "target": "achieve_ambulance_mobilization_based_on_if"
+      }
+    },
+    {
+      "hub": {
+        "id": "achieve_ambulance_allocation_based_on_if-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        },
+        "x": 1338,
+        "y": 538
+      },
+      "starts": [
+        {
+          "id": "achieve_ambulance_allocation_based_on_if-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "maintain_ambulance_available",
+          "target": "achieve_ambulance_allocation_based_on_if-refinement-1"
+        },
+        {
+          "id": "achieve_ambulance_allocation_based_on_if-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "achieve_ambulance_allocation_based_on_if_when_available",
+          "target": "achieve_ambulance_allocation_based_on_if-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "achieve_ambulance_allocation_based_on_if-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "achieve_ambulance_allocation_based_on_if-refinement-1",
+        "target": "achieve_ambulance_allocation_based_on_if"
+      }
+    },
+    {
+      "hub": {
+        "id": "achieve_allocated_ambulance_mobilization-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        },
+        "x": 4498,
+        "y": 538
+      },
+      "starts": [
+        {
+          "id": "achieve_allocated_ambulance_mobilization-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "achieve_allocation_at_station",
+          "target": "achieve_allocated_ambulance_mobilization-refinement-1"
+        },
+        {
+          "id": "achieve_allocated_ambulance_mobilization-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "achieve_allocation_on_road",
+          "target": "achieve_allocated_ambulance_mobilization-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "achieve_allocated_ambulance_mobilization-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "achieve_allocated_ambulance_mobilization-refinement-1",
+        "target": "achieve_allocated_ambulance_mobilization"
+      }
+    },
+    {
+      "hub": {
+        "id": "achieve_ambulance_allocation_based_on_if_when_available-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        },
+        "x": 1658,
+        "y": 638
+      },
+      "starts": [
+        {
+          "id": "achieve_ambulance_allocation_based_on_if_when_available-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "maintain_ambulance_info_available",
+          "target": "achieve_ambulance_allocation_based_on_if_when_available-refinement-1"
+        },
+        {
+          "id": "achieve_ambulance_allocation_based_on_if_when_available-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "achieve_ambulance_allocation_based_on_if_and_af_when_available",
+          "target": "achieve_ambulance_allocation_based_on_if_when_available-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "achieve_ambulance_allocation_based_on_if_when_available-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "achieve_ambulance_allocation_based_on_if_when_available-refinement-1",
+        "target": "achieve_ambulance_allocation_based_on_if_when_available"
+      }
+    },
+    {
+      "hub": {
+        "id": "achieve_allocation_at_station-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        },
+        "x": 3738,
+        "y": 638
+      },
+      "starts": [
+        {
+          "id": "achieve_allocation_at_station-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "achieve_allocation_at_station_based_on_info",
+          "target": "achieve_allocation_at_station-refinement-1"
+        },
+        {
+          "id": "achieve_allocation_at_station-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "maintain_location_info_known",
+          "target": "achieve_allocation_at_station-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "achieve_allocation_at_station-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "achieve_allocation_at_station-refinement-1",
+        "target": "achieve_allocation_at_station"
+      }
+    },
+    {
+      "hub": {
+        "id": "achieve_allocation_on_road-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        },
+        "x": 5258,
+        "y": 638
+      },
+      "starts": [
+        {
+          "id": "achieve_allocation_on_road-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "achieve_allocation_on_road_based_on_info",
+          "target": "achieve_allocation_on_road-refinement-1"
+        },
+        {
+          "id": "achieve_allocation_on_road-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "maintain_location_info_known",
+          "target": "achieve_allocation_on_road-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "achieve_allocation_on_road-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "achieve_allocation_on_road-refinement-1",
+        "target": "achieve_allocation_on_road"
+      }
+    },
+    {
+      "hub": {
+        "id": "maintain_ambulance_info_available-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        },
+        "x": 2138,
+        "y": 688
+      },
+      "starts": [
+        {
+          "id": "maintain_ambulance_info_available-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "maintain_location_info_known",
+          "target": "maintain_ambulance_info_available-refinement-1"
+        },
+        {
+          "id": "maintain_ambulance_info_available-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "maintain_ambulance_availability_available",
+          "target": "maintain_ambulance_info_available-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "maintain_ambulance_info_available-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "maintain_ambulance_info_available-refinement-1",
+        "target": "maintain_ambulance_info_available"
+      }
+    },
+    {
+      "hub": {
+        "id": "achieve_allocation_at_station_based_on_info-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        },
+        "x": 3378,
+        "y": 738
+      },
+      "starts": [
+        {
+          "id": "achieve_allocation_at_station_based_on_info-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "moborder_printed_at_station",
+          "target": "achieve_allocation_at_station_based_on_info-refinement-1"
+        },
+        {
+          "id": "achieve_allocation_at_station_based_on_info-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "achieve_allocation_when_moborder_printed",
+          "target": "achieve_allocation_at_station_based_on_info-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "achieve_allocation_at_station_based_on_info-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "achieve_allocation_at_station_based_on_info-refinement-1",
+        "target": "achieve_allocation_at_station_based_on_info"
+      }
+    },
+    {
+      "hub": {
+        "id": "achieve_allocation_on_road_based_on_info-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        },
+        "x": 5578,
+        "y": 738
+      },
+      "starts": [
+        {
+          "id": "achieve_allocation_on_road_based_on_info-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "moborder_displayed_on_mdt",
+          "target": "achieve_allocation_on_road_based_on_info-refinement-1"
+        },
+        {
+          "id": "achieve_allocation_on_road_based_on_info-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "achieve_allocation_when_moborder_displayed",
+          "target": "achieve_allocation_on_road_based_on_info-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "achieve_allocation_on_road_based_on_info-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "achieve_allocation_on_road_based_on_info-refinement-1",
+        "target": "achieve_allocation_on_road_based_on_info"
+      }
+    },
+    {
+      "hub": {
+        "id": "maintain_ambulance_availability_available-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        },
+        "x": 1298,
+        "y": 838
+      },
+      "starts": [
+        {
+          "id": "maintain_ambulance_availability_available-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "accurate_availability_information_encoded",
+          "target": "maintain_ambulance_availability_available-refinement-1"
+        },
+        {
+          "id": "maintain_ambulance_availability_available-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "accurate_availability_info_based_on_ei",
+          "target": "maintain_ambulance_availability_available-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "maintain_ambulance_availability_available-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "maintain_ambulance_availability_available-refinement-1",
+        "target": "maintain_ambulance_availability_available"
+      }
+    },
+    {
+      "hub": {
+        "id": "accurate_availability_info_based_on_ei-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        },
+        "x": 1498,
+        "y": 938
+      },
+      "starts": [
+        {
+          "id": "accurate_availability_info_based_on_ei-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "accurate_mapping",
+          "target": "accurate_availability_info_based_on_ei-refinement-1"
+        },
+        {
+          "id": "accurate_availability_info_based_on_ei-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "accurate_availability_info_based_on_ei_and_am",
+          "target": "accurate_availability_info_based_on_ei-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "accurate_availability_info_based_on_ei-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "accurate_availability_info_based_on_ei-refinement-1",
+        "target": "accurate_availability_info_based_on_ei"
+      }
+    },
+    {
+      "hub": {
+        "id": "accurate_availability_info_based_on_ei_and_am-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        },
+        "x": 1698,
+        "y": 1038
+      },
+      "starts": [
+        {
+          "id": "accurate_availability_info_based_on_ei_and_am-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "accurate_availability_info_sent",
+          "target": "accurate_availability_info_based_on_ei_and_am-refinement-1"
+        },
+        {
+          "id": "accurate_availability_info_based_on_ei_and_am-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "accurate_availability_info_transmitted",
+          "target": "accurate_availability_info_based_on_ei_and_am-refinement-1"
+        },
+        {
+          "id": "accurate_availability_info_based_on_ei_and_am-refinement-1-3",
+          "type": "kaos.RefinementLinkStart",
+          "source": "accurate_availability_info_recorded",
+          "target": "accurate_availability_info_based_on_ei_and_am-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "accurate_availability_info_based_on_ei_and_am-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "accurate_availability_info_based_on_ei_and_am-refinement-1",
+        "target": "accurate_availability_info_based_on_ei_and_am"
+      }
+    },
+    {
+      "hub": {
+        "id": "moborder_printed_at_station-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        },
+        "x": 2898,
+        "y": 838
+      },
+      "starts": [
+        {
+          "id": "moborder_printed_at_station-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "moborder_sent_to_printer",
+          "target": "moborder_printed_at_station-refinement-1"
+        },
+        {
+          "id": "moborder_printed_at_station-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "moborder_transmitted_to_printer",
+          "target": "moborder_printed_at_station-refinement-1"
+        },
+        {
+          "id": "moborder_printed_at_station-refinement-1-3",
+          "type": "kaos.RefinementLinkStart",
+          "source": "moborder_printed",
+          "target": "moborder_printed_at_station-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "moborder_printed_at_station-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "moborder_printed_at_station-refinement-1",
+        "target": "moborder_printed_at_station"
+      }
+    },
+    {
+      "hub": {
+        "id": "moborder_sent_to_printer-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        },
+        "x": 2538,
+        "y": 938
+      },
+      "starts": [
+        {
+          "id": "moborder_sent_to_printer-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "accurate_mapping_printer",
+          "target": "moborder_sent_to_printer-refinement-1"
+        },
+        {
+          "id": "moborder_sent_to_printer-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "moborder_sent_to_printer_based_on_am",
+          "target": "moborder_sent_to_printer-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "moborder_sent_to_printer-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "moborder_sent_to_printer-refinement-1",
+        "target": "moborder_sent_to_printer"
+      }
+    },
+    {
+      "hub": {
+        "id": "moborder_displayed_on_mdt-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        },
+        "x": 5271,
+        "y": 838
+      },
+      "starts": [
+        {
+          "id": "moborder_displayed_on_mdt-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "moborder_sent_to_mdt",
+          "target": "moborder_displayed_on_mdt-refinement-1"
+        },
+        {
+          "id": "moborder_displayed_on_mdt-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "moborder_transmitted_to_mdt",
+          "target": "moborder_displayed_on_mdt-refinement-1"
+        },
+        {
+          "id": "moborder_displayed_on_mdt-refinement-1-3",
+          "type": "kaos.RefinementLinkStart",
+          "source": "moborder_displayed",
+          "target": "moborder_displayed_on_mdt-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "moborder_displayed_on_mdt-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "moborder_displayed_on_mdt-refinement-1",
+        "target": "moborder_displayed_on_mdt"
+      }
+    },
+    {
+      "hub": {
+        "id": "moborder_sent_to_mdt-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        },
+        "x": 4938,
+        "y": 938
+      },
+      "starts": [
+        {
+          "id": "moborder_sent_to_mdt-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "accurate_mapping_mdt",
+          "target": "moborder_sent_to_mdt-refinement-1"
+        },
+        {
+          "id": "moborder_sent_to_mdt-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "moborder_sent_to_mdt_based_on_am",
+          "target": "moborder_sent_to_mdt-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "moborder_sent_to_mdt-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "moborder_sent_to_mdt-refinement-1",
+        "target": "moborder_sent_to_mdt"
+      }
+    },
+    {
+      "hub": {
+        "id": "moborder_not_printed-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 3058,
+        "y": 1038
+      },
+      "starts": [
+        {
+          "id": "moborder_not_printed-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "paper_jam",
+          "target": "moborder_not_printed-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "moborder_not_printed-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "moborder_not_printed-refinement-1",
+        "target": "moborder_not_printed"
+      }
+    },
+    {
+      "hub": {
+        "id": "moborder_not_printed-refinement-2",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 3138,
+        "y": 1038
+      },
+      "starts": [
+        {
+          "id": "moborder_not_printed-refinement-2-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "out_of_paper",
+          "target": "moborder_not_printed-refinement-2"
+        }
+      ],
+      "end": {
+        "id": "moborder_not_printed-refinement-2-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "moborder_not_printed-refinement-2",
+        "target": "moborder_not_printed"
+      }
+    },
+    {
+      "hub": {
+        "id": "moborder_not_printed-refinement-3",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 3218,
+        "y": 1038
+      },
+      "starts": [
+        {
+          "id": "moborder_not_printed-refinement-3-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "data_lost",
+          "target": "moborder_not_printed-refinement-3"
+        }
+      ],
+      "end": {
+        "id": "moborder_not_printed-refinement-3-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "moborder_not_printed-refinement-3",
+        "target": "moborder_not_printed"
+      }
+    },
+    {
+      "hub": {
+        "id": "moborder_not_printed-refinement-4",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 3298,
+        "y": 1038
+      },
+      "starts": [
+        {
+          "id": "moborder_not_printed-refinement-4-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "printer_off",
+          "target": "moborder_not_printed-refinement-4"
+        }
+      ],
+      "end": {
+        "id": "moborder_not_printed-refinement-4-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "moborder_not_printed-refinement-4",
+        "target": "moborder_not_printed"
+      }
+    },
+    {
+      "hub": {
+        "id": "moborder_not_displayed-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 5698,
+        "y": 1038
+      },
+      "starts": [
+        {
+          "id": "moborder_not_displayed-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "mdt_turned_off",
+          "target": "moborder_not_displayed-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "moborder_not_displayed-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "moborder_not_displayed-refinement-1",
+        "target": "moborder_not_displayed"
+      }
+    },
+    {
+      "hub": {
+        "id": "location_known_not_info_known-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 4498,
+        "y": 838
+      },
+      "starts": [
+        {
+          "id": "location_known_not_info_known-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "avls_out_of_service",
+          "target": "location_known_not_info_known-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "location_known_not_info_known-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "location_known_not_info_known-refinement-1",
+        "target": "location_known_not_info_known"
+      }
+    },
+    {
+      "hub": {
+        "id": "location_known_not_info_known-refinement-2",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 4578,
+        "y": 838
+      },
+      "starts": [
+        {
+          "id": "location_known_not_info_known-refinement-2-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "gps_lost_connection",
+          "target": "location_known_not_info_known-refinement-2"
+        }
+      ],
+      "end": {
+        "id": "location_known_not_info_known-refinement-2-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "location_known_not_info_known-refinement-2",
+        "target": "location_known_not_info_known"
+      }
+    },
+    {
+      "hub": {
+        "id": "location_known_not_info_known-refinement-3",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 4658,
+        "y": 838
+      },
+      "starts": [
+        {
+          "id": "location_known_not_info_known-refinement-3-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "location_innaccurate",
+          "target": "location_known_not_info_known-refinement-3"
+        }
+      ],
+      "end": {
+        "id": "location_known_not_info_known-refinement-3-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "location_known_not_info_known-refinement-3",
+        "target": "location_known_not_info_known"
+      }
+    },
+    {
+      "hub": {
+        "id": "accurate_availability_information_not_encoded-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 898,
+        "y": 1038
+      },
+      "starts": [
+        {
+          "id": "accurate_availability_information_not_encoded-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "forget_to_encode_status",
+          "target": "accurate_availability_information_not_encoded-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "accurate_availability_information_not_encoded-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "accurate_availability_information_not_encoded-refinement-1",
+        "target": "accurate_availability_information_not_encoded"
+      }
+    },
+    {
+      "hub": {
+        "id": "accurate_availability_information_not_encoded-refinement-2",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 978,
+        "y": 1038
+      },
+      "starts": [
+        {
+          "id": "accurate_availability_information_not_encoded-refinement-2-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "wrong_button_pressed",
+          "target": "accurate_availability_information_not_encoded-refinement-2"
+        }
+      ],
+      "end": {
+        "id": "accurate_availability_information_not_encoded-refinement-2-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "accurate_availability_information_not_encoded-refinement-2",
+        "target": "accurate_availability_information_not_encoded"
+      }
+    },
+    {
+      "hub": {
+        "id": "mobilized_ambulance_not_intervention-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 6818,
+        "y": 438
+      },
+      "starts": [
+        {
+          "id": "mobilized_ambulance_not_intervention-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "service_end",
+          "target": "mobilized_ambulance_not_intervention-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "mobilized_ambulance_not_intervention-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "mobilized_ambulance_not_intervention-refinement-1",
+        "target": "mobilized_ambulance_not_intervention"
+      }
+    },
+    {
+      "hub": {
+        "id": "mobilized_ambulance_not_intervention-refinement-2",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 6978,
+        "y": 438
+      },
+      "starts": [
+        {
+          "id": "mobilized_ambulance_not_intervention-refinement-2-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "mobilization_retracted",
+          "target": "mobilized_ambulance_not_intervention-refinement-2"
+        }
+      ],
+      "end": {
+        "id": "mobilized_ambulance_not_intervention-refinement-2-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "mobilized_ambulance_not_intervention-refinement-2",
+        "target": "mobilized_ambulance_not_intervention"
+      }
+    },
+    {
+      "hub": {
+        "id": "mobilized_ambulance_not_intervention-refinement-3",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 7298,
+        "y": 438
+      },
+      "starts": [
+        {
+          "id": "mobilized_ambulance_not_intervention-refinement-3-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "ambulance_stopped_or_in_wrong_direction",
+          "target": "mobilized_ambulance_not_intervention-refinement-3"
+        }
+      ],
+      "end": {
+        "id": "mobilized_ambulance_not_intervention-refinement-3-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "mobilized_ambulance_not_intervention-refinement-3",
+        "target": "mobilized_ambulance_not_intervention"
+      }
+    },
+    {
+      "hub": {
+        "id": "mobilization_retracted-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 6738,
+        "y": 538
+      },
+      "starts": [
+        {
+          "id": "mobilization_retracted-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "destination_changed",
+          "target": "mobilization_retracted-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "mobilization_retracted-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "mobilization_retracted-refinement-1",
+        "target": "mobilization_retracted"
+      }
+    },
+    {
+      "hub": {
+        "id": "mobilization_retracted-refinement-2",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 6818,
+        "y": 538
+      },
+      "starts": [
+        {
+          "id": "mobilization_retracted-refinement-2-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "destination_forgotten",
+          "target": "mobilization_retracted-refinement-2"
+        }
+      ],
+      "end": {
+        "id": "mobilization_retracted-refinement-2-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "mobilization_retracted-refinement-2",
+        "target": "mobilization_retracted"
+      }
+    },
+    {
+      "hub": {
+        "id": "mobilization_retracted-refinement-3",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 6898,
+        "y": 538
+      },
+      "starts": [
+        {
+          "id": "mobilization_retracted-refinement-3-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "mobilization_cancelled",
+          "target": "mobilization_retracted-refinement-3"
+        }
+      ],
+      "end": {
+        "id": "mobilization_retracted-refinement-3-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "mobilization_retracted-refinement-3",
+        "target": "mobilization_retracted"
+      }
+    },
+    {
+      "hub": {
+        "id": "ambulance_stopped_or_in_wrong_direction-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 7298,
+        "y": 538
+      },
+      "starts": [
+        {
+          "id": "ambulance_stopped_or_in_wrong_direction-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "ambulance_stopped",
+          "target": "ambulance_stopped_or_in_wrong_direction-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "ambulance_stopped_or_in_wrong_direction-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "ambulance_stopped_or_in_wrong_direction-refinement-1",
+        "target": "ambulance_stopped_or_in_wrong_direction"
+      }
+    },
+    {
+      "hub": {
+        "id": "ambulance_stopped_or_in_wrong_direction-refinement-2",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 7538,
+        "y": 538
+      },
+      "starts": [
+        {
+          "id": "ambulance_stopped_or_in_wrong_direction-refinement-2-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "ambulance_in_wrong_direction",
+          "target": "ambulance_stopped_or_in_wrong_direction-refinement-2"
+        }
+      ],
+      "end": {
+        "id": "ambulance_stopped_or_in_wrong_direction-refinement-2-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "ambulance_stopped_or_in_wrong_direction-refinement-2",
+        "target": "ambulance_stopped_or_in_wrong_direction"
+      }
+    },
+    {
+      "hub": {
+        "id": "ambulance_stopped-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 7138,
+        "y": 638
+      },
+      "starts": [
+        {
+          "id": "ambulance_stopped-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "ambulance_broken",
+          "target": "ambulance_stopped-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "ambulance_stopped-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "ambulance_stopped-refinement-1",
+        "target": "ambulance_stopped"
+      }
+    },
+    {
+      "hub": {
+        "id": "ambulance_stopped-refinement-2",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 7218,
+        "y": 638
+      },
+      "starts": [
+        {
+          "id": "ambulance_stopped-refinement-2-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "ambulance_stopped_in_traffic",
+          "target": "ambulance_stopped-refinement-2"
+        }
+      ],
+      "end": {
+        "id": "ambulance_stopped-refinement-2-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "ambulance_stopped-refinement-2",
+        "target": "ambulance_stopped"
+      }
+    },
+    {
+      "hub": {
+        "id": "ambulance_in_wrong_direction-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 7538,
+        "y": 638
+      },
+      "starts": [
+        {
+          "id": "ambulance_in_wrong_direction-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "ambulance_lost",
+          "target": "ambulance_in_wrong_direction-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "ambulance_in_wrong_direction-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "ambulance_in_wrong_direction-refinement-1",
+        "target": "ambulance_in_wrong_direction"
+      }
+    },
+    {
+      "hub": {
+        "id": "ambulance_in_wrong_direction-refinement-2",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 7698,
+        "y": 638
+      },
+      "starts": [
+        {
+          "id": "ambulance_in_wrong_direction-refinement-2-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "ambulance_traffic_deviation",
+          "target": "ambulance_in_wrong_direction-refinement-2"
+        }
+      ],
+      "end": {
+        "id": "ambulance_in_wrong_direction-refinement-2-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "ambulance_in_wrong_direction-refinement-2",
+        "target": "ambulance_in_wrong_direction"
+      }
+    },
+    {
+      "hub": {
+        "id": "ambulance_lost-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 7498,
+        "y": 738
+      },
+      "starts": [
+        {
+          "id": "ambulance_lost-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "ambulance_in_unfamiliar_area",
+          "target": "ambulance_lost-refinement-1"
+        },
+        {
+          "id": "ambulance_lost-refinement-1-2",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "gps_broken",
+          "target": "ambulance_lost-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "ambulance_lost-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "ambulance_lost-refinement-1",
+        "target": "ambulance_lost"
+      }
+    },
+    {
+      "hub": {
+        "id": "incident_not_resolved_by_intervention-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 8738,
+        "y": 338
+      },
+      "starts": [
+        {
+          "id": "incident_not_resolved_by_intervention-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "patient_not_treated_at_location",
+          "target": "incident_not_resolved_by_intervention-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "incident_not_resolved_by_intervention-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "incident_not_resolved_by_intervention-refinement-1",
+        "target": "incident_not_resolved_by_intervention"
+      }
+    },
+    {
+      "hub": {
+        "id": "incident_not_resolved_by_intervention-refinement-2",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 9378,
+        "y": 338
+      },
+      "starts": [
+        {
+          "id": "incident_not_resolved_by_intervention-refinement-2-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "patient_not_admitted_or_transported_at_hospital",
+          "target": "incident_not_resolved_by_intervention-refinement-2"
+        }
+      ],
+      "end": {
+        "id": "incident_not_resolved_by_intervention-refinement-2-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "incident_not_resolved_by_intervention-refinement-2",
+        "target": "incident_not_resolved_by_intervention"
+      }
+    },
+    {
+      "hub": {
+        "id": "patient_not_treated_at_location-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 8338,
+        "y": 438
+      },
+      "starts": [
+        {
+          "id": "patient_not_treated_at_location-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "critical_care_not_given",
+          "target": "patient_not_treated_at_location-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "patient_not_treated_at_location-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "patient_not_treated_at_location-refinement-1",
+        "target": "patient_not_treated_at_location"
+      }
+    },
+    {
+      "hub": {
+        "id": "patient_not_treated_at_location-refinement-2",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 8658,
+        "y": 438
+      },
+      "starts": [
+        {
+          "id": "patient_not_treated_at_location-refinement-2-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "patient_unreachable_safely",
+          "target": "patient_not_treated_at_location-refinement-2"
+        }
+      ],
+      "end": {
+        "id": "patient_not_treated_at_location-refinement-2-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "patient_not_treated_at_location-refinement-2",
+        "target": "patient_not_treated_at_location"
+      }
+    },
+    {
+      "hub": {
+        "id": "patient_unreachable_safely-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 8818,
+        "y": 538
+      },
+      "starts": [
+        {
+          "id": "patient_unreachable_safely-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "fire_environment",
+          "target": "patient_unreachable_safely-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "patient_unreachable_safely-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "patient_unreachable_safely-refinement-1",
+        "target": "patient_unreachable_safely"
+      }
+    },
+    {
+      "hub": {
+        "id": "patient_unreachable_safely-refinement-2",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 8898,
+        "y": 538
+      },
+      "starts": [
+        {
+          "id": "patient_unreachable_safely-refinement-2-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "hazardous_environment",
+          "target": "patient_unreachable_safely-refinement-2"
+        }
+      ],
+      "end": {
+        "id": "patient_unreachable_safely-refinement-2-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "patient_unreachable_safely-refinement-2",
+        "target": "patient_unreachable_safely"
+      }
+    },
+    {
+      "hub": {
+        "id": "patient_unreachable_safely-refinement-3",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 8978,
+        "y": 538
+      },
+      "starts": [
+        {
+          "id": "patient_unreachable_safely-refinement-3-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "unreachable_patient",
+          "target": "patient_unreachable_safely-refinement-3"
+        }
+      ],
+      "end": {
+        "id": "patient_unreachable_safely-refinement-3-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "patient_unreachable_safely-refinement-3",
+        "target": "patient_unreachable_safely"
+      }
+    },
+    {
+      "hub": {
+        "id": "critical_care_not_given-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 8098,
+        "y": 538
+      },
+      "starts": [
+        {
+          "id": "critical_care_not_given-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "insufficient_ressource",
+          "target": "critical_care_not_given-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "critical_care_not_given-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "critical_care_not_given-refinement-1",
+        "target": "critical_care_not_given"
+      }
+    },
+    {
+      "hub": {
+        "id": "critical_care_not_given-refinement-2",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 8338,
+        "y": 538
+      },
+      "starts": [
+        {
+          "id": "critical_care_not_given-refinement-2-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "available_ressource_not_used",
+          "target": "critical_care_not_given-refinement-2"
+        }
+      ],
+      "end": {
+        "id": "critical_care_not_given-refinement-2-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "critical_care_not_given-refinement-2",
+        "target": "critical_care_not_given"
+      }
+    },
+    {
+      "hub": {
+        "id": "available_ressource_not_used-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 8338,
+        "y": 638
+      },
+      "starts": [
+        {
+          "id": "available_ressource_not_used-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "wrong_info_about_patient",
+          "target": "available_ressource_not_used-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "available_ressource_not_used-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "available_ressource_not_used-refinement-1",
+        "target": "available_ressource_not_used"
+      }
+    },
+    {
+      "hub": {
+        "id": "available_ressource_not_used-refinement-2",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 8418,
+        "y": 638
+      },
+      "starts": [
+        {
+          "id": "available_ressource_not_used-refinement-2-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "ressource_out_of_order",
+          "target": "available_ressource_not_used-refinement-2"
+        }
+      ],
+      "end": {
+        "id": "available_ressource_not_used-refinement-2-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "available_ressource_not_used-refinement-2",
+        "target": "available_ressource_not_used"
+      }
+    },
+    {
+      "hub": {
+        "id": "available_ressource_not_used-refinement-3",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 8498,
+        "y": 638
+      },
+      "starts": [
+        {
+          "id": "available_ressource_not_used-refinement-3-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "qualification_missing_for_ressource",
+          "target": "available_ressource_not_used-refinement-3"
+        }
+      ],
+      "end": {
+        "id": "available_ressource_not_used-refinement-3-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "available_ressource_not_used-refinement-3",
+        "target": "available_ressource_not_used"
+      }
+    },
+    {
+      "hub": {
+        "id": "insufficient_ressource-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 7938,
+        "y": 638
+      },
+      "starts": [
+        {
+          "id": "insufficient_ressource-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "ressource_confusion",
+          "target": "insufficient_ressource-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "insufficient_ressource-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "insufficient_ressource-refinement-1",
+        "target": "insufficient_ressource"
+      }
+    },
+    {
+      "hub": {
+        "id": "insufficient_ressource-refinement-2",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 8018,
+        "y": 638
+      },
+      "starts": [
+        {
+          "id": "insufficient_ressource-refinement-2-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "ressource_not_available",
+          "target": "insufficient_ressource-refinement-2"
+        }
+      ],
+      "end": {
+        "id": "insufficient_ressource-refinement-2-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "insufficient_ressource-refinement-2",
+        "target": "insufficient_ressource"
+      }
+    },
+    {
+      "hub": {
+        "id": "insufficient_ressource-refinement-3",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 8098,
+        "y": 638
+      },
+      "starts": [
+        {
+          "id": "insufficient_ressource-refinement-3-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "wrong_info_about_patient",
+          "target": "insufficient_ressource-refinement-3"
+        }
+      ],
+      "end": {
+        "id": "insufficient_ressource-refinement-3-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "insufficient_ressource-refinement-3",
+        "target": "insufficient_ressource"
+      }
+    },
+    {
+      "hub": {
+        "id": "patient_not_admitted_or_transported_at_hospital-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 9538,
+        "y": 438
+      },
+      "starts": [
+        {
+          "id": "patient_not_admitted_or_transported_at_hospital-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "patient_not_transported",
+          "target": "patient_not_admitted_or_transported_at_hospital-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "patient_not_admitted_or_transported_at_hospital-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "patient_not_admitted_or_transported_at_hospital-refinement-1",
+        "target": "patient_not_admitted_or_transported_at_hospital"
+      }
+    },
+    {
+      "hub": {
+        "id": "patient_not_admitted_or_transported_at_hospital-refinement-2",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 9858,
+        "y": 438
+      },
+      "starts": [
+        {
+          "id": "patient_not_admitted_or_transported_at_hospital-refinement-2-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "patient_not_admitted",
+          "target": "patient_not_admitted_or_transported_at_hospital-refinement-2"
+        }
+      ],
+      "end": {
+        "id": "patient_not_admitted_or_transported_at_hospital-refinement-2-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "patient_not_admitted_or_transported_at_hospital-refinement-2",
+        "target": "patient_not_admitted_or_transported_at_hospital"
+      }
+    },
+    {
+      "hub": {
+        "id": "patient_not_transported-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 9378,
+        "y": 538
+      },
+      "starts": [
+        {
+          "id": "patient_not_transported-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "patient_not_in_ambulance",
+          "target": "patient_not_transported-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "patient_not_transported-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "patient_not_transported-refinement-1",
+        "target": "patient_not_transported"
+      }
+    },
+    {
+      "hub": {
+        "id": "patient_not_transported-refinement-2",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 9538,
+        "y": 538
+      },
+      "starts": [
+        {
+          "id": "patient_not_transported-refinement-2-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "patient_not_in_ambulance_and_not_transported",
+          "target": "patient_not_transported-refinement-2"
+        }
+      ],
+      "end": {
+        "id": "patient_not_transported-refinement-2-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "patient_not_transported-refinement-2",
+        "target": "patient_not_transported"
+      }
+    },
+    {
+      "hub": {
+        "id": "patient_not_in_ambulance-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 9298,
+        "y": 638
+      },
+      "starts": [
+        {
+          "id": "patient_not_in_ambulance-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "insufficient_capacity",
+          "target": "patient_not_in_ambulance-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "patient_not_in_ambulance-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "patient_not_in_ambulance-refinement-1",
+        "target": "patient_not_in_ambulance"
+      }
+    },
+    {
+      "hub": {
+        "id": "patient_not_in_ambulance-refinement-2",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 9378,
+        "y": 638
+      },
+      "starts": [
+        {
+          "id": "patient_not_in_ambulance-refinement-2-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "overweight_patient",
+          "target": "patient_not_in_ambulance-refinement-2"
+        }
+      ],
+      "end": {
+        "id": "patient_not_in_ambulance-refinement-2-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "patient_not_in_ambulance-refinement-2",
+        "target": "patient_not_in_ambulance"
+      }
+    },
+    {
+      "hub": {
+        "id": "patient_not_in_ambulance-refinement-3",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 9458,
+        "y": 638
+      },
+      "starts": [
+        {
+          "id": "patient_not_in_ambulance-refinement-3-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "patient_cannot_reach_ambulance",
+          "target": "patient_not_in_ambulance-refinement-3"
+        }
+      ],
+      "end": {
+        "id": "patient_not_in_ambulance-refinement-3-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "patient_not_in_ambulance-refinement-3",
+        "target": "patient_not_in_ambulance"
+      }
+    },
+    {
+      "hub": {
+        "id": "patient_not_in_ambulance_and_not_transported-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 8418,
+        "y": 638
+      },
+      "starts": [
+        {
+          "id": "patient_not_in_ambulance_and_not_transported-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "ambulance_broken",
+          "target": "patient_not_in_ambulance_and_not_transported-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "patient_not_in_ambulance_and_not_transported-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "patient_not_in_ambulance_and_not_transported-refinement-1",
+        "target": "patient_not_in_ambulance_and_not_transported"
+      }
+    },
+    {
+      "hub": {
+        "id": "patient_not_in_ambulance_and_not_transported-refinement-2",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 9698,
+        "y": 638
+      },
+      "starts": [
+        {
+          "id": "patient_not_in_ambulance_and_not_transported-refinement-2-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "patient_not_transportable",
+          "target": "patient_not_in_ambulance_and_not_transported-refinement-2"
+        }
+      ],
+      "end": {
+        "id": "patient_not_in_ambulance_and_not_transported-refinement-2-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "patient_not_in_ambulance_and_not_transported-refinement-2",
+        "target": "patient_not_in_ambulance_and_not_transported"
+      }
+    },
+    {
+      "hub": {
+        "id": "patient_not_admitted-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 9938,
+        "y": 538
+      },
+      "starts": [
+        {
+          "id": "patient_not_admitted-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "no_bed",
+          "target": "patient_not_admitted-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "patient_not_admitted-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "patient_not_admitted-refinement-1",
+        "target": "patient_not_admitted"
+      }
+    },
+    {
+      "hub": {
+        "id": "patient_not_admitted-refinement-2",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 10018,
+        "y": 538
+      },
+      "starts": [
+        {
+          "id": "patient_not_admitted-refinement-2-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "available_bed_not_assigned",
+          "target": "patient_not_admitted-refinement-2"
+        }
+      ],
+      "end": {
+        "id": "patient_not_admitted-refinement-2-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "patient_not_admitted-refinement-2",
+        "target": "patient_not_admitted"
+      }
+    },
+    {
+      "hub": {
+        "id": "patient_not_admitted-refinement-3",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 10098,
+        "y": 538
+      },
+      "starts": [
+        {
+          "id": "patient_not_admitted-refinement-3-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "special_unit_required",
+          "target": "patient_not_admitted-refinement-3"
+        }
+      ],
+      "end": {
+        "id": "patient_not_admitted-refinement-3-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "patient_not_admitted-refinement-3",
+        "target": "patient_not_admitted"
+      }
+    },
+    {
+      "hub": {
+        "id": "not_allocation_when_moborder_printed-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 3778,
+        "y": 938
+      },
+      "starts": [
+        {
+          "id": "not_allocation_when_moborder_printed-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "ambulance_not_at_station",
+          "target": "not_allocation_when_moborder_printed-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "not_allocation_when_moborder_printed-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "not_allocation_when_moborder_printed-refinement-1",
+        "target": "not_allocation_when_moborder_printed"
+      }
+    },
+    {
+      "hub": {
+        "id": "not_allocation_when_moborder_printed-refinement-2",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 3858,
+        "y": 938
+      },
+      "starts": [
+        {
+          "id": "not_allocation_when_moborder_printed-refinement-2-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "allocated_ambulance_not_available",
+          "target": "not_allocation_when_moborder_printed-refinement-2"
+        }
+      ],
+      "end": {
+        "id": "not_allocation_when_moborder_printed-refinement-2-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "not_allocation_when_moborder_printed-refinement-2",
+        "target": "not_allocation_when_moborder_printed"
+      }
+    },
+    {
+      "hub": {
+        "id": "not_allocation_when_moborder_printed-refinement-3",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 3938,
+        "y": 938
+      },
+      "starts": [
+        {
+          "id": "not_allocation_when_moborder_printed-refinement-3-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "printed_mobilization_order_ignored",
+          "target": "not_allocation_when_moborder_printed-refinement-3"
+        }
+      ],
+      "end": {
+        "id": "not_allocation_when_moborder_printed-refinement-3-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "not_allocation_when_moborder_printed-refinement-3",
+        "target": "not_allocation_when_moborder_printed"
+      }
+    },
+    {
+      "hub": {
+        "id": "not_allocation_when_moborder_printed-refinement-4",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 4018,
+        "y": 938
+      },
+      "starts": [
+        {
+          "id": "not_allocation_when_moborder_printed-refinement-4-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "mobilization_taken_by_other_ambulance",
+          "target": "not_allocation_when_moborder_printed-refinement-4"
+        }
+      ],
+      "end": {
+        "id": "not_allocation_when_moborder_printed-refinement-4-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "not_allocation_when_moborder_printed-refinement-4",
+        "target": "not_allocation_when_moborder_printed"
+      }
+    },
+    {
+      "hub": {
+        "id": "not_allocation_when_moborder_printed-refinement-5",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 4098,
+        "y": 938
+      },
+      "starts": [
+        {
+          "id": "not_allocation_when_moborder_printed-refinement-5-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "mobilized_to_wrong_destination",
+          "target": "not_allocation_when_moborder_printed-refinement-5"
+        }
+      ],
+      "end": {
+        "id": "not_allocation_when_moborder_printed-refinement-5-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "not_allocation_when_moborder_printed-refinement-5",
+        "target": "not_allocation_when_moborder_printed"
+      }
+    },
+    {
+      "hub": {
+        "id": "printed_mobilization_order_ignored-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 3938,
+        "y": 1038
+      },
+      "starts": [
+        {
+          "id": "printed_mobilization_order_ignored-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "crew_not_near_printer",
+          "target": "printed_mobilization_order_ignored-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "printed_mobilization_order_ignored-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "printed_mobilization_order_ignored-refinement-1",
+        "target": "printed_mobilization_order_ignored"
+      }
+    },
+    {
+      "hub": {
+        "id": "moborder_not_sent_to_mdt_based_on_am-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 5058,
+        "y": 1138
+      },
+      "starts": [
+        {
+          "id": "moborder_not_sent_to_mdt_based_on_am-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "no_line_free",
+          "target": "moborder_not_sent_to_mdt_based_on_am-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "moborder_not_sent_to_mdt_based_on_am-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "moborder_not_sent_to_mdt_based_on_am-refinement-1",
+        "target": "moborder_not_sent_to_mdt_based_on_am"
+      }
+    },
+    {
+      "hub": {
+        "id": "moborder_not_sent_to_printer_based_on_am-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 3858,
+        "y": 1138
+      },
+      "starts": [
+        {
+          "id": "moborder_not_sent_to_printer_based_on_am-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "no_line_free",
+          "target": "moborder_not_sent_to_printer_based_on_am-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "moborder_not_sent_to_printer_based_on_am-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "moborder_not_sent_to_printer_based_on_am-refinement-1",
+        "target": "moborder_not_sent_to_printer_based_on_am"
+      }
+    },
+    {
+      "hub": {
+        "id": "moborder_not_transmitted_to_mdt-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 5298,
+        "y": 1038
+      },
+      "starts": [
+        {
+          "id": "moborder_not_transmitted_to_mdt-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "congestion",
+          "target": "moborder_not_transmitted_to_mdt-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "moborder_not_transmitted_to_mdt-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "moborder_not_transmitted_to_mdt-refinement-1",
+        "target": "moborder_not_transmitted_to_mdt"
+      }
+    },
+    {
+      "hub": {
+        "id": "moborder_not_transmitted_to_mdt-refinement-2",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 5378,
+        "y": 1038
+      },
+      "starts": [
+        {
+          "id": "moborder_not_transmitted_to_mdt-refinement-2-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "blackspot",
+          "target": "moborder_not_transmitted_to_mdt-refinement-2"
+        }
+      ],
+      "end": {
+        "id": "moborder_not_transmitted_to_mdt-refinement-2-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "moborder_not_transmitted_to_mdt-refinement-2",
+        "target": "moborder_not_transmitted_to_mdt"
+      }
+    },
+    {
+      "hub": {
+        "id": "moborder_not_transmitted_to_mdt-refinement-3",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 5458,
+        "y": 1038
+      },
+      "starts": [
+        {
+          "id": "moborder_not_transmitted_to_mdt-refinement-3-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "corrupted_mobilization_order",
+          "target": "moborder_not_transmitted_to_mdt-refinement-3"
+        }
+      ],
+      "end": {
+        "id": "moborder_not_transmitted_to_mdt-refinement-3-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "moborder_not_transmitted_to_mdt-refinement-3",
+        "target": "moborder_not_transmitted_to_mdt"
+      }
+    },
+    {
+      "hub": {
+        "id": "no_allocation_when_moborder_displayed-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 5938,
+        "y": 938
+      },
+      "starts": [
+        {
+          "id": "no_allocation_when_moborder_displayed-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "ambulance_not_available_when_moborder_displayed",
+          "target": "no_allocation_when_moborder_displayed-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "no_allocation_when_moborder_displayed-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "no_allocation_when_moborder_displayed-refinement-1",
+        "target": "no_allocation_when_moborder_displayed"
+      }
+    },
+    {
+      "hub": {
+        "id": "no_allocation_when_moborder_displayed-refinement-2",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 6018,
+        "y": 938
+      },
+      "starts": [
+        {
+          "id": "no_allocation_when_moborder_displayed-refinement-2-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "displayed_mobilization_order_ignored",
+          "target": "no_allocation_when_moborder_displayed-refinement-2"
+        }
+      ],
+      "end": {
+        "id": "no_allocation_when_moborder_displayed-refinement-2-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "no_allocation_when_moborder_displayed-refinement-2",
+        "target": "no_allocation_when_moborder_displayed"
+      }
+    },
+    {
+      "hub": {
+        "id": "no_allocation_when_moborder_displayed-refinement-3",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 6178,
+        "y": 938
+      },
+      "starts": [
+        {
+          "id": "no_allocation_when_moborder_displayed-refinement-3-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "mobilized_to_wrong_destination_when_displayed",
+          "target": "no_allocation_when_moborder_displayed-refinement-3"
+        }
+      ],
+      "end": {
+        "id": "no_allocation_when_moborder_displayed-refinement-3-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "no_allocation_when_moborder_displayed-refinement-3",
+        "target": "no_allocation_when_moborder_displayed"
+      }
+    },
+    {
+      "hub": {
+        "id": "mobilized_to_wrong_destination_when_displayed-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 6338,
+        "y": 1038
+      },
+      "starts": [
+        {
+          "id": "mobilized_to_wrong_destination_when_displayed-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "destination_confused",
+          "target": "mobilized_to_wrong_destination_when_displayed-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "mobilized_to_wrong_destination_when_displayed-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "mobilized_to_wrong_destination_when_displayed-refinement-1",
+        "target": "mobilized_to_wrong_destination_when_displayed"
+      }
+    },
+    {
+      "hub": {
+        "id": "displayed_mobilization_order_ignored-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 6018,
+        "y": 1038
+      },
+      "starts": [
+        {
+          "id": "displayed_mobilization_order_ignored-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "crew_distracted",
+          "target": "displayed_mobilization_order_ignored-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "displayed_mobilization_order_ignored-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "displayed_mobilization_order_ignored-refinement-1",
+        "target": "displayed_mobilization_order_ignored"
+      }
+    },
+    {
+      "hub": {
+        "id": "displayed_mobilization_order_ignored-refinement-2",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 6098,
+        "y": 1038
+      },
+      "starts": [
+        {
+          "id": "displayed_mobilization_order_ignored-refinement-2-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "crew_not_in_ambulance",
+          "target": "displayed_mobilization_order_ignored-refinement-2"
+        }
+      ],
+      "end": {
+        "id": "displayed_mobilization_order_ignored-refinement-2-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "displayed_mobilization_order_ignored-refinement-2",
+        "target": "displayed_mobilization_order_ignored"
+      }
+    },
+    {
+      "id": "incident_not_resolved_by_intervention-obstructs-achieve_incident_resolved_by_intervention",
+      "type": "kaos.ObstructionLink",
+      "source": "incident_not_resolved_by_intervention",
+      "target": "achieve_incident_resolved_by_intervention"
+    },
+    {
+      "id": "mobilized_ambulance_not_intervention-obstructs-achieve_mobilized_ambulance_intervention",
+      "type": "kaos.ObstructionLink",
+      "source": "mobilized_ambulance_not_intervention",
+      "target": "achieve_mobilized_ambulance_intervention"
+    },
+    {
+      "id": "location_known_not_info_known-obstructs-maintain_location_info_known",
+      "type": "kaos.ObstructionLink",
+      "source": "location_known_not_info_known",
+      "target": "maintain_location_info_known"
+    },
+    {
+      "id": "accurate_availability_information_not_encoded-obstructs-accurate_availability_information_encoded",
+      "type": "kaos.ObstructionLink",
+      "source": "accurate_availability_information_not_encoded",
+      "target": "accurate_availability_information_encoded"
+    },
+    {
+      "id": "not_allocation_when_moborder_printed-obstructs-achieve_allocation_when_moborder_printed",
+      "type": "kaos.ObstructionLink",
+      "source": "not_allocation_when_moborder_printed",
+      "target": "achieve_allocation_when_moborder_printed"
+    },
+    {
+      "id": "moborder_not_sent_to_printer_based_on_am-obstructs-moborder_sent_to_printer_based_on_am",
+      "type": "kaos.ObstructionLink",
+      "source": "moborder_not_sent_to_printer_based_on_am",
+      "target": "moborder_sent_to_printer_based_on_am"
+    },
+    {
+      "id": "moborder_not_printed-obstructs-moborder_printed",
+      "type": "kaos.ObstructionLink",
+      "source": "moborder_not_printed",
+      "target": "moborder_printed"
+    },
+    {
+      "id": "no_allocation_when_moborder_displayed-obstructs-achieve_allocation_when_moborder_displayed",
+      "type": "kaos.ObstructionLink",
+      "source": "no_allocation_when_moborder_displayed",
+      "target": "achieve_allocation_when_moborder_displayed"
+    },
+    {
+      "id": "moborder_not_sent_to_mdt_based_on_am-obstructs-moborder_sent_to_mdt_based_on_am",
+      "type": "kaos.ObstructionLink",
+      "source": "moborder_not_sent_to_mdt_based_on_am",
+      "target": "moborder_sent_to_mdt_based_on_am"
+    },
+    {
+      "id": "moborder_not_transmitted_to_mdt-obstructs-moborder_transmitted_to_mdt",
+      "type": "kaos.ObstructionLink",
+      "source": "moborder_not_transmitted_to_mdt",
+      "target": "moborder_transmitted_to_mdt"
+    },
+    {
+      "id": "moborder_not_displayed-obstructs-moborder_displayed",
+      "type": "kaos.ObstructionLink",
+      "source": "moborder_not_displayed",
+      "target": "moborder_displayed"
+    },
+    {
+      "id": "public-assigned-achieve_incident_reported",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "public",
+      "target": "achieve_incident_reported"
+    },
+    {
+      "id": "staff-assigned-achieve_incident_resolved_by_intervention",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "staff",
+      "target": "achieve_incident_resolved_by_intervention"
+    },
+    {
+      "id": "staff-assigned-achieve_mobilized_ambulance_intervention",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "staff",
+      "target": "achieve_mobilized_ambulance_intervention"
+    },
+    {
+      "id": "operator-assigned-maintain_accurate_incident_form",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "operator",
+      "target": "maintain_accurate_incident_form"
+    },
+    {
+      "id": "cad-assigned-achieve_ambulance_allocation_based_on_if_and_af_when_available",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "cad",
+      "target": "achieve_ambulance_allocation_based_on_if_and_af_when_available"
+    },
+    {
+      "id": "avls-assigned-maintain_location_info_known",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "avls",
+      "target": "maintain_location_info_known"
+    },
+    {
+      "id": "staff-assigned-accurate_availability_information_encoded",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "staff",
+      "target": "accurate_availability_information_encoded"
+    },
+    {
+      "id": "mdt-assigned-accurate_availability_info_sent",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "mdt",
+      "target": "accurate_availability_info_sent"
+    },
+    {
+      "id": "ci-assigned-accurate_availability_info_transmitted",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "ci",
+      "target": "accurate_availability_info_transmitted"
+    },
+    {
+      "id": "cad-assigned-accurate_availability_info_recorded",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "cad",
+      "target": "accurate_availability_info_recorded"
+    },
+    {
+      "id": "staff-assigned-achieve_allocation_when_moborder_printed",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "staff",
+      "target": "achieve_allocation_when_moborder_printed"
+    },
+    {
+      "id": "cad-assigned-moborder_sent_to_printer_based_on_am",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "cad",
+      "target": "moborder_sent_to_printer_based_on_am"
+    },
+    {
+      "id": "ci-assigned-moborder_transmitted_to_printer",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "ci",
+      "target": "moborder_transmitted_to_printer"
+    },
+    {
+      "id": "printer-assigned-moborder_printed",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "printer",
+      "target": "moborder_printed"
+    },
+    {
+      "id": "staff-assigned-achieve_allocation_when_moborder_displayed",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "staff",
+      "target": "achieve_allocation_when_moborder_displayed"
+    },
+    {
+      "id": "cad-assigned-moborder_sent_to_mdt_based_on_am",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "cad",
+      "target": "moborder_sent_to_mdt_based_on_am"
+    },
+    {
+      "id": "ci-assigned-moborder_transmitted_to_mdt",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "ci",
+      "target": "moborder_transmitted_to_mdt"
+    },
+    {
+      "id": "mdt-assigned-moborder_displayed",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "mdt",
+      "target": "moborder_displayed"
+    }
+  ],
+  "display": {},
+  "tool": "dsm3-goals",
+  "metamodelVersion": "1.0",
+  "diagram": {
+    "width": 10415,
+    "height": 1316,
+    "name": "London Ambulance System",
+    "customProperties": {
+      "Description": "",
+      "kaosUnsupported": "@author \"Antoine Cailliau, Axel van Lamsweerde\"\n\n@version \"0.2\"\n\n@experts.quantiles \"(.1, .5, .9)\"\n\noverride obstacle [ paper_jam ]\n  probability[e4] (20.00%, 20.00%, 40.00%)\nend\n\noverride obstacle [ out_of_paper ]\n  probability[e4] (5.00%, 5.00%, 10.00%)\nend\n\noverride obstacle [ data_lost ]\n  probability[e4] (1.00%, 10.00%, 15.00%)\nend\n\noverride obstacle [ printer_off ]\n  probability[e4] (1.00%, 1.00%, 1.00%)\nend\n\noverride obstacle [ mdt_turned_off ]\n  probability[e4] (1.00%, 1.00%, 1.00%)\nend\n\noverride obstacle [ avls_out_of_service ]\n  probability[e4] (0.00%, 0.00%, 0.00%)\nend\n\noverride obstacle [ gps_lost_connection ]\n  probability[e4] (30.00%, 40.00%, 50.00%)\nend\n\noverride obstacle [ location_innaccurate ]\n  probability[e4] (25.00%, 30.00%, 30.00%)\nend\n\noverride obstacle [ forget_to_encode_status ]\n  probability[e4] (20.00%, 25.00%, 40.00%)\nend\n\noverride obstacle [ wrong_button_pressed ]\n  probability[e4] (10.00%, 10.00%, 10.00%)\nend\n\noverride obstacle [ service_end ]\n  probability[e4] (10.00%, 15.00%, 20.00%)\nend\n\noverride obstacle [ destination_changed ]\n  probability[e4] (5.00%, 5.00%, 10.00%)\nend\n\noverride obstacle [ destination_forgotten ]\n  probability[e4] (10.00%, 15.00%, 20.00%)\nend\n\noverride obstacle [ mobilization_cancelled ]\n  probability[e4] (15.00%, 20.00%, 20.00%)\nend\n\noverride obstacle [ ambulance_broken ]\n  probability[e4] (5.00%, 5.00%, 5.00%)\nend\n\noverride obstacle [ ambulance_stopped_in_traffic ]\n  probability[e4] (40.00%, 50.00%, 70.00%)\nend\n\noverride obstacle [ gps_broken ]\n  probability[e4] (0.00%, 0.00%, 0.00%)\nend\n\noverride obstacle [ ambulance_in_unfamiliar_area ]\n  probability[e4] (20.00%, 20.00%, 30.00%)\nend\n\noverride obstacle [ ambulance_traffic_deviation ]\n  probability[e4] (40.00%, 50.00%, 70.00%)\nend\n\noverride obstacle [ fire_environment ]\n  probability[e4] (7.00%, 7.00%, 7.00%)\nend\n\noverride obstacle [ hazardous_environment ]\n  probability[e4] (25.00%, 30.00%, 65.00%)\nend\n\noverride obstacle [ unreachable_patient ]\n  probability[e4] (15.00%, 20.00%, 35.00%)\nend\n\noverride obstacle [ ressource_out_of_order ]\n  probability[e4] (25.00%, 40.00%, 45.00%)\nend\n\noverride obstacle [ qualification_missing_for_ressource ]\n  probability[e4] (20.00%, 30.00%, 40.00%)\nend\n\noverride obstacle [ ressource_confusion ]\n  probability[e4] (0.00%, 0.00%, 0.00%)\nend\n\noverride obstacle [ ressource_not_available ]\n  probability[e4] (10.00%, 15.00%, 20.00%)\nend\n\noverride obstacle [ wrong_info_about_patient ]\n  probability[e4] (25.00%, 30.00%, 30.00%)\nend\n\noverride obstacle [ patient_not_transportable ]\n  probability[e4] (5.00%, 5.00%, 5.00%)\nend\n\noverride obstacle [ insufficient_capacity ]\n  probability[e4] (5.00%, 5.00%, 5.00%)\nend\n\noverride obstacle [ overweight_patient ]\n  probability[e4] (3.00%, 5.00%, 10.00%)\nend\n\noverride obstacle [ patient_cannot_reach_ambulance ]\n  probability[e4] (5.00%, 10.00%, 25.00%)\nend\n\noverride obstacle [ available_bed_not_assigned ]\n  probability[e4] (5.00%, 7.00%, 10.00%)\nend\n\noverride obstacle [ special_unit_required ]\n  probability[e4] (20.00%, 25.00%, 40.00%)\nend\n\noverride obstacle [ no_bed ]\n  probability[e4] (10.00%, 15.00%, 25.00%)\nend\n\noverride obstacle [ ambulance_not_at_station ]\n  probability[e4] (30.00%, 10.00%, 50.00%)\nend\n\noverride obstacle [ allocated_ambulance_not_available ]\n  probability[e4] (10.00%, 20.00%, 30.00%)\nend\n\noverride obstacle [ crew_not_near_printer ]\n  probability[e4] (5.00%, 5.00%, 5.00%)\nend\n\noverride obstacle [ mobilization_taken_by_other_ambulance ]\n  probability[e4] (0.00%, 0.00%, 0.00%)\nend\n\noverride obstacle [ mobilized_to_wrong_destination ]\n  probability[e4] (5.00%, 5.00%, 10.00%)\nend\n\noverride obstacle [ no_line_free ]\n  probability[e4] (0.00%, 0.00, 0.00%)\nend\n\noverride obstacle [ congestion ]\n  probability[e4] (0.00%, 0.00, 0.00%)\nend\n\noverride obstacle [ blackspot ]\n  probability[e4] (10.00%, 15.00%, 20.00%)\nend\n\noverride obstacle [ corrupted_mobilization_order ]\n  probability[e4] (0.00%, 0.00, 0.00%)\nend\n\noverride obstacle [ ambulance_not_available_when_moborder_displayed ]\n  probability[e4] (10.00%, 20.00%, 30.00%)\nend\n\noverride obstacle [ destination_confused ]\n  probability[e4] (5.00%, 5.00%, 7.00%)\nend\n\noverride obstacle [ crew_not_in_ambulance ]\n  probability[e4] (10.00%, 15.00%, 20.00%)\nend\n\noverride obstacle [ crew_distracted ]\n  probability[e4] (5.00%, 5.00%, 5.00%)\nend\n\ndeclare expert [ e1 ]\n\tname \"Expert 1\"\nend\n\ndeclare expert [ e2 ]\n\tname \"Expert 2\"\nend\n\ndeclare expert [ e3 ]\n\tname \"Expert 3\"\nend\n\ndeclare expert [ e4 ]\n\tname \"Expert 4\"\nend\n\ndeclare expert [ e5 ]\n\tname \"Expert 5\"\nend\n\ndeclare calibration\n\tname \"Calibration [Allocated Ambulance Not At Station]\"\n\tprobability 50%\n\t#probability[e1] (13.33%, 33.33%, 53.33%)\n\t#probability[e2] (15.00%, 40.00%, 75.00%)\n\t#probability[e3] (10.00%, 15.00%, 25.00%)\n\tprobability[e4] (30.00%, 10.00%, 50.00%)\n\t#probability[e5] (2.00%, 4.00%, 10.00%)\nend\n\ndeclare calibration\n\tname \"Calibration [Mobilization Cancelled]\"\n\tprobability 13%\n\t#probability[e1] (13.33%, 20.00%, 33.33%)\n\t#probability[e2] (0.00%, 25.00%, 40.00%)\n\t#probability[e3] (1.00%, 1.00%, 2.00%)\n\tprobability[e4] (15.00%, 20.00%, 20.00%)\n\t#probability[e5] (4.00%, 6.00%, 10.00%)\nend\n\ndeclare calibration\n\tname \"Calibration [MDT Turned Off]\"\n\tprobability 33.3%\n\t#probability[e1] (53.33%, 66.67%, 80.00%)\n\t#probability[e2] (0.00%, 0.00%, 0.00%)\n\t#probability[e3] (0.00%, 0.00%, 0.00%)\n\tprobability[e4] (1.00%, 1.00%, 1.00%)\n\t#probability[e5] (0.00%, 0.00%, 0.00%)\nend"
+    }
+  }
+}

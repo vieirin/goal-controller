@@ -850,10 +850,10 @@ export const readKaos = (
       width: Math.max(extent?.right ?? 0, 400) + 135,
       height: Math.max(extent?.bottom ?? 0, 300) + 36,
       name: title ?? modelName,
+      // no mode or framework recorded: the project's manifest says kaosprop
+      // (the native file's dialect), its kinds that it is KAOS (as DSM3's)
       customProperties: {
         Description: '',
-        engine: KAOS_ENGINE,
-        framework: 'kaos',
         ...(kept.length && { [KAOS_UNSUPPORTED_KEY]: kept.join('\n\n') }),
       },
     },

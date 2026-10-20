@@ -30,11 +30,12 @@ const LAS = fixture('re12-las.txt');
 const CARPOOLING = fixture('rej13-carpooling.txt');
 const ORACLE = readFileSync('../../examples/kaos/las/las.expected.csv', 'utf8');
 
-/** A CSV's rows, its quoted fields unquoted. */
+/** A CSV's rows, its quoted fields unquoted; `#` lines (its note) left out. */
 const csv = (text: string): string[][] =>
   text
     .trim()
     .split('\n')
+    .filter((line) => !line.startsWith('#'))
     .slice(1)
     .map((line) =>
       [...line.matchAll(/("([^"]*)"|[^,]*)(,|$)/g)]

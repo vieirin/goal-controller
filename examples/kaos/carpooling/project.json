@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "dialect": "kaosprop",
+  "framework": "kaos",
+  "models": [
+    {
+      "path": "carpooling.txt",
+      "native": {
+        "kaos": "carpooling.kaos"
+      }
+    }
+  ],
+  "projectResources": {},
+  "outputs": []
+}

@@ -1,0 +1,669 @@
+{
+  "actors": [],
+  "orphans": [
+    {
+      "id": "achieve_ambulance_on_scene_when_incident_reported",
+      "text": "Achieve [Ambulance On Scene When Incident Reported]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "when incidentReported() then sooner-or-later ambulanceOnScene()",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": "Sooner-or-later, ambulance shall be on scene when incident is reported."
+      },
+      "x": 1160,
+      "y": 80
+    },
+    {
+      "id": "achieve_ambulance_allocated_when_incident_reported",
+      "text": "Achieve [Ambulance Allocated When Incident Reported]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "when incidentReported() then sooner-or-later ambulanceAllocated()",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": "Sooner-or-later, ambulance shall be allocated when incident is reported."
+      },
+      "x": 40,
+      "y": 180
+    },
+    {
+      "id": "achieve_ambulance_on_scene_when_ambulance_allocated",
+      "text": "Achieve [Ambulance On Scene When Ambulance Allocated]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "when ambulanceAllocated() then sooner-or-later ambulanceOnScene()",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": "Sooner-or-later, ambulance shall be on scene when allocated."
+      },
+      "x": 1320,
+      "y": 180
+    },
+    {
+      "id": "achieve_ambulance_mobilized_when_ambulance_allocated",
+      "text": "Achieve [Ambulance Mobilized When Ambulance Allocated]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "when ambulanceAllocated() then sooner-or-later ambulanceMobilized()",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": "Sooner-or-later, ambulance shall be mobilized when allocated."
+      },
+      "x": 680,
+      "y": 280
+    },
+    {
+      "id": "achieve_ambulance_on_scene_when_ambulance_mobilized",
+      "text": "Achieve [Ambulance On Scene When Ambulance Mobilized]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "when ambulanceMobilized() then sooner-or-later ambulanceOnScene()",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": "Sooner-or-later, ambulance shall be on scene when mobilized."
+      },
+      "x": 1640,
+      "y": 280
+    },
+    {
+      "id": "achieve_ambulance_mobilized_when_ambulance_allocated_on_road",
+      "text": "Achieve [Ambulance Mobilized When Ambulance Allocated On Road]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "when ambulanceAllocated() and onRoad() then sooner-or-later ambulanceMobilized()",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": "Sooner-or-later, ambulance shall be mobilized when allocated and on road."
+      },
+      "x": 360,
+      "y": 380
+    },
+    {
+      "id": "achieve_ambulance_mobilized_when_ambulance_allocated_at_station",
+      "text": "Achieve [Ambulance Mobilized When Ambulance Allocated At Station]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "when ambulanceAllocated() and not onRoad() then sooner-or-later ambulanceMobilized()",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": "Sooner-or-later, ambulance shall be mobilized when allocated and at station."
+      },
+      "x": 840,
+      "y": 380
+    },
+    {
+      "id": "achieve_ambulance_mobilized_by_fax",
+      "text": "Achieve [Ambulance Mobilized By Fax When Ambulance Allocated At Station]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "when ambulanceAllocated() and not onRoad() then sooner-or-later ambulanceMobilizedByFax()",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": "Sooner-or-later, ambulance shall be mobilized by fax when allocated and at station."
+      },
+      "x": 680,
+      "y": 480
+    },
+    {
+      "id": "achieve_ambulance_mobilized_by_phone",
+      "text": "Achieve [Ambulance Mobilized By Phone When Ambulance Allocated At Station]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "when ambulanceAllocated() and not onRoad() then sooner-or-later ambulanceMobilizedByPhone()",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": "Sooner-or-later, ambulance shall be mobilized by phone when allocated and at station."
+      },
+      "x": 840,
+      "y": 480
+    },
+    {
+      "id": "mobilized_ambulance_not_on_scene_in_time",
+      "text": "Mobilized Ambulance Not On Scene in Time",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "Ambulance is mobilized and cannot reach the incident scene within time constraints",
+        "FormalSpec": "sooner-or-later (ambulanceMobilized() and always not ambulanceOnScene())",
+        "Category": ""
+      },
+      "x": 1640,
+      "y": 380
+    },
+    {
+      "id": "ambulance_stuck_in_traffic_jam",
+      "text": "Ambulance Stuck In Traffic Jam",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "Ambulance is mobilized and is stuck in traffic jams",
+        "FormalSpec": "sooner-or-later (ambulanceMobilized() and always (ambulanceInTrafficJam()))",
+        "Category": ""
+      },
+      "x": 1160,
+      "y": 480
+    },
+    {
+      "id": "ambulance_lost",
+      "text": "Ambulance Lost",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "Ambulance is mobilized and is lost and cannot find his way to incident scene",
+        "FormalSpec": "sooner-or-later (ambulanceMobilized() and always (ambulanceLost()))",
+        "Category": ""
+      },
+      "x": 1640,
+      "y": 480
+    },
+    {
+      "id": "ambulance_broken_down",
+      "text": "Ambulance Broken Down",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "Ambulance is mobilized and is broken down",
+        "FormalSpec": "sooner-or-later (ambulanceMobilized() and always (ambulanceBrokenDown()))",
+        "Category": ""
+      },
+      "x": 2120,
+      "y": 480
+    },
+    {
+      "id": "ambulance_not_in_familiar_area",
+      "text": "Ambulance Not In Familiar Area",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "Ambulance is mobilized and is in a unfamiliar area",
+        "FormalSpec": "sooner-or-later (ambulanceMobilized() and always (not ambulanceInFamiliarArea()))",
+        "Category": ""
+      },
+      "x": 1480,
+      "y": 580
+    },
+    {
+      "id": "gps_not_working",
+      "text": "GPS Not Working",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "Ambulance is mobilized and the GPS is not working",
+        "FormalSpec": "sooner-or-later (ambulanceMobilized() and always (gpsNotWorking()))",
+        "Category": ""
+      },
+      "x": 1640,
+      "y": 580
+    },
+    {
+      "id": "avoid_ambulance_not_in_familiar_area",
+      "text": "Avoid [Ambulance Not In Familiar Area]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "when ambulanceMobilized() then ambulanceInFamiliarArea()",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 1480,
+      "y": 680
+    },
+    {
+      "id": "ambulance_on_scene_not_in_traffic_jam",
+      "text": "Ambulance On Scene Not In Traffic Jam",
+      "type": "kaos.DomainProperty",
+      "customProperties": {
+        "Kind": "invariant",
+        "Description": "Ambulance cannot reach incident scene if stuck in traffic jams.",
+        "FormalSpec": "always (if ambulanceOnScene() then not ambulanceInTrafficJam())"
+      },
+      "x": 1320,
+      "y": 480
+    },
+    {
+      "id": "ambulance_on_scene_not_lost",
+      "text": "Ambulance On Scene Not Lost",
+      "type": "kaos.DomainProperty",
+      "customProperties": {
+        "Kind": "invariant",
+        "Description": "Ambulance cannot reach incident scene if lost.",
+        "FormalSpec": "always (if ambulanceOnScene() then not ambulanceLost())"
+      },
+      "x": 1960,
+      "y": 480
+    },
+    {
+      "id": "ambulance_on_scene_not_broken_down",
+      "text": "Ambulance On Scene Broken Down",
+      "type": "kaos.DomainProperty",
+      "customProperties": {
+        "Kind": "invariant",
+        "Description": "Ambulance cannot reach incident scene if broken down.",
+        "FormalSpec": "always (if ambulanceOnScene() then not ambulanceBrokenDown())"
+      },
+      "x": 2280,
+      "y": 480
+    },
+    {
+      "id": "ambulance_lost_iff_gps_not_working_and_not_in_familiar_area",
+      "text": "Ambulance Lost Iff GPS Not Working And Not In Familiar Area",
+      "type": "kaos.DomainProperty",
+      "customProperties": {
+        "Kind": "invariant",
+        "Description": "Ambulance cannot reach incident scene if in unfamiliar area and if the GPS is not working.",
+        "FormalSpec": "always (ambulanceLost() iff (not ambulanceInFamiliarArea() and gpsNotWorking()))"
+      },
+      "x": 1800,
+      "y": 580
+    },
+    {
+      "id": "by_fax_or_by_phone_mobilization",
+      "text": "Ambulance Mobilized By Fax or Phone",
+      "type": "kaos.DomainProperty",
+      "customProperties": {
+        "Kind": "invariant",
+        "Description": "An ambulance mobilized by fax or by phone is considered as mobilized.",
+        "FormalSpec": "always (if (ambulanceMobilizedByFax() or ambulanceMobilizedByPhone()) then ambulanceMobilized())"
+      },
+      "x": 1000,
+      "y": 480
+    },
+    {
+      "id": "despatcher",
+      "text": "Despatcher",
+      "type": "kaos.Agent",
+      "customProperties": {
+        "Description": "Despatcher is the person at the call center dealing \n                with urgent calls and ambulance mobilization."
+      },
+      "x": 520,
+      "y": 380
+    },
+    {
+      "id": "ambulance_staff",
+      "text": "Ambulance Staff",
+      "type": "kaos.Agent",
+      "customProperties": {
+        "Description": "Ambulance Staff contains the ambulance driver and the paramedic(s)."
+      },
+      "x": 1800,
+      "y": 280
+    },
+    {
+      "id": "ads",
+      "text": "ADS",
+      "type": "kaos.Agent",
+      "customProperties": {
+        "Description": "Automated despatching system"
+      },
+      "x": 200,
+      "y": 180
+    }
+  ],
+  "dependencies": [],
+  "links": [
+    {
+      "hub": {
+        "id": "achieve_ambulance_on_scene_when_incident_reported-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": "milestone-driven"
+        },
+        "x": 978,
+        "y": 138
+      },
+      "starts": [
+        {
+          "id": "achieve_ambulance_on_scene_when_incident_reported-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "achieve_ambulance_allocated_when_incident_reported",
+          "target": "achieve_ambulance_on_scene_when_incident_reported-refinement-1"
+        },
+        {
+          "id": "achieve_ambulance_on_scene_when_incident_reported-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "achieve_ambulance_on_scene_when_ambulance_allocated",
+          "target": "achieve_ambulance_on_scene_when_incident_reported-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "achieve_ambulance_on_scene_when_incident_reported-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "achieve_ambulance_on_scene_when_incident_reported-refinement-1",
+        "target": "achieve_ambulance_on_scene_when_incident_reported"
+      }
+    },
+    {
+      "hub": {
+        "id": "achieve_ambulance_on_scene_when_ambulance_allocated-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": "milestone-driven"
+        },
+        "x": 1298,
+        "y": 238
+      },
+      "starts": [
+        {
+          "id": "achieve_ambulance_on_scene_when_ambulance_allocated-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "achieve_ambulance_mobilized_when_ambulance_allocated",
+          "target": "achieve_ambulance_on_scene_when_ambulance_allocated-refinement-1"
+        },
+        {
+          "id": "achieve_ambulance_on_scene_when_ambulance_allocated-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "achieve_ambulance_on_scene_when_ambulance_mobilized",
+          "target": "achieve_ambulance_on_scene_when_ambulance_allocated-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "achieve_ambulance_on_scene_when_ambulance_allocated-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "achieve_ambulance_on_scene_when_ambulance_allocated-refinement-1",
+        "target": "achieve_ambulance_on_scene_when_ambulance_allocated"
+      }
+    },
+    {
+      "hub": {
+        "id": "achieve_ambulance_mobilized_when_ambulance_allocated-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": "case-driven"
+        },
+        "x": 698,
+        "y": 338
+      },
+      "starts": [
+        {
+          "id": "achieve_ambulance_mobilized_when_ambulance_allocated-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "achieve_ambulance_mobilized_when_ambulance_allocated_on_road",
+          "target": "achieve_ambulance_mobilized_when_ambulance_allocated-refinement-1",
+          "customProperties": {
+            "Probability": ".8"
+          }
+        },
+        {
+          "id": "achieve_ambulance_mobilized_when_ambulance_allocated-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "achieve_ambulance_mobilized_when_ambulance_allocated_at_station",
+          "target": "achieve_ambulance_mobilized_when_ambulance_allocated-refinement-1",
+          "customProperties": {
+            "Probability": ".2"
+          }
+        }
+      ],
+      "end": {
+        "id": "achieve_ambulance_mobilized_when_ambulance_allocated-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "achieve_ambulance_mobilized_when_ambulance_allocated-refinement-1",
+        "target": "achieve_ambulance_mobilized_when_ambulance_allocated"
+      }
+    },
+    {
+      "hub": {
+        "id": "achieve_ambulance_mobilized_when_ambulance_allocated_at_station-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        },
+        "x": 898,
+        "y": 438
+      },
+      "starts": [
+        {
+          "id": "achieve_ambulance_mobilized_when_ambulance_allocated_at_station-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "achieve_ambulance_mobilized_by_fax",
+          "target": "achieve_ambulance_mobilized_when_ambulance_allocated_at_station-refinement-1"
+        },
+        {
+          "id": "achieve_ambulance_mobilized_when_ambulance_allocated_at_station-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "achieve_ambulance_mobilized_by_phone",
+          "target": "achieve_ambulance_mobilized_when_ambulance_allocated_at_station-refinement-1"
+        },
+        {
+          "id": "achieve_ambulance_mobilized_when_ambulance_allocated_at_station-refinement-1-3",
+          "type": "kaos.RefinementLinkStart",
+          "source": "by_fax_or_by_phone_mobilization",
+          "target": "achieve_ambulance_mobilized_when_ambulance_allocated_at_station-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "achieve_ambulance_mobilized_when_ambulance_allocated_at_station-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "achieve_ambulance_mobilized_when_ambulance_allocated_at_station-refinement-1",
+        "target": "achieve_ambulance_mobilized_when_ambulance_allocated_at_station"
+      }
+    },
+    {
+      "hub": {
+        "id": "mobilized_ambulance_not_on_scene_in_time-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 1498,
+        "y": 438
+      },
+      "starts": [
+        {
+          "id": "mobilized_ambulance_not_on_scene_in_time-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "ambulance_stuck_in_traffic_jam",
+          "target": "mobilized_ambulance_not_on_scene_in_time-refinement-1"
+        },
+        {
+          "id": "mobilized_ambulance_not_on_scene_in_time-refinement-1-2",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "ambulance_on_scene_not_in_traffic_jam",
+          "target": "mobilized_ambulance_not_on_scene_in_time-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "mobilized_ambulance_not_on_scene_in_time-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "mobilized_ambulance_not_on_scene_in_time-refinement-1",
+        "target": "mobilized_ambulance_not_on_scene_in_time"
+      }
+    },
+    {
+      "hub": {
+        "id": "mobilized_ambulance_not_on_scene_in_time-refinement-2",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 1778,
+        "y": 438
+      },
+      "starts": [
+        {
+          "id": "mobilized_ambulance_not_on_scene_in_time-refinement-2-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "ambulance_lost",
+          "target": "mobilized_ambulance_not_on_scene_in_time-refinement-2"
+        },
+        {
+          "id": "mobilized_ambulance_not_on_scene_in_time-refinement-2-2",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "ambulance_on_scene_not_lost",
+          "target": "mobilized_ambulance_not_on_scene_in_time-refinement-2"
+        }
+      ],
+      "end": {
+        "id": "mobilized_ambulance_not_on_scene_in_time-refinement-2-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "mobilized_ambulance_not_on_scene_in_time-refinement-2",
+        "target": "mobilized_ambulance_not_on_scene_in_time"
+      }
+    },
+    {
+      "hub": {
+        "id": "mobilized_ambulance_not_on_scene_in_time-refinement-3",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 1978,
+        "y": 438
+      },
+      "starts": [
+        {
+          "id": "mobilized_ambulance_not_on_scene_in_time-refinement-3-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "ambulance_broken_down",
+          "target": "mobilized_ambulance_not_on_scene_in_time-refinement-3"
+        },
+        {
+          "id": "mobilized_ambulance_not_on_scene_in_time-refinement-3-2",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "ambulance_on_scene_not_broken_down",
+          "target": "mobilized_ambulance_not_on_scene_in_time-refinement-3"
+        }
+      ],
+      "end": {
+        "id": "mobilized_ambulance_not_on_scene_in_time-refinement-3-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "mobilized_ambulance_not_on_scene_in_time-refinement-3",
+        "target": "mobilized_ambulance_not_on_scene_in_time"
+      }
+    },
+    {
+      "hub": {
+        "id": "ambulance_lost-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 1698,
+        "y": 538
+      },
+      "starts": [
+        {
+          "id": "ambulance_lost-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "ambulance_not_in_familiar_area",
+          "target": "ambulance_lost-refinement-1"
+        },
+        {
+          "id": "ambulance_lost-refinement-1-2",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "gps_not_working",
+          "target": "ambulance_lost-refinement-1"
+        },
+        {
+          "id": "ambulance_lost-refinement-1-3",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "ambulance_lost_iff_gps_not_working_and_not_in_familiar_area",
+          "target": "ambulance_lost-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "ambulance_lost-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "ambulance_lost-refinement-1",
+        "target": "ambulance_lost"
+      }
+    },
+    {
+      "id": "mobilized_ambulance_not_on_scene_in_time-obstructs-achieve_ambulance_on_scene_when_ambulance_mobilized",
+      "type": "kaos.ObstructionLink",
+      "source": "mobilized_ambulance_not_on_scene_in_time",
+      "target": "achieve_ambulance_on_scene_when_ambulance_mobilized"
+    },
+    {
+      "id": "avoid_ambulance_not_in_familiar_area-resolves-ambulance_not_in_familiar_area",
+      "type": "kaos.ResolutionLink",
+      "source": "avoid_ambulance_not_in_familiar_area",
+      "target": "ambulance_not_in_familiar_area",
+      "customProperties": {
+        "ResolutionType": "",
+        "Anchor": ""
+      }
+    },
+    {
+      "id": "ads-assigned-achieve_ambulance_allocated_when_incident_reported",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "ads",
+      "target": "achieve_ambulance_allocated_when_incident_reported"
+    },
+    {
+      "id": "ambulance_staff-assigned-achieve_ambulance_on_scene_when_ambulance_mobilized",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "ambulance_staff",
+      "target": "achieve_ambulance_on_scene_when_ambulance_mobilized"
+    },
+    {
+      "id": "despatcher-assigned-achieve_ambulance_mobilized_when_ambulance_allocated_on_road",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "despatcher",
+      "target": "achieve_ambulance_mobilized_when_ambulance_allocated_on_road"
+    },
+    {
+      "id": "ads-assigned-achieve_ambulance_mobilized_by_fax",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "ads",
+      "target": "achieve_ambulance_mobilized_by_fax"
+    },
+    {
+      "id": "despatcher-assigned-achieve_ambulance_mobilized_by_phone",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "despatcher",
+      "target": "achieve_ambulance_mobilized_by_phone"
+    }
+  ],
+  "display": {},
+  "tool": "dsm3-goals",
+  "metamodelVersion": "1.0",
+  "diagram": {
+    "width": 2575,
+    "height": 816,
+    "name": "las",
+    "customProperties": {
+      "Description": ""
+    }
+  }
+}

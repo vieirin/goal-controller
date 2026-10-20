@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "dialect": "kaosprop",
+  "framework": "kaos",
+  "models": [
+    {
+      "path": "las.txt",
+      "native": {
+        "kaos": "las.kaos"
+      }
+    }
+  ],
+  "projectResources": {},
+  "outputs": []
+}

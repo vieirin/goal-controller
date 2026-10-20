@@ -25,20 +25,20 @@ import {
   type NativeSync,
 } from '../project';
 import { isTransformEngine } from '../types';
-import {
-  ENGINE_DIALECTS,
-  ENGINE_LIST,
-  isDialectEngine,
-} from './engineDialects';
+import { dialectOf, ENGINE_LIST } from './engineDialects';
 import type { Problem } from './types';
 
-/** The native files a mode's dialect declares (an engine's definition's; none for the others). */
+/**
+ * The native files a mode's dialect declares (an engine's definition's, a
+ * framework engine's too: kaosprop's `.kaos`, goal-controller#181; none for
+ * the others).
+ */
 export const nativeDeclarationsOf = (
   mode: string | null,
 ): NativeDeclarations | undefined =>
-  isTransformEngine(mode) && isDialectEngine(mode)
-    ? (ENGINE_DIALECTS[mode] as { nativeFiles?: NativeDeclarations })
-        .nativeFiles
+  isTransformEngine(mode)
+    ? (dialectOf(mode) as { nativeFiles?: NativeDeclarations } | null)
+        ?.nativeFiles
     : undefined;
 
 /** Every registered engine's dialect, by the engine's id: what a native file's name is looked up in. */
