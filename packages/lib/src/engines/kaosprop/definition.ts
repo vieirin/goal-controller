@@ -13,9 +13,13 @@
  * - a case-driven refinement's leg's `Probability`, P(CS), its case's.
  *
  * The plain `kaos` dialect keeps them as unknown keys, untouched.
+ *
+ * Its native file is KAOSTools' textual KAOS (`.kaos`, importers/kaos),
+ * whose quantities are these keys: a `.kaos` file opens in this mode.
  */
 import { defineDialect, links, property } from '@goal-controller/dialect';
 import { kaos } from '../../dialects/kaos';
+import { kaosNativeFile } from '../../importers/kaos/native';
 
 const RSR = property.probability('RSR', {
   help: 'its required satisfaction rate: the probability it must be satisfied with (RE’12’s RDS)',
@@ -64,4 +68,5 @@ export const kaosprop = defineDialect({
     ],
   }),
   propertyLineOrder: [...kaos.propertyLineOrder, 'RSR', 'ESR', 'Probability'],
+  nativeFiles: { kaos: kaosNativeFile },
 });

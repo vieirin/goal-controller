@@ -226,6 +226,16 @@ export {
   type IstardtWriteOptions,
 } from './engines/istardt';
 export { importIstardt } from './importers/istardt';
+// KAOSTools' textual KAOS (goal-controller#181): kaosprop's native file
+export {
+  KAOS_LOSSY,
+  KAOS_UNSUPPORTED_KEY,
+  kaosLanguage,
+  kaosNativeFile,
+  readKaos,
+  writeKaos,
+  type KaosReadOptions,
+} from './importers/kaos';
 // Tropos4AS (goal-controller#136): its definition, kinds, checks, scenarios,
 // the goal lifecycle of AAMAS 2009 as an analysis, and TAOM4E's importer
 export {

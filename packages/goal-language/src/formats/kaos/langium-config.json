@@ -1,0 +1,12 @@
+{
+  "projectName": "Kaos",
+  "languages": [
+    {
+      "id": "kaos",
+      "grammar": "kaos.langium",
+      "fileExtensions": [".kaos"]
+    }
+  ],
+  "out": "generated",
+  "importExtension": ".js"
+}

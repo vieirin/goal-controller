@@ -19,6 +19,7 @@
     "result_plots/**",
     "packages/lib/test/dialect/reference/**",
     "packages/lib/src/engines/**/generated/**",
+    "packages/goal-language/src/formats/kaos/generated/**",
     "packages/lib/test/**/generated/**",
     "packages/goal-language/src/generated/**",
     "packages/lib/test/engines/edgeFamily/antlr-oracle.json"

@@ -22,8 +22,8 @@
 /** The grid: a column's and a row's step, and the margin inside an actor's boundary. */
 export const LAYOUT_GRID = { dx: 160, dy: 100, padding: 40 } as const;
 
-/** iStar's refinements, the links the layers are of (child to parent). */
-const REFINEMENTS = new Set([
+/** iStar's refinements, the links the layers are of (child to parent): the default. */
+const REFINEMENTS: ReadonlySet<string> = new Set([
   'istar.AndRefinementLink',
   'istar.OrRefinementLink',
 ]);
@@ -56,11 +56,13 @@ type Grid = {
 /**
  * Sets `x` and `y` on every node of `model` that has no position (actors,
  * their nodes, orphans, dependums). Returns how far they reach; null when
- * every node has a position.
+ * every node has a position. `refinements`: the link types the layers are
+ * of, child to parent (iStar's; another framework's importer names its own).
  */
 export const layOut = (
   model: LayoutModel,
   origin: Point = { x: LAYOUT_GRID.padding, y: LAYOUT_GRID.padding },
+  refinements: ReadonlySet<string> = REFINEMENTS,
 ): LayoutExtent | null => {
   const { dx, dy, padding } = LAYOUT_GRID;
   const groups: Group[] = [];
@@ -89,7 +91,7 @@ export const layOut = (
     groupOf.has(link.target)
       ? [
           {
-            refines: REFINEMENTS.has(String(link.type)),
+            refines: refinements.has(String(link.type)),
             source: link.source,
             target: link.target,
           },
