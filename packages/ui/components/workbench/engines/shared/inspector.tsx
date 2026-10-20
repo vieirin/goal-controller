@@ -109,14 +109,13 @@ const KIND_PLURAL: Record<NodeKindKey, string> = {
 const listKinds = (kinds: NodeKindKey[]): string =>
   kinds.map((k) => KIND_PLURAL[k]).join(kinds.length === 2 ? ' and ' : ', ');
 
-/** Where each engine declares the properties it reads, per element kind, and maps them. */
+/** Where each engine declares the properties it reads, per element kind. */
 type EngineKeys = {
   /** where the keys are declared */
   file: string;
   lists: Partial<Record<NodeKindKey, string>>;
   /** where they are read */
   mapper: string;
-  map: Record<NodeKindKey, string>;
 };
 
 const ENGINE_KEYS: Record<TransformEngine, EngineKeys> = {
@@ -132,12 +131,6 @@ const ENGINE_KEYS: Record<TransformEngine, EngineKeys> = {
           quality: 'edgeProperties.quality',
         },
         mapper: `packages/lib/src/engines/${engine === 'edge' ? 'edge' : 'edgeV2'}/mapper.ts`,
-        map: {
-          goal: 'mapGoalProps',
-          task: 'mapTaskProps',
-          resource: 'mapResourceProps',
-          quality: 'mapGoalProps',
-        },
       },
     ]),
   ) as Record<'edge' | 'edgev2', EngineKeys>),
@@ -145,23 +138,11 @@ const ENGINE_KEYS: Record<TransformEngine, EngineKeys> = {
     file: 'packages/lib/src/engines/mutrose/definition.ts',
     lists: { goal: 'goalProperties', task: 'taskProperties' },
     mapper: 'packages/lib/src/engines/mutrose/mapper.ts',
-    map: {
-      goal: 'mapGoalProps',
-      task: 'mapTaskProps',
-      resource: 'mapResourceProps',
-      quality: 'mapGoalProps',
-    },
   },
   goda: {
     file: 'packages/lib/src/engines/goda/definition.ts',
     lists: { goal: 'goalProperties', task: 'taskProperties' },
     mapper: 'packages/lib/src/engines/goda/mapper.ts',
-    map: {
-      goal: 'mapGoalProps',
-      task: 'mapTaskProps',
-      resource: 'mapResourceProps',
-      quality: 'mapGoalProps',
-    },
   },
   grl: {
     // an element's keys are read, not declarable yet (#105): the workbench
@@ -173,12 +154,6 @@ const ENGINE_KEYS: Record<TransformEngine, EngineKeys> = {
       quality: 'GRL_ELEMENT_KEYS',
     },
     mapper: 'packages/lib/src/engines/grl/mapper.ts',
-    map: {
-      goal: 'mapGoalProps',
-      task: 'mapTaskProps',
-      resource: 'skipResource',
-      quality: 'mapGoalProps',
-    },
   },
   istardt: {
     file: 'packages/lib/src/engines/istardt/definition.ts',
@@ -189,12 +164,6 @@ const ENGINE_KEYS: Record<TransformEngine, EngineKeys> = {
       quality: 'properties.quality',
     },
     mapper: 'packages/lib/src/engines/istardt/mapper.ts',
-    map: {
-      goal: 'mapGoalProps',
-      task: 'mapTaskProps',
-      resource: 'skipResource',
-      quality: 'mapGoalProps',
-    },
   },
   tropos4as: {
     file: 'packages/lib/src/engines/tropos4as/definition.ts',
@@ -205,12 +174,6 @@ const ENGINE_KEYS: Record<TransformEngine, EngineKeys> = {
       quality: 'properties.quality',
     },
     mapper: 'packages/lib/src/engines/tropos4as/mapper.ts',
-    map: {
-      goal: 'mapGoalProps',
-      task: 'mapTaskProps',
-      resource: 'skipResource',
-      quality: 'mapGoalProps',
-    },
   },
   cgm: {
     file: 'packages/lib/src/engines/cgm/definition.ts',
@@ -221,46 +184,22 @@ const ENGINE_KEYS: Record<TransformEngine, EngineKeys> = {
       quality: 'properties.quality',
     },
     mapper: 'packages/lib/src/engines/cgm/mapper.ts',
-    map: {
-      goal: 'mapGoalProps',
-      task: 'mapTaskProps',
-      resource: 'skipResource',
-      quality: 'mapGoalProps',
-    },
   },
   // the frameworks' engines read their kinds' keys, by kind (goal-controller#171, #187)
   kaosdoc: {
     file: 'packages/lib/src/dialects/kaos/index.ts',
     lists: {},
     mapper: 'packages/lib/src/engines/kaosdoc/mapper.ts',
-    map: {
-      goal: 'mapGoalProps',
-      task: 'mapTaskProps',
-      resource: 'skipResource',
-      quality: 'mapGoalProps',
-    },
   },
   kaosprop: {
     file: 'packages/lib/src/engines/kaosprop/definition.ts',
     lists: {},
     mapper: 'packages/lib/src/engines/kaosprop/mapper.ts',
-    map: {
-      goal: 'mapGoalProps',
-      task: 'mapTaskProps',
-      resource: 'skipResource',
-      quality: 'mapGoalProps',
-    },
   },
   nfrprop: {
     file: 'packages/lib/src/engines/nfrprop/definition.ts',
     lists: {},
     mapper: 'packages/lib/src/engines/nfrprop/mapper.ts',
-    map: {
-      goal: 'mapGoalProps',
-      task: 'mapTaskProps',
-      resource: 'skipResource',
-      quality: 'mapGoalProps',
-    },
   },
   sleec: {
     file: 'packages/lib/src/engines/sleec/mapper.ts',
@@ -270,12 +209,6 @@ const ENGINE_KEYS: Record<TransformEngine, EngineKeys> = {
       quality: 'SLEEC_QUALITY_KEYS',
     },
     mapper: 'packages/lib/src/engines/sleec/mapper.ts',
-    map: {
-      goal: 'mapGoalProps',
-      task: 'mapTaskProps',
-      resource: 'mapResourceProps',
-      quality: 'mapGoalProps',
-    },
   },
 };
 
@@ -285,12 +218,15 @@ const howToAccept = (
   kind: NodeKindKey,
   engine: TransformEngine,
 ): string => {
-  const { file, lists, mapper, map } = ENGINE_KEYS[engine];
+  const { file, lists, mapper } = ENGINE_KEYS[engine];
   const list = lists[kind];
-  const where = mapper === file ? '' : ` in ${mapper}`;
-  return list
-    ? `To make ${ENGINE_LABEL[engine]} read it here, add '${key}' to ${list} in ${file} and use it in ${map[kind]}${where}.`
-    : `${ENGINE_LABEL[engine]} skips ${KIND_PLURAL[kind]} (skipResource in ${file}).`;
+  if (list) {
+    return `To make ${ENGINE_LABEL[engine]} read it here, add '${key}' to ${list} in ${file}.`;
+  }
+  if (kind === 'resource') {
+    return `${ENGINE_LABEL[engine]} skips resources: its mapper ignores istar.Resource (see ${mapper}).`;
+  }
+  return `${ENGINE_LABEL[engine]} skips ${KIND_PLURAL[kind]} (see ${file}).`;
 };
 
 /**
