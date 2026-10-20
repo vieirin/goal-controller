@@ -274,7 +274,7 @@ export type NamingReading = ReturnType<typeof useIstarDefaultNaming>;
 
 // ── the mapper ─────────────────────────────────────────────────────────────
 
-/** Marks a mapper written with entries, against one written per role. */
+/** Marks a mapper written with entries. */
 export const KIND_MAPPER = Symbol('kind mapper');
 
 /**
@@ -441,7 +441,3 @@ export const kindMapper = (
     }),
   };
 };
-
-/** Whether a mapper is written with entries. */
-export const isKindMapper = (mapper: object): mapper is KindEngineMapper =>
-  KIND_MAPPER in mapper;

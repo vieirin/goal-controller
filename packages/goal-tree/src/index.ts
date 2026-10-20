@@ -19,23 +19,37 @@
  * - `contextVariables()` - Extract variables from execution conditions
  * - `taskAchievabilityVariables()` - Get task achievability variable names
  *
- * ### Type Parameter Conventions
- * GoalTree uses three type parameters consistently throughout:
- * - `TGoalEngine` - Type of engine-specific properties for goals
- * - `TTaskEngine` - Type of engine-specific properties for tasks
- * - `TResourceEngine` - Type of engine-specific properties for resources (optional)
+ * ### Types from the mapper
+ * A mapper's nodes and model are typed by kind (goal-controller#215):
+ * `NodeOf<typeof mapper>`, `ModelOf<typeof mapper>`, and
+ * `EngineProps<typeof mapper>`, each kind's engine properties.
  *
  * @example
  * ```typescript
- * import { GoalTree, Node, Model, createEngineMapper } from '@goal-controller/goal-tree';
+ * import {
+ *   GoalTree,
+ *   Node,
+ *   Model,
+ *   createEngineMapper,
+ *   useIstarDefaultNaming,
+ * } from '@goal-controller/goal-tree';
  *
- * // Define engine mapper with type inference: each node is given the
- * // properties its kind has in the dialect, typed (`props`) and as written (`raw`)
- * const myMapper = createEngineMapper<GoalProps, TaskProps>()({
+ * // Define an engine mapper, an entry per kind: each is given the properties
+ * // its kind has in the dialect, typed (`props`) and as written (`raw`)
+ * const myMapper = createEngineMapper({
  *   dialect: myDefinition, // goal texts and properties are read in it
- *   skipResource: true,
- *   mapGoalProps: ({ raw }) => ({ utility: raw.utility ?? '' }),
- *   mapTaskProps: ({ props }) => ({ retries: props.maxRetries ?? 0 }),
+ *   naming: useIstarDefaultNaming(), // iStar's goals, tasks and resources
+ *   elements: (entry) => [
+ *     entry({
+ *       kinds: ['istar.Goal', 'istar.Quality'],
+ *       mapProps: ({ raw }) => ({ utility: raw.utility ?? '' }),
+ *     }),
+ *     entry({
+ *       kind: 'istar.Task',
+ *       mapProps: ({ props }) => ({ retries: props.maxRetries ?? 0 }),
+ *     }),
+ *   ],
+ *   ignore: ['istar.Resource'],
  * });
  *
  * // Create a tree from a file with your engine
@@ -71,7 +85,6 @@ export {
   createEngineMapper,
   type QueryOf,
   type TreeQuery,
-  type EngineMapper,
 } from './GoalTree';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -162,14 +175,9 @@ export type {
 export type { GoalExecutionDetail } from './internal/creation';
 export type {
   ActorPropsInput,
-  GoalPropsInput,
   LinkPropsInput,
   MapperDialect,
-  // a node's properties in afterCreationMapper, by its node type
-  NodePropertiesUnion,
   PropsOf,
-  ResourcePropsInput,
-  TaskPropsInput,
 } from './internal/engineMapper';
 
 // ─────────────────────────────────────────────────────────────────────────────

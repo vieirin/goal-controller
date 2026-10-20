@@ -15,9 +15,8 @@ import {
   createEngineMapper,
   GoalTree,
   modelShapeProblem,
-  type GoalNode,
+  useIstarDefaultNaming,
   type IStarModel,
-  type TreeNode,
 } from '@goal-controller/goal-tree';
 import { kaos, nfr } from '../../src';
 
@@ -29,27 +28,61 @@ const read = (text: string, metamodel: AnyMetamodel) =>
 const KAOS_MODEL = read(seed('kaos/kaos-welcome.txt'), KAOS);
 const NFR_MODEL = read(seed('nfr/nfr-welcome.txt'), NFR);
 
-type Props = { kind: string; raw: Record<string, string | undefined> };
-const mapperOf = (dialect: typeof kaos | typeof nfr) =>
-  createEngineMapper<Props, never>()({
-    dialect,
-    skipResource: true,
-    mapGoalProps: ({ raw, kind }) => ({ kind, raw }),
-    mapTaskProps: () => {
-      throw new Error('no task');
-    },
-  });
-const KAOS_MAPPER = mapperOf(kaos);
-const NFR_MAPPER = mapperOf(nfr);
+/** Each kind's properties as written, with the kind it is of. */
+const asWritten = ({
+  raw,
+  kind,
+}: {
+  kind: string;
+  raw: Record<string, string | undefined>;
+}) => ({ kind, raw: raw as Record<string, string | undefined> });
+/** The goal kinds as goal nodes, every other kind left to the model's elements. */
+const KAOS_MAPPER = createEngineMapper({
+  dialect: kaos,
+  elements: (entry) => [
+    entry({
+      kinds: [
+        'kaos.BehavioralGoal',
+        'kaos.Softgoal',
+        'kaos.DomainProperty',
+        'kaosObstacles.Obstacle',
+      ],
+      as: 'goal',
+      mapProps: asWritten,
+    }),
+  ],
+  ignore: ['kaos.Agent', 'kaos.EnvironmentAgent', 'kaos.RefinementLinkHub'],
+  links: (entry) => [
+    entry({
+      kinds: ['kaos.Conflict', 'kaosObstacles.ResolutionLink'],
+      mapProps: () => ({}),
+    }),
+  ],
+});
+const NFR_MAPPER = createEngineMapper({
+  dialect: nfr,
+  elements: (entry) => [
+    entry({
+      kinds: ['nfr.NFR', 'nfr.Operationalization'],
+      as: 'goal',
+      mapProps: asWritten,
+    }),
+  ],
+  ignore: ['nfr.Claim'],
+});
 
-/** A tree as `name (kind) [relation]: children`, for comparison. */
-const shape = (node: TreeNode<Props>): unknown => {
-  const goal = node as GoalNode<Props>;
-  return {
-    [`${goal.name} (${goal.kind})`]: (goal.children ?? []).map(shape),
-    ...(goal.children?.length && { relation: goal.relationToChildren }),
-  };
+/** A node as `shape` reads it. */
+type Shaped = {
+  name: string | null;
+  kind?: string;
+  children?: Shaped[];
+  relationToChildren: string | null;
 };
+/** A tree as `name (kind) [relation]: children`, for comparison. */
+const shape = (node: Shaped): unknown => ({
+  [`${node.name} (${node.kind})`]: (node.children ?? []).map(shape),
+  ...(node.children?.length && { relation: node.relationToChildren }),
+});
 
 describe('the IR of a framework besides iStar 2.0 (#171)', () => {
   it("reads KAOS's model on the paper, a hub an AND with its legs' children", () => {
@@ -132,12 +165,10 @@ describe('the IR of a framework besides iStar 2.0 (#171)', () => {
       'kaos.Conflict': null,
       'kaos.ResponsibilityAssignment': null,
     });
-    expect(
-      model.elements.filter((e) => e.kind !== 'kaos.RefinementLinkHub').length,
-    ).to.equal(8);
-    expect(
-      model.elements.filter((e) => e.kind === 'kaos.RefinementLinkHub').length,
-    ).to.equal(4);
+    // an ignored kind's elements are typed out of `kind` (goal-controller#315)
+    const hub = (e: { kind: string }) => e.kind === 'kaos.RefinementLinkHub';
+    expect(model.elements.filter((e) => !hub(e)).length).to.equal(8);
+    expect(model.elements.filter(hub).length).to.equal(4);
   });
 
   it("reads NFR's refinements, and leaves claims to the model's elements", () => {
@@ -166,14 +197,21 @@ describe('the IR of a framework besides iStar 2.0 (#171)', () => {
     const istar = parsePistar(seed('edgeV2/simpleChoice.txt')) as IStarModel;
     const model = GoalTree.goalModel(
       istar,
-      createEngineMapper<unknown, unknown>()({
+      createEngineMapper({
         dialect: { name: 'plain' },
-        skipResource: true,
-        mapGoalProps: () => ({}),
-        mapTaskProps: () => ({}),
+        naming: useIstarDefaultNaming(),
+        elements: (entry) => [
+          entry({
+            kinds: ['istar.Goal', 'istar.Quality'],
+            mapProps: () => ({}),
+          }),
+          entry({ kind: 'istar.Task', mapProps: () => ({}) }),
+        ],
+        ignore: ['istar.Resource'],
       }),
     );
     expect(model.paper).to.deep.equal([]);
-    expect(model.actors[0]!.trees[0]).not.to.have.property('kind');
+    // every node says its kind (goal-controller#215)
+    expect(model.actors[0]!.trees[0]).to.include({ kind: 'istar.Goal' });
   });
 });

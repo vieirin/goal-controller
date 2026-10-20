@@ -174,7 +174,7 @@ The execution detail is typed by the dialect: `goalNameParserFor(edgeV2)`
 gives `ExecutionDetailOf<typeof edgeV2>`, whose `type` is one of edgeV2's
 constructs and whose `modifiers` has its modifiers (`retry`), so a misspelt
 name doesn't compile. goal-tree's `createEngineMapper({ dialect })` passes
-that type to `mapGoalProps`. `ExecutionDetail<C, M>` is the generic shape.
+that type to each element entry's `mapProps`. `ExecutionDetail<C, M>` is the generic shape.
 
 `ReadingDialect` is `{ name, notation? }`. A dialect without a notation
 (`{ name: 'SLEEC' }`) reads ids and names only. What each reader gives

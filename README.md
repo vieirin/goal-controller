@@ -191,48 +191,58 @@ properties: {
 Each mapper is given `props`, the values as the goal language reads their types (a value written with an error is unset: the dialect's checks report it), and `raw`, the strings as written:
 
 ```typescript
-import { createEngineMapper } from '@goal-controller/goal-tree';
+import { createEngineMapper, useIstarDefaultNaming } from '@goal-controller/goal-tree';
 
-export const myEngineMapper = createEngineMapper<
-  MyEngineGoalProps,
-  MyEngineTaskProps,
-  never  // No resources
->()({
+export const myEngineMapper = createEngineMapper({
   dialect: myEngine,  // its definition: goal texts and properties are read in it (you write no parser)
-  skipResource: true,
-  mapGoalProps: ({ props }) => ({
-    priority: props.priority ?? 'normal',          // 'low' | 'normal' | 'high'
-    deadline: props.deadline ?? null,              // number
-    decision: {
-      hasDecision: (props.variables ?? []).length > 0,
-      decisionVars: (props.variables ?? []).map(({ name, value }) => ({
-        variable: name,
-        space: Number(value),
-      })),
-    },
-    dependsOn: [],  // Resolved later in afterCreationMapper
-  }),
-  mapTaskProps: ({ props, raw }) => ({
-    maxRetries: props.maxRetries ?? 0,             // number
-    isOptional: props.optional === true,           // boolean
-    tags: (raw.tags ?? '').split(',').map((t) => t.trim()).filter(Boolean),
-  }),
+  naming: useIstarDefaultNaming(),  // iStar's goals, tasks and resources
+  elements: (entry) => [
+    entry({
+      kinds: ['istar.Goal', 'istar.Quality'],
+      mapProps: (input) => {
+        // a Quality has none of the goal's keys: narrow on `kind` first
+        const props = input.kind === 'istar.Goal' ? input.props : {};
+        return {
+          priority: props.priority ?? 'normal',      // 'low' | 'normal' | 'high'
+          deadline: props.deadline ?? null,          // number
+          decision: {
+            hasDecision: (props.variables ?? []).length > 0,
+            decisionVars: (props.variables ?? []).map(({ name, value }) => ({
+              variable: name,
+              space: Number(value),
+            })),
+          },
+          dependsOn: [],  // Resolved later in afterCreation
+        };
+      },
+    }),
+    entry({
+      kind: 'istar.Task',
+      mapProps: ({ props, raw }) => ({
+        maxRetries: props.maxRetries ?? 0,           // number
+        isOptional: props.optional === true,         // boolean
+        tags: (raw.tags ?? '').split(',').map((t) => t.trim()).filter(Boolean),
+      }),
+    }),
+  ],
+  ignore: ['istar.Resource'],  // No resources
 });
 ```
 
-**Advanced: Cross-node references with `afterCreationMapper`**
+**Advanced: Cross-node references with `afterCreation`**
 
-For engines that need to resolve references between nodes (like Edge's `dependsOn`), see [`packages/lib/src/engines/edge/mapper.ts`](packages/lib/src/engines/edge/mapper.ts):
+For engines that need to resolve references between nodes (like Edge's `dependsOn`), an entry's `afterCreation` runs once every node is built; see [`packages/lib/src/engines/edge/mapper.ts`](packages/lib/src/engines/edge/mapper.ts):
 
 ```typescript
-afterCreationMapper: ({ node, allNodes, rawProperties }) => {
-  if (rawProperties.nodeType !== 'goal') return node.properties.engine;
-  
-  const depIds = rawProperties.props.dependsOn ?? [];
-  const resolvedDeps = depIds.map(id => allNodes.get(id));
-  
-  return { ...node.properties.engine, dependsOn: resolvedDeps };
-}
+entry({
+  kinds: ['istar.Goal', 'istar.Quality'],
+  mapProps: …,
+  afterCreation: ({ node, input, allNodes }) => {
+    const depIds = input.kind === 'istar.Goal' ? (input.props.dependsOn ?? []) : [];
+    const resolvedDeps = depIds.map((id) => allNodes.get(id));
+    return { ...node.properties.engine, dependsOn: resolvedDeps };
+  },
+}),
 ```
 
 #### Step 4: Create the Template Engine

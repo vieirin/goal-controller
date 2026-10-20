@@ -69,7 +69,7 @@ const decisionOf = (variables: EdgeValues<'goal'>['variables']): Decision => {
 
 /**
  * A goal's properties, its execution detail (in the engine's dialect) among them; its
- * dependencies are afterCreationMapper's (edgeDependsOn).
+ * dependencies are its entry's afterCreation (edgeDependsOn).
  */
 export const edgeGoalProps = <TExecution, TGoalNode>({
   props,
@@ -77,7 +77,7 @@ export const edgeGoalProps = <TExecution, TGoalNode>({
   id,
   executionDetail,
 }: Input<'goal'> & { executionDetail: TExecution | null }) => {
-  // dependsOn needs the whole tree: checked later, in afterCreationMapper
+  // dependsOn needs the whole tree: checked later, in the entry's afterCreation
   const issue = firstGoalOrTaskIssue('goal', props, raw);
   if (issue) throw new Error(`${issue} (node ${id})`);
 

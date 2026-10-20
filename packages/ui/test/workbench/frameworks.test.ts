@@ -200,13 +200,31 @@ describe('the IR of a framework model, read by the workbench (#171)', () => {
     const { kaos } = await import('@goal-controller/lib');
     const model = GoalTree.goalModel(
       parseModel(KAOS_WELCOME) as never,
-      createEngineMapper<unknown, never>()({
+      createEngineMapper({
         dialect: kaos,
-        skipResource: true,
-        mapGoalProps: () => ({}),
-        mapTaskProps: () => {
-          throw new Error('no task');
-        },
+        elements: (entry) => [
+          entry({
+            kinds: [
+              'kaos.BehavioralGoal',
+              'kaos.Softgoal',
+              'kaos.DomainProperty',
+              'kaosObstacles.Obstacle',
+            ],
+            as: 'goal',
+            mapProps: () => ({}),
+          }),
+        ],
+        ignore: [
+          'kaos.Agent',
+          'kaos.EnvironmentAgent',
+          'kaos.RefinementLinkHub',
+        ],
+        links: (entry) => [
+          entry({
+            kinds: ['kaos.Conflict', 'kaosObstacles.ResolutionLink'],
+            mapProps: () => ({}),
+          }),
+        ],
       }),
     );
     expect(model.paper.map((tree) => tree.name)).toEqual([

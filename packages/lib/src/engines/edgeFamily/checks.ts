@@ -76,7 +76,7 @@ const EDGE_KIND_NAME: Readonly<Record<string, string>> = Object.fromEntries(
   Object.entries(ISTAR_KIND_OF).map(([name, kind]) => [kind, name]),
 );
 
-/** afterCreationMapper's dependsOn resolution, word for word (existence, then goal-ness). */
+/** The goal entry's afterCreation dependsOn resolution, word for word (existence, then goal-ness). */
 const dependsOnCheck = onGoal(({ props }, { self, kindOf }) => {
   for (const id of props.dependsOn ?? []) {
     const kind = kindOf(id);
@@ -91,7 +91,7 @@ const dependsOnCheck = onGoal(({ props }, { self, kindOf }) => {
 });
 
 /**
- * A resource's variable, or its issues (in mapResourceProps's order, one branch per
+ * A resource's variable, or its issues (in the resource entry's order, one branch per
  * resource type): the first is the one the mapper throws.
  */
 export const resourceReading = (
@@ -167,14 +167,14 @@ export const resourceReading = (
   }
 };
 
-/** The first issue mapGoalProps/mapTaskProps throws, if any: of the values the mapper is given. */
+/** The first issue the goal or task entry's mapProps throws, if any: of the values it is given. */
 export const firstGoalOrTaskIssue = (
   kind: 'goal' | 'task',
   values: EdgeValues<'goal'> | EdgeValues<'task'>,
   raw: Partial<Record<string, string>>,
 ): string | null => goalOrTaskIssues(kind, values, raw)[0]?.message ?? null;
 
-/** The first issue mapResourceProps throws, if any: of the strings, read as the dialect reads them. */
+/** The first issue the resource entry's mapProps throws, if any: of the strings, read as the dialect reads them. */
 export const firstResourceIssue = (
   raw: Partial<Record<string, string>>,
 ): string | null =>
@@ -202,7 +202,7 @@ export const edgeGoalChecks = checks({
 });
 
 // 'maintain' isn't a task key (EDGE_TASK_KEYS), so a task can never satisfy the
-// maintain condition once its type is 'maintain': mapTaskProps always throws it,
+// maintain condition once its type is 'maintain': the task entry always throws it,
 // through firstGoalOrTaskIssue, with no key to attach it to in the UI. A task's
 // keys have no engine check: the dialect's value checks say what is wrong (#251).
 export const edgeTaskChecks = checks({});

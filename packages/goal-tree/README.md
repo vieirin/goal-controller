@@ -68,13 +68,10 @@ createEngineMapper({
   an ignored kind.
 - **Every link kind the dialect gives properties needs an entry in
   `links`.** A mapper without `links` doesn't compile for such a dialect,
-  and a link kind without an entry gets `{}`. One written per role mapped
-  every link with `mapLinkProps`.
+  and a link kind without an entry gets `{}`.
 - **`ignore` never visits a kind.** An ignored kind has no node, and its
-  elements are in `elements` as written. Intentional change (#215): under
-  `skipResource` a Resource was checked as a node before it was left out,
-  so a Resource with children threw (`Resource node … can't have
-  children`). Ignored, it doesn't.
+  elements are in `elements` as written: an ignored Resource with children
+  doesn't throw (`Resource node … can't have children`).
 - **`mapProps` is given its element's kind**, one member per kind. Narrowing
   on `kind` narrows `props`: in a Goal-and-Quality entry, a goal-only key
   doesn't compile until `kind === 'istar.Goal'`. Its output is the node's
@@ -138,19 +135,11 @@ properties. An actor's and a link's `raw` holds every actor's and every
 link kind's keys, as written: a check reports one on a kind that hasn't it
 (cgm's `context` on a link kind without one).
 
-### Per role (until the engines move to entries)
-
-`createEngineMapper<Goal, Task, Resource>()({ dialect, mapGoalProps,
-mapTaskProps, mapResourceProps | skipResource, allowLeafGoals,
-afterCreationMapper, mapActorProps, mapLinkProps })` still works. It stands
-for the iStar reading's entries and builds the IR it always has:
-- goal nodes say `isQuality`;
-- an iStar node has no `kind`;
-- elements are as written;
-- `mapLinkProps` maps every link.
-
 `TreeNode<G, T, R>`, `GoalNode`, `Task`, `Resource`, `GoalTreeType` and
-`GoalModel<…>` are its types. The per-role form and these types go once every engine writes entries.
+`GoalModel<…>` remain as aliases over the iStar reading's nodes, for code
+that types nodes by hand. The per-role form (`createEngineMapper<G, T, R>()`
+with `mapGoalProps`, `mapTaskProps`, `mapResourceProps`, `skipResource`,
+`afterCreationMapper`) is gone (#215): write entries.
 
 ## The shape an engine reads
 
