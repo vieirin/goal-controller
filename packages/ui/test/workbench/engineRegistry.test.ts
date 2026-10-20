@@ -50,6 +50,7 @@ import {
   mutroseProjectResources,
   nfrprop,
   nfrpropAnalyses,
+  nfrpropProjectResourceParsers,
   nfrpropAnalysisModel,
   nfrpropEngineMapper,
   sleecEngineMapper,
@@ -75,6 +76,7 @@ import {
   ENGINE_PROJECT_RESOURCES,
   ENGINES,
   FRAMEWORK_ENGINE_DIALECTS,
+  FRAMEWORK_ENGINE_PROJECT_RESOURCES,
   generatesFiles,
   hasOptions,
   isDialectEngine,
@@ -164,6 +166,19 @@ describe('the engine registry', () => {
       grl: grlProjectResourceParsers,
       tropos4as: tropos4asProjectResourceParsers,
       cgm: cgmProjectResourceParsers,
+    });
+  });
+
+  it('derives FRAMEWORK_ENGINE_PROJECT_RESOURCES, ENGINE_PROJECT_RESOURCES’s counterpart (kaosdoc and kaosprop read nothing beside the model, goal-controller#334)', () => {
+    const {
+      kaosdoc: none,
+      kaosprop: nothing,
+      ...parsers
+    } = FRAMEWORK_ENGINE_PROJECT_RESOURCES;
+    expect(none).toEqual({});
+    expect(nothing).toEqual({});
+    expectSameEntries(parsers, {
+      nfrprop: nfrpropProjectResourceParsers,
     });
   });
 
