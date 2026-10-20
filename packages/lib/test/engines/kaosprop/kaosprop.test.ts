@@ -339,7 +339,7 @@ describe('kaosprop: RE’12’s rules (Table I and §IV)', () => {
     near(p(model, 'g'), (1 - o * 0.5) * (1 - 0.3), 1e-12, 'g');
   });
 
-  it('a leaf obstacle without an estimate is 0, a value that is no probability its default, both said', () => {
+  it('a leaf obstacle without an estimate is 0, a value that is no probability its default', () => {
     const model = tiny(
       [
         ['o', O],
@@ -352,7 +352,9 @@ describe('kaosprop: RE’12’s rules (Table I and §IV)', () => {
     assert.strictEqual(probabilities.get('g'), 1);
     assert.deepStrictEqual(
       steps.map((s) => s.why),
-      ['no estimate: 0', 'often is no probability: 1'],
+      // #244: changed (was 'often is no probability: 1'); the dialect reports
+      // the value, and the propagation reads it as unset
+      ['no estimate: 0', 'leaf, nothing obstructs it'],
     );
   });
 
