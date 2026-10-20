@@ -162,8 +162,12 @@ cmd_spawn() {
       git -C "$root" fetch -q origin "${base#origin/}" 2>/dev/null || true
       if git -C "$root" show-ref --verify -q "refs/heads/$branch"; then git -C "$root" worktree add -q "$dir" "$branch"
       else git -C "$root" worktree add -q -b "$branch" "$dir" "$base"; fi
-      # a worktree has no node_modules: link the root's so tests run
-      [ -d "$root/node_modules" ] && [ ! -e "$dir/node_modules" ] && ln -s "$root/node_modules" "$dir/node_modules" || true
+      # a worktree has no node_modules: install its own, so tests run without
+      # corrupting the root checkout's pnpm store metadata (never symlink it)
+      if [ -f "$root/pnpm-lock.yaml" ] && command -v pnpm >/dev/null 2>&1; then
+        ( cd "$dir" && CI=true pnpm install --frozen-lockfile --prefer-offline >&2 ) \
+          || echo "agent-factory: pnpm install failed in $dir; run it by hand" >&2
+      fi
     else
       local cur; cur=$(git -C "$dir" branch --show-current 2>/dev/null)
       [ "$cur" = "$branch" ] || echo "agent-factory: worktree $dir is on $cur, not $branch; reusing it" >&2
