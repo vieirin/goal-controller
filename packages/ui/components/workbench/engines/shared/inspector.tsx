@@ -164,8 +164,14 @@ const ENGINE_KEYS: Record<TransformEngine, EngineKeys> = {
     },
   },
   grl: {
-    file: 'packages/lib/src/engines/grl/definition.ts',
-    lists: {},
+    // an element's keys are read, not declarable yet (#105): the workbench
+    // knows them from the mapper's GRL_ELEMENT_KEYS; GRL ignores resources
+    file: 'packages/lib/src/engines/grl/mapper.ts',
+    lists: {
+      goal: 'GRL_ELEMENT_KEYS',
+      task: 'GRL_ELEMENT_KEYS',
+      quality: 'GRL_ELEMENT_KEYS',
+    },
     mapper: 'packages/lib/src/engines/grl/mapper.ts',
     map: {
       goal: 'mapGoalProps',
@@ -176,7 +182,12 @@ const ENGINE_KEYS: Record<TransformEngine, EngineKeys> = {
   },
   istardt: {
     file: 'packages/lib/src/engines/istardt/definition.ts',
-    lists: {},
+    // a kind's keys are its definition's `properties.<kind>`; resources are ignored
+    lists: {
+      goal: 'properties.goal',
+      task: 'properties.task',
+      quality: 'properties.quality',
+    },
     mapper: 'packages/lib/src/engines/istardt/mapper.ts',
     map: {
       goal: 'mapGoalProps',
@@ -187,7 +198,12 @@ const ENGINE_KEYS: Record<TransformEngine, EngineKeys> = {
   },
   tropos4as: {
     file: 'packages/lib/src/engines/tropos4as/definition.ts',
-    lists: {},
+    // a kind's keys are its definition's `properties.<kind>`; resources are ignored
+    lists: {
+      goal: 'properties.goal',
+      task: 'properties.task',
+      quality: 'properties.quality',
+    },
     mapper: 'packages/lib/src/engines/tropos4as/mapper.ts',
     map: {
       goal: 'mapGoalProps',
@@ -198,7 +214,12 @@ const ENGINE_KEYS: Record<TransformEngine, EngineKeys> = {
   },
   cgm: {
     file: 'packages/lib/src/engines/cgm/definition.ts',
-    lists: {},
+    // a kind's keys are its definition's `properties.<kind>`; resources are ignored
+    lists: {
+      goal: 'properties.goal',
+      task: 'properties.task',
+      quality: 'properties.quality',
+    },
     mapper: 'packages/lib/src/engines/cgm/mapper.ts',
     map: {
       goal: 'mapGoalProps',
