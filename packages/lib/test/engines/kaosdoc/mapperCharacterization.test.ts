@@ -113,6 +113,7 @@ describe('kaosdocEngineMapper: characterization (#187)', () => {
       'Description',
     ]);
     assert.deepStrictEqual(KAOSDOC_DOMAIN_PROPERTY_KEYS, [
+      'FormalSpec',
       'Kind',
       'Description',
     ]);

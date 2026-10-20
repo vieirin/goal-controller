@@ -241,17 +241,28 @@ const CONFLICT_FIELDS = schemaProperties(
 );
 const CONFLICT = [CONFLICT_FIELDS.BoundaryCondition] as const;
 
-/** a domain property's: whether it is an invariant or a hypothesis, then piStar's description */
+/**
+ * a domain property's: its formal specification (the book, ch. 17;
+ * goal-controller#338), whether it is an invariant or a hypothesis, then
+ * piStar's description
+ */
 const DOMAIN_PROPERTY_FIELDS = schemaProperties(
   domainPropertyProperties.shape as KaosDomainPropertyProperties,
   {
+    FormalSpec: formalSpec(
+      'its formal specification, in real-time linear temporal logic',
+    ),
     Kind: vocabulary(
       'Kind',
       'whether it always holds (an invariant) or is assumed (a hypothesis)',
     ),
   },
 );
-const DOMAIN_PROPERTY = [DOMAIN_PROPERTY_FIELDS.Kind, DESCRIPTION] as const;
+const DOMAIN_PROPERTY = [
+  DOMAIN_PROPERTY_FIELDS.FormalSpec,
+  DOMAIN_PROPERTY_FIELDS.Kind,
+  DESCRIPTION,
+] as const;
 
 /** an obstacle's (TSE'00), in istar-ts's order */
 const OBSTACLE_FIELDS = schemaProperties(
@@ -324,7 +335,8 @@ export const kaos = defineDialect({
     'kaosObstacles.Obstacle': OBSTACLE,
     [KAOS_REFINEMENT_HUB]: REFINEMENT,
   },
-  // a goal's, then a domain property's Kind (an obstacle's keys are a goal's)
+  // a goal's (FormalSpec already among them), then a domain property's Kind
+  // (an obstacle's keys are a goal's)
   propertyLineOrder: [...GOAL.map((p) => p.key), 'Kind'],
   indent: '  ',
   refinements: {

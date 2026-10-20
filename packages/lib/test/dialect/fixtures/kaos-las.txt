@@ -262,6 +262,7 @@
       "x": 1260,
       "y": 560,
       "customProperties": {
+        "FormalSpec": "always (if ambulanceOnScene() then not ambulanceInTrafficJam())",
         "Description": "Ambulance cannot reach incident scene if stuck in traffic jams."
       }
     },
