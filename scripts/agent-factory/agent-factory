@@ -1,0 +1,318 @@
+#!/usr/bin/env bash
+# agent-factory: an orchestrator (fable/opus) spawns, briefs and reaps worker
+# Claude sessions (sonnet/haiku) as cmux tabs in its own workspace (default),
+# splits (-P), or separate workspaces (-W).
+# Non-interactive: every subcommand is meant to be called by the orchestrator
+# from its Bash tool.
+#
+#   agent-factory up    [DIR] [-n NAME] [-m fable|opus] [-e EFFORT] [-W]   orchestrator tab (-W: own workspace)
+#   agent-factory spawn NAME [-m MODEL] [-e EFFORT] [-r ROLE] [-t TASKFILE|-T TEXT] [-1]
+#                       [-w] [-b BRANCH] [-B BASE] [-d DIR] [-p MODE] [-P|-W]
+#   agent-factory result NAME                                         a one-shot (-1) worker's answer
+#   agent-factory send   NAME (-t TASKFILE | -T TEXT)                 paste a follow-up into a worker
+#   agent-factory list                                                workers, models, branches, alive?
+#   agent-factory peek   NAME [-l LINES]                              last lines of a worker's screen
+#   agent-factory kill   NAME [-W]                                    close its tab (-W: remove worktree too)
+#   agent-factory down   [-W]                                         kill every worker of this project
+#   agent-factory roles                                               print role files' paths
+#
+# Conventions (see roles/*.md next to this script):
+#   roles   orchestrator | builder | scout | reviewer   (-r; default builder)
+#   cost    cheapest first. Defaults: scout haiku/low/plan, one-shot (-1: `claude -p`,
+#           answer in `agent-factory result NAME`, workspace closes itself); builder
+#           sonnet/medium/auto; reviewer sonnet/medium/plan; the orchestrator runs in auto
+#           mode too (-p overrides any of these); `-m opus` implies effort high.
+#           Only an abstract or cross-package task gets opus; the orchestrator decides.
+#   -w      the worker gets .claude/worktrees/NAME on branch BRANCH from BASE (default
+#           origin/main); without -w it shares the project checkout (scouts, reviewers).
+#   -P      a split pane next to the orchestrator; -W a separate workspace (sidebar entry).
+set -euo pipefail
+export CMUX_QUIET=1
+
+AF_HOME="${AGENT_FACTORY_HOME:-$HOME/.config/agent-factory}"
+resolve_self() { # follow symlinks relative to each link's own dir, not cwd
+  local src="$0" dir
+  while [ -L "$src" ]; do
+    dir=$(cd -P "$(dirname "$src")" && pwd)
+    src=$(readlink "$src")
+    case "$src" in /*) ;; *) src="$dir/$src";; esac
+  done
+  cd -P "$(dirname "$src")" && pwd
+}
+ROLES_DEFAULT="$(resolve_self)/roles"
+ROLES="${AGENT_FACTORY_ROLES:-$ROLES_DEFAULT}"
+STATE="$AF_HOME/state"
+mkdir -p "$STATE"
+
+die() { echo "agent-factory: $*" >&2; exit 1; }
+die_usage() { # SUB MSG... -> stderr message + that subcommand's usage line, exit 1
+  local sub=$1; shift
+  echo "agent-factory: $*" >&2
+  sed -n '2,27p' "$0" | grep -m1 "agent-factory $sub " >&2 || true
+  exit 1
+}
+valid_name() { [[ "$1" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]]; }
+need() { command -v "$1" >/dev/null 2>&1 || die "$1 not found${2:+ ($2)}"; }
+
+project_root() { git -C "${1:-.}" rev-parse --show-toplevel 2>/dev/null || pwd; }
+record() { mkdir -p "$STATE/$1"; printf '%s\n' "$3" > "$STATE/$1/$2"; }   # NAME KEY VALUE
+recall() { cat "$STATE/$1/$2" 2>/dev/null || true; }
+ws_alive() { cmux workspace list 2>/dev/null | grep -q "^[* ]*$1 "; }
+sf_alive() { cmux tree --workspace "$2" 2>/dev/null | grep -q "$1\b"; }
+alive() { # NAME
+  local sf; sf=$(recall "$1" surface); local ws; ws=$(recall "$1" workspace)
+  if [ -n "$sf" ]; then sf_alive "$sf" "$ws"; else [ -n "$ws" ] && ws_alive "$ws"; fi
+}
+here_ws() { echo "${CMUX_WORKSPACE_ID:-$(cmux current-workspace 2>/dev/null)}"; }
+orchestrator_of() { # PROJECT -> orchestrator name
+  local n; for n in "$STATE"/*/; do n=$(basename "$n")
+    [ "$(recall "$n" role)" = orchestrator ] && [ "$(recall "$n" project)" = "$1" ] && { echo "$n"; return; }
+  done; echo "$(basename "$1")-orchestrator"
+}
+target_args() { # NAME -> --surface ref | --workspace ref
+  local s; s=$(recall "$1" surface); [ -n "$s" ] && { echo "--surface $s"; return; }
+  local w; w=$(recall "$1" workspace); [ -n "$w" ] || die "unknown worker $1"
+  echo "--workspace $w"
+}
+
+# the worker's launcher: one file, so the cmux command stays short and the brief is never shell-quoted
+write_runner() { # NAME MODEL EFFORT ROLE PERM BRIEF ONESHOT
+  local name=$1 model=$2 effort=$3 role=$4 perm=$5 brief=$6 oneshot=$7 run="$STATE/$1/run.sh"
+  {
+    echo '#!/usr/bin/env bash'
+    echo "cd $(printf %q "$(recall "$name" dir)")"
+    echo "AF_PLACE=$(printf %q "$(recall "$name" place)")"
+    local args="--model $model --effort $effort"
+    case "$perm" in "") ;; skip) args+=" --dangerously-skip-permissions";; *) args+=" --permission-mode $perm";; esac
+    [ -f "$ROLES/$role.md" ] && args+=" --append-system-prompt-file $(printf %q "$ROLES/$role.md")"
+    if [ -n "$oneshot" ]; then
+      echo "claude -p $args \"\$(cat $(printf %q "$brief"))\" > $(printf %q "$STATE/$name/result.md") 2>&1"
+      echo "echo done >> $(printf %q "$STATE/$name/result.md")"
+      echo 'if [ -n "${CMUX_SURFACE_ID:-}" ] && [ "$AF_PLACE" != workspace ]; then cmux close-surface --surface "$CMUX_SURFACE_ID" --force >/dev/null 2>&1; else cmux workspace close --workspace "${CMUX_WORKSPACE_ID:-}" --force >/dev/null 2>&1; fi || true'
+    elif [ -s "$brief" ]; then
+      echo "exec claude -n $(printf %q "$name") $args \"\$(cat $(printf %q "$brief"))\""
+    else
+      echo "exec claude -n $(printf %q "$name") $args"
+    fi
+  } > "$run"; chmod +x "$run"; echo "$run"
+}
+
+# --- up ----------------------------------------------------------------------
+cmd_up() {
+  local dir="." name="" model="fable" effort="medium" perm="skip" own=0 opt
+  [ $# -gt 0 ] && [ "${1#-}" = "$1" ] && { dir=$1; shift; }
+  while getopts ":n:m:e:p:W" opt; do case $opt in
+    n) name=$OPTARG;; m) model=$OPTARG;; e) effort=$OPTARG;; p) perm=$OPTARG;; W) own=1;;
+    \?) die_usage up "illegal option -$OPTARG";; :) die_usage up "option -$OPTARG requires an argument";;
+  esac; done; shift $((OPTIND-1)); OPTIND=1
+  [ $# -gt 0 ] && dir=$1
+  dir=$(project_root "$dir"); local proj; proj=$(basename "$dir")
+  [ -z "$name" ] && name="$proj-orchestrator"
+  if [ -n "$(recall "$name" workspace)" ] && ws_alive "$(recall "$name" workspace)"; then
+    echo "orchestrator $name is up in $(recall "$name" workspace)"; return
+  fi
+  record "$name" dir "$dir"; record "$name" project "$dir"; record "$name" model "$model"; record "$name" role orchestrator
+  : > "$STATE/$name/brief.md"
+  local run; run=$(write_runner "$name" "$model" "$effort" orchestrator "$perm" "$STATE/$name/brief.md" "")
+  local out ws
+  if [ $own -eq 1 ]; then
+    out=$(cmux workspace create --name "$proj: orchestrator" --cwd "$dir" --focus true --command "bash $(printf %q "$run")")
+    ws=$(grep -o 'workspace:[0-9]*' <<<"$out" | head -1); [ -n "$ws" ] || die "cmux: $out"
+  else
+    ws=$(here_ws); [ -n "$ws" ] || die "not inside cmux; use -W for a new workspace"
+    out=$(cmux new-surface --type terminal --workspace "$ws" --working-directory "$dir" --focus true --command "bash $(printf %q "$run")")
+    local sf; sf=$(grep -o 'surface:[0-9]*' <<<"$out" | head -1); [ -n "$sf" ] || die "cmux: $out"
+    cmux rename-tab --surface "$sf" -- "orchestrator" >/dev/null 2>&1 || true
+    record "$name" surface "$sf"
+  fi
+  record "$name" workspace "$ws"
+  echo "orchestrator=$name model=$model effort=$effort $(recall "$name" surface) $ws dir=$dir"
+}
+
+# --- spawn -------------------------------------------------------------------
+cmd_spawn() {
+  [ $# -ge 1 ] || die "spawn needs NAME"
+  local name=$1; shift
+  valid_name "$name" || die_usage spawn "invalid worker name '$name'"
+  local model="" effort="" role="builder" task="" text="" wt=0 branch="" base="origin/main" dir="" perm="" place=tab oneshot="" opt
+  while getopts ":m:e:r:t:T:wb:B:d:p:PW1" opt; do case $opt in
+    m) model=$OPTARG;; e) effort=$OPTARG;; r) role=$OPTARG;; t) task=$OPTARG;; T) text=$OPTARG;;
+    w) wt=1;; b) branch=$OPTARG;; B) base=$OPTARG;; d) dir=$OPTARG;; p) perm=$OPTARG;; P) place=split;; W) place=workspace;; 1) oneshot=1;;
+    \?) die_usage spawn "illegal option -$OPTARG";; :) die_usage spawn "option -$OPTARG requires an argument";;
+  esac; done; shift $((OPTIND-1)); OPTIND=1
+  [ -z "$task" ] || [ -f "$task" ] || die "task file $task not found"
+  [ -f "$ROLES/$role.md" ] || die "unknown role $role (have: $(ls "$ROLES" | sed 's/\.md$//' | tr '\n' ' '))"
+  alive "$name" && die "$name is already running ($(recall "$name" surface) $(recall "$name" workspace))"
+
+  # cost defaults by role: the cheapest tier that does the job; opus only when asked, and then at high effort
+  case $role in
+    scout)    : "${model:=haiku}";  : "${effort:=low}";    : "${perm:=plan}"; : "${oneshot:=1}";;
+    reviewer) : "${model:=sonnet}"; : "${effort:=medium}"; : "${perm:=plan}";;
+    *)        : "${model:=sonnet}"; : "${effort:=medium}"; : "${perm:=skip}";;
+  esac
+  { [ "$model" = opus ] || [ "$model" = fable ]; } && [ "$effort" = medium ] && effort=high
+
+  # where the worker runs
+  local root; root=$(project_root .)
+  if [ -n "$dir" ]; then :
+  elif [ $wt -eq 1 ]; then
+    [ -z "$branch" ] && branch="$name"
+    dir="$root/.claude/worktrees/$name"
+    if [ ! -d "$dir" ]; then
+      git -C "$root" fetch -q origin "${base#origin/}" 2>/dev/null || true
+      if git -C "$root" show-ref --verify -q "refs/heads/$branch"; then git -C "$root" worktree add -q "$dir" "$branch"
+      else git -C "$root" worktree add -q -b "$branch" "$dir" "$base"; fi
+      # a worktree has no node_modules: install its own, so tests run without
+      # corrupting the root checkout's pnpm store metadata (never symlink it)
+      if [ -f "$root/pnpm-lock.yaml" ] && command -v pnpm >/dev/null 2>&1; then
+        ( cd "$dir" && CI=true pnpm install --frozen-lockfile --prefer-offline >&2 ) \
+          || echo "agent-factory: pnpm install failed in $dir; run it by hand" >&2
+      fi
+    else
+      local cur; cur=$(git -C "$dir" branch --show-current 2>/dev/null)
+      [ "$cur" = "$branch" ] || echo "agent-factory: worktree $dir is on $cur, not $branch; reusing it" >&2
+    fi
+  else dir="$root"; fi
+  record "$name" dir "$dir"; record "$name" project "$root"; record "$name" model "$model"; record "$name" role "$role"
+  record "$name" worktree "$wt"; record "$name" branch "$branch"; record "$name" oneshot "${oneshot:-0}"; record "$name" place "$place"
+  rm -f "$STATE/$name/surface" "$STATE/$name/result.md"
+
+  # the brief, as a file the first prompt is read from
+  local brief="$STATE/$name/brief.md"
+  if   [ -n "$task" ]; then cp "$task" "$brief"
+  elif [ -n "$text" ]; then printf '%s\n' "$text" > "$brief"
+  else : > "$brief"; fi
+  {
+    echo; echo "---"; echo "Factory context: you are the session named \"$name\" (role: $role, model: $model)."
+    echo "Your working directory is $dir$( [ $wt -eq 1 ] && echo " (your own worktree, branch $branch from $base)" )."
+    if [ -n "$oneshot" ]; then echo "You run headless: your final message is the answer; under 300 words, pointers over prose."
+    else echo "Report to the orchestrator session named \"$(orchestrator_of "$root")\" with SendMessage when done or blocked."; fi
+  } >> "$brief"
+  local run; run=$(write_runner "$name" "$model" "$effort" "$role" "$perm" "$brief" "$oneshot")
+
+  # where it appears: a tab in the orchestrator's workspace (or the caller's), a split beside it, or its own workspace
+  local out ref ows
+  ows=$(recall "$(orchestrator_of "$root")" workspace); [ -n "$ows" ] || ows=$(here_ws)
+  case $place in
+    workspace)
+      out=$(cmux workspace create --name "$name" --description "$role · $model${branch:+ · $branch}" --cwd "$dir" --focus false --command "bash $(printf %q "$run")")
+      ref=$(grep -o 'workspace:[0-9]*' <<<"$out" | head -1); [ -n "$ref" ] || die "cmux: $out"
+      record "$name" workspace "$ref";;
+    split)
+      [ -n "$ows" ] || die "no workspace to split; run 'agent-factory up' or call from inside cmux"
+      out=$(cmux new-split right --workspace "$ows" --focus false --command "bash $(printf %q "$run")")
+      ref=$(grep -o 'surface:[0-9]*' <<<"$out" | head -1); [ -n "$ref" ] || die "cmux: $out"
+      record "$name" surface "$ref"; record "$name" workspace "$ows";;
+    *)
+      [ -n "$ows" ] || die "no workspace for the tab; run 'agent-factory up' or call from inside cmux"
+      out=$(cmux new-surface --type terminal --workspace "$ows" --working-directory "$dir" --focus false --command "bash $(printf %q "$run")")
+      ref=$(grep -o 'surface:[0-9]*' <<<"$out" | head -1); [ -n "$ref" ] || die "cmux: $out"
+      cmux rename-tab --surface "$ref" -- "$name" >/dev/null 2>&1 || true
+      record "$name" surface "$ref"; record "$name" workspace "$ows";;
+  esac
+  echo "spawned name=$name role=$role model=$model effort=$effort${oneshot:+ one-shot} $ref dir=$dir${branch:+ branch=$branch}"
+  if [ -n "$oneshot" ]; then echo "answer: agent-factory result $name (ends with a 'done' line when finished)"
+  else echo "message it with SendMessage to \"$name\"; watch it with: agent-factory peek $name"; fi
+}
+
+# --- result / send / peek / list / kill / down --------------------------------
+cmd_result() {
+  [ $# -ge 1 ] || die "result needs NAME"
+  local name=$1
+  valid_name "$name" || die_usage result "invalid worker name '$name'"
+  [ -d "$STATE/$name" ] || die "no worker $name"
+  [ "$(recall "$name" oneshot)" = 1 ] || { echo "$name is not a one-shot worker"; return 1; }
+  local f="$STATE/$name/result.md"
+  [ -f "$f" ] || { echo "(no result yet for $name)"; return 1; }
+  cat "$f"; tail -1 "$f" | grep -qx done || echo "(still running)"
+}
+
+cmd_send() {
+  [ $# -ge 1 ] || die "send needs NAME"
+  local name=$1; shift
+  valid_name "$name" || die_usage send "invalid worker name '$name'"
+  local task="" text="" opt
+  while getopts ":t:T:" opt; do case $opt in
+    t) task=$OPTARG;; T) text=$OPTARG;;
+    \?) die_usage send "illegal option -$OPTARG";; :) die_usage send "option -$OPTARG requires an argument";;
+  esac; done; OPTIND=1
+  [ -z "$task" ] || [ -f "$task" ] || die "task file $task not found"
+  [ -n "$task" ] && text=$(cat "$task")
+  [ -n "$text" ] || die "send needs -t FILE or -T TEXT"
+  # shellcheck disable=SC2046
+  cmux paste $(target_args "$name") --submit -- "$text" && echo "sent to $name"
+}
+
+cmd_peek() {
+  [ $# -ge 1 ] || die "peek needs NAME"
+  local name=$1; shift
+  valid_name "$name" || die_usage peek "invalid worker name '$name'"
+  local lines=40 opt
+  while getopts ":l:" opt; do case $opt in
+    l) lines=$OPTARG;;
+    \?) die_usage peek "illegal option -$OPTARG";; :) die_usage peek "option -$OPTARG requires an argument";;
+  esac; done; OPTIND=1
+  # shellcheck disable=SC2046
+  cmux read-screen $(target_args "$name") --lines "$lines"
+}
+
+cmd_list() {
+  local root; root=$(project_root .)
+  printf '%-14s %-12s %-7s %-6s %-20s %-22s %-28s %s\n' NAME ROLE MODEL ALIVE TAB WORKSPACE BRANCH DIR
+  local n; for n in "$STATE"/*/; do n=$(basename "$n")
+    [ "$(recall "$n" project)" = "$root" ] || continue
+    local d; d=$(recall "$n" dir); local b; b=$(git -C "$d" branch --show-current 2>/dev/null || echo -)
+    local a=no; alive "$n" && a=yes
+    [ "$(recall "$n" oneshot)" = 1 ] && [ -f "$STATE/$n/result.md" ] && tail -1 "$STATE/$n/result.md" | grep -qx done && a=done
+    printf '%-14s %-12s %-7s %-6s %-20s %-22s %-28s %s\n' "$n" "$(recall "$n" role)" "$(recall "$n" model)" "$a" "$(recall "$n" surface || echo -)" "$(recall "$n" workspace)" "$b" "$d"
+  done
+}
+
+cmd_kill() {
+  [ $# -ge 1 ] || die "kill needs NAME"
+  local name=$1; shift
+  valid_name "$name" || die_usage kill "invalid worker name '$name'"
+  [ -d "$STATE/$name" ] || die "no worker $name"
+  local rmwt=0 opt
+  while getopts ":W" opt; do case $opt in
+    W) rmwt=1;;
+    \?) die_usage kill "illegal option -$OPTARG";; :) die_usage kill "option -$OPTARG requires an argument";;
+  esac; done; OPTIND=1
+  local s; s=$(recall "$name" surface); local w; w=$(recall "$name" workspace)
+  if [ -n "$s" ]; then cmux close-surface --surface "$s" --force >/dev/null 2>&1 || true
+  elif [ -n "$w" ] && ws_alive "$w"; then cmux workspace close --workspace "$w" --force >/dev/null 2>&1 || true; fi
+  if [ $rmwt -eq 1 ] && [ "$(recall "$name" worktree)" = 1 ]; then
+    local d; d=$(recall "$name" dir)
+    if [ -n "$(git -C "$d" status --porcelain 2>/dev/null | grep -v ' node_modules$')" ]; then echo "worktree $d has uncommitted changes; left in place" >&2
+    else [ -L "$d/node_modules" ] && rm "$d/node_modules"; git -C "$d" worktree remove "$d" && echo "removed worktree $d (branch $(recall "$name" branch) kept)"; fi
+  fi
+  rm -rf "$STATE/$name"; echo "killed $name"
+}
+
+cmd_down() {
+  local rmwt=0 opt; while getopts ":W" opt; do case $opt in
+    W) rmwt=1;;
+    \?) die_usage down "illegal option -$OPTARG";; :) die_usage down "option -$OPTARG requires an argument";;
+  esac; done; OPTIND=1
+  local root; root=$(project_root .)
+  local n; for n in "$STATE"/*/; do n=$(basename "$n")
+    [ "$(recall "$n" project)" = "$root" ] || continue
+    [ "$(recall "$n" role)" = orchestrator ] && continue
+    cmd_kill "$n" $( [ $rmwt -eq 1 ] && echo -W ) || true
+  done
+}
+
+cmd_roles() { ls "$ROLES"/*.md; }
+
+sub=${1:-}; shift || true
+case "$sub" in
+  ""|-h|--help) sed -n '2,27p' "$0"; exit 0;;
+  roles) cmd_roles; exit 0;;
+esac
+{ [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; } && { sed -n '2,27p' "$0"; exit 0; }
+need cmux "install cmux.app"; need claude
+case "$sub" in
+  up) cmd_up "$@";; spawn) cmd_spawn "$@";; result) cmd_result "$@";; send) cmd_send "$@";; peek) cmd_peek "$@";;
+  list) cmd_list "$@";; kill) cmd_kill "$@";; down) cmd_down "$@";;
+  *) die "unknown subcommand $sub";;
+esac
