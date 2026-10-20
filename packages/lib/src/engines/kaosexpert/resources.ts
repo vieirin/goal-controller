@@ -56,6 +56,7 @@ import {
 
 export const EXPERTS_PATH = 'experts.json';
 export const CALIBRATIONS_PATH = 'calibrations.json';
+export const EVIDENCE_PATH = 'evidence.json';
 export const DEFAULT_QUANTILES = '(.1, .5, .9)';
 
 export type ExpertEntry = { id: string; name?: string; kept?: string[] };
@@ -251,6 +252,91 @@ export const parseExperts: ProjectResourceParser<{
     data: {
       experts: experts.map((e) => ({ id: e.id, name: e.name ?? e.id })),
       quantiles,
+    },
+    diagnostics,
+  };
+};
+
+/**
+ * An evidence item (goal-controller#199, HASE'11): no numeric content of
+ * its own, what a leaf goal's `ESR` or a leaf obstacle's `Probability` is
+ * based on (its `Evidence` key names it by id), traceability only.
+ *
+ * ```json
+ * {
+ *   "evidence": [
+ *     { "id": "cyclicEndurance", "name": "Cyclic endurance test results with cyclic examination" }
+ *   ]
+ * }
+ * ```
+ */
+export type EvidenceEntry = {
+  id: string;
+  name?: string;
+  kind?: string;
+  kept?: string[];
+};
+export type EvidenceFile = { evidence: EvidenceEntry[] };
+
+export const evidenceText = (file: EvidenceFile): string => jsonText(file);
+
+/** The evidence items, as the files declare them, with what is wrong in them. */
+export const readEvidence = (
+  files: readonly ResourceFile[],
+): { evidence: EvidenceEntry[]; diagnostics: ResourceDiagnostic[] } => {
+  const diagnostics: ResourceDiagnostic[] = [];
+  const evidence: EvidenceEntry[] = [];
+  for (const file of files) {
+    const { value, diagnostics: json } = readJson(file);
+    diagnostics.push(...json);
+    if (value === undefined) continue;
+    const problem = (key: string, message: string) =>
+      diagnostics.push({
+        path: file.path,
+        severity: 'error',
+        message,
+        ...keyRange(file.text, key),
+      });
+    if (!isRecord(value) || !Array.isArray(value.evidence)) {
+      problem('evidence', 'An evidence file has an `evidence` list');
+      continue;
+    }
+    for (const entry of value.evidence) {
+      if (!isRecord(entry) || typeof entry.id !== 'string' || !entry.id) {
+        problem('evidence', 'An evidence item has an `id`');
+        continue;
+      }
+      if (evidence.some((e) => e.id === entry.id))
+        problem(entry.id, `Evidence item ${entry.id} is declared twice`);
+      evidence.push({
+        id: entry.id,
+        ...(typeof entry.name === 'string' && { name: entry.name }),
+        ...(typeof entry.kind === 'string' && { kind: entry.kind }),
+        ...(strings(entry.kept) && { kept: strings(entry.kept) }),
+      });
+    }
+  }
+  return { evidence, diagnostics };
+};
+
+/** The evidence items as symbols (by id, their name the detail) and as data. */
+export const parseEvidence: ProjectResourceParser<{
+  evidence: { id: string; name: string; kind?: string }[];
+}> = (files) => {
+  const { evidence, diagnostics } = readEvidence(files);
+  return {
+    symbols: {
+      evidence: evidence.map((e) => ({
+        name: e.id,
+        detail: e.name ?? e.id,
+      })),
+    },
+    data: {
+      evidence: evidence.map((e) => ({
+        id: e.id,
+        name: e.name ?? e.id,
+        ...(e.kind && { kind: e.kind }),
+      })),
     },
     diagnostics,
   };

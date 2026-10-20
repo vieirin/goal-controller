@@ -33,7 +33,11 @@
  */
 import type { Distribution } from '@goal-controller/dialect';
 import { Bdd, FALSE, TRUE, type BddNode } from '../../numeric/bdd';
-import { continuousOf, type Continuous } from '../../numeric/distributions';
+import {
+  complementOf,
+  continuousOf,
+  type Continuous,
+} from '../../numeric/distributions';
 import { seededRandom, type Random } from '../../numeric/random';
 import {
   viewValues,
@@ -310,17 +314,27 @@ export const expertAnalysis = (
     if (visiting.has(id)) return FALSE;
     visiting.add(id);
     const refinements = hubs.get(id) ?? [];
-    const node = refinements.length
-      ? bdd.or(
-          ...refinements.map((hub) => {
-            const given = hub.values.Probability ?? 1;
-            return bdd.and(
-              ...hub.legs.map((leg) => occurs(leg.child)),
-              given === 1 ? TRUE : event(`P(O|SO) of ${nameOf(id)}`, given),
-            );
-          }),
-        )
-      : leafObstacle(id);
+    const branches = refinements.map((hub) => {
+      const given = hub.values.Probability ?? 1;
+      return bdd.and(
+        ...hub.legs.map((leg) => occurs(leg.child)),
+        given === 1 ? TRUE : event(`P(O|SO) of ${nameOf(id)}`, given),
+      );
+    });
+    // HASE'11's β (goal-controller#199): the obstacle's own Beta, read only
+    // with more than one refinement (an OR of them, where it does not fold
+    // into any one hub's own product, frameworks.md "Step 3 part B")
+    if (branches.length > 1) {
+      const beta = valuesOf('element', element).Beta as Distribution | null;
+      if (beta)
+        branches.push(
+          event(
+            `β of ${nameOf(id)}`,
+            beta.kind === 'point' ? beta.value : continuousOf(beta, { levels }),
+          ),
+        );
+    }
+    const node = branches.length ? bdd.or(...branches) : leafObstacle(id);
     visiting.delete(id);
     formulas.set(id, node);
     return node;
@@ -347,8 +361,16 @@ export const expertAnalysis = (
     if (refinements.length) {
       const alternatives = refinements.map((hub) => {
         const tactic = hub.values.Tactic ?? '';
-        if (!CASE_DRIVEN.has(tactic))
-          return bdd.or(...hub.legs.map((leg) => obstructed(leg.child)));
+        if (!CASE_DRIVEN.has(tactic)) {
+          // HASE'11's α (goal-controller#199), folded into this hub's own
+          // Probability slot (kaosprop's P(G|SG1..n), frameworks.md "Step 3
+          // part B"): obstructed if any sub-goal is, or by it, independently
+          const given = hub.values.Probability ?? 1;
+          const children = hub.legs.map((leg) => obstructed(leg.child));
+          return given >= 1
+            ? bdd.or(...children)
+            : bdd.or(event(`α of ${nameOf(id)}`, 1 - given), ...children);
+        }
         // case-driven: one case holds, its sub-goal obstructed or not; the
         // cases as a chain of events, each given the ones before don't hold
         const cases = hub.legs.map((leg) => leg.probability ?? null);
@@ -380,9 +402,17 @@ export const expertAnalysis = (
       node = bdd.or(bdd.and(...alternatives), ...own);
     } else if (own.length) node = bdd.or(...own);
     else {
-      const esr = valuesOf('element', element).ESR as number | undefined;
-      node =
-        esr === undefined ? FALSE : event(`1 − ESR of ${nameOf(id)}`, 1 - esr);
+      // HASE'11's P(G) (goal-controller#199): a leaf goal's ESR, now a
+      // distribution too; its complement (1 − ESR) is the failure event's
+      const esr = valuesOf('element', element).ESR as Distribution | null;
+      node = !esr
+        ? FALSE
+        : event(
+            `1 − ESR of ${nameOf(id)}`,
+            esr.kind === 'point'
+              ? 1 - esr.value
+              : complementOf(continuousOf(esr, { levels })),
+          );
     }
     visiting.delete(id);
     formulas.set(id, node);

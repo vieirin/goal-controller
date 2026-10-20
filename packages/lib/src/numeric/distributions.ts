@@ -170,6 +170,15 @@ export const continuousOf = (
   }
 };
 
+/** 1 − X: another continuous, mirrored (goal-controller#199, a leaf goal's 1 − ESR). */
+export const complementOf = (c: Continuous): Continuous => ({
+  min: 1 - c.max,
+  max: 1 - c.min,
+  mean: 1 - c.mean,
+  quantile: (u) => 1 - c.quantile(1 - u),
+  cdf: (x) => 1 - c.cdf(1 - x),
+});
+
 /** A mixture of distributions, by weight (summing to 1): a decision maker's. */
 export const mixture = (
   components: readonly { weight: number; distribution: Continuous }[],
