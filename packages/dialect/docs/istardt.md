@@ -94,7 +94,7 @@ action lists, `nondetActions`, `prob`, `proc` (`#` for OR; one procedure per
 order of an AND's children), `dtgRun`, the successor-state axioms, `poss`, the
 `_Sat`/`_Att` formulas, the condition boxes, `goalAchieved`, a clause per
 quality and `rewardInst`. It reads the model as a graph, the view of its
-`GoalModel` (goal-tree's IR of actors, elements and links, #125/#128):
+`KindModel` (goal-tree's IR of actors, elements and links, #125/#128):
 `istardtAnalysisModel` builds it with the engine's mapper, which keeps the
 actor's sets and the links' probabilities and weights.
 
@@ -161,7 +161,7 @@ No engine names in the core packages: the gate (`grep -ri 'istardt\|istar-dt\|go
 - **A link line to an unlisted iStar kind.** #133's check context left out an iStar kind the dialect gives properties without listing it (iStar-DT's qualities), so the document wrote `link Q1 {weight = 0.5}` under an effect and then reported "No element Q1". `contextFromView` now holds such an element (`goal-language/src/notation/document.ts`); no other dialect has one, and the language snapshot is byte-identical.
 - **Formulas name identifiers, not keys** (the owner's choice on #133's follow-up): a condition's and a quality's formulas keep the DT-Golog identifiers the file writes (`previous(hvacOn) & !(signalOffS)`), variables to the language; `istardtProblems` resolves them. Typing them as references would make them `previous(C1) & !(P4)`.
 - **Checks across elements.** A group's probabilities, an effect's task, a quality's formula or links: the engine's (`istardtProblems`, the Problems panel through `analyze`).
-- **Links and actor data in the IR**: #125/#128's `GoalModel`, read through the mapper.
+- **Links and actor data in the IR**: #125/#128's `KindModel`, read through the mapper.
 - **The importers' result type** moved to `importers/types.ts`, with the options an importer records (`dialectRecord.options`); `FILE_IMPORTERS` lists the importers the workbench opens a file with, by extension.
 
 ## Divergences from dtx2dtg, and what is unverified

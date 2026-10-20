@@ -235,7 +235,7 @@ export const dialectOf = (engine: TransformEngine): AnyDialect | null =>
       ? FRAMEWORK_ENGINE_DIALECTS[engine]
       : null;
 
-/** An analysis engine's analyses, by id, and how it reads a model for them (the view of its `GoalModel`, goal-controller#125). */
+/** An analysis engine's analyses, by id, and how it reads a model for them (the view of its `KindModel`, goal-controller#125). */
 export type AnalysisEngine = {
   analyses: Analyses;
   model: (model: IStarModel) => AnalysisModel;

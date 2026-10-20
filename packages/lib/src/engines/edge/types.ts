@@ -22,7 +22,7 @@ export type {
  */
 export type GoalExecutionDetail = ExecutionDetailOf<typeof edge>;
 
-// Forward reference type - will be resolved when GoalNode is generic
+// `dependsOn` holds goal nodes of the engine's tree, its type a parameter (`EdgeGoalPropsResolved` fixes it)
 export type EdgeGoalProps<TGoalNode = unknown> = {
   utility: string;
   cost: string;

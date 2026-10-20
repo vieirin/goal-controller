@@ -15,8 +15,6 @@ import type {
   ValidationReport,
 } from './types';
 
-type GoalTreeType = EdgeGoalTree;
-
 const createElementCount = (
   expected: string[],
   emitted: string[],
@@ -193,7 +191,7 @@ const validateSystem = (
 };
 
 export const validatePrismModel = (
-  goalTree: GoalTreeType,
+  goalTree: EdgeGoalTree,
   prismModel: string,
 ): ValidationReport => {
   const parsedModel = parsePrismModel(prismModel);

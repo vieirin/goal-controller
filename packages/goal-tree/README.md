@@ -4,7 +4,7 @@ goal-tree reads an iStar model (parsed with `@istar-ts/core`) into a typed IR
 for an engine. It reads each element's text in the engine's dialect and maps
 each element's properties with the engine's mapper. It names no engine.
 
-## The IR: `GoalModel` (goal-controller#125)
+## The IR: `KindModel` (goal-controller#125)
 
 ```ts
 const goalModel = GoalTree.goalModel(model, mapper);
@@ -135,9 +135,12 @@ properties. An actor's and a link's `raw` holds every actor's and every
 link kind's keys, as written: a check reports one on a kind that hasn't it
 (cgm's `context` on a link kind without one).
 
-`TreeNode<G, T, R>`, `GoalNode`, `Task`, `Resource`, `GoalTreeType` and
-`GoalModel<…>` remain as aliases over the iStar reading's nodes, for code
-that types nodes by hand. The per-role form (`createEngineMapper<G, T, R>()`
+Nodes and the IR are typed by kind: `NodeOf<typeof mapper>` and
+`ModelOf<typeof mapper>`, or by hand `KindNode<IstarProps<G, T, R>,
+IstarNaming, 'istar'>` and `KindModel` for the iStar reading. A node's kind is
+`node.kind` (`istar.Quality`, not a flag). The three-parameter aliases
+(`TreeNode`, `GoalNode`, `Task`, `Resource`, `GoalTreeType`, `GoalModel`) are
+gone (#317). The per-role form (`createEngineMapper<G, T, R>()`
 with `mapGoalProps`, `mapTaskProps`, `mapResourceProps`, `skipResource`,
 `afterCreationMapper`) is gone (#215): write entries.
 

@@ -13,7 +13,7 @@ const {
   parsePistar,
 } = require('../../../../goal-tree/node_modules/@istar-ts/core');
 
-// the view of its GoalModel (goal-controller#125)
+// the view of its KindModel (goal-controller#125)
 const model = (): AnalysisModel => toyAnalysisModel(parsePistar(TOY_MODEL));
 
 describe('analysis engines (#107)', () => {

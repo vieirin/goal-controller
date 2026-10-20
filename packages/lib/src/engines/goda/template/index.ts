@@ -94,7 +94,7 @@ const runtimeFiles = (root: Container): EngineOutputFile[] => {
 export type GodaGoalModel = ModelOf<typeof godaEngineMapper>;
 
 /**
- * A model (goal-tree's validated model) as GODA reads it: its `GoalModel`.
+ * A model (goal-tree's validated model) as GODA reads it: its `KindModel`.
  * Throws an Error for a model outside GODA's shape (an actor with two roots).
  */
 export const godaGoalModel = <EK extends string, LK extends string>(

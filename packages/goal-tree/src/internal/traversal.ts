@@ -1,16 +1,7 @@
 /**
  * Internal tree traversal utilities
  */
-import type {
-  GoalNode,
-  GoalTree,
-  Resource,
-  Task,
-  TraversalNode,
-  TraversalParent,
-  TreeNode,
-  Type,
-} from '../types/';
+import type { TraversalNode, TraversalParent } from '../types/';
 
 /**
  * Get all children of a node including tasks and resources
@@ -20,17 +11,17 @@ export function childrenWithTasksAndResources(
 ): TraversalNode[] {
   const result: TraversalNode[] = [];
 
-  // Add children if they exist (GoalNode types only)
+  // Add children if they exist (goals only)
   if (node.children) {
     result.push(...node.children);
   }
 
-  // Add tasks if they exist (GoalNode and Task types)
+  // Add tasks if they exist (goals and tasks)
   if (node.tasks) {
     result.push(...node.tasks);
   }
 
-  // Add resources if they exist (Task types)
+  // Add resources if they exist (tasks only)
   if (node.resources) {
     result.push(...node.resources);
   }
@@ -38,47 +29,28 @@ export function childrenWithTasksAndResources(
   return result;
 }
 
-// Overloads for type-specific returns
-export function allByType<TGoalEngine, TTaskEngine, TResourceEngine>(
-  gm: GoalTree<TGoalEngine, TTaskEngine, TResourceEngine>,
-  type: 'goal',
-): GoalNode<TGoalEngine, TTaskEngine, TResourceEngine>[];
-export function allByType<TGoalEngine, TTaskEngine, TResourceEngine>(
-  gm: GoalTree<TGoalEngine, TTaskEngine, TResourceEngine>,
-  type: 'task',
-): Task<TTaskEngine, TResourceEngine>[];
-export function allByType<TGoalEngine, TTaskEngine, TResourceEngine>(
-  gm: GoalTree<TGoalEngine, TTaskEngine, TResourceEngine>,
-  type: 'resource',
-): Resource<TResourceEngine>[];
-export function allByType<TGoalEngine, TTaskEngine, TResourceEngine>(
-  gm: GoalTree<TGoalEngine, TTaskEngine, TResourceEngine>,
-  type: Type,
-): TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>[];
-export function allByType<TGoalEngine, TTaskEngine, TResourceEngine>(
-  gm: GoalTree<TGoalEngine, TTaskEngine, TResourceEngine>,
-  type: Type,
-): TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>[] {
+/**
+ * Every node of a type in the trees, each once, by id: callers type the
+ * result by their nodes (`GoalTree.allByType`).
+ */
+export function allByType(
+  gm: readonly TraversalNode[],
+  type: string,
+): TraversalNode[] {
   const allCurrent = gm
-    .flatMap((node) => {
-      const children: TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>[] =
+    .flatMap((node): TraversalNode[] => {
+      const children: TraversalNode[] =
         node.type === 'resource'
           ? []
-          : (childrenWithTasksAndResources(node as TraversalParent) as TreeNode<
-              TGoalEngine,
-              TTaskEngine,
-              TResourceEngine
-            >[]);
+          : childrenWithTasksAndResources(node as TraversalParent);
       if (children.length > 0) {
-        return [node, ...(allByType(children, type) ?? [])];
+        return [node, ...allByType(children, type)];
       }
       return [node];
     })
     .filter((node) => node.type === type)
     .sort((a, b) => a.id.localeCompare(b.id))
-    .reduce<
-      Record<string, TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>>
-    >((acc, current) => {
+    .reduce<Record<string, TraversalNode>>((acc, current) => {
       if (acc[current.id]) {
         return { ...acc };
       }
@@ -88,15 +60,13 @@ export function allByType<TGoalEngine, TTaskEngine, TResourceEngine>(
   return Object.values(allCurrent);
 }
 
-export function allGoalsMap<TGoalEngine, TTaskEngine, TResourceEngine>(
-  gm: GoalTree<TGoalEngine, TTaskEngine, TResourceEngine>,
-): Map<string, GoalNode<TGoalEngine, TTaskEngine, TResourceEngine>> {
+export function allGoalsMap(
+  gm: readonly TraversalNode[],
+): Map<string, TraversalNode> {
   return new Map(allByType(gm, 'goal').map((goal) => [goal.id, goal]));
 }
 
-export function leafGoals<TGoalEngine, TTaskEngine, TResourceEngine>(
-  gm: GoalTree<TGoalEngine, TTaskEngine, TResourceEngine>,
-): GoalNode<TGoalEngine, TTaskEngine, TResourceEngine>[] {
+export function leafGoals(gm: readonly TraversalNode[]): TraversalNode[] {
   return allByType(gm, 'goal').filter((goal) => !!goal.tasks);
 }
 

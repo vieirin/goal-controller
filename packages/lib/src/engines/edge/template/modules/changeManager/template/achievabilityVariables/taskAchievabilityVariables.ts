@@ -1,11 +1,11 @@
-import type { Task } from '@goal-controller/goal-tree';
+import type { EdgeTask } from '../../../../../types';
 import { getLogger } from '../../../../../logger/logger';
 import { achievableFormulaVariable } from '../../../../../template/common';
 
 const DEFAULT_ACHIEVABILITY = 0.5;
 
 export const taskAchievabilityVariable = (
-  task: Task,
+  task: EdgeTask,
   variableValues: Record<string, number>,
 ): string => {
   const logger = getLogger();
@@ -31,7 +31,7 @@ export const taskAchievabilityVariable = (
 };
 
 export const taskAchievabilityVariables = (
-  tasks: Task[],
+  tasks: EdgeTask[],
   variableValues: Record<string, number>,
 ): string => {
   return tasks

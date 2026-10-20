@@ -1,5 +1,5 @@
 /**
- * GRL's analyses read the view of the GoalModel (goal-controller#125): on
+ * GRL's analyses read the view of the KindModel (goal-controller#125): on
  * both example projects, every evaluation equals the one on the model as
  * the analyses read it before (`asWritten`: the piStar model's actors,
  * elements and links with every string property).
@@ -66,7 +66,7 @@ const asWritten = (model: {
   };
 };
 
-describe('GRL: the analyses on the GoalModel’s view (#125)', () => {
+describe('GRL: the analyses on the KindModel’s view (#125)', () => {
   for (const [project, file] of [
     ['grl-own', 'grl-own.txt'],
     ['grl-smart-home', 'SmartHome2.txt'],

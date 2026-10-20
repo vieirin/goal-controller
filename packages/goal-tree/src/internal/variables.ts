@@ -1,7 +1,7 @@
 /**
  * Internal tree variable utilities
  */
-import type { GoalTree } from '../types/';
+import type { TraversalNode } from '../types/';
 import { allByType } from './traversal';
 
 const achievableFormulaVariable = (goalId: string): string =>
@@ -11,9 +11,7 @@ const achievableFormulaVariable = (goalId: string): string =>
  * Get context variables from a tree array.
  * Works with any engine type - returns empty array if engine doesn't have execCondition.
  */
-export function getContextVariables<TGoalEngine, TTaskEngine, TResourceEngine>(
-  tree: GoalTree<TGoalEngine, TTaskEngine, TResourceEngine>,
-): string[] {
+export function getContextVariables(tree: readonly TraversalNode[]): string[] {
   const variables = new Set<string>();
 
   const goals = allByType(tree, 'goal');
@@ -63,11 +61,9 @@ export function getContextVariables<TGoalEngine, TTaskEngine, TResourceEngine>(
   return Array.from(variables);
 }
 
-export function getTaskAchievabilityVariables<
-  TGoalEngine,
-  TTaskEngine,
-  TResourceEngine,
->(tree: GoalTree<TGoalEngine, TTaskEngine, TResourceEngine>): string[] {
+export function getTaskAchievabilityVariables(
+  tree: readonly TraversalNode[],
+): string[] {
   const tasks = allByType(tree, 'task');
   return tasks.map((task) => achievableFormulaVariable(task.id));
 }
