@@ -55,14 +55,11 @@ export const Node = {
   },
 
   /**
-   * Get children that have retry configuration (maxRetries > 0)
-   * Requires engine props to have maxRetries field
+   * Get children that have retry configuration (maxRetries > 0).
+   * Only each child's `properties.engine.maxRetries` is read.
    */
-  childrenWithRetries<TGoalEngine extends { maxRetries: number }>(
-    node: TraversalParent & {
-      type: 'goal';
-      properties: { engine: TGoalEngine };
-    },
+  childrenWithRetries(
+    node: TraversalParent & { type: 'goal' },
   ): TraversalNode[] {
     return _childrenWithMaxRetries(node);
   },

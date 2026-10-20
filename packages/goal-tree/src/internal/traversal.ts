@@ -100,17 +100,9 @@ export function leafGoals<TGoalEngine, TTaskEngine, TResourceEngine>(
   return allByType(gm, 'goal').filter((goal) => !!goal.tasks);
 }
 
-/**
- * Get children with max retries > 0
- * Note: This requires the engine props to have a maxRetries field
- */
-export function childrenWithMaxRetries<
-  TGoalEngine extends { maxRetries: number },
->(
-  node: TraversalParent & {
-    type: 'goal';
-    properties: { engine: TGoalEngine };
-  },
+/** Children whose `properties.engine.maxRetries` is greater than zero. */
+export function childrenWithMaxRetries(
+  node: TraversalParent & { type: 'goal' },
 ): TraversalNode[] {
   return childrenWithTasksAndResources(node).filter((child) => {
     if (child.type === 'resource') return false;
