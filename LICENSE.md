@@ -50,7 +50,16 @@ Anyone may, free of charge:
    extending, redistributing the code and building on it remain allowed;
    it restricts presenting the authors' original work as a new
    contribution in a publication.
-5. **No endorsement.** Derived works may not state or imply that they are
+5. **Derived works stay public.** A derived work of this repository (a
+   fork, an extension, a modification, a port to another area, or software
+   that embeds its original content) is itself made public: its source is
+   published under terms at least as permissive as these, with this notice,
+   no later than when it is used, deployed, distributed or offered as a
+   service to anyone outside the person or team that made it. Private,
+   internal or closed derived works and private instances are not covered
+   by the permissions above: anyone wanting one contacts the authors first
+   and uses it only with their agreement.
+6. **No endorsement.** Derived works may not state or imply that they are
    produced, endorsed or maintained by the authors, LES or UnB without
    written permission. The names of the authors, the laboratory and the
    university may not be used to promote derived works.
