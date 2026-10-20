@@ -284,6 +284,14 @@ describe('sleecEngineMapper: characterization (#187)', () => {
       assert.ok(!rules.includes('RuleT1_5'));
     });
 
+    it('#230: a set ObstacleEvent writes rule _5 (seed T6)', () => {
+      const rules = sleecTemplateEngine(treeOf(Model.load(SEED)));
+      assert.match(
+        rules,
+        /RuleT6_5 when PursuingTrackPatientOutdoors and AchievedObtainConsentPartialTracking then StopTrackPatientOutdoors/,
+      );
+    });
+
     // #230: changed (read Obstacle; the seeds' ObstacleEvent was ignored)
     it('reads ObstacleEvent, not Obstacle or FluentName', () => {
       assert.deepStrictEqual(
