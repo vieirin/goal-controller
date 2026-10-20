@@ -15,7 +15,6 @@
  * are read through their entries (goal-controller#226); an unset Anchor is
  * not written as "anchored on nowhere" (goal-controller#243).
  */
-import { KAOS_REFINEMENT_HUB } from '@istar-ts/dsm3-kaos/metamodel';
 import { singleFileOutput, type EngineOutput } from '../output';
 import type {
   KaosdocGoalModel,
@@ -95,17 +94,20 @@ export const kaosdocDocument = (
     properties[key] ?? '';
 
   // each refinement, by its hub: what it refines, into what, its properties
-  // from the hub's entry (goal-controller#226)
+  // as the hub's entry maps them (goal-controller#226)
   const ends = new Map(linksOf(END).map((link) => [link.source, link.target]));
   const refinements = model.elements
-    .filter((e) => e.kind === KAOS_REFINEMENT_HUB && ends.has(e.id))
-    .map((hub) => ({
-      hub,
-      parent: ends.get(hub.id)!,
+    .flatMap((hub) =>
+      hub.as === 'refinement' && ends.has(hub.id)
+        ? [{ id: hub.id, properties: hub.engine ?? {} }]
+        : [],
+    )
+    .map(({ id, properties }) => ({
+      parent: ends.get(id)!,
       children: linksOf(LEG)
-        .filter((link) => link.target === hub.id)
+        .filter((link) => link.target === id)
         .map((link) => link.source),
-      properties: (hub.engine as KaosdocProperties | undefined) ?? {},
+      properties,
     }))
     .sort((a, b) => (rank.get(a.parent) ?? 0) - (rank.get(b.parent) ?? 0));
   const alternatives = (parent: string) =>

@@ -14,6 +14,8 @@ import {
 } from './cli/utils';
 import { GoalTree, Model } from '@goal-controller/goal-tree';
 import { edgeEngineMapper } from './engines/edge';
+import { edgeEngine } from './engines/edge/engine';
+import { refuseOnPropertyErrors } from './engines/engine';
 import { DEFAULT_ACHIEVABILITY_SPACE } from './engines/edge/template/decisionVariables';
 
 const loadVariables = (modelPath: string): Record<string, boolean | number> => {
@@ -172,6 +174,8 @@ const mainMenu = async (): Promise<void> => {
     ]);
 
     const model = Model.load(selectedFile);
+    // as runModel: the mapper reads a value with an error as unset (#274, #290)
+    refuseOnPropertyErrors(edgeEngine, model);
     const tree = GoalTree.fromModel(model, edgeEngineMapper);
     const json = tree.toJSON();
     await writeFile(`output/${path.parse(selectedFile).name}.json`, json);

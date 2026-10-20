@@ -36,12 +36,15 @@ describe('whereAccepted', () => {
       const text = whereAccepted('priority', kind, engine, none, {});
       expect(text).toContain(`add 'priority' to ${list} in ${file}`);
       expect(text).not.toContain('skips');
+      expect(text).not.toMatch(/mapGoalProps|skipResource/);
     },
   );
 
-  it('still says a dialect engine skips resources', () => {
-    expect(whereAccepted('priority', 'resource', 'cgm', none, {})).toContain(
-      'skips resources',
-    );
+  it('says a dialect engine skips resources via the mapper ignore list (#304)', () => {
+    const text = whereAccepted('priority', 'resource', 'cgm', none, {});
+    expect(text).toContain('skips resources');
+    expect(text).toContain('istar.Resource');
+    expect(text).toContain('packages/lib/src/engines/cgm/mapper.ts');
+    expect(text).not.toMatch(/mapGoalProps|skipResource/);
   });
 });
