@@ -263,10 +263,12 @@ describe('Contextual goal models (#187 characterization): context, activation an
       VAR('C99'),
       ["G2 → G1's context names C99, which is no context"],
     ]);
-    // #187: invalid value: unreadable (unset); #238: analyses exclude a
-    // variant whose context is unreadable (see analyses.test); the dialect's
-    // diagnostic is what the user sees
-    assert.deepStrictEqual(read('C5 &'), [null, []]);
+    // #187: invalid value: unreadable (unset); #238: cgmProblems names it,
+    // analyses refuse (see analyses.test)
+    assert.deepStrictEqual(read('C5 &'), [
+      null,
+      ["G2 → G1's context is not a formula: C5 &"],
+    ]);
   });
 
   it("a root goal's activation: the same", () => {
@@ -285,9 +287,11 @@ describe('Contextual goal models (#187 characterization): context, activation an
     assert.deepStrictEqual(read(' C5 '), [VAR('C5'), []]);
     assert.deepStrictEqual(read(''), [null, []]);
     assert.deepStrictEqual(read('   '), [null, []]);
-    // #187: invalid value: the value check says so (cgmProblems said "G1's
-    // activation is not a formula: C5 &")
-    assert.deepStrictEqual(read('C5 &'), [null, []]);
+    // #187: invalid value: unreadable (unset); #238: cgmProblems names it
+    assert.deepStrictEqual(read('C5 &'), [
+      null,
+      ["G1's activation is not a formula: C5 &"],
+    ]);
   });
 
   it("a contribution's sign: context and opposite blank when only whitespace; its label's otherwise", () => {

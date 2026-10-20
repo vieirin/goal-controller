@@ -99,6 +99,7 @@ The definition is `packages/lib/src/engines/cgm/definition.ts`.
     - an `opposite` needs the contribution's own `context`, and differs from it;
   - `cgmProblems`, across the model:
     - the same checks;
+    - a variation point's `activation` or `context` (or a contribution's `opposite`) that doesn't read as a formula (#238);
     - a formula that doesn't read;
     - a formula naming what isn't a context (on a variation point) or a statement or fact (in context analysis);
     - a context on a link that isn't a variation point;

@@ -89,6 +89,13 @@ describe('Contextual goal models: the variants (#152, #151 D13, D16)', () => {
       after.length < readable.length,
       `expected fewer variants after unreadable context (${after.length} vs ${readable.length})`,
     );
+    const run = runAnalysis(
+      cgmAnalyses.cgmVariants,
+      broken,
+      seedResource('museum-guide-costs', 'situations'),
+    );
+    assert.ok('error' in run, JSON.stringify(run));
+    assert.match(run.error, /G2 → G1's context is not a formula: C5 &/);
   });
 
   it("writes Fig. 3's variant's context as the figure does", () => {
