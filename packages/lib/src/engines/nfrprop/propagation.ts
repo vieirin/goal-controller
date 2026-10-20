@@ -108,7 +108,8 @@ export const propagateLabels = (
     if (known) return known;
     const element = elements.get(id);
     if (!element) return 'undecided';
-    const initial = element.properties.initialLabel?.trim();
+    // its entry's: the mapper keeps a label only (goal-controller#226)
+    const initial = element.properties.initialLabel;
     if (isLabel(initial)) return settle(id, initial, 'its initial label');
     // a cycle decides nothing where it closes
     if (visiting.has(id)) return 'undecided';

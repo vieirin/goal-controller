@@ -500,6 +500,21 @@ describe('kaosdocEngineMapper: characterization (#187)', () => {
       );
     });
 
+    it('the document reads a hub by its entry, never its texts', () => {
+      const model = modelOf(SEED);
+      const hub = model.elements.find((e) => e.id === HUB)!;
+      assert.strictEqual(hub.as, 'refinement');
+      Object.assign(hub, {
+        engine: { Tactic: 'from-entry' },
+        properties: { Tactic: 'as-written' },
+      });
+      const refinements = kaosdocDocument(model, { title: 't' })
+        .split('## Refinements')[1]!
+        .split('\n## ')[0]!;
+      assert.ok(refinements.includes('| from-entry |'));
+      assert.ok(!refinements.includes('as-written'));
+    });
+
     it('an agent is no tree node; its entry keeps its Description', () => {
       const text = withProperties(SEED, {
         [AGENT]: { Description: ' a person ', Type: 'x' },
