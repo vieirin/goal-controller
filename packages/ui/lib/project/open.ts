@@ -1,4 +1,5 @@
 /** Opening, promoting and saving a project, over any store. */
+import { DEFAULT_FRAMEWORK, type Framework } from '@goal-controller/dialect';
 import {
   ManifestError,
   needsProjectFile,
@@ -9,6 +10,7 @@ import {
   MANIFEST_VERSION,
   type Manifest,
   type ManifestSettings,
+  type ModelEntry,
   type OutputEntry,
 } from './manifest';
 import {
@@ -18,6 +20,7 @@ import {
   withEmbeddedManifest,
 } from './embedded';
 import {
+  normalizePath,
   ReadOnlyStoreError,
   sourceLabel,
   type ManifestForm,
@@ -337,6 +340,72 @@ export const promote = (
     changes: {
       ...(text !== model.text && { [model.path]: text }),
       [PROJECT_FILE]: serializeManifest(from.manifest),
+    },
+  };
+};
+
+/** `name`, or `name-2`, `name-3` … with its extension, when a file has it already. */
+const freePath = (name: string, files: readonly string[]): string => {
+  const path = normalizePath(name);
+  if (!files.includes(path)) return path;
+  const [, stem = path, extension = ''] = /^(.*?)(\.[^./]*)?$/.exec(path) ?? [];
+  for (let n = 2; ; n += 1)
+    if (!files.includes(`${stem}-${n}${extension}`))
+      return `${stem}-${n}${extension}`;
+};
+
+/**
+ * The project with a model file added (not written, goal-controller#329): a
+ * one-model project is promoted, and the manifest lists the model under a
+ * path no file has yet. A project's models may be of several frameworks:
+ * the entry names the model's framework when it isn't the project's (an
+ * entry of the project's own stays as it was), and its mode when the text
+ * records one other than the project's dialect. Returns the files to write
+ * (saveProject, or copyProject to a store that can be written).
+ */
+export const withModel = (
+  from: Project,
+  file: { name: string; text: string },
+  framework: Framework,
+): { project: Project; changes: Record<string, string> } => {
+  const { project: promoted, changes } = promote(from);
+  const path = freePath(file.name, promoted.files);
+  const mode = recordedMode(file.text);
+  const entry: ModelEntry = {
+    path,
+    ...(mode !== null &&
+      mode !== (promoted.manifest.dialect ?? null) && { dialect: mode }),
+    ...(framework !== (promoted.manifest.framework ?? DEFAULT_FRAMEWORK) && {
+      framework,
+    }),
+  };
+  const manifest: Manifest = {
+    ...promoted.manifest,
+    models: [...promoted.manifest.models, entry],
+  };
+  const models = [
+    ...promoted.models,
+    {
+      path,
+      text: file.text,
+      settings: settingsOf(manifest, path, file.text),
+    },
+  ];
+  return {
+    project: project({
+      store: promoted.store,
+      form: 'file',
+      manifest,
+      models,
+      name: promoted.name,
+      files: [...new Set([...promoted.files, path, PROJECT_FILE])],
+      declarations: promoted.declarations,
+      nativeDeclarations: promoted.nativeDeclarations,
+    }),
+    changes: {
+      ...changes,
+      [path]: file.text,
+      [PROJECT_FILE]: serializeManifest(manifest),
     },
   };
 };

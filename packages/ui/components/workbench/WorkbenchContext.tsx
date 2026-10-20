@@ -29,7 +29,13 @@ import type { GoalView } from '@goal-controller/goal-tree';
 import { parseModel } from '@/lib/workbench/dialects';
 import { frameworkProblems } from '@/lib/workbench/frameworkProblems';
 import { frameworkOfModel } from '@/lib/workbench/frameworks';
-import { inItsFramework, openingMismatch } from '@/lib/workbench/frameworkOpen';
+import {
+  addingMismatch,
+  frameworkModeOf,
+  frameworkOfEntry,
+  inItsFramework,
+  openingMismatch,
+} from '@/lib/workbench/frameworkOpen';
 import type { Framework } from '@goal-controller/dialect';
 import {
   FRAMEWORK_DIALECTS,
@@ -72,6 +78,7 @@ import {
   setSettingsInManifest,
   settingsInManifest,
   sourceLabel,
+  withModel,
   withModelText,
   withOutputs,
   withProjectResource,
@@ -260,7 +267,10 @@ export type OpenOptions = {
   mode?: string | null;
 };
 /** How a project opens; where it came from is its own. */
-export type ProjectOpenOptions = Omit<OpenOptions, 'source'>;
+export type ProjectOpenOptions = Omit<OpenOptions, 'source'> & {
+  /** the model of the project to open, by its path (default: its first) */
+  model?: string;
+};
 
 export type Workbench = {
   // model
@@ -284,6 +294,17 @@ export type Workbench = {
    * project's waits in `frameworkSwitch` for an explicit confirmation
    */
   openModelFile: (fileName: string, text: string) => Promise<void>;
+  /**
+   * a model file (`.txt`, `.json`) added to the open project and opened
+   * (goal-controller#329): in its own framework by its content, recorded in
+   * its manifest entry; refused only when it isn't in the framework it
+   * declares. A read-only project becomes a browser copy. No project open: openModelFile.
+   */
+  addModelFile: (fileName: string, text: string) => Promise<void>;
+  /** the open model's path in its project (null: no project) */
+  modelPath: string | null;
+  /** another model of the open project opened, in its own framework; the left one's edits stay in the project */
+  openProjectModel: (path: string) => void;
   /** a model file of another framework, waiting for the switch to be confirmed */
   frameworkSwitch: FrameworkSwitch | null;
   /** open it, the project now in its framework */
@@ -623,6 +644,18 @@ function WorkbenchState({
   const [project, setProject] = useState<Project | null>(null);
   const projectRef = useRef(project);
   projectRef.current = project;
+  // which of its models is open (goal-controller#329: a project's models may
+  // be of several frameworks, each opened in its own)
+  const [modelPath, setModelPath] = useState<string | null>(null);
+  const modelPathRef = useRef(modelPath);
+  modelPathRef.current = modelPath;
+  /** the open model's path in a project: the one open, else its first */
+  const openPathIn = useCallback(
+    (open: Project | null): string | undefined =>
+      open?.models.find((m) => m.path === modelPathRef.current)?.path ??
+      open?.models[0]?.path,
+    [],
+  );
 
   // ---- engine & options ----------------------------------------------------
   const [engineState, setEngineState] = useState<TransformEngine>(
@@ -646,17 +679,14 @@ function WorkbenchState({
   const modelOptions = useMemo(() => {
     // a project with project.json keeps them there; a one-model project, in its model
     if (project?.form === 'file') {
-      const read = settingsInManifest(
-        project.manifest,
-        project.models[0]?.path,
-      );
+      const read = settingsInManifest(project.manifest, openPathIn(project));
       return checkedOptions({
         ...read,
         mode: read.mode ?? recordedMode(model.text),
       });
     }
     return readModelOptions(model.text);
-  }, [model.text, project]);
+  }, [model.text, project, openPathIn]);
   const options = useMemo<GenerationOptions>(
     () => ({ ...baseOptions, ...modelOptions.options }),
     [baseOptions, modelOptions],
@@ -740,8 +770,10 @@ function WorkbenchState({
         // project.json's: written there (saved when the project's store can be)
         const manifest = setSettingsInManifest(
           open.manifest,
-          open.models[0]?.path,
-          { options: optionsToKeep(target, next, baseOptionsRef.current) },
+          openPathIn(open),
+          {
+            options: optionsToKeep(target, next, baseOptionsRef.current),
+          },
         );
         setProject({ ...open, manifest });
         if (!open.store.readOnly)
@@ -765,7 +797,7 @@ function WorkbenchState({
       }
       setBaseOptions(next);
     },
-    [lockedEngine, setText],
+    [lockedEngine, setText, openPathIn],
   );
   const setOptions = useCallback(
     (patch: Partial<GenerationOptions>) =>
@@ -976,16 +1008,29 @@ function WorkbenchState({
     [leaving, adoptSettings, clearSelection],
   );
 
+  // the saved text of each model of the open project left for another (#329)
+  const leftModels = useRef(new Map<string, string>());
   const openProject = useCallback(
-    (project: Project, how: ProjectOpenOptions = {}) => {
-      const [first] = project.models;
-      if (!first) return;
-      openModel(first.path.split('/').pop() ?? first.path, first.text, {
+    (project: Project, { model: path, ...how }: ProjectOpenOptions = {}) => {
+      const opened =
+        project.models.find((m) => m.path === path) ?? project.models[0];
+      if (!opened) return;
+      // a model in its own framework: what its manifest says, else its
+      // framework's mode (none for iStar 2.0's) unless the file records one
+      const framework = frameworkOfEntry(
+        project.manifest,
+        opened.path,
+        opened.text,
+      );
+      openModel(opened.path.split('/').pop() ?? opened.path, opened.text, {
         ...how,
         source: project.source,
-        mode: first.settings.mode,
+        mode: opened.settings.mode ?? frameworkModeOf(framework),
       });
+      if (project.store !== projectRef.current?.store)
+        leftModels.current.clear();
       setProject(project);
+      setModelPath(opened.path);
     },
     [openModel],
   );
@@ -1002,8 +1047,15 @@ function WorkbenchState({
     useState<FrameworkSwitch | null>(null);
   const openModelFile = useCallback(
     async (fileName: string, text: string) => {
+      // the open model's own framework (its entry's: a project's models may
+      // be of several, goal-controller#329)
       const current = textRef.current;
-      const project = current.trim() ? frameworkOfModel(current) : undefined;
+      const open = projectRef.current;
+      const project = !current.trim()
+        ? undefined
+        : open
+          ? frameworkOfEntry(open.manifest, openPathIn(open), current)
+          : frameworkOfModel(current);
       const message = openingMismatch(text, project);
       if (message) {
         setFrameworkSwitch({
@@ -1017,7 +1069,7 @@ function WorkbenchState({
       }
       await openFile(fileName, inItsFramework(text), { setup: true });
     },
-    [openFile],
+    [openFile, openPathIn],
   );
   const confirmFrameworkSwitch = useCallback(async () => {
     const pending = frameworkSwitch;
@@ -1133,6 +1185,7 @@ function WorkbenchState({
     clearSelection();
     setConversion(null);
     setProject(null);
+    setModelPath(null);
     forceHistory((n) => n + 1);
   }, [leaving, adoptSettings, clearSelection]);
 
@@ -1415,11 +1468,11 @@ function WorkbenchState({
   /** the open project, with the model as it is now (its edits) */
   const currentProject = useCallback((): Project | null => {
     const open = projectRef.current;
-    const [first] = open?.models ?? [];
-    return open && first
-      ? withModelText(open, first.path, textRef.current)
+    const path = openPathIn(open);
+    return open && path !== undefined
+      ? withModelText(open, path, textRef.current)
       : open;
-  }, []);
+  }, [openPathIn]);
 
   /**
    * Make the open project one that can be written: a copy in the browser
@@ -1477,11 +1530,12 @@ function WorkbenchState({
         aside: undefined,
       }));
       // the model's own text, promoted (its options moved to project.json)
-      const [first] = result.models;
-      if (first && first.text !== textRef.current)
-        setText(first.text, 'settings');
+      const opened = result.models.find((m) => m.path === openPathIn(result));
+      if (opened && opened.text !== textRef.current)
+        setText(opened.text, 'settings');
+      return result;
     },
-    [leaving, toWritable, setText],
+    [leaving, toWritable, setText, openPathIn],
   );
 
   const addResource = useCallback(
@@ -1500,6 +1554,46 @@ function WorkbenchState({
       await writeProject(open, changes, added);
     },
     [currentProject, writeProject],
+  );
+
+  /** another model of the open project, in its own framework (goal-controller#329) */
+  const openProjectModel = useCallback(
+    (path: string) => {
+      const open = currentProject();
+      const left = openPathIn(open);
+      if (!open || path === left) return;
+      if (left !== undefined)
+        leftModels.current.set(left, modelRef.current.savedText);
+      openProject(open, {
+        model: path,
+        ...(leftModels.current.has(path) && {
+          savedText: leftModels.current.get(path),
+        }),
+      });
+    },
+    [currentProject, openPathIn, openProject],
+  );
+  // a model file added to the project, in its own framework, then opened (#329)
+  const addModelFile = useCallback(
+    async (fileName: string, text: string) => {
+      const open = currentProject();
+      if (!open) return openModelFile(fileName, text);
+      const opened = inItsFramework(text);
+      const mismatch = addingMismatch(opened);
+      if (mismatch) throw new Error(`${fileName}: ${mismatch}`);
+      const { project: added, changes } = withModel(
+        open,
+        { name: fileName, text: opened },
+        frameworkOfModel(opened),
+      );
+      const path = added.models[added.models.length - 1]!.path;
+      const result = await writeProject(open, changes, added);
+      const left = openPathIn(result);
+      const { savedText } = modelRef.current;
+      openProject(result, { model: path, setup: true });
+      if (left !== undefined) leftModels.current.set(left, savedText);
+    },
+    [currentProject, openModelFile, writeProject, openPathIn, openProject],
   );
 
   // a resource edited in its tab: kept, and saved where the project can be written
@@ -1956,14 +2050,17 @@ function WorkbenchState({
   const clearAnalysis = useCallback(() => setAnalysisRun(null), []);
 
   /** the latest output of the engine as the project keeps it (none: no output yet) */
-  const latestOutputs = useCallback((open: Project) => {
-    const { lastGood: run } = engineRuns(
-      latest.current.runs,
-      latest.current.engine,
-    );
-    const [model] = open.models;
-    return (run && model && outputsToSave(run, model.path)) || null;
-  }, []);
+  const latestOutputs = useCallback(
+    (open: Project) => {
+      const { lastGood: run } = engineRuns(
+        latest.current.runs,
+        latest.current.engine,
+      );
+      const path = openPathIn(open);
+      return (run && path !== undefined && outputsToSave(run, path)) || null;
+    },
+    [openPathIn],
+  );
 
   // the latest output's files, kept in the project: out/, one manifest entry each
   const saveOutputs = useCallback(async () => {
@@ -1984,26 +2081,26 @@ function WorkbenchState({
       : { project: open, changes: {} };
     // the project resources and files open in tabs, with their unsaved edits;
     // the open model is as it is now (currentProject), never a tab's older text
-    const { [open.models[0]?.path ?? '']: _model, ...tabs } =
+    const { [openPathIn(open) ?? '']: _model, ...tabs } =
       resourceTextsRef.current;
     const { fileName, bytes } = await exportArchive(next, {
       ...tabs,
       ...changes,
     });
     downloadBytes(fileName, bytes, 'application/gzip');
-  }, [currentProject, latestOutputs]);
+  }, [currentProject, latestOutputs, openPathIn]);
 
   // a project's outputs, when it has some for the model and engine: shown
   // until the first generation (stale if the model changed since)
-  const outputsOf = project ? `${project.models[0]?.path}\n${engine}` : null;
+  const outputsOf = project ? `${openPathIn(project)}\n${engine}` : null;
   useEffect(() => {
     const open = projectRef.current;
-    const [model] = open?.models ?? [];
+    const path = openPathIn(open);
     const hasRun = () =>
       engineRuns(latest.current.runs, engine).runs.length > 0;
-    if (!open || !model || pistar || hasRun()) return undefined;
+    if (!open || path === undefined || pistar || hasRun()) return undefined;
     let cancelled = false;
-    void readOutputs(open, model.path, engine)
+    void readOutputs(open, path, engine)
       .then((saved) => {
         if (cancelled || !saved || hasRun()) return;
         runId.current += 1;
@@ -2191,6 +2288,9 @@ function WorkbenchState({
     applyConversion,
     cancelConversion,
     openModelFile,
+    addModelFile,
+    modelPath,
+    openProjectModel,
     frameworkSwitch,
     confirmFrameworkSwitch,
     cancelFrameworkSwitch,

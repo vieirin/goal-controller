@@ -82,12 +82,16 @@ const localProblems = (text: string, engine: TransformEngine): Problem[] => {
   }
 };
 
-/** The framework of the open project's model (goal-controller#171); none without a project. */
+/**
+ * The framework of the open model of a project (goal-controller#171): its
+ * entry's, its models may be of several (#329); none without a project.
+ */
 export const projectFrameworkOf = (
   project: Project | null,
+  modelPath: string | undefined = project?.models[0]?.path,
 ): Framework | undefined =>
   project
-    ? settingsInManifest(project.manifest, project.models[0]?.path).framework
+    ? settingsInManifest(project.manifest, modelPath).framework
     : undefined;
 
 /**

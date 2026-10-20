@@ -17,6 +17,8 @@ import {
   type ResourceSlot,
 } from '@/lib/project';
 import { resourceTabId } from '@/lib/workbench/projectResources';
+import { frameworkOfEntry } from '@/lib/workbench/frameworkOpen';
+import { FRAMEWORK_LABEL } from '@/lib/workbench/frameworks';
 import { outputExtensionOf } from '@/lib/workbench/engineDialects';
 import type { RecentFile } from '@/lib/workbench/storage';
 import { listExamples, openExample as readExample } from '@/services/examples';
@@ -137,7 +139,12 @@ const Row = ({
  */
 export default function Explorer() {
   return (
-    <nav className='h-full overflow-auto bg-panel' aria-label='Files'>
+    // a model file dropped here is added to the project (goal-controller#329)
+    <nav
+      className='h-full overflow-auto bg-panel'
+      aria-label='Files'
+      data-drop='add'
+    >
       <ProjectSection />
     </nav>
   );
@@ -166,6 +173,21 @@ function ProjectSection() {
   const others = wb.listing.filter((file) => file.role === 'other');
   // the model's native files (goal-controller#143), under it
   const natives = wb.listing.filter((file) => file.role === 'native');
+  // the project's other models (goal-controller#329), each opened in its own
+  // framework; their frameworks are named when they aren't all one
+  const models = (wb.project?.models ?? []).map(({ path, text }) => ({
+    path,
+    framework: frameworkOfEntry(
+      wb.project!.manifest,
+      path,
+      path === wb.modelPath ? wb.text : text,
+    ),
+  }));
+  const mixed = new Set(models.map((m) => m.framework)).size > 1;
+  const frameworkOf = (path: string | null) =>
+    mixed
+      ? FRAMEWORK_LABEL[models.find((m) => m.path === path)!.framework]
+      : null;
   const variablesSlot = wb.resourceSlots.find(
     (slot) => slot.kind === 'variables',
   );
@@ -196,10 +218,28 @@ function ProjectSection() {
       <Row
         icon={FileJson}
         label={wb.fileName || 'untitled.txt'}
-        detail={wb.dirty ? <span className='text-trace'>●</span> : null}
+        detail={
+          wb.dirty ? (
+            <span className='text-trace'>●</span>
+          ) : (
+            frameworkOf(wb.modelPath)
+          )
+        }
         onClick={() => wb.setModelTab('source')}
+        active={models.length > 1}
       />
       {natives.map(({ path }) => fileRow(path))}
+      {models
+        .filter(({ path }) => path !== wb.modelPath)
+        .map(({ path }) => (
+          <Row
+            key={path}
+            icon={FileJson}
+            label={path}
+            detail={frameworkOf(path)}
+            onClick={() => wb.openProjectModel(path)}
+          />
+        ))}
       {/* the model's variables: one row with the file their values are in, when the engine reads one */}
       {isPrismEngine(wb.engine) && !variablesSlot && (
         <Row

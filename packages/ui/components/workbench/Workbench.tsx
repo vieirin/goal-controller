@@ -31,7 +31,7 @@ import ConvertDialog from './ConvertDialog';
 import FrameworkSwitchDialog from './FrameworkSwitchDialog';
 import OutputPane from './OutputPane';
 import { ModelTabView, modelTabsFor } from './modelTabs';
-import TopBar, { openUpload } from './TopBar';
+import TopBar, { addUpload, openUpload } from './TopBar';
 import {
   WorkbenchProvider,
   useSelection,
@@ -59,7 +59,8 @@ export default function Workbench() {
 
 function ShellLayout() {
   const wb = useWorkbench();
-  const [dragging, setDragging] = useState(false);
+  // what a drop does: open the file, or add it to the open project (on the side bar, #329)
+  const [dragging, setDragging] = useState<'open' | 'add' | null>(null);
   // dragover fires every few ms while a file is over the window; when it stops
   // (the file left the window, or the drag was cancelled) the drop target goes away
   const dragTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
@@ -67,13 +68,18 @@ function ShellLayout() {
   );
   const hideDropTarget = useCallback(() => {
     clearTimeout(dragTimer.current);
-    setDragging(false);
+    setDragging(null);
   }, []);
-  const showDropTarget = useCallback(() => {
-    setDragging(true);
+  const showDropTarget = useCallback((how: 'open' | 'add') => {
+    setDragging(how);
     clearTimeout(dragTimer.current);
-    dragTimer.current = setTimeout(() => setDragging(false), 300);
+    dragTimer.current = setTimeout(() => setDragging(null), 300);
   }, []);
+  // over the side bar (the project's files), a file is added to the project
+  const dropAdds = (target: EventTarget): boolean =>
+    !!wb.project &&
+    target instanceof Element &&
+    !!target.closest('[data-drop="add"]');
   useEffect(() => () => clearTimeout(dragTimer.current), []);
   const explorerPanel = usePanelRef();
   const outputPanel = usePanelRef();
@@ -304,7 +310,7 @@ function ShellLayout() {
         onDragOver={(event) => {
           if (event.dataTransfer.types.includes('Files')) {
             event.preventDefault();
-            showDropTarget();
+            showDropTarget(dropAdds(event.target) ? 'add' : 'open');
           }
         }}
         onDrop={async (event) => {
@@ -312,7 +318,10 @@ function ShellLayout() {
           hideDropTarget();
           const file = event.dataTransfer.files[0];
           try {
-            if (file) await openUpload(wb, file);
+            if (file)
+              await (dropAdds(event.target)
+                ? addUpload(wb, file)
+                : openUpload(wb, file));
           } catch (error) {
             window.alert(
               error instanceof Error ? error.message : String(error),
@@ -395,10 +404,20 @@ function ShellLayout() {
         <StatusBar />
         {dragging && (
           <div className='pointer-events-none fixed inset-2 z-50 grid place-items-center rounded-xl border-2 border-dashed border-trace bg-trace-soft/80'>
-            <span className='flex items-center gap-2 text-lg font-semibold text-trace'>
-              <Upload className='h-5 w-5' aria-hidden /> Drop to open the goal
-              model
-            </span>
+            <div className='flex flex-col items-center gap-1 text-trace'>
+              <span className='flex items-center gap-2 text-lg font-semibold'>
+                <Upload className='h-5 w-5' aria-hidden />
+                {dragging === 'add'
+                  ? `Drop to add the model to ${wb.project?.name ?? 'the project'}`
+                  : 'Drop to open the goal model'}
+              </span>
+              {dragging === 'open' && wb.project && (
+                <span className='text-[13px]'>
+                  It replaces the open project; drop it on the side bar to add
+                  it to the project
+                </span>
+              )}
+            </div>
           </div>
         )}
         {wb.settingsDialog && wb.hasModel && <ModelSettingsModal />}

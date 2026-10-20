@@ -94,6 +94,14 @@ record stays in the model, which remains portable on its own. In a
 the project's default, then (where the manifest says nothing) the model's own
 record.
 
+**A model added** (`withModel(project, file, framework)`, goal-controller#329)
+promotes a one-model project and lists the model under a path no file has
+yet (`twin.txt`, else `twin-2.txt`). A project's models may be of several
+frameworks: the entry names the model's `framework` only when it isn't the
+project's, and its `dialect` only when the text records a mode other than
+the project's, so a project.json gains just `{ "path": … }` for a model like
+the others.
+
 ### Outputs: one entry per file an engine made
 
 An engine makes one or more files of a model (lib's `EngineOutput`,
