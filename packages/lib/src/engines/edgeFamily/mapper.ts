@@ -5,7 +5,6 @@
  * (goal-controller#187); the texts as written are what the templates write.
  */
 import { ISTAR_KIND_OF } from '@goal-controller/dialect';
-import { parseValue } from '@goal-controller/goal-language';
 import {
   edgeGoalChecks,
   firstGoalOrTaskIssue,
@@ -129,11 +128,11 @@ export const edgeResourceProps = ({
 
 /**
  * A goal's dependencies, the nodes its dependsOn names (as allNodes holds them), once
- * the tree is built: throws edgeGoalChecks.dependsOn's message for an id that is no
- * goal of it. Unreadable: none. A dependsOn the dialect left unset because an id
- * names no goal of the model (goal-controller#270) still refuses when the text is a
- * readable list — dropping it would change generation. #266: a Quality is answered
- * by its `kind` (under the iStar naming its `type` is also `goal`).
+ * the tree is built: throws edgeGoalChecks.dependsOn's message when the dialect read
+ * a list and an id is no goal of the model. Unset or unreadable: none (goal-controller
+ * #290: the mapper does not re-read `raw.dependsOn`; generation refuses invalid lists
+ * at the gate, #274). #266: a Quality is answered by its `kind` (under the iStar
+ * naming its `type` is also `goal`).
  *
  * `allNodes` is a getter (not `Map`) so kind-entry maps type-check without Map
  * invariance fighting `KindNode`.
@@ -143,20 +142,10 @@ export const edgeDependsOn = <TNode extends { type: string; kind?: string }>(
   { props, raw }: Omit<Input<'goal'>, 'id'>,
   allNodes: { get(id: string): TNode | undefined },
 ): TNode[] => {
-  // #270: raw keeps the text; props is unset when an id names no element, or no
-  // goal. Re-read the ids so edgeGoalChecks.dependsOn still throws as before.
-  const dependsOn =
-    props.dependsOn ??
-    (() => {
-      const text = raw.dependsOn;
-      if (!text?.trim()) return undefined;
-      const read = parseValue('refList', text);
-      if (read.errors.length || read.value == null) return undefined;
-      return [...read.value];
-    })();
+  const dependsOn = props.dependsOn;
 
   const message = edgeGoalChecks.dependsOn?.(
-    { props: { ...props, dependsOn }, raw, kind: ISTAR_KIND_OF.goal },
+    { props, raw, kind: ISTAR_KIND_OF.goal },
     {
       self,
       kindOf: (id) => {

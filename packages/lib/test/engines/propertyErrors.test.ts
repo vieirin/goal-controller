@@ -102,6 +102,10 @@ describe('the generation gate (#274)', () => {
       propertyErrors(edgeEngine, dangling).map((error) => error.key),
       ['dependsOn'],
     );
+    assert.throws(
+      () => refuseOnPropertyErrors(edgeEngine, dangling),
+      /G1 dependsOn/,
+    );
   });
 
   it('lists every error, and says how many more than the first', () => {
