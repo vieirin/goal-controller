@@ -19,7 +19,10 @@ export const cgmEngine = defineEngine({
   mapper: cgmEngineMapper,
   output: { label: 'Variants', extension: 'txt', language: 'text' },
   analyses: cgmAnalyses,
-  analysisModel: cgmAnalysisModel,
+  // a model of any framework, as the workbench parses it: the function at
+  // string kinds (defineEngine infers no engine from a generic one beside
+  // projectResources, goal-controller#185)
+  analysisModel: cgmAnalysisModel<string, string>,
   projectResources: cgmProjectResourceParsers,
   // its models declare its dialect's kinds (contexts, statements, facts)
   fileKinds: true,

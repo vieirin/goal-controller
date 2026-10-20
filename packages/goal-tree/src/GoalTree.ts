@@ -21,7 +21,8 @@ import { Model } from './Model';
 import type {
   GoalNode,
   GoalTree as GoalTreeArray,
-  Model as IStarModel,
+  AnyModel,
+  ModelFor,
   Resource,
   Task,
   TreeNode,
@@ -89,12 +90,21 @@ export class GoalTree<
    * root goal (throws on a model outside its dialect's `model` shape), its
    * nodes typed by kind (goal-controller#215)
    */
-  static fromModel<D, P, N extends Naming, A, L, S extends Shape>(
-    model: IStarModel,
+  static fromModel<
+    D,
+    P,
+    N extends Naming,
+    A,
+    L,
+    S extends Shape,
+    EK extends string,
+    LK extends string,
+  >(
+    model: ModelFor<D, EK, LK>,
     mapper: KindEngineMapper<D, P, N, A, L, S>,
   ): GoalTree<unknown, unknown, unknown, KindNode<P, N, S> & QueryNode>;
   static fromModel(
-    model: IStarModel,
+    model: AnyModel,
     mapper: KindEngineMapper,
   ): GoalTree<unknown, unknown, unknown, QueryNode> {
     return new GoalTree(convertToTree(model, mapper) as QueryNode[]);
@@ -108,11 +118,20 @@ export class GoalTree<
    * that reads one actor with one root (its dialect's `model`, the default).
    * Every node and element is typed by kind (goal-controller#215).
    */
-  static goalModel<D, P, N, A, L, S extends Shape>(
-    model: IStarModel,
+  static goalModel<
+    D,
+    P,
+    N,
+    A,
+    L,
+    S extends Shape,
+    EK extends string,
+    LK extends string,
+  >(
+    model: ModelFor<D, EK, LK>,
     mapper: KindEngineMapper<D, P, N, A, L, S>,
   ): KindModel<P, N, A, L, S>;
-  static goalModel(model: IStarModel, mapper: KindEngineMapper): unknown {
+  static goalModel(model: AnyModel, mapper: KindEngineMapper): unknown {
     return buildGoalModel(model, mapper);
   }
 
@@ -123,7 +142,7 @@ export class GoalTree<
     filename: string,
     mapper: KindEngineMapper<D, P, N, A, L, S>,
   ): GoalTree<unknown, unknown, unknown, KindNode<P, N, S> & QueryNode> {
-    const model = Model.load(filename);
+    const model: AnyModel = Model.load(filename);
     return GoalTree.fromModel(model, mapper);
   }
 
@@ -134,7 +153,7 @@ export class GoalTree<
     json: string,
     mapper: KindEngineMapper<D, P, N, A, L, S>,
   ): GoalTree<unknown, unknown, unknown, KindNode<P, N, S> & QueryNode> {
-    const model = Model.parse(json);
+    const model: AnyModel = Model.parse(json);
     return GoalTree.fromModel(model, mapper);
   }
 

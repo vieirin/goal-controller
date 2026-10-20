@@ -21,7 +21,7 @@ import {
 } from '@goal-controller/goal-language';
 import {
   goalView,
-  type IStarModel,
+  type AnyModel,
   type KindEngineMapper,
 } from '@goal-controller/goal-tree';
 import {
@@ -67,7 +67,7 @@ export type EngineDefinition = {
   /** an analysis engine's analyses: its values are drawn on the model, no file */
   analyses?: Analyses;
   /** how it reads a model for its analyses (the view of its `GoalModel`, goal-controller#125) */
-  analysisModel?: (model: IStarModel) => AnalysisModel;
+  analysisModel?: (model: AnyModel) => AnalysisModel;
   /** the files it writes, by id */
   outputs?: readonly EngineOutputDeclaration[];
   /** its generation options (`defineOptions`, goal-controller#118): none, no options menu */
@@ -220,7 +220,7 @@ export type PropertyError = Diagnostic & { key: string };
  */
 export const propertyErrors = (
   engine: Engine,
-  model: IStarModel,
+  model: AnyModel,
   /** the project's resources, parsed: checks that read them (a MutRoSe world) run */
   projectResources?: DefinitionContext['projectResources'],
 ): PropertyError[] => {
@@ -269,7 +269,7 @@ const errorLine = ({ elementId, key, message }: PropertyError): string =>
  */
 export const refuseOnPropertyErrors = (
   engine: Engine,
-  model: IStarModel,
+  model: AnyModel,
   projectResources?: DefinitionContext['projectResources'],
 ): void => {
   const errors = propertyErrors(engine, model, projectResources);

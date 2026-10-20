@@ -15,6 +15,10 @@ export type {
   Actor,
   Link,
   Model,
+  AnyModel,
+  ForeignElementKind,
+  FrameworkOf,
+  ModelFor,
 } from './istar';
 
 // Re-export all Goal Tree types

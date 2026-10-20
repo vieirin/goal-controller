@@ -17,7 +17,10 @@ export const tropos4asEngine = defineEngine({
   mapper: tropos4asEngineMapper,
   output: { label: 'Lifecycle', extension: 'txt', language: 'text' },
   analyses: tropos4asAnalyses,
-  analysisModel: tropos4asAnalysisModel,
+  // a model of any framework, as the workbench parses it: the function at
+  // string kinds (defineEngine infers no engine from a generic one beside
+  // projectResources, goal-controller#185)
+  analysisModel: tropos4asAnalysisModel<string, string>,
   projectResources: tropos4asProjectResourceParsers,
   // its models declare its dialect's kinds (artifacts, failures, errors, symptoms)
   fileKinds: true,

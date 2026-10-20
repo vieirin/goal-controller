@@ -22,9 +22,11 @@ import { initLogger as initEdgeV2Logger } from './engines/edgeV2/logger/logger';
 import { sleecOutput, sleecTemplateEngine } from './engines/sleec';
 
 export type {
+  AnyModel,
   GoalNode,
   GoalTreeType,
   IStarModel,
+  ModelFor,
   Relation,
   Type,
 } from '@goal-controller/goal-tree';

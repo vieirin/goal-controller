@@ -17,7 +17,10 @@ export const grlEngine = defineEngine({
   mapper: grlEngineMapper,
   output: { label: 'Evaluation', extension: 'json', language: 'text' },
   analyses: grlAnalyses,
-  analysisModel: grlAnalysisModel,
+  // a model of any framework, as the workbench parses it: the function at
+  // string kinds (defineEngine infers no engine from a generic one beside
+  // projectResources, goal-controller#185)
+  analysisModel: grlAnalysisModel<string, string>,
   projectResources: grlProjectResourceParsers,
   // its models declare its dialect's kinds (the indicator, the belief)
   fileKinds: true,

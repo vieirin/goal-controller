@@ -11,7 +11,7 @@ import {
   createEngineMapper,
   GoalTree,
   useIstarDefaultNaming,
-  type IStarModel,
+  type ModelFor,
   type ModelOf,
 } from '@goal-controller/goal-tree';
 import { analysisViewOf, type AnalysisModel } from '../analysis';
@@ -70,5 +70,6 @@ export const grlEngineMapper = createEngineMapper({
 export type GrlGoalModel = ModelOf<typeof grlEngineMapper>;
 
 /** A GRL model as its analyses read it: the view of its `GoalModel`. */
-export const grlAnalysisModel = (model: IStarModel): AnalysisModel =>
-  analysisViewOf(GoalTree.goalModel(model, grlEngineMapper));
+export const grlAnalysisModel = <EK extends string, LK extends string>(
+  model: ModelFor<typeof grl, EK, LK>,
+): AnalysisModel => analysisViewOf(GoalTree.goalModel(model, grlEngineMapper));

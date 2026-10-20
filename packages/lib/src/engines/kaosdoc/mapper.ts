@@ -19,7 +19,7 @@ import {
   GoalTree,
   type ModelOf,
   type NodeOf,
-  type IStarModel,
+  type ModelFor,
 } from '@goal-controller/goal-tree';
 import { kaos } from '../../dialects/kaos';
 
@@ -111,9 +111,10 @@ export type KaosdocGoalModel = ModelOf<typeof kaosdocEngineMapper>;
 export type KaosdocNode = NodeOf<typeof kaosdocEngineMapper>;
 
 /** A KAOS model's IR, as kaosdoc reads it. */
-export const kaosdocGoalModel = (model: IStarModel): KaosdocGoalModel =>
-  GoalTree.goalModel(model, kaosdocEngineMapper);
+export const kaosdocGoalModel = <EK extends string, LK extends string>(
+  model: ModelFor<typeof kaosdocEngineMapper.dialect, EK, LK>,
+): KaosdocGoalModel => GoalTree.goalModel(model, kaosdocEngineMapper);
 
 /** A KAOS model's piStar text (DSM3's), read with KAOS and its obstacle analysis. */
-export const readKaosModel = (text: string): IStarModel =>
-  parsePistar(text, { metamodel: KAOS_OBSTACLES }) as unknown as IStarModel;
+export const readKaosModel = (text: string) =>
+  parsePistar(text, { metamodel: KAOS_OBSTACLES });

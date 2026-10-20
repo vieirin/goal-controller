@@ -22,9 +22,9 @@ import { kaos, nfr } from '../../src';
 
 const seed = (path: string) =>
   readFileSync(join(__dirname, '../../../../examples', path), 'utf8');
-/** A model read with its framework's root, typed as the IR takes it (an iStar model). */
+/** A model read with its framework's root, as the IR takes it. */
 const read = (text: string, metamodel: AnyMetamodel) =>
-  parsePistar(text, { metamodel }) as unknown as IStarModel;
+  parsePistar(text, { metamodel });
 const KAOS_MODEL = read(seed('kaos/kaos-welcome.txt'), KAOS);
 const NFR_MODEL = read(seed('nfr/nfr-welcome.txt'), NFR);
 

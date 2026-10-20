@@ -12,10 +12,9 @@ import {
   createEngineMapper,
   GoalTree,
   useIstarDefaultNaming,
-  type IStarModel,
+  type ModelFor,
   type ModelOf,
 } from '@goal-controller/goal-tree';
-import type { IstarModel } from '@istar-ts/core';
 import { analysisViewOf, type AnalysisModel } from '../analysis';
 import { cgm } from './definition';
 
@@ -71,7 +70,6 @@ export const cgmEngineMapper = createEngineMapper({
 export type CgmGoalModel = ModelOf<typeof cgmEngineMapper>;
 
 /** A contextual goal model as its analyses read it: the view of its `GoalModel`, its extension's kinds too. */
-export const cgmAnalysisModel = (
-  model: IStarModel | IstarModel<string, string>,
-): AnalysisModel =>
-  analysisViewOf(GoalTree.goalModel(model as IStarModel, cgmEngineMapper));
+export const cgmAnalysisModel = <EK extends string, LK extends string>(
+  model: ModelFor<typeof cgm, EK, LK>,
+): AnalysisModel => analysisViewOf(GoalTree.goalModel(model, cgmEngineMapper));

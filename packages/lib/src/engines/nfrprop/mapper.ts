@@ -12,7 +12,7 @@ import { NFR } from '@istar-ts/dsm3-nfr/metamodel';
 import {
   createEngineMapper,
   GoalTree,
-  type IStarModel,
+  type ModelFor,
   type ModelOf,
   type NodeOf,
 } from '@goal-controller/goal-tree';
@@ -65,11 +65,13 @@ export type NfrpropGoalModel = ModelOf<typeof nfrpropEngineMapper>;
 export type NfrpropNode = NodeOf<typeof nfrpropEngineMapper>;
 
 /** An NFR model as nfrprop's analysis reads it: the view of its `GoalModel`. */
-export const nfrpropAnalysisModel = (model: IStarModel): AnalysisModel =>
+export const nfrpropAnalysisModel = <EK extends string, LK extends string>(
+  model: ModelFor<typeof nfrprop, EK, LK>,
+): AnalysisModel =>
   analysisViewOf(GoalTree.goalModel(model, nfrpropEngineMapper), {
     fromEntries: true,
   });
 
 /** An NFR model's piStar text (DSM3's), read with the NFR root. */
-export const readNfrModel = (text: string): IStarModel =>
-  parsePistar(text, { metamodel: NFR }) as unknown as IStarModel;
+export const readNfrModel = (text: string) =>
+  parsePistar(text, { metamodel: NFR });

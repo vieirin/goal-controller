@@ -9,12 +9,7 @@ import * as assert from 'assert';
 import { describe, it } from 'mocha';
 import { parsePistar } from '@istar-ts/core';
 import { property } from '@goal-controller/dialect';
-import {
-  createEngineMapper,
-  GoalTree,
-  useIstarDefaultNaming,
-  type IStarModel,
-} from '../../src';
+import { createEngineMapper, GoalTree, useIstarDefaultNaming } from '../../src';
 
 const dialect = {
   name: 'toy',
@@ -68,7 +63,7 @@ const MODEL = parsePistar({
   istar: '2.0',
   saveDate: '',
   diagram: { width: 100, height: 100 },
-}) as unknown as IStarModel;
+});
 
 describe('mapper references (#243)', () => {
   it('gives a reference resolved against the model, or unset', () => {
