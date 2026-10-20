@@ -957,6 +957,26 @@
     "outputs": []
   },
   {
+    "path": "kaos/mooring",
+    "group": "kaos",
+    "name": "mooring",
+    "form": "file",
+    "dialect": "kaosexpert",
+    "root": "kaos/mooring",
+    "files": [
+      "evidence.json",
+      "mooring.expected.csv",
+      "mooring.kaos",
+      "mooring.txt",
+      "project.json"
+    ],
+    "models": ["mooring.txt"],
+    "projectResources": {
+      "evidence": "evidence.json"
+    },
+    "outputs": []
+  },
+  {
     "path": "mutrose/lab-sample-logistics",
     "group": "mutrose",
     "name": "lab-sample-logistics",

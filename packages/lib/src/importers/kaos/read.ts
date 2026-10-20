@@ -43,9 +43,12 @@ import type { ImportDiagnostic, ImportResult } from '../types';
 import {
   CALIBRATIONS_PATH,
   calibrationsText,
+  EVIDENCE_PATH,
+  evidenceText,
   EXPERTS_PATH,
   expertsText,
   type CalibrationEntry,
+  type EvidenceEntry,
   type ExpertEntry,
 } from '../../engines/kaosexpert/resources';
 import { layOut } from '../layout';
@@ -218,9 +221,11 @@ export const readKaos = (
   const raw: (string | Element)[] = [];
   let title: string | null = null;
   let anonymous = 0;
-  // kaosexpert's: the experts, the calibration variables, the quantile levels
+  // kaosexpert's: the experts, the calibration variables, the quantile
+  // levels, the evidence items (goal-controller#199)
   const experts: ExpertEntry[] = [];
   const calibrations: CalibrationEntry[] = [];
+  const evidence: EvidenceEntry[] = [];
   let quantiles: string | null = null;
   let expertForms = false;
 
@@ -271,6 +276,10 @@ export const readKaos = (
     const word = declaration.kind;
     if (word === 'expert' || word === 'calibration') {
       resource(declaration, where);
+      return null;
+    }
+    if (word === 'evidence') {
+      evidenceItem(declaration, where);
       return null;
     }
     if (!isKaosDeclaration(word)) {
@@ -467,7 +476,11 @@ export const readKaos = (
           CUSTOM_KEYS[type]?.includes(name.slice(1)) &&
           value?.atom.$type === 'StringAtom'
         ) {
-          element.props.set(name.slice(1), unquote(sourceOf(value.atom)));
+          const key = name.slice(1);
+          element.props.set(key, unquote(sourceOf(value.atom)));
+          // Evidence is kaosexpert's only (goal-controller#199): a model
+          // using it needs that dialect even with no elicited quantity set
+          if (key === 'Evidence') expertForms = true;
           return;
         }
     }
@@ -608,6 +621,49 @@ export const readKaos = (
       ...(name !== undefined && { name }),
       ...(value !== undefined && { value }),
       estimates,
+      ...(kept.length && { kept }),
+    });
+  };
+
+  /** `declare evidence`: an entry of kaosexpert's evidence resource (goal-controller#199). */
+  const evidenceItem = (declaration: Declaration, where: Where) => {
+    expertForms = true;
+    if (!declaration.id) {
+      raw.push(sourceOf(declaration));
+      say(
+        where,
+        'warning',
+        `${headOf(declaration)}: an evidence item without an identifier, kept as written (an Evidence key names it by it)`,
+        headAt(declaration),
+      );
+      return;
+    }
+    const kept: string[] = [];
+    let name: string | undefined;
+    let kind: string | undefined;
+    for (const attribute of declaration.attributes) {
+      const single1 = single(attribute);
+      const lower = attribute.name.toLowerCase();
+      if (lower === 'name' && single1?.atom.$type === 'StringAtom') {
+        name = unquote(sourceOf(single1.atom));
+        continue;
+      }
+      if (lower === 'kind' && single1?.atom.$type === 'StringAtom') {
+        kind = unquote(sourceOf(single1.atom));
+        continue;
+      }
+      kept.push(oneLine(sourceOf(attribute)));
+      say(
+        where,
+        'warning',
+        `${attribute.name} of evidence ${declaration.id}: kept as written, not read`,
+        at(attribute),
+      );
+    }
+    evidence.push({
+      id: declaration.id,
+      ...(name !== undefined && { name }),
+      ...(kind !== undefined && { kind }),
       ...(kept.length && { kept }),
     });
   };
@@ -1052,6 +1108,10 @@ export const readKaos = (
   if (calibrations.length)
     projectResources.calibration = {
       [CALIBRATIONS_PATH]: calibrationsText({ calibrations }),
+    };
+  if (evidence.length)
+    projectResources.evidence = {
+      [EVIDENCE_PATH]: evidenceText({ evidence }),
     };
   return {
     model,

@@ -197,8 +197,11 @@ export const extendTriangular = (
 ): { min: number; max: number } => {
   const f = (a: number, b: number) => (a0 - a) ** 2 - tail * (b - a) * (m - a);
   const g = (a: number, b: number) => (b - b0) ** 2 - tail * (b - a) * (b - m);
-  let a = a0 - (m - a0) * tail;
-  let b = b0 + (b0 - m) * tail;
+  // the system has a spurious root close to (a0, b0) itself (inside the
+  // elicited range); the physical one is outside it, so the initial guess
+  // starts there, mirrored by (m - a0) and (b0 - m), not scaled by `tail`
+  let a = a0 - (m - a0);
+  let b = b0 + (b0 - m);
   const h = 1e-7;
   for (let i = 0; i < 100; i++) {
     const fa = (f(a + h, b) - f(a - h, b)) / (2 * h);

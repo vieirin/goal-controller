@@ -142,6 +142,7 @@ describe('a .kaos file in the workbench (#181)', () => {
         [
           ['expert', ['experts.json']],
           ['calibration', ['calibrations.json']],
+          ['evidence', []],
         ],
       );
       expect(Object.keys(wb().analyses ?? {})).toEqual([

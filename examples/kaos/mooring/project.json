@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "dialect": "kaosexpert",
+  "framework": "kaos",
+  "models": [
+    {
+      "path": "mooring.txt",
+      "native": {
+        "kaos": "mooring.kaos"
+      }
+    }
+  ],
+  "projectResources": {
+    "evidence": "evidence.json"
+  },
+  "outputs": []
+}

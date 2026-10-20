@@ -22,6 +22,7 @@ import { kaosNativeFile } from '../../../src/importers/kaos/native';
 import {
   expertAnalysis,
   kaosexpertAnalysisModel,
+  readEvidence,
   runCriticalObstacles,
   runUncertainty,
   satisfactionUncertainty,
@@ -367,5 +368,179 @@ describe('kaosexpert: the ambulance seed (ADS, RE’15’s field validation, #19
       'ambulance_stopped_in_traffic',
       'ambulance_traffic_deviation',
     ]);
+  });
+});
+
+/** A KAOS model as kaosexpert reads it, written by hand (goal-controller#199): elements and links. */
+const tiny = (
+  elements: [string, string, Record<string, string>?][],
+  links: [string, string, string, Record<string, string>?][],
+) => ({
+  actors: [],
+  elements: elements.map(([id, kind, properties = {}]) => ({
+    id,
+    kind,
+    name: id,
+    properties,
+  })),
+  links: links.map(([kind, source, target, properties = {}], i) => ({
+    id: `l${i}`,
+    kind,
+    source,
+    target,
+    properties,
+  })),
+});
+const G = 'kaos.BehavioralGoal';
+const O = 'kaosObstacles.Obstacle';
+const GH = 'kaos.RefinementLinkHub';
+const OH = 'kaosObstacles.ObstacleRefinementLinkHub';
+const singleSample = (model: ReturnType<typeof tiny>, id: string) =>
+  simulate(expertAnalysis(model, { options: { samples: 1, seed: 1 } }), [
+    id,
+  ]).get(id)![0]!;
+
+describe('kaosexpert: HASE’11’s alpha and beta fold-in (goal-controller#199), against kaosprop’s point rule', () => {
+  it('a goal hub’s Probability (1 − alpha) is a factor on the BDD the same way, point or distribution ESR', () => {
+    const model = tiny(
+      [
+        ['g', G],
+        ['a', G, { ESR: '.9' }],
+        ['b', G, { ESR: 'triangular[.7, .8, .9]' }], // mean 0.8, a point degenerates the same test
+        ['h', GH, { Probability: '0.9' }], // 1 − alpha, alpha = 0.1
+      ],
+      [
+        ['kaos.RefinementLinkStart', 'a', 'h'],
+        ['kaos.RefinementLinkStart', 'b', 'h'],
+        ['kaos.RefinementLinkEnd', 'h', 'g'],
+      ],
+    );
+    // b's distribution's mean is .8, so with enough samples the Monte
+    // Carlo's mean agrees with kaosprop's point rule within noise
+    const analysis = expertAnalysis(model, {
+      options: { samples: 20000, seed: 1 },
+    });
+    const samples = simulate(analysis, ['g']).get('g')!;
+    const mean = samples.reduce((a, x) => a + x, 0) / samples.length;
+    close(mean, 0.9 * 0.8 * 0.9, 0.01);
+  });
+
+  it('a goal hub with no Probability has alpha = 0, the point rule exactly', () => {
+    const model = tiny(
+      [
+        ['g', G],
+        ['a', G, { ESR: '.9' }],
+        ['b', G, { ESR: '.8' }],
+        ['h', GH],
+      ],
+      [
+        ['kaos.RefinementLinkStart', 'a', 'h'],
+        ['kaos.RefinementLinkStart', 'b', 'h'],
+        ['kaos.RefinementLinkEnd', 'h', 'g'],
+      ],
+    );
+    close(singleSample(model, 'g'), 0.72, 1e-9);
+  });
+
+  it('an obstacle’s Beta (1 − beta) is a factor across its refinements, read only with more than one', () => {
+    const twoHubs = (beta?: string) =>
+      tiny(
+        [
+          ['o', O, beta ? { Beta: beta } : {}],
+          ['s1', O, { Probability: '0.5' }],
+          ['s2', O, { Probability: '0.4' }],
+          ['h1', OH],
+          ['h2', OH],
+        ],
+        [
+          ['kaosObstacles.ObstacleRefinementLinkStart', 's1', 'h1'],
+          ['kaosObstacles.ObstacleRefinementLinkEnd', 'h1', 'o'],
+          ['kaosObstacles.ObstacleRefinementLinkStart', 's2', 'h2'],
+          ['kaosObstacles.ObstacleRefinementLinkEnd', 'h2', 'o'],
+        ],
+      );
+    close(
+      singleSample(twoHubs('0.1'), 'o'),
+      1 - 0.9 * (1 - 0.5) * (1 - 0.4),
+      1e-9,
+    );
+    close(singleSample(twoHubs(), 'o'), 1 - (1 - 0.5) * (1 - 0.4), 1e-9);
+    const oneHub = tiny(
+      [
+        ['o', O, { Beta: '0.9' }],
+        ['s1', O, { Probability: '0.5' }],
+        ['h1', OH],
+      ],
+      [
+        ['kaosObstacles.ObstacleRefinementLinkStart', 's1', 'h1'],
+        ['kaosObstacles.ObstacleRefinementLinkEnd', 'h1', 'o'],
+      ],
+    );
+    close(singleSample(oneHub, 'o'), 0.5, 1e-9);
+  });
+
+  it('a leaf goal’s ESR distribution fails as its complement, 1 − ESR, the same way a point one does', () => {
+    const model = tiny(
+      [
+        ['g', G],
+        ['a', G, { ESR: 'uniform[0.2, 0.4]' }], // mean 0.3
+      ],
+      [],
+    );
+    const analysis = expertAnalysis(model, {
+      options: { samples: 20000, seed: 1 },
+    });
+    const samples = simulate(analysis, ['a']).get('a')!;
+    const mean = samples.reduce((x, y) => x + y, 0) / samples.length;
+    close(mean, 0.3, 0.01);
+  });
+});
+
+describe('kaosexpert: the evidence resource’s Problems (goal-controller#199)', () => {
+  const file = (text: string) => ({ path: 'evidence.json', text });
+
+  it('reads valid evidence items, by id, their name the detail', () => {
+    const { evidence, diagnostics } = readEvidence([
+      file(
+        JSON.stringify({
+          evidence: [
+            { id: 'cyclicEndurance', name: 'Cyclic endurance test results' },
+            { id: 'basicInfo' },
+          ],
+        }),
+      ),
+    ]);
+    assert.strictEqual(diagnostics.length, 0);
+    assert.deepStrictEqual(evidence, [
+      { id: 'cyclicEndurance', name: 'Cyclic endurance test results' },
+      { id: 'basicInfo' },
+    ]);
+  });
+
+  it('says what is wrong: no `evidence` list, an item with no id, a duplicate id', () => {
+    const noList = readEvidence([file(JSON.stringify({}))]);
+    assert.strictEqual(noList.diagnostics.length, 1);
+    assert.match(noList.diagnostics[0]!.message, /`evidence` list/);
+
+    const noId = readEvidence([file(JSON.stringify({ evidence: [{}] }))]);
+    assert.strictEqual(noId.diagnostics.length, 1);
+    assert.match(noId.diagnostics[0]!.message, /has an `id`/);
+
+    const dup = readEvidence([
+      file(
+        JSON.stringify({
+          evidence: [{ id: 'a' }, { id: 'a' }],
+        }),
+      ),
+    ]);
+    assert.strictEqual(dup.evidence.length, 2);
+    assert.strictEqual(dup.diagnostics.length, 1);
+    assert.match(dup.diagnostics[0]!.message, /declared twice/);
+  });
+
+  it('is not valid JSON: reported, where', () => {
+    const { diagnostics } = readEvidence([file('{ not json')]);
+    assert.strictEqual(diagnostics.length, 1);
+    assert.match(diagnostics[0]!.message, /Not valid JSON/);
   });
 });

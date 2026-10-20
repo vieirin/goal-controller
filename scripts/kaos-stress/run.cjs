@@ -321,6 +321,19 @@ const expertOracle = (modelText, resources, rows) => {
     }
   };
   return rows.map((row) => {
+    // a number the paper prints and the seed can't reproduce (goal-controller#199):
+    // reported, never a failure (README.md)
+    if (row.expected.trim() === '-')
+      return {
+        quantity: row.quantity,
+        id: row.id,
+        expected: row.expected,
+        got: null,
+        tolerance: row.tolerance,
+        paper: row.paper,
+        data: row.data,
+        status: 'skip',
+      };
     let got;
     try {
       got = value(row);

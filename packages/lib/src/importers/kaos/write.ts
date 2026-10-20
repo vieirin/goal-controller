@@ -34,6 +34,7 @@ import {
 import { readJson } from '../../engines/projectResources';
 import type {
   CalibrationsFile,
+  EvidenceFile,
   ExpertsFile,
 } from '../../engines/kaosexpert/resources';
 import { kaosLanguage } from '@goal-controller/goal-language/formats';
@@ -231,11 +232,14 @@ export const writeKaos = (
   const lines: string[] = [
     `@title ${quoted(String(json.diagram?.name ?? modelName))}`,
   ];
-  // kaosexpert's resources (goal-controller#190)
+  // kaosexpert's resources (goal-controller#190, #199)
   const expertFiles = resourceValues(projectResources.expert) as ExpertsFile[];
   const calibrationFiles = resourceValues(
     projectResources.calibration,
   ) as CalibrationsFile[];
+  const evidenceFiles = resourceValues(
+    projectResources.evidence,
+  ) as EvidenceFile[];
   for (const file of expertFiles)
     if (typeof file?.quantiles === 'string')
       lines.push(`@experts.quantiles ${quoted(file.quantiles)}`);
@@ -447,6 +451,18 @@ export const writeKaos = (
           ([expert, estimate]) => `  probability[${expert}] ${estimate}`,
         ),
         ...(calibration.kept ?? []).map((line) => `  ${line}`),
+        'end',
+      );
+  // kaosexpert's evidence items (goal-controller#199): declared after the
+  // experts and calibration variables, an Evidence key names one by its id
+  for (const file of evidenceFiles)
+    for (const item of Array.isArray(file?.evidence) ? file.evidence : [])
+      lines.push(
+        '',
+        `declare evidence [ ${item.id} ]`,
+        ...(item.name !== undefined ? [`  name ${quoted(item.name)}`] : []),
+        ...(item.kind !== undefined ? [`  kind ${quoted(item.kind)}`] : []),
+        ...(item.kept ?? []).map((line) => `  ${line}`),
         'end',
       );
   const kept = json.diagram?.customProperties?.[KAOS_UNSUPPORTED_KEY];

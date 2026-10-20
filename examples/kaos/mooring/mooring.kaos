@@ -1,0 +1,172 @@
+@title "Fibre-rope mooring (HASE'11)"
+
+# Sabetzadeh, Falessi, Briand, Di Alesio, McGeorge, Ahjem, Borg, "Combining
+# Goal Models, Expert Elicitation, and Probabilistic Simulation for
+# Qualification of New Technology", HASE'11 (DOI 10.1109/HASE.2011.25),
+# people.svv.lu/sabetzadeh/pub/TQ_HASE11.pdf (verified 2026-10-20),
+# re-keyed from Figure 2, "Simplified goal model for fiber rope mooring",
+# as far as the grammar and the printed text allow (goal-controller#199).
+#
+# Figure 2's structure, in full: GL1 is obstructed by the root obstacle
+# OB1, OR-decomposed (OB2 abrasion, OB3 tension, OB4 fatigue); OB3 is
+# OR-decomposed into OB5 (global tension) and OB6 (local tension); OB6
+# into OB7. GL2 mitigates OB7, and is OR-decomposed (full) into GL3 and
+# GL4. GL3, GL5 and GL8 are AND-decomposed (partial): the paper's worked
+# example of a triangular distribution's tail extension (Figure 3,
+# examples/kaos/mooring/mooring.expected.csv) is the only number it
+# prints; it is not tied to any one element. Every other number this
+# model would need -- the five leaf goals' (GL6, GL7, GL9, GL10, GL11)
+# elicited P(G), and alpha for GL3, GL5 and GL8's decompositions -- is
+# explicitly withheld: "For privacy, we do not report the elicited
+# quantities" (Sec. V), so this seed leaves them unset (the engine's
+# default: a leaf with no Probability/ESR is read as holding, 1; a hub
+# with no Probability as alpha = 0, the complete-decomposition case).
+# Table II's Spearman sensitivity correlations are the same withheld
+# inputs', so the stress script reports them as not reproducible rather
+# than fitting placeholder numbers to them.
+#
+# The circles the figure uses for full/partial decomposition (filled or
+# empty) do not survive PDF text extraction reliably outside the three
+# the prose states explicitly (GL2 full OR; GL3, GL5, GL8 partial AND):
+# every other refinement here is left at its default (complete), noted
+# where it matters.
+#
+# GL4's own further decomposition is outside Figure 2's dashed "focus of
+# our case study" boundary; the paper gives it no children, so it is a
+# leaf here too, with no evidence of its own.
+#
+# AP1's assumptions (usage type, yarn type, vessel type, operating area)
+# are printed sanitised in the paper bar "mobile"; kept as a domain
+# hypothesis, its own node, not wired into the formula (the paper does
+# not quantify it either).
+
+# ---- GL1: the top goal, and the root obstacle tree (Fig. 2, outside the dashed box)
+
+declare domainhypothesis [ ap1 ]
+  name "AP1"
+  definition "Usage type = mobile; Yarn type = <sanitised>; Vessel type = <sanitised>; Operating area = <sanitised> (Figure 2, printed sanitised)"
+end
+
+declare goal [ gl1 ]
+  name "Rope is safe during service life"
+  obstructedby ob1
+end
+
+declare obstacle [ ob1 ]
+  name "Rope loses structural integrity during service life"
+  refinedby ob2
+  refinedby ob3
+  refinedby ob4
+end
+
+declare obstacle [ ob2 ]
+  name "Failure due to abrasion"
+end
+
+declare obstacle [ ob3 ]
+  name "Failure due to tension"
+  refinedby ob5
+  refinedby ob6
+end
+
+declare obstacle [ ob4 ]
+  name "Failure due to fatigue"
+end
+
+declare obstacle [ ob5 ]
+  name "Failure due to global tension"
+end
+
+declare obstacle [ ob6 ]
+  name "Failure due to local tension"
+  refinedby ob7
+end
+
+declare obstacle [ ob7 ]
+  name "Sustained tensile load at levels close to short-term rupture load"
+  resolvedby gl2
+end
+
+# ---- GL2-GL4: mitigation, OR-decomposed (full, Figure 2's prose example)
+
+declare goal [ gl2 ]
+  name "Rope is not subject to near-strength load for a prolonged period of time"
+  refinedby [milestone] gl3, gl4
+end
+
+declare goal [ gl4 ]
+  name "Avoid exposure time exceeding design curve"
+end
+
+# ---- GL3, GL5, GL8: AND-decomposed, partial (alpha withheld, Sec. V)
+
+declare goal [ gl3 ]
+  name "Avoid near-strength load"
+  # alpha withheld in HASE'11 (industrial data, Sec. V): left unset (default 1)
+  refinedby gl5, gl6
+end
+
+declare goal [ gl5 ]
+  name "Design tension does not exceed 75% of characteristic rope strength"
+  # alpha withheld in HASE'11 (industrial data, Sec. V): left unset (default 1)
+  refinedby gl7, gl8
+end
+
+declare goal [ gl8 ]
+  name "Individual subrope has required proportional strength"
+  # alpha withheld in HASE'11 (industrial data, Sec. V): left unset (default 1)
+  refinedby gl9, gl10, gl11
+end
+
+# ---- the five leaf goals Table II scores (ESR withheld, Sec. V): evidence only
+
+declare goal [ gl6 ]
+  name "Assert: operating range < design range"
+  # ESR withheld in HASE'11 (industrial data, Sec. V): left unset (default 1)
+  $Evidence "rao, mooringArrangementAndVectors, ropeCrossSection, weatherConditions"
+end
+
+declare goal [ gl7 ]
+  name "Assert: number of subropes in rope = n"
+  # ESR withheld in HASE'11 (industrial data, Sec. V): left unset (default 1)
+  $Evidence "basicProductInformation, certificateIfMobile"
+end
+
+declare goal [ gl9 ]
+  name "Assert: in absence of abrasion, strand cross-section area = full strength"
+  # ESR withheld in HASE'11 (industrial data, Sec. V): left unset (default 1)
+  $Evidence "cyclicEnduranceTestResults"
+end
+
+declare goal [ gl10 ]
+  name "Rope yarns have required proportional strength"
+  # ESR withheld in HASE'11 (industrial data, Sec. V): left unset (default 1)
+  $Evidence "yarnCertificationTestResults"
+end
+
+declare goal [ gl11 ]
+  name "Assert: assembly loss factor is less than the specified value, within margins"
+  # ESR withheld in HASE'11 (industrial data, Sec. V): left unset (default 1)
+  $Evidence "propertiesVariability, splicing, factoryProcessSpecifications"
+end
+
+# ---- evidence items (Fig. 2's ovals; gap 5, goal-controller#199): no
+# numeric content of their own, what the leaf goals above are based on
+
+declare evidence [ rao ] name "RAO" end
+declare evidence [ mooringArrangementAndVectors ] name "Mooring arrangement and vectors" end
+declare evidence [ ropeCrossSection ] name "Rope cross-section" end
+declare evidence [ weatherConditions ]
+  name "Weather conditions: current, wind, wave height, sea states, wave frequency, hundred-year condition"
+end
+declare evidence [ basicProductInformation ] name "Basic product information" end
+declare evidence [ certificateIfMobile ] name "Certificate (if mobile)" end
+declare evidence [ cyclicEnduranceTestResults ]
+  name "Cyclic endurance test results with cyclic examination"
+end
+declare evidence [ yarnCertificationTestResults ]
+  name "Yarn certification test results on specific delivery"
+end
+declare evidence [ propertiesVariability ] name "Properties variability" end
+declare evidence [ splicing ] name "Splicing" end
+declare evidence [ factoryProcessSpecifications ] name "Factory process specifications" end

@@ -189,6 +189,11 @@ export const SECTION_REFERENCES: Readonly<
       examples: ['kaos/ambulance'],
     },
     {
+      text: 'M. Sabetzadeh, D. Falessi, L. Briand, S. Di Alesio, D. McGeorge, V. Åhjem, J. Borg. Combining Goal Models, Expert Elicitation, and Probabilistic Simulation for Qualification of New Technology. HASE 2011 (Fig. 2, re-keyed as far as it prints; Sec. V withholds the elicited quantities, goal-controller#199).',
+      url: 'https://doi.org/10.1109/HASE.2011.25',
+      examples: ['kaos/mooring'],
+    },
+    {
       text: 'ancailliau/KAOSTools: KAOSTools and its London Ambulance model, las.kaos (MIT).',
       url: 'https://github.com/ancailliau/KAOSTools',
       examples: ['kaos/las'],

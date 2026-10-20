@@ -290,6 +290,69 @@ describe('kaosprop: RE’12’s rules (Table I and §IV)', () => {
     );
   });
 
+  it('a goal hub’s Probability is HASE’11’s α, 1 − it, on its own AND product (goal-controller#199)', () => {
+    // P(G) = (1 − α) · Π P(Gi): Fig. 4(b)'s partial AND, folded into the
+    // same multiplicative slot the obstacle refinement hub already has
+    const model = tiny(
+      [
+        ['g', G],
+        ['a', G, { ESR: '.9' }],
+        ['b', G, { ESR: '.8' }],
+        ['h', GH, { Probability: '0.9' }], // 1 − α, α = 0.1
+      ],
+      [
+        ['kaos.RefinementLinkStart', 'a', 'h'],
+        ['kaos.RefinementLinkStart', 'b', 'h'],
+        ['kaos.RefinementLinkEnd', 'h', 'g'],
+      ],
+    );
+    near(p(model, 'g'), 0.9 * 0.8 * 0.9, 1e-12, 'g (with alpha)');
+    // unset: alpha = 0, the complete-decomposition default, unchanged
+    near(p(refined(''), 'g'), 0.72, 1e-12, 'g (alpha unset)');
+  });
+
+  it('an obstacle’s Beta is HASE’11’s β, read only with more than one refinement (goal-controller#199)', () => {
+    // P(O) = 1 − (1 − β) · Π(1 − P(SOi)): Fig. 4(d)'s partial OR, across
+    // an obstacle's several refinement hubs, not any one hub's own product
+    const twoHubs = (beta?: string) =>
+      tiny(
+        [
+          ['o', O, beta ? { Beta: beta } : {}],
+          ['s1', O, { Probability: '0.5' }],
+          ['s2', O, { Probability: '0.4' }],
+          ['h1', OH],
+          ['h2', OH],
+        ],
+        [
+          ['kaosObstacles.ObstacleRefinementLinkStart', 's1', 'h1'],
+          ['kaosObstacles.ObstacleRefinementLinkEnd', 'h1', 'o'],
+          ['kaosObstacles.ObstacleRefinementLinkStart', 's2', 'h2'],
+          ['kaosObstacles.ObstacleRefinementLinkEnd', 'h2', 'o'],
+        ],
+      );
+    near(
+      p(twoHubs('0.1'), 'o'),
+      1 - 0.9 * (1 - 0.5) * (1 - 0.4),
+      1e-12,
+      'o (with beta)',
+    );
+    // unset: beta = 0, the complete-decomposition default, unchanged
+    near(p(twoHubs(), 'o'), 1 - (1 - 0.5) * (1 - 0.4), 1e-12, 'o (beta unset)');
+    // one refinement only: no OR, so beta is not read (no risk to fold)
+    const oneHub = tiny(
+      [
+        ['o', O, { Beta: '0.9' }],
+        ['s1', O, { Probability: '0.5' }],
+        ['h1', OH],
+      ],
+      [
+        ['kaosObstacles.ObstacleRefinementLinkStart', 's1', 'h1'],
+        ['kaosObstacles.ObstacleRefinementLinkEnd', 'h1', 'o'],
+      ],
+    );
+    near(p(oneHub, 'o'), 0.5, 1e-12, 'o (one hub, beta ignored)');
+  });
+
   it('alternative refinements of a goal: either suffices', () => {
     const model = tiny(
       [
