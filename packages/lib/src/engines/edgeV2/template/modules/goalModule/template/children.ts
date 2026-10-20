@@ -3,10 +3,7 @@ import { edgeV2 } from '../../../../definition';
 
 import type { EdgeGoalNode, EdgeTask } from '../../../../types';
 import { getLogger } from '../../../../logger/logger';
-import {
-  edgeChildren,
-  edgeIsResource,
-} from '../../../../../edgeFamily/nodeAccess';
+import { Node } from '@goal-controller/goal-tree';
 
 export type PursueableNode = EdgeGoalNode | EdgeTask;
 
@@ -78,9 +75,9 @@ const notationOrder = (goal: EdgeGoalNode): string[] | undefined => {
  * children is repaired with a warning (unknown ids dropped, unlisted appended).
  */
 export const orderedChildren = (goal: EdgeGoalNode): PursueableNode[] => {
-  const children = edgeChildren(goal).filter(
-    (child): child is PursueableNode => !edgeIsResource(child),
-  );
+  const children = Node.children(goal).filter(
+    (child) => !Node.isResource(child),
+  ) as PursueableNode[];
   const order = notationOrder(goal);
   if (!order) {
     return children;

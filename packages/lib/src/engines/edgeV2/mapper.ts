@@ -98,10 +98,11 @@ export const edgeEngineMapper = createEngineMapper({
         }
         return {
           ...node.properties.engine,
-          dependsOn: edgeDependsOn(node.id, input, {
-            get: (id) =>
-              allNodes.get(id) as { type: string; kind?: string } | undefined,
-          }) as EdgeGoalPropsResolved['dependsOn'],
+          dependsOn: edgeDependsOn(
+            node.id,
+            input,
+            allNodes as Map<string, EdgeNode>,
+          ),
         };
       },
     }),

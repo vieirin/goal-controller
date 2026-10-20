@@ -6,6 +6,8 @@ import type {
   GoalTree,
   Resource,
   Task,
+  TraversalNode,
+  TraversalParent,
   TreeNode,
   Type,
 } from '../types/';
@@ -13,32 +15,23 @@ import type {
 /**
  * Get all children of a node including tasks and resources
  */
-export function childrenWithTasksAndResources<
-  TGoalEngine,
-  TTaskEngine,
-  TResourceEngine,
->(
-  node: TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>,
-): TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>[] {
-  const result: TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>[] = [];
-
-  // Resources have no children
-  if (node.type === 'resource') {
-    return result;
-  }
+export function childrenWithTasksAndResources(
+  node: TraversalParent,
+): TraversalNode[] {
+  const result: TraversalNode[] = [];
 
   // Add children if they exist (GoalNode types only)
-  if ('children' in node && node.children) {
+  if (node.children) {
     result.push(...node.children);
   }
 
   // Add tasks if they exist (GoalNode and Task types)
-  if ('tasks' in node && node.tasks) {
+  if (node.tasks) {
     result.push(...node.tasks);
   }
 
   // Add resources if they exist (Task types)
-  if ('resources' in node && node.resources) {
+  if (node.resources) {
     result.push(...node.resources);
   }
 
@@ -68,7 +61,14 @@ export function allByType<TGoalEngine, TTaskEngine, TResourceEngine>(
 ): TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>[] {
   const allCurrent = gm
     .flatMap((node) => {
-      const children = childrenWithTasksAndResources(node);
+      const children: TreeNode<TGoalEngine, TTaskEngine, TResourceEngine>[] =
+        node.type === 'resource'
+          ? []
+          : (childrenWithTasksAndResources(node as TraversalParent) as TreeNode<
+              TGoalEngine,
+              TTaskEngine,
+              TResourceEngine
+            >[]);
       if (children.length > 0) {
         return [node, ...(allByType(children, type) ?? [])];
       }
@@ -100,28 +100,15 @@ export function leafGoals<TGoalEngine, TTaskEngine, TResourceEngine>(
   return allByType(gm, 'goal').filter((goal) => !!goal.tasks);
 }
 
-/**
- * Get children with max retries > 0
- * Note: This requires the engine props to have a maxRetries field
- */
-export function childrenWithMaxRetries<
-  TGoalEngine extends { maxRetries: number },
-  TTaskEngine extends { maxRetries: number },
-  TResourceEngine,
->(
-  node: GoalNode<TGoalEngine, TTaskEngine, TResourceEngine>,
-): Array<
-  | GoalNode<TGoalEngine, TTaskEngine, TResourceEngine>
-  | Task<TTaskEngine, TResourceEngine>
-> {
-  return childrenWithTasksAndResources(node).filter(
-    (
-      child,
-    ): child is
-      | GoalNode<TGoalEngine, TTaskEngine, TResourceEngine>
-      | Task<TTaskEngine, TResourceEngine> => {
-      if (child.type === 'resource') return false;
-      return child.properties.engine.maxRetries > 0;
-    },
-  );
+/** Children whose `properties.engine.maxRetries` is greater than zero. */
+export function childrenWithMaxRetries(
+  node: TraversalParent & { type: 'goal' },
+): TraversalNode[] {
+  return childrenWithTasksAndResources(node).filter((child) => {
+    if (child.type === 'resource') return false;
+    const engine = child.properties?.engine as
+      | { maxRetries?: number }
+      | undefined;
+    return (engine?.maxRetries ?? 0) > 0;
+  });
 }

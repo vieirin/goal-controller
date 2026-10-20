@@ -141,7 +141,7 @@ export const edgeDependsOn = <TNode extends { type: string; kind?: string }>(
   self: string,
   { props, raw }: Omit<Input<'goal'>, 'id'>,
   allNodes: { get(id: string): TNode | undefined },
-): TNode[] => {
+): Extract<TNode, { type: 'goal' }>[] => {
   const { dependsOn } = props;
   const message = edgeGoalChecks.dependsOn?.(
     { props, raw, kind: ISTAR_KIND_OF.goal },
@@ -165,5 +165,9 @@ export const edgeDependsOn = <TNode extends { type: string; kind?: string }>(
   );
   if (message) throw new Error(message);
   // #233: allNodes holds the tree's own nodes (afterCreation updates in place)
-  return (dependsOn ?? []).map((id) => allNodes.get(id) as TNode);
+  return (dependsOn ?? []).map((id) => {
+    const node = allNodes.get(id);
+    if (!node) throw new Error(`dependsOn node ${id} not found (node ${self})`);
+    return node;
+  }) as Extract<TNode, { type: 'goal' }>[];
 };

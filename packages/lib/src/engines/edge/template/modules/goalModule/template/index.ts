@@ -6,7 +6,7 @@ import type { EdgeGoalNode } from '../../../../types';
 import { pursueStatements } from './pursue';
 import { skipStatement } from './skip';
 import { variablesDefinition } from './variables';
-import { edgeChildren } from '../../../../../edgeFamily/nodeAccess';
+import { Node } from '@goal-controller/goal-tree';
 
 export const goalModule = (goal: EdgeGoalNode): string => {
   const logger = getLogger();
@@ -23,7 +23,7 @@ export const goalModule = (goal: EdgeGoalNode): string => {
 // Name: ${goal.name}
 // Type: ${goal.properties.engine.executionDetail?.type || 'basic'}
 // Relation to children: ${goal.relationToChildren}
-// Children: ${edgeChildren(goal)
+// Children: ${Node.children(goal)
     .map((child) => child.id)
     .join(', ')}
 module ${goal.id}
