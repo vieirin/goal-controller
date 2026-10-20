@@ -29,13 +29,20 @@
  *   RE'12's hand-drawn model (lib's test fixture), not of `las.kaos`; its
  *   rows are also checked under kaosexpert with point estimates (each
  *   sample is kaosprop's EPS, to 1e-9).
- * - `quantity,id,expected,tolerance,source,derivation` (kaosexpert's): each
- *   row a quantity of an expert or an element (`calibration`,
- *   `information`, `weight`; `probability` a single run's, `mean`, `VU`,
- *   `US`, `SU@<p>`, `q<pct>` of a goal's distribution; `VU alone`, `US
- *   alone` of a leaf obstacle against the goal in `source`), within its
- *   tolerance. A row whose `expected` is `-` is a number the paper prints
- *   but the seed can't reproduce: reported, never a failure.
+ * - `quantity,id,goal,given,expected,tolerance,paper,data,derivation`
+ *   (kaosexpert's): each row a quantity, within its tolerance:
+ *   - of an expert: `calibration`, `information`, `weight`;
+ *   - of an element's distribution: `mean`, `VU`, `US`, `SU@<p>`,
+ *     `q<pct>`;
+ *   - of a leaf obstacle alone against `goal` (§VII): `VU alone`, `US
+ *     alone`;
+ *   - `probability given`: an element's probability with the point
+ *     estimates `given` (`id=0.009;…`) in place of the elements' own;
+ *   - `formula`: the arithmetic in `given` (a paper's printed step).
+ *
+ *   `paper` is the printed value, `data` where the inputs come from; a
+ *   mismatch with the paper is the derivation's to explain, the row checks
+ *   what the seed gives.
  *
  * Writes SUMMARY.md and a JSON per seed to .cache/kaos/results/. Exits
  * non-zero only with `--strict`, on a failure.
@@ -63,7 +70,7 @@ const { KAOS_OBSTACLES } = require(
 );
 
 const strict = process.argv.includes('--strict');
-const ICON = { pass: '✅', fail: '❌', skip: '⏭️', info: 'ℹ️' };
+const ICON = { pass: '✅', fail: '❌', skip: '⏭️' };
 const cell = (text) => String(text ?? '').replace(/\|/g, '\\|');
 const errorText = (error) =>
   error instanceof Error ? error.message : String(error);
@@ -185,9 +192,42 @@ const expertOracle = (modelText, resources, rows) => {
   };
   const score = (expert) =>
     analysis.weights?.scores.find((s) => s.expert === expert);
+  /** an element's probability with point estimates in place of some elements' own */
+  const givenProbability = (id, given) => {
+    const values = Object.fromEntries(
+      given.split(';').map((pair) => pair.split('=').map((t) => t.trim())),
+    );
+    const pointed = {
+      ...model,
+      elements: model.elements.map((e) =>
+        values[e.id] === undefined
+          ? e
+          : {
+              ...e,
+              properties: Object.fromEntries([
+                ...Object.entries(e.properties).filter(
+                  ([key]) => !key.startsWith('Probability'),
+                ),
+                ['Probability', values[e.id]],
+              ]),
+            },
+      ),
+    };
+    const one = lib.expertAnalysis(pointed, {
+      resources,
+      options: { samples: 1, seed: 1 },
+    });
+    return lib.simulate(one, [id]).get(id)[0];
+  };
   const value = (row) => {
-    const { quantity, id, source } = row;
+    const { quantity, id, goal: source, given } = row;
     switch (quantity) {
+      case 'formula':
+        if (!/^[0-9.+\-*/() ]+$/.test(given))
+          throw new Error(`not arithmetic: ${given}`);
+        return Function(`return (${given});`)();
+      case 'probability given':
+        return givenProbability(id, given);
       case 'information':
       case 'calibration':
       case 'weight':
@@ -232,16 +272,6 @@ const expertOracle = (modelText, resources, rows) => {
     } catch (error) {
       return { ...row, status: 'fail', problems: [errorText(error)] };
     }
-    if (row.expected === '-')
-      return {
-        quantity: row.quantity,
-        id: row.id,
-        expected: '-',
-        got: got === undefined ? null : Number(Number(got).toFixed(6)),
-        paper: row.source,
-        status: 'info',
-        problems: [row.derivation],
-      };
     const expected = Number(row.expected);
     const tolerance = Number(row.tolerance || 0);
     const ok =
@@ -252,7 +282,8 @@ const expertOracle = (modelText, resources, rows) => {
       expected: row.expected,
       got: got === undefined ? null : Number(Number(got).toFixed(6)),
       tolerance: row.tolerance,
-      paper: row.source,
+      paper: row.paper,
+      data: row.data,
       status: ok ? 'pass' : 'fail',
       ...(!ok && {
         problems: [`${got} is not ${row.expected} ± ${tolerance}`],
@@ -407,10 +438,9 @@ const checkSeed = (name) => {
   }
   if (rows.length) {
     const failing = rows.filter((r) => r.status === 'fail');
-    const info = rows.filter((r) => r.status === 'info');
     checks.oracle = {
       status: failing.length ? 'fail' : 'pass',
-      detail: `${rows.length - failing.length - info.length}/${rows.length - info.length} rows${info.length ? `, ${info.length} not reproducible (reported)` : ''}`,
+      detail: `${rows.length - failing.length}/${rows.length} rows`,
     };
   } else checks.oracle = { status: 'skip', detail: 'no expected CSV' };
   // kaosprop's rows, read under kaosexpert with point estimates: each sample is its EPS
@@ -463,12 +493,12 @@ const markdown = (results, exitCode) => {
     lines.push(
       `## ${r.seed}`,
       '',
-      '| File | Quantity | Id | Expected | Got | Paper | |',
-      '| --- | --- | --- | --- | --- | --- | --- |',
+      '| File | Quantity | Id | Expected | Got | Paper | Data | |',
+      '| --- | --- | --- | --- | --- | --- | --- | --- |',
     );
     for (const row of r.rows)
       lines.push(
-        `| ${row.file} | ${cell(row.quantity)} | ${cell(row.id)} | ${cell(row.expected)}${row.tolerance ? ` ± ${row.tolerance}` : ''} | ${cell(row.got)} | ${cell(row.paper)} | ${ICON[row.status]} ${cell((row.problems ?? []).join('; '))} |`,
+        `| ${row.file} | ${cell(row.quantity)} | ${cell(row.id)} | ${cell(row.expected)}${row.tolerance ? ` ± ${row.tolerance}` : ''} | ${cell(row.got)} | ${cell(row.paper)} | ${cell(row.data)} | ${ICON[row.status]} ${cell((row.problems ?? []).join('; '))} |`,
       );
     lines.push('');
   }

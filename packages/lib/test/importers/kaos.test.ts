@@ -749,7 +749,7 @@ describe('the KAOS seeds (examples/kaos): each model is its .kaos read', () => {
     kaos: readFileSync(join(EXAMPLES, name, `${name}.kaos`), 'utf8'),
     model: readFileSync(join(EXAMPLES, name, `${name}.txt`), 'utf8'),
   });
-  for (const name of ['las', 'ambulance', 'carpooling'])
+  for (const name of ['las', 'ambulance', 'carpooling', 'fire-alarm'])
     it(`${name}: ${name}.txt is ${name}.kaos read, byte for byte; it validates; the native file is in sync`, () => {
       const { kaos, model } = seed(name);
       const read = kaosNativeFile.read(kaos, { modelName: name });

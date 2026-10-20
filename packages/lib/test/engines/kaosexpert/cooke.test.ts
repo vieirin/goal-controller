@@ -42,7 +42,13 @@ const TABLE_I = [
   ),
 ];
 
-/** Cailliau's later `firesystem.kaos` (ancailliau/phd-thesis, running-examples-others), its values only. */
+/**
+ * Cailliau's `firesystem.kaos` (ancailliau/phd-thesis at 6a9f5fd,
+ * running-examples-others), its values only, as the file has them (the
+ * fire-alarm seed keeps Table I's sprinkler and Table II's battery rows
+ * instead, #197); used with the owner's approval, the repository states no
+ * licence.
+ */
 const THESIS = [
   variable('smoke_detector_broken', [2.46, 2.76, 3.07], [2.16, 2.42, 2.69]),
   variable('late_detection_smoke', [1.46, 1.83, 2.04], [1.26, 1.42, 2.24]),
@@ -114,7 +120,7 @@ describe('kaosexpert: Cooke as RE’15 applies it', () => {
     // §V prints the scores, then the weights: 0.4216 × 0.9305 and 0.4740 × 1
     const w1 = 0.4216 * 0.9305;
     const w2 = 0.474 * 1;
-    // 0.45285 and 0.54715: the paper truncates them, 0.4528 and 0.5471
+    // 0.452845 and 0.547155: printed 0.4528 and 0.5471 (the second truncated)
     close(w1 / (w1 + w2), 0.4528, 1e-4);
     close(w2 / (w1 + w2), 0.5471, 1e-4);
   });

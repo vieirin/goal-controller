@@ -1,0 +1,266 @@
+@title "Fire alarm (RE'15)"
+@experts.quantiles "(.1, .5, .9)"
+
+# Cailliau and van Lamsweerde, "Handling knowledge uncertainty in
+# risk-based requirements engineering", RE'15 (DOI 10.1109/RE.2015.7320413),
+# the running example. The paper prints part of it: Fig. 1's goals, Fig. 2's
+# obstacle trees for three leaf goals, Table I (two of the three calibration
+# variables) and Table II (three of the thirteen leaf obstacles). The rest
+# is Antoine Cailliau's own model of it, firesystem.kaos in
+# github.com/ancailliau/phd-thesis (running-examples-others, last changed at
+# 6a9f5fd, 2017-09-22), used with the owner's approval; the repository
+# states no licence. Where the paper and that file differ by more than the
+# paper's truncation, the paper's values are kept: Table I's
+# FireSprinklerBroken (both experts) and Table II's BatteryOutofService
+# (Expert2, whose estimate Fig. 5(b) plots over 0–0.2 %). The structure is
+# Fig. 2's where the file swaps the heat and smoke "noticed too late"
+# obstacles. See README.md and fire-alarm.expected.csv.
+
+# ---- Goals (Fig. 1)
+
+declare goal [ building_evacuated_when_fire ]
+  name "Achieve [BuildingEvacuatedWhenFire]"
+  rsr 98%
+  refinedby [milestone] fire_detected_in_time,
+                        building_evacuated_when_fire_detected
+end
+
+declare goal [ fire_detected_in_time ]
+  name "Achieve [FireDetectedInTime]"
+  refinedby fire_noticed_in_time_when_smoke,
+            fire_noticed_in_time_when_heat,
+            fire_detected_when_noticed_in_time
+end
+
+declare goal [ fire_noticed_in_time_when_smoke ]
+  name "Achieve [FireNoticedInTimeWhenSmoke]"
+  assignedto smoke_sensor
+  obstructedby no_smoke_detection
+end
+
+declare goal [ fire_noticed_in_time_when_heat ]
+  name "Achieve [FireNoticedInTimeWhenHeat]"
+  assignedto heat_sensor
+  obstructedby no_heat_detection
+end
+
+declare goal [ fire_detected_when_noticed_in_time ]
+  name "Maintain [FireDetectedWhenNoticedInTime]"
+  assignedto detection_system
+  obstructedby fire_noticed_in_time_and_not_detected
+end
+
+declare goal [ building_evacuated_when_fire_detected ]
+  name "Achieve [BuildingEvacuatedWhenFireDetected]"
+  refinedby alarm_raised_when_fire_detected,
+            building_evacuated_when_alarm_raised
+end
+
+declare goal [ building_evacuated_when_alarm_raised ]
+  name "Achieve [BuildingEvacuatedWhenAlarmRaised]"
+  assignedto occupants
+end
+
+declare goal [ alarm_raised_when_fire_detected ]
+  name "Achieve [AlarmRaisedWhenFireDetected]"
+  refinedby alarm_raised_after_30_seconds_when_fire_detected_unless_disabled,
+            alarm_beep_30_seconds_unless_disabled
+end
+
+declare goal [ alarm_beep_30_seconds_unless_disabled ]
+  name "Achieve [AlarmBeep30SecondsUnlessDisabled]"
+  assignedto fire_control_unit
+end
+
+declare goal [ alarm_raised_after_30_seconds_when_fire_detected_unless_disabled ]
+  name "Achieve [AlarmRaisedAfter30SecondsWhenFireDetectedUnlessDisabled]"
+  refinedby alarm_signal_after_30_seconds_when_fire_detected_unless_disabled,
+            alarm_activated_when_signal,
+            fire_central_notified_when_signal
+end
+
+declare goal [ alarm_signal_after_30_seconds_when_fire_detected_unless_disabled ]
+  name "Achieve [AlarmSignalAfter30SecondsWhenFireDetectedUnlessDisabled]"
+  assignedto fire_control_unit
+  obstructedby no_alarm_signal
+end
+
+declare goal [ alarm_activated_when_signal ]
+  name "Achieve [AlarmActivatedWhenSignal]"
+  assignedto fire_control_unit
+  obstructedby alarm_not_activated
+end
+
+declare goal [ fire_central_notified_when_signal ]
+  name "Achieve [FireCentralNotifiedWhenSignal]"
+  assignedto notification_system
+  obstructedby fire_central_not_notified
+end
+
+# ---- Obstacles (Fig. 2 for the detection goals; the thesis model for the alarm's)
+
+declare obstacle [ no_heat_detection ]
+  name "NoHeatDetection"
+  refinedby fire_noticed_too_late_by_heat
+  refinedby fire_too_distant_from_detector
+  refinedby heat_detector_broken, no_detection_when_heat_detector_broken
+end
+
+declare obstacle [ no_smoke_detection ]
+  name "NoSmokeDetection"
+  refinedby fire_noticed_too_late_by_smoke
+  refinedby fire_too_distant_from_detector
+  refinedby smoke_detector_broken, no_detection_when_smoke_detector_broken
+end
+
+declare obstacle [ fire_noticed_in_time_and_not_detected ]
+  name "FireNoticedInTimeAndNotDetected"
+  refinedby wrong_heat_notification
+  refinedby wrong_smoke_notification
+  refinedby fire_detection_delayed
+end
+
+declare obstacle [ no_alarm_signal ]
+  name "NoAlarmSignalAndFireDetected"
+  refinedby battery_out_of_service
+end
+
+declare obstacle [ alarm_not_activated ]
+  name "AlarmNotActivatedAndSignal"
+  refinedby light_strobe_broken, bell_broken
+end
+
+declare obstacle [ fire_central_not_notified ]
+  name "FireCentralNotNotifiedAndSignal"
+  refinedby network_down
+  refinedby fire_central_notification_delayed
+end
+
+# domain hypotheses (Fig. 2); neither source estimates them: they hold (1)
+declare domainhypothesis [ no_detection_when_heat_detector_broken ]
+  name "NoDetectionWhenHeatDetectorBroken"
+end
+
+declare domainhypothesis [ no_detection_when_smoke_detector_broken ]
+  name "NoDetectionWhenSmokeDetectorBroken"
+end
+
+# ---- The thirteen leaf obstacles, each expert's (10%, 50%, 90%)
+
+declare obstacle [ smoke_detector_broken ]
+  name "SmokeDetectorBroken"
+  definition "The smoke detector does not detect fire within 25 sec."
+  probability[expert1] (2.46%, 2.76%, 3.07%)
+  probability[expert2] (2.16%, 2.42%, 2.69%)
+end
+
+declare obstacle [ fire_noticed_too_late_by_smoke ]
+  name "FireNoticedTooLateBySmoke"
+  probability[expert1] (1.46%, 1.83%, 2.04%)
+  probability[expert2] (1.26%, 1.42%, 2.24%)
+end
+
+declare obstacle [ heat_detector_broken ]
+  name "HeatDetectorBroken"
+  probability[expert1] (0.41%, 0.46%, 0.51%)
+  probability[expert2] (0.50%, 0.56%, 0.62%)
+end
+
+declare obstacle [ fire_noticed_too_late_by_heat ]
+  name "FireNoticedTooLateByHeat"
+  probability[expert1] (0.38%, 0.56%, 0.78%)
+  probability[expert2] (0.89%, 0.92%, 0.99%)
+end
+
+declare obstacle [ fire_too_distant_from_detector ]
+  name "FireTooDistantFromDetector"
+  probability[expert1] (0.41%, 0.46%, 0.51%)
+  probability[expert2] (0.50%, 0.56%, 0.62%)
+end
+
+declare obstacle [ fire_detection_delayed ]
+  name "FireDetectionDelayed"
+  probability[expert1] (1.29%, 2.48%, 3.20%)
+  probability[expert2] (1.30%, 2.98%, 3.48%)
+end
+
+declare obstacle [ wrong_smoke_notification ]
+  name "WrongSmokeNotification"
+  probability[expert1] (3.49%, 3.92%, 4.35%)
+  probability[expert2] (3.91%, 4.40%, 4.89%)
+end
+
+declare obstacle [ wrong_heat_notification ]
+  name "WrongHeatNotification"
+  probability[expert1] (0.47%, 0.53%, 0.59%)
+  probability[expert2] (0.38%, 0.43%, 0.48%)
+end
+
+# Expert2's is Table II's (Fig. 5(b)); the thesis model has (0.16%, 0.18%, 0.19%)
+declare obstacle [ battery_out_of_service ]
+  name "BatteryOutofService"
+  probability[expert1] (2.31%, 2.59%, 2.88%)
+  probability[expert2] (0%, 0.1%, 0.2%)
+end
+
+declare obstacle [ light_strobe_broken ]
+  name "LightStrobeBroken"
+  probability[expert1] (0.93%, 1.05%, 1.16%)
+  probability[expert2] (0.85%, 0.96%, 1.06%)
+end
+
+declare obstacle [ bell_broken ]
+  name "BellBroken"
+  probability[expert1] (1.47%, 1.65%, 1.83%)
+  probability[expert2] (1.70%, 1.91%, 2.12%)
+end
+
+declare obstacle [ network_down ]
+  name "NetworkDown"
+  probability[expert1] (0.95%, 2.31%, 3.67%)
+  probability[expert2] (1.46%, 2.39%, 3.31%)
+end
+
+declare obstacle [ fire_central_notification_delayed ]
+  name "FireCentralNotificationDelayed"
+  probability[expert1] (1.29%, 2.48%, 3.20%)
+  probability[expert2] (1.30%, 2.98%, 3.48%)
+end
+
+# ---- Agents (Fig. 1)
+
+declare agent [ smoke_sensor ] name "SmokeSensor" end
+declare agent [ heat_sensor ] name "HeatSensor" end
+declare agent [ detection_system ] name "DetectionSystem" end
+declare agent [ occupants ] type environment name "Occupants" end
+declare agent [ fire_control_unit ] name "FireControlUnit" end
+declare agent [ notification_system ] name "NotificationSystem" end
+
+# ---- Experts and calibration variables (§V, Table I)
+
+declare expert [ expert1 ] name "Expert1" end
+declare expert [ expert2 ] name "Expert2" end
+
+# not in Table I: the thesis model's
+declare calibration [ push_button_broken ]
+  name "PushButtonBroken"
+  probability 4.37%
+  probability[expert1] (3.812%, 4.285%, 4.759%)
+  probability[expert2] (3.961%, 4.453%, 4.945%)
+end
+
+# Table I prints these truncated (2.3%, 2.5%, 2.8% / 4.1%, 4.7%, 5.2%) and the known value 4.4%
+declare calibration [ temperature_sensor_broken ]
+  name "TemperatureSensorBroken"
+  probability 4.37%
+  probability[expert1] (2.307%, 2.594%, 2.881%)
+  probability[expert2] (4.184%, 4.704%, 5.224%)
+end
+
+# Table I's; the thesis model has (0.023%, 0.026%, 0.029%) and (0.019%, 0.022%, 0.024%)
+declare calibration [ fire_sprinkler_broken ]
+  name "FireSprinklerBroken"
+  probability 0.02%
+  probability[expert1] (0%, 0.1%, 0.3%)
+  probability[expert2] (0%, 0.1%, 0.2%)
+end

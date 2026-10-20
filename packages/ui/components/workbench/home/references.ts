@@ -181,7 +181,7 @@ export const SECTION_REFERENCES: Readonly<
     {
       text: 'A. Cailliau, A. van Lamsweerde. Handling knowledge uncertainty in risk-based requirements engineering. RE 2015.',
       url: 'https://doi.org/10.1109/RE.2015.7320413',
-      examples: ['kaos/ambulance'],
+      examples: ['kaos/ambulance', 'kaos/fire-alarm'],
     },
     {
       text: 'A. Cailliau, A. van Lamsweerde. Runtime monitoring and resolution of probabilistic obstacles to system goals. SEAMS 2017.',
@@ -197,6 +197,12 @@ export const SECTION_REFERENCES: Readonly<
       text: 'ancailliau/ADS: the ambulance dispatching system and its KAOS models, las.kaos and obstacles.kaos (MIT).',
       url: 'https://github.com/ancailliau/ADS',
       examples: ['kaos/ambulance'],
+    },
+    // the fire alarm's estimates RE'15 doesn't print (goal-controller#197)
+    {
+      text: "ancailliau/phd-thesis: A. Cailliau's fire-alarm model, running-examples-others/firesystem.kaos at 6a9f5fd (used with the owner's approval; the repository states no licence).",
+      url: 'https://github.com/ancailliau/phd-thesis/blob/6a9f5fd81ac0be560d30803f04702d23d5622893/running-examples-others/firesystem.kaos',
+      examples: ['kaos/fire-alarm'],
     },
   ],
   nfr: [

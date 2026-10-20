@@ -264,3 +264,52 @@ describe('kaosexpert: experts, calibration and Monte Carlo (RE’15 §V–VI)', 
     );
   });
 });
+
+describe('kaosexpert: the fire-alarm seed (RE’15’s running example, #197)', () => {
+  const dir = join(__dirname, '../../../../../examples/kaos/fire-alarm');
+  const file = (name: string) => readFileSync(join(dir, name), 'utf8');
+  const seed = (samples: number) => ({
+    model: kaosexpertAnalysisModel(
+      readKaosObstacleModel(file('fire-alarm.txt')),
+    ),
+    context: {
+      resources: {
+        expert: { 'experts.json': file('experts.json') },
+        calibration: { 'calibrations.json': file('calibrations.json') },
+      },
+      options: { samples, seed: 1 },
+    } as AnalysisContext,
+  });
+
+  it('has 13 leaf obstacles, 2 experts and 3 calibration variables: RE’15’s calibrations from the seed itself, N = 16', () => {
+    const { model, context } = seed(10);
+    const analysis = expertAnalysis(model, context);
+    assert.strictEqual(analysis.leaves.size, 13);
+    const [e1, e2] = analysis.weights!.scores;
+    assert.strictEqual(e1!.variables, 16);
+    assert.strictEqual(e1!.calibrationVariables, 3);
+    assert.strictEqual(e1!.calibration.toFixed(4), '0.9305');
+    assert.strictEqual(e2!.calibration, 1);
+  });
+
+  it('violates its root for certain (VU 1, as RE’15), and finds Table III’s seven critical obstacles, ranked as the paper but BatteryOutofService', () => {
+    const { model, context } = seed(5000);
+    const root = runUncertainty(model, undefined, context).cases[0]!.values
+      .building_evacuated_when_fire!;
+    assert.match(root.label!, /· VU 1 · US 0\.1[56]/);
+    const ranked = runCriticalObstacles(model, undefined, context).cases.map(
+      (c) => c.id.split(':')[1],
+    );
+    // Table III's seven, the two certain ones first; the paper's order but
+    // for BatteryOutofService (its VU is 1 in the paper, 0.41 here)
+    assert.deepStrictEqual(ranked, [
+      'wrong_smoke_notification',
+      'smoke_detector_broken',
+      'fire_detection_delayed',
+      'fire_central_notification_delayed',
+      'network_down',
+      'battery_out_of_service',
+      'fire_noticed_too_late_by_smoke',
+    ]);
+  });
+});
