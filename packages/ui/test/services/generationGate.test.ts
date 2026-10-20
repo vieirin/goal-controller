@@ -23,13 +23,17 @@ type Node = {
   customProperties?: Record<string, string>;
 };
 
-/** The example with its root goal's `maxRetries` written as `value`. */
-const withMaxRetries = (value: string): { json: string; id: string } => {
+/** The root goal's custom properties, merged with `props`. */
+const withGoalProps = (
+  props: Record<string, string>,
+): { json: string; id: string } => {
   const model = JSON.parse(MINIMAL) as { actors: { nodes: Node[] }[] };
   const goal = model.actors[0]!.nodes.find((n) => n.type === 'istar.Goal')!;
-  goal.customProperties = { ...goal.customProperties, maxRetries: value };
+  goal.customProperties = { ...goal.customProperties, ...props };
   return { json: JSON.stringify(model), id: goal.text.split(':')[0]!.trim() };
 };
+
+const withMaxRetries = (value: string) => withGoalProps({ maxRetries: value });
 
 describe('the generation gate (#274)', () => {
   it('generates from a model whose properties read', () => {
@@ -51,6 +55,23 @@ describe('the generation gate (#274)', () => {
       expect(message, engine).toMatch(
         /does not generate from a model with an error on a property it reads/,
       );
+      expect(nodeIdInMessage(message.split('\n')[0]!), engine).toBe(id);
+    }
+  });
+
+  it('#290: refuses dependsOn naming no goal (dialect error), not the mapper re-read', () => {
+    const { json, id } = withGoalProps({ dependsOn: 'G99' });
+    for (const engine of ['edge', 'edgev2'] as const) {
+      let message = '';
+      try {
+        transform({ modelJson: json, engine });
+      } catch (error) {
+        message = (error as Error).message;
+      }
+      expect(message, engine).toMatch(
+        /does not generate from a model with an error on a property it reads/,
+      );
+      expect(message, engine).toMatch(/dependsOn/);
       expect(nodeIdInMessage(message.split('\n')[0]!), engine).toBe(id);
     }
   });
