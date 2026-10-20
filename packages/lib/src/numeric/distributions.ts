@@ -179,6 +179,45 @@ export const complementOf = (c: Continuous): Continuous => ({
   cdf: (x) => 1 - c.cdf(1 - x),
 });
 
+/**
+ * The elicited (a0, m, b0) of a triangular distribution, extended by
+ * distributing `tail` of the mass before a0 and after b0 (Garvey, ed.,
+ * *Probability Methods for Cost Uncertainty Analysis*, 2000, as Sabetzadeh
+ * et al. apply it, HASE'11 §III-B2, Figure 3; goal-controller#199): the min
+ * `a` and max `b` of a new triangular(a, m, b) whose CDF reaches `tail` at
+ * a0 and `1 - tail` at b0 (the mode m unchanged). Two quadratics, coupled
+ * by (b − a): solved by 2D Newton's method (its Jacobian, by finite
+ * differences), from a close initial guess.
+ */
+export const extendTriangular = (
+  a0: number,
+  m: number,
+  b0: number,
+  tail = 0.05,
+): { min: number; max: number } => {
+  const f = (a: number, b: number) => (a0 - a) ** 2 - tail * (b - a) * (m - a);
+  const g = (a: number, b: number) => (b - b0) ** 2 - tail * (b - a) * (b - m);
+  let a = a0 - (m - a0) * tail;
+  let b = b0 + (b0 - m) * tail;
+  const h = 1e-7;
+  for (let i = 0; i < 100; i++) {
+    const fa = (f(a + h, b) - f(a - h, b)) / (2 * h);
+    const fb = (f(a, b + h) - f(a, b - h)) / (2 * h);
+    const ga = (g(a + h, b) - g(a - h, b)) / (2 * h);
+    const gb = (g(a, b + h) - g(a, b - h)) / (2 * h);
+    const det = fa * gb - fb * ga;
+    if (!det) break;
+    const fv = f(a, b);
+    const gv = g(a, b);
+    const da = (fv * gb - fb * gv) / det;
+    const db = (fa * gv - fv * ga) / det;
+    a -= da;
+    b -= db;
+    if (Math.abs(da) < 1e-14 && Math.abs(db) < 1e-14) break;
+  }
+  return { min: a, max: b };
+};
+
 /** A mixture of distributions, by weight (summing to 1): a decision maker's. */
 export const mixture = (
   components: readonly { weight: number; distribution: Continuous }[],

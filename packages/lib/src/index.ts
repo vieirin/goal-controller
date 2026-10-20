@@ -427,7 +427,9 @@ export { kaosexpertEngine } from './engines/kaosexpert/engine';
 // the numeric back-end (goal-controller#190): distributions, BDDs, a seeded generator
 export { Bdd } from './numeric/bdd';
 export {
+  complementOf,
   continuousOf,
+  extendTriangular,
   mixture,
   piecewise,
   type Continuous,

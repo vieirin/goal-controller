@@ -111,7 +111,7 @@ const WORDS: Readonly<Record<string, string>> = {
 const WRITTEN: Readonly<Record<string, readonly string[]>> = {
   [KAOS_TYPES.goal]: ['Description', 'FormalSpec', 'RSR', 'ESR'],
   [KAOS_TYPES.softgoal]: ['Description', 'FormalSpec', 'RSR', 'ESR'],
-  [KAOS_TYPES.obstacle]: ['Description', 'FormalSpec', 'Probability'],
+  [KAOS_TYPES.obstacle]: ['Description', 'FormalSpec', 'Probability', 'Beta'],
   [KAOS_TYPES.domainProperty]: [
     'Kind',
     'Description',
@@ -281,11 +281,14 @@ export const writeKaos = (
       }
     }
     if (type === KAOS_TYPES.environmentAgent) body.push('type environment');
+    // ESR and Beta are distributions too (goal-controller#199, HASE'11's
+    // P(G) and β; no per-expert form, unlike an obstacle's Probability)
+    const DISTRIBUTION_KEYS = ['Probability', 'ESR', 'Beta'];
     const quantity = (key: string, attribute: string) => {
       const value = text(key).trim();
       if (!value) return;
       if (isNumber(value)) body.push(`${attribute} ${value}`);
-      else if (key === 'Probability' && isEstimate(value))
+      else if (DISTRIBUTION_KEYS.includes(key) && isEstimate(value))
         body.push(`${attribute} ${value}`);
       else say(`${name}: its ${key} ${value} is no number, not written`);
     };
@@ -295,6 +298,7 @@ export const writeKaos = (
     }
     if (type === KAOS_TYPES.obstacle || type === KAOS_TYPES.domainProperty)
       quantity('Probability', 'probability');
+    if (type === KAOS_TYPES.obstacle) quantity('Beta', 'beta');
     // an expert's estimate: `probability[e1] (…)` (kaosexpert's, goal-controller#190)
     const keyed = (key: string) =>
       (type === KAOS_TYPES.obstacle || type === KAOS_TYPES.domainProperty) &&

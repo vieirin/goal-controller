@@ -427,18 +427,36 @@ export const readKaos = (
           return;
         }
         // kaosexpert's: an obstacle's or a domain property's estimate, a
-        // distribution or an expert's (`probability[e1] (…)`)
-        if (word === 'obstacle' || isDomain(word)) {
-          const estimate = estimateOf(attribute);
+        // distribution or an expert's (`probability[e1] (…)`); a goal's
+        // `esr`/`eps` as a distribution too (goal-controller#199, HASE'11's
+        // P(G), no expert form)
+        if (word === 'obstacle' || isDomain(word) || isGoal(word)) {
+          const estimate = estimateOf(
+            attribute,
+            isGoal(word) ? 'ESR' : 'Probability',
+          );
           if (estimate) {
             element.props.set(estimate.key, estimate.text);
             // only kaosexpert reads these (kaosprop: a point on an obstacle)
             if (
               estimate.key !== 'Probability' ||
               estimate.distribution ||
-              isDomain(word)
+              isDomain(word) ||
+              isGoal(word)
             )
               expertForms = true;
+            return;
+          }
+        }
+        break;
+      // kaosexpert's β (goal-controller#199, HASE'11): an obstacle's,
+      // read only when it has more than one refinement, folded in there
+      case 'beta':
+        if (word === 'obstacle') {
+          const estimate = estimateOf(attribute, 'Beta');
+          if (estimate) {
+            element.props.set(estimate.key, estimate.text);
+            expertForms = true;
             return;
           }
         }
@@ -457,10 +475,10 @@ export const readKaos = (
   };
 
   const whyRaw = (name: string, attribute: Attribute, word: string) =>
-    ['esr', 'eps', 'probability', 'rsr', 'rds'].includes(name) &&
+    ['esr', 'eps', 'probability', 'rsr', 'rds', 'beta'].includes(name) &&
     attribute.params.length
       ? 'a per-expert estimate'
-      : ['esr', 'eps', 'probability', 'rsr', 'rds'].includes(name) &&
+      : ['esr', 'eps', 'probability', 'rsr', 'rds', 'beta'].includes(name) &&
           attribute.values.some(
             (v) => v.atom.$type !== 'NumberAtom' || v.bracket.length,
           )
@@ -481,20 +499,25 @@ export const readKaos = (
                 'esr',
                 'eps',
                 'probability',
+                'beta',
               ].includes(name)
             ? `not in this form on a ${word}`
             : `no place in the model for ${name}`;
 
   /**
    * `probability X` (a value or a distribution) or `probability[e1] X` as
-   * kaosexpert's key and the value as written; null in any other form.
+   * kaosexpert's key (`Probability` by default; `ESR`'s and `Beta`'s have
+   * no per-expert form, goal-controller#199) and the value as written; null
+   * in any other form.
    */
   const estimateOf = (
     attribute: Attribute,
+    base: string = 'Probability',
   ): { key: string; text: string; distribution: boolean } | null => {
     if (attribute.values.length !== 1 || attribute.params.length > 1)
       return null;
     const [param] = attribute.params;
+    if (param && base !== 'Probability') return null;
     if (
       param &&
       (param.atom.$type !== 'NameAtom' || param.op || param.bracket.length)
@@ -512,8 +535,8 @@ export const readKaos = (
         : value.atom.$type === 'NameAtom' && value.bracket.length > 0);
     if ('error' in read && !shaped) return null;
     const key = param
-      ? `Probability[${(param.atom as { value: string }).value}]`
-      : 'Probability';
+      ? `${base}[${(param.atom as { value: string }).value}]`
+      : base;
     return {
       key,
       text,

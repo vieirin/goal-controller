@@ -40,7 +40,10 @@ node scripts/kaos-stress/run.cjs --strict   # fail on any seed's failure
       `experts=e1`, of a run on those experts' estimates only (RE'15's
       one-expert run, `ambulance.expected.csv`);
     - a leaf obstacle alone against the goal in `source` (`VU alone`,
-      `US alone`).
+      `US alone`);
+    - `triangular a`/`triangular b`: a triangular distribution's elicited
+      (a0, m, b0) extended by a tail fraction (`given = "a0,m,b0,tail"`,
+      goal-controller#199's `lib.extendTriangular`, HASE'11 §III-B2).
 
     Each is checked within its tolerance, the run being 100 000 samples
     with seed 1. A row whose `expected` is `-` is a number the paper prints

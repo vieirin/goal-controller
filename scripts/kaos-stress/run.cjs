@@ -39,7 +39,11 @@
  *     alone`;
  *   - `probability given`: an element's probability with the point
  *     estimates `given` (`id=0.009;…`) in place of the elements' own;
- *   - `formula`: the arithmetic in `given` (a paper's printed step).
+ *   - `formula`: the arithmetic in `given` (a paper's printed step);
+ *   - `triangular a`/`triangular b`: the min/max of a triangular
+ *     distribution's elicited (a0, m, b0) extended by a tail fraction
+ *     (`given = "a0,m,b0,tail"`, `lib.extendTriangular`, HASE'11 §III-B2,
+ *     goal-controller#199).
  *
  *   `paper` is the printed value, `data` where the inputs come from; a
  *   mismatch with the paper is the derivation's to explain, the row checks
@@ -267,6 +271,14 @@ const expertOracle = (modelText, resources, rows) => {
         return Function(`return (${given});`)();
       case 'probability given':
         return givenProbability(id, given);
+      case 'triangular a':
+      case 'triangular b': {
+        // HASE'11 §III-B2, Figure 3 (goal-controller#199): the elicited
+        // (a0, m, b0), extended by `tail` (given = "a0,m,b0,tail")
+        const [a0, m, b0, tail] = given.split(',').map(Number);
+        const extended = lib.extendTriangular(a0, m, b0, tail);
+        return quantity === 'triangular a' ? extended.min : extended.max;
+      }
       case 'information':
       case 'calibration':
       case 'weight':

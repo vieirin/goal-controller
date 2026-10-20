@@ -94,6 +94,7 @@ export const CUSTOM_KEYS: Readonly<Record<string, readonly string[]>> = {
     'Issue',
     'FitCriterion',
     'Stability',
+    'Evidence',
   ],
   'kaos.Softgoal': [
     'Type',
@@ -103,8 +104,12 @@ export const CUSTOM_KEYS: Readonly<Record<string, readonly string[]>> = {
     'Issue',
     'FitCriterion',
     'Stability',
+    'Evidence',
   ],
-  'kaos.Obstacle': ['Category'],
+  // kaosexpert's Evidence (goal-controller#199): the evidence items (a
+  // comma-separated list of ids) a leaf goal's ESR or a leaf obstacle's
+  // Probability is based on, written as a custom attribute like any text key
+  'kaos.Obstacle': ['Category', 'Evidence'],
 };
 
 /** A KAOSTools identifier: a letter, then letters, digits, `_` and `-`. */
