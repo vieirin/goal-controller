@@ -152,6 +152,26 @@ describe('nfrpropEngineMapper: characterization (#187)', () => {
         );
     });
 
+    it('takes the entry’s label as the mapper typed it, reading no text itself (#226)', () => {
+      const model = nfrpropAnalysisModel(readNfrModel(SEED));
+      const written = {
+        ...model,
+        elements: model.elements.map((e) =>
+          e.id === RSA_260
+            ? {
+                ...e,
+                properties: { ...e.properties, initialLabel: ' denied ' },
+              }
+            : e,
+        ),
+      };
+      // a text the mapper didn't read is no label: the element is chosen
+      assert.strictEqual(
+        propagateLabels(written).labels.get(RSA_260),
+        'satisficed',
+      );
+    });
+
     it('applies to softgoals, operationalizations and claims', () => {
       assert.strictEqual(
         labelOf(withProperties(SECURITY, { initialLabel: 'denied' }), SECURITY),
