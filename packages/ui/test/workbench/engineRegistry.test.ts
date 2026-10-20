@@ -188,10 +188,11 @@ describe('the engine registry', () => {
       kaosexpert: FRAMEWORK_ENGINE_PROJECT_RESOURCES.kaosexpert,
       nfrprop: nfrpropProjectResourceParsers,
     });
-    // kaosexpert's experts and calibration variables (#190)
+    // kaosexpert's experts, calibration variables and evidence items (#190, #199)
     expect(Object.keys(FRAMEWORK_ENGINE_PROJECT_RESOURCES.kaosexpert)).toEqual([
       'expert',
       'calibration',
+      'evidence',
     ]);
   });
 

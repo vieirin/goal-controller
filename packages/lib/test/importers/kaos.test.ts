@@ -527,14 +527,19 @@ declare domainproperty [ d ] probability 90% end`;
         'override goal [ g ]',
       ],
     );
-    // a domain property's probability is kaosexpert's now (#190), a goal's distribution isn't
+    // a domain property's probability is kaosexpert's now (#190), and so is
+    // a goal's distribution esr (#199): neither is kept raw any more
     assert.strictEqual(nodeOf(model, 'd').customProperties.Probability, '90%');
+    assert.strictEqual(
+      nodeOf(model, 'g').customProperties.ESR,
+      'beta [ 1, 2 ]',
+    );
     assert.ok(
       kept.includes(
-        'override goal [ g ]\n  refinedby [context=night] a, b\n  provided x() and y()\n  except z()\n  relaxedTo w\n  replaces h\n  esr beta [ 1, 2 ]\nend',
+        'override goal [ g ]\n  refinedby [context=night] a, b\n  provided x() and y()\n  except z()\n  relaxedTo w\n  replaces h\nend',
       ),
     );
-    assert.strictEqual(diagnostics.length, 10);
+    assert.strictEqual(diagnostics.length, 9);
     // the refinement in a context isn't read: g refines into nothing
     assert.strictEqual(hubsOf(model, 'g').length, 0);
   });

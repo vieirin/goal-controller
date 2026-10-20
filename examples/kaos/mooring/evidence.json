@@ -1,0 +1,48 @@
+{
+  "evidence": [
+    {
+      "id": "rao",
+      "name": "RAO"
+    },
+    {
+      "id": "mooringArrangementAndVectors",
+      "name": "Mooring arrangement and vectors"
+    },
+    {
+      "id": "ropeCrossSection",
+      "name": "Rope cross-section"
+    },
+    {
+      "id": "weatherConditions",
+      "name": "Weather conditions: current, wind, wave height, sea states, wave frequency, hundred-year condition"
+    },
+    {
+      "id": "basicProductInformation",
+      "name": "Basic product information"
+    },
+    {
+      "id": "certificateIfMobile",
+      "name": "Certificate (if mobile)"
+    },
+    {
+      "id": "cyclicEnduranceTestResults",
+      "name": "Cyclic endurance test results with cyclic examination"
+    },
+    {
+      "id": "yarnCertificationTestResults",
+      "name": "Yarn certification test results on specific delivery"
+    },
+    {
+      "id": "propertiesVariability",
+      "name": "Properties variability"
+    },
+    {
+      "id": "splicing",
+      "name": "Splicing"
+    },
+    {
+      "id": "factoryProcessSpecifications",
+      "name": "Factory process specifications"
+    }
+  ]
+}

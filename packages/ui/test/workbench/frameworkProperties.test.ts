@@ -40,6 +40,7 @@ describe("a dialect's own properties, typed for istar-ts's inspector (#327)", ()
       'Description',
       'Category',
       'Probability',
+      'Beta',
     ]);
     expect(plain.shape.Probability!.type).toBe('string');
     const schema = schemaOf(kaosexpert, 'kaosObstacles.Obstacle', {
@@ -51,6 +52,7 @@ describe("a dialect's own properties, typed for istar-ts's inspector (#327)", ()
       'Probability',
       'Probability[e1]',
       'Probability[e2]',
+      'Beta',
     ]);
     // the parts take the names too
     const parts = dialectParts(kaosexpert, { expert: ['e1'] });

@@ -216,6 +216,7 @@ describe('frameworks: the DSM3 seeds (#171)', () => {
       'examples/kaos/fire-alarm/fire-alarm.txt',
       'examples/kaos/kaos-welcome.txt',
       'examples/kaos/las/las.txt',
+      'examples/kaos/mooring/mooring.txt',
     ]);
     for (const mode of ['kaos', 'nfr'] as const)
       for (const { file, model } of MODELS[mode])

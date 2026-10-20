@@ -193,25 +193,36 @@ export const propagateProbabilities = (
         cases[cases.findIndex(Number.isNaN)] =
           1 - cases.find((c) => !Number.isNaN(c))!;
       const known = cases.map((c) => (Number.isNaN(c) ? 0 : c));
-      const p = known.reduce(
-        (a, c, i) => a + c * probabilityOfElement(hub.legs[i]!.child),
-        0,
-      );
+      // × this hub's Probability too (default 1): HASE'11's α applies to
+      // a case-driven hub the same way (goal-controller#199, rv199)
+      const given = hub.values.Probability ?? 1;
+      const p =
+        known.reduce(
+          (a, c, i) => a + c * probabilityOfElement(hub.legs[i]!.child),
+          0,
+        ) * given;
       const total = round(known.reduce((a, c) => a + c, 0));
       return [
         p,
         `case-driven: ${hub.legs
           .map((leg, i) => `${known[i]} × ${named(leg.child)}`)
-          .join(
-            ' + ',
-          )}${total === 1 ? '' : ` (the cases sum to ${total}, not 1)`}`,
+          .join(' + ')}${given !== 1 ? ` × (1 − α) ${given}` : ''}${
+          total === 1 ? '' : ` (the cases sum to ${total}, not 1)`
+        }`,
       ];
     }
-    // any other tactic's rule is the product of the sub-goals' (Table I)
+    // any other tactic's rule is the product of the sub-goals' (Table I),
+    // × this hub's Probability (default 1): HASE'11's α, 1 − this, when
+    // the decomposition is partial (goal-controller#199)
     const rule = tactic || 'no tactic, milestone-driven';
+    const given = hub.values.Probability ?? 1;
+    const p =
+      all(hub.legs.map((leg) => probabilityOfElement(leg.child))) * given;
     return [
-      all(hub.legs.map((leg) => probabilityOfElement(leg.child))),
-      `${rule}: ${hub.legs.map((leg) => named(leg.child)).join(' × ')}`,
+      p,
+      `${rule}: ${hub.legs.map((leg) => named(leg.child)).join(' × ')}${
+        given !== 1 ? ` × (1 − α) ${given}` : ''
+      }`,
     ];
   };
 
@@ -253,10 +264,17 @@ export const propagateProbabilities = (
     const parts = refinements.map(hubProbability);
     if (parts.length === 1)
       return settle(element.id, parts[0]![0], parts[0]![1]);
+    // several refinements, an OR: HASE'11's β (goal-controller#199), the
+    // obstacle's own Beta, multiplies Π(1 − P(SOi)), not any one hub's
+    // product, so it does not fold into the hub's Probability slot
+    const beta = valuesOf(element).Beta ?? 0;
+    const complement = all(parts.map(([p]) => 1 - p));
     return settle(
       element.id,
-      any(parts.map(([p]) => p)),
-      `OR of ${parts.map(([p, why]) => `${percent(p)} (${why})`).join('; ')}`,
+      1 - (1 - beta) * complement,
+      `OR of ${parts.map(([p, why]) => `${percent(p)} (${why})`).join('; ')}${
+        beta ? ` × (1 − β) ${round(1 - beta)}` : ''
+      }`,
     );
   };
 

@@ -14,7 +14,7 @@ import { defineAnalyses } from '../analysis';
 import { projectResourceParsers } from '../projectResources';
 import { kaosexpert } from './definition';
 import { runCriticalObstacles, runUncertainty } from './propagation';
-import { parseCalibrations, parseExperts } from './resources';
+import { parseCalibrations, parseEvidence, parseExperts } from './resources';
 
 export const kaosexpertAnalyses = defineAnalyses(kaosexpert, {
   uncertainty: {
@@ -31,7 +31,11 @@ export const kaosexpertAnalyses = defineAnalyses(kaosexpert, {
 
 export const kaosexpertProjectResourceParsers = projectResourceParsers(
   kaosexpert,
-)({ expert: parseExperts, calibration: parseCalibrations });
+)({
+  expert: parseExperts,
+  calibration: parseCalibrations,
+  evidence: parseEvidence,
+});
 
 export { kaosexpert } from './definition';
 export {
@@ -60,14 +64,19 @@ export {
 } from './propagation';
 export {
   CALIBRATIONS_PATH,
+  EVIDENCE_PATH,
   EXPERTS_PATH,
   parseCalibrations,
+  parseEvidence,
   parseExperts,
   quantileLevelsOf,
   readCalibrations,
+  readEvidence,
   readExperts,
   type CalibrationEntry,
   type CalibrationsFile,
+  type EvidenceEntry,
+  type EvidenceFile,
   type ExpertEntry,
   type ExpertsFile,
 } from './resources';

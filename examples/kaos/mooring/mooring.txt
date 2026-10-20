@@ -1,0 +1,603 @@
+{
+  "actors": [],
+  "orphans": [
+    {
+      "id": "ap1",
+      "text": "AP1",
+      "type": "kaos.DomainProperty",
+      "customProperties": {
+        "Kind": "hypothesis",
+        "Description": "Usage type = mobile; Yarn type = <sanitised>; Vessel type = <sanitised>; Operating area = <sanitised> (Figure 2, printed sanitised)"
+      },
+      "x": 40,
+      "y": 80
+    },
+    {
+      "id": "gl1",
+      "text": "Rope is safe during service life",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 840,
+      "y": 80
+    },
+    {
+      "id": "ob1",
+      "text": "Rope loses structural integrity during service life",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 840,
+      "y": 180
+    },
+    {
+      "id": "ob2",
+      "text": "Failure due to abrasion",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 200,
+      "y": 280
+    },
+    {
+      "id": "ob3",
+      "text": "Failure due to tension",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 840,
+      "y": 280
+    },
+    {
+      "id": "ob4",
+      "text": "Failure due to fatigue",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 1480,
+      "y": 280
+    },
+    {
+      "id": "ob5",
+      "text": "Failure due to global tension",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 360,
+      "y": 380
+    },
+    {
+      "id": "ob6",
+      "text": "Failure due to local tension",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 840,
+      "y": 380
+    },
+    {
+      "id": "ob7",
+      "text": "Sustained tensile load at levels close to short-term rupture load",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 840,
+      "y": 480
+    },
+    {
+      "id": "gl2",
+      "text": "Rope is not subject to near-strength load for a prolonged period of time",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 840,
+      "y": 580
+    },
+    {
+      "id": "gl4",
+      "text": "Avoid exposure time exceeding design curve",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 1320,
+      "y": 680
+    },
+    {
+      "id": "gl3",
+      "text": "Avoid near-strength load",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 840,
+      "y": 680
+    },
+    {
+      "id": "gl5",
+      "text": "Design tension does not exceed 75% of characteristic rope strength",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 680,
+      "y": 780
+    },
+    {
+      "id": "gl8",
+      "text": "Individual subrope has required proportional strength",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 840,
+      "y": 880
+    },
+    {
+      "id": "gl6",
+      "text": "Assert: operating range < design range",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": "",
+        "Evidence": "rao, mooringArrangementAndVectors, ropeCrossSection, weatherConditions"
+      },
+      "x": 1160,
+      "y": 780
+    },
+    {
+      "id": "gl7",
+      "text": "Assert: number of subropes in rope = n",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": "",
+        "Evidence": "basicProductInformation, certificateIfMobile"
+      },
+      "x": 520,
+      "y": 880
+    },
+    {
+      "id": "gl9",
+      "text": "Assert: in absence of abrasion, strand cross-section area = full strength",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": "",
+        "Evidence": "cyclicEnduranceTestResults"
+      },
+      "x": 680,
+      "y": 980
+    },
+    {
+      "id": "gl10",
+      "text": "Rope yarns have required proportional strength",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": "",
+        "Evidence": "yarnCertificationTestResults"
+      },
+      "x": 840,
+      "y": 980
+    },
+    {
+      "id": "gl11",
+      "text": "Assert: assembly loss factor is less than the specified value, within margins",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": "",
+        "Evidence": "propertiesVariability, splicing, factoryProcessSpecifications"
+      },
+      "x": 1000,
+      "y": 980
+    }
+  ],
+  "dependencies": [],
+  "links": [
+    {
+      "hub": {
+        "id": "ob1-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 578,
+        "y": 238
+      },
+      "starts": [
+        {
+          "id": "ob1-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "ob2",
+          "target": "ob1-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "ob1-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "ob1-refinement-1",
+        "target": "ob1"
+      }
+    },
+    {
+      "hub": {
+        "id": "ob1-refinement-2",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 898,
+        "y": 238
+      },
+      "starts": [
+        {
+          "id": "ob1-refinement-2-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "ob3",
+          "target": "ob1-refinement-2"
+        }
+      ],
+      "end": {
+        "id": "ob1-refinement-2-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "ob1-refinement-2",
+        "target": "ob1"
+      }
+    },
+    {
+      "hub": {
+        "id": "ob1-refinement-3",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 1218,
+        "y": 238
+      },
+      "starts": [
+        {
+          "id": "ob1-refinement-3-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "ob4",
+          "target": "ob1-refinement-3"
+        }
+      ],
+      "end": {
+        "id": "ob1-refinement-3-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "ob1-refinement-3",
+        "target": "ob1"
+      }
+    },
+    {
+      "hub": {
+        "id": "ob3-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 658,
+        "y": 338
+      },
+      "starts": [
+        {
+          "id": "ob3-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "ob5",
+          "target": "ob3-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "ob3-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "ob3-refinement-1",
+        "target": "ob3"
+      }
+    },
+    {
+      "hub": {
+        "id": "ob3-refinement-2",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 898,
+        "y": 338
+      },
+      "starts": [
+        {
+          "id": "ob3-refinement-2-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "ob6",
+          "target": "ob3-refinement-2"
+        }
+      ],
+      "end": {
+        "id": "ob3-refinement-2-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "ob3-refinement-2",
+        "target": "ob3"
+      }
+    },
+    {
+      "hub": {
+        "id": "ob6-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 898,
+        "y": 438
+      },
+      "starts": [
+        {
+          "id": "ob6-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "ob7",
+          "target": "ob6-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "ob6-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "ob6-refinement-1",
+        "target": "ob6"
+      }
+    },
+    {
+      "hub": {
+        "id": "gl2-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": "milestone-driven"
+        },
+        "x": 1018,
+        "y": 638
+      },
+      "starts": [
+        {
+          "id": "gl2-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "gl3",
+          "target": "gl2-refinement-1"
+        },
+        {
+          "id": "gl2-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "gl4",
+          "target": "gl2-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "gl2-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "gl2-refinement-1",
+        "target": "gl2"
+      }
+    },
+    {
+      "hub": {
+        "id": "gl3-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        },
+        "x": 938,
+        "y": 738
+      },
+      "starts": [
+        {
+          "id": "gl3-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "gl5",
+          "target": "gl3-refinement-1"
+        },
+        {
+          "id": "gl3-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "gl6",
+          "target": "gl3-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "gl3-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "gl3-refinement-1",
+        "target": "gl3"
+      }
+    },
+    {
+      "hub": {
+        "id": "gl5-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        },
+        "x": 738,
+        "y": 838
+      },
+      "starts": [
+        {
+          "id": "gl5-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "gl7",
+          "target": "gl5-refinement-1"
+        },
+        {
+          "id": "gl5-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "gl8",
+          "target": "gl5-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "gl5-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "gl5-refinement-1",
+        "target": "gl5"
+      }
+    },
+    {
+      "hub": {
+        "id": "gl8-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        },
+        "x": 898,
+        "y": 938
+      },
+      "starts": [
+        {
+          "id": "gl8-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "gl9",
+          "target": "gl8-refinement-1"
+        },
+        {
+          "id": "gl8-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "gl10",
+          "target": "gl8-refinement-1"
+        },
+        {
+          "id": "gl8-refinement-1-3",
+          "type": "kaos.RefinementLinkStart",
+          "source": "gl11",
+          "target": "gl8-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "gl8-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "gl8-refinement-1",
+        "target": "gl8"
+      }
+    },
+    {
+      "id": "ob1-obstructs-gl1",
+      "type": "kaos.ObstructionLink",
+      "source": "ob1",
+      "target": "gl1"
+    },
+    {
+      "id": "gl2-resolves-ob7",
+      "type": "kaos.ResolutionLink",
+      "source": "gl2",
+      "target": "ob7",
+      "customProperties": {
+        "ResolutionType": "",
+        "Anchor": ""
+      }
+    }
+  ],
+  "display": {},
+  "tool": "dsm3-goals",
+  "metamodelVersion": "1.0",
+  "diagram": {
+    "width": 1775,
+    "height": 1116,
+    "name": "Fibre-rope mooring (HASE'11)",
+    "customProperties": {
+      "Description": ""
+    }
+  }
+}

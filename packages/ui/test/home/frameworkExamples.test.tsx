@@ -110,7 +110,14 @@ describe('Home: the KAOS and NFR seeds (#171)', () => {
     for (const [folder, names] of [
       [
         'kaos',
-        ['ambulance', 'carpooling', 'fire-alarm', 'kaos-welcome.txt', 'las'],
+        [
+          'ambulance',
+          'carpooling',
+          'fire-alarm',
+          'kaos-welcome.txt',
+          'las',
+          'mooring',
+        ],
       ],
       ['nfr', ['nfr-welcome.txt']],
     ] as const) {
@@ -163,6 +170,7 @@ describe('Home: the KAOS and NFR seeds (#171)', () => {
       expect.stringContaining('fire-alarm'),
       expect.stringContaining('kaos-welcome.txt'),
       expect.stringContaining('las'),
+      expect.stringContaining('mooring'),
     ]);
   });
 

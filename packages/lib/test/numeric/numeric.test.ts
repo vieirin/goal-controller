@@ -7,7 +7,12 @@ import * as assert from 'assert';
 import { describe, it } from 'mocha';
 import { distributionOf } from '@goal-controller/dialect';
 import { Bdd } from '../../src/numeric/bdd';
-import { continuousOf, mixture } from '../../src/numeric/distributions';
+import {
+  complementOf,
+  continuousOf,
+  extendTriangular,
+  mixture,
+} from '../../src/numeric/distributions';
 import { seededRandom } from '../../src/numeric/random';
 import {
   betaInc,
@@ -117,6 +122,65 @@ describe('numeric: distributions', () => {
     close(m.cdf(0.1), 0.25, 1e-14);
     close(m.quantile(0.625), 0.15, 1e-12);
     close(m.mean, 0.25 * 0.05 + 0.75 * 0.15, 1e-14);
+  });
+
+  it('mirrors a distribution, 1 − X (goal-controller#199, a leaf goal’s 1 − ESR)', () => {
+    const c = complementOf(of('uniform[.2, .5]'));
+    close(c.min, 0.5, 1e-14);
+    close(c.max, 0.8, 1e-14);
+    close(c.mean, 0.65, 1e-14);
+    close(c.quantile(0.25), 0.575, 1e-14);
+    close(c.cdf(0.65), 0.5, 1e-14);
+  });
+
+  it('extends a triangular’s elicited (a0, m, b0) by a tail (HASE’11 Fig. 3, §III-B2, goal-controller#199)', () => {
+    // the paper's worked example: elicited (.85, .90, .96), 5 % tails,
+    // extended to (.82548, .90, .9863); our exact solve of the same two
+    // equations (CDF(a0) = tail, CDF(b0) = 1 − tail) is close but not
+    // identical -- the paper's own rounding, not a different formula
+    // (examples/kaos/mooring/mooring.expected.csv has the exact value)
+    const { min, max } = extendTriangular(0.85, 0.9, 0.96, 0.05);
+    close(min, 0.82548, 2e-4);
+    close(max, 0.9863, 2e-4);
+    // the result's own triangular(min, .9, max) really does put a0/b0 at
+    // the tail levels: the defining property, exactly, not approximately
+    const extended = continuousOf({ kind: 'triangular', min, mode: 0.9, max });
+    close(extended.cdf(0.85), 0.05, 1e-9);
+    close(extended.cdf(0.96), 0.95, 1e-9);
+  });
+
+  it('extends a triangular symmetrically when the elicitation is symmetric', () => {
+    const { min, max } = extendTriangular(0.4, 0.5, 0.6, 0.05);
+    close(0.5 - min, max - 0.5, 1e-9);
+  });
+
+  it('extends a triangular when the mode equals the elicited lower or upper bound (rv199’s finding: the naive initial guess collapses onto a spurious root there)', () => {
+    const atLower = extendTriangular(0.5, 0.5, 0.9, 0.05);
+    assert.ok(atLower.min < 0.5, `min ${atLower.min} should be below a0`);
+    let c = continuousOf({
+      kind: 'triangular',
+      min: atLower.min,
+      mode: 0.5,
+      max: atLower.max,
+    });
+    close(c.cdf(0.5), 0.05, 1e-6);
+    close(c.cdf(0.9), 0.95, 1e-6);
+
+    const atUpper = extendTriangular(0.3, 0.9, 0.9, 0.05);
+    assert.ok(atUpper.max > 0.9, `max ${atUpper.max} should be above b0`);
+    c = continuousOf({
+      kind: 'triangular',
+      min: atUpper.min,
+      mode: 0.9,
+      max: atUpper.max,
+    });
+    close(c.cdf(0.3), 0.05, 1e-6);
+    close(c.cdf(0.9), 0.95, 1e-6);
+  });
+
+  it('refuses an elicitation with no range, or the mode outside it', () => {
+    assert.throws(() => extendTriangular(0.5, 0.5, 0.5, 0.05), /a0 < b0/);
+    assert.throws(() => extendTriangular(0.5, 0.9, 0.6, 0.05), /a0 ≤ m ≤ b0/);
   });
 
   it('draws the same from the same seed, and uniformly', () => {

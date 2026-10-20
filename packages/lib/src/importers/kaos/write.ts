@@ -34,6 +34,7 @@ import {
 import { readJson } from '../../engines/projectResources';
 import type {
   CalibrationsFile,
+  EvidenceFile,
   ExpertsFile,
 } from '../../engines/kaosexpert/resources';
 import { kaosLanguage } from '@goal-controller/goal-language/formats';
@@ -111,7 +112,7 @@ const WORDS: Readonly<Record<string, string>> = {
 const WRITTEN: Readonly<Record<string, readonly string[]>> = {
   [KAOS_TYPES.goal]: ['Description', 'FormalSpec', 'RSR', 'ESR'],
   [KAOS_TYPES.softgoal]: ['Description', 'FormalSpec', 'RSR', 'ESR'],
-  [KAOS_TYPES.obstacle]: ['Description', 'FormalSpec', 'Probability'],
+  [KAOS_TYPES.obstacle]: ['Description', 'FormalSpec', 'Probability', 'Beta'],
   [KAOS_TYPES.domainProperty]: [
     'Kind',
     'Description',
@@ -231,11 +232,14 @@ export const writeKaos = (
   const lines: string[] = [
     `@title ${quoted(String(json.diagram?.name ?? modelName))}`,
   ];
-  // kaosexpert's resources (goal-controller#190)
+  // kaosexpert's resources (goal-controller#190, #199)
   const expertFiles = resourceValues(projectResources.expert) as ExpertsFile[];
   const calibrationFiles = resourceValues(
     projectResources.calibration,
   ) as CalibrationsFile[];
+  const evidenceFiles = resourceValues(
+    projectResources.evidence,
+  ) as EvidenceFile[];
   for (const file of expertFiles)
     if (typeof file?.quantiles === 'string')
       lines.push(`@experts.quantiles ${quoted(file.quantiles)}`);
@@ -281,11 +285,14 @@ export const writeKaos = (
       }
     }
     if (type === KAOS_TYPES.environmentAgent) body.push('type environment');
+    // ESR and Beta are distributions too (goal-controller#199, HASE'11's
+    // P(G) and β; no per-expert form, unlike an obstacle's Probability)
+    const DISTRIBUTION_KEYS = ['Probability', 'ESR', 'Beta'];
     const quantity = (key: string, attribute: string) => {
       const value = text(key).trim();
       if (!value) return;
       if (isNumber(value)) body.push(`${attribute} ${value}`);
-      else if (key === 'Probability' && isEstimate(value))
+      else if (DISTRIBUTION_KEYS.includes(key) && isEstimate(value))
         body.push(`${attribute} ${value}`);
       else say(`${name}: its ${key} ${value} is no number, not written`);
     };
@@ -295,6 +302,7 @@ export const writeKaos = (
     }
     if (type === KAOS_TYPES.obstacle || type === KAOS_TYPES.domainProperty)
       quantity('Probability', 'probability');
+    if (type === KAOS_TYPES.obstacle) quantity('Beta', 'beta');
     // an expert's estimate: `probability[e1] (…)` (kaosexpert's, goal-controller#190)
     const keyed = (key: string) =>
       (type === KAOS_TYPES.obstacle || type === KAOS_TYPES.domainProperty) &&
@@ -443,6 +451,18 @@ export const writeKaos = (
           ([expert, estimate]) => `  probability[${expert}] ${estimate}`,
         ),
         ...(calibration.kept ?? []).map((line) => `  ${line}`),
+        'end',
+      );
+  // kaosexpert's evidence items (goal-controller#199): declared after the
+  // experts and calibration variables, an Evidence key names one by its id
+  for (const file of evidenceFiles)
+    for (const item of Array.isArray(file?.evidence) ? file.evidence : [])
+      lines.push(
+        '',
+        `declare evidence [ ${item.id} ]`,
+        ...(item.name !== undefined ? [`  name ${quoted(item.name)}`] : []),
+        ...(item.kind !== undefined ? [`  kind ${quoted(item.kind)}`] : []),
+        ...(item.kept ?? []).map((line) => `  ${line}`),
         'end',
       );
   const kept = json.diagram?.customProperties?.[KAOS_UNSUPPORTED_KEY];

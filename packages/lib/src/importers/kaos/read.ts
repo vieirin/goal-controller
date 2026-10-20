@@ -43,9 +43,12 @@ import type { ImportDiagnostic, ImportResult } from '../types';
 import {
   CALIBRATIONS_PATH,
   calibrationsText,
+  EVIDENCE_PATH,
+  evidenceText,
   EXPERTS_PATH,
   expertsText,
   type CalibrationEntry,
+  type EvidenceEntry,
   type ExpertEntry,
 } from '../../engines/kaosexpert/resources';
 import { layOut } from '../layout';
@@ -218,9 +221,11 @@ export const readKaos = (
   const raw: (string | Element)[] = [];
   let title: string | null = null;
   let anonymous = 0;
-  // kaosexpert's: the experts, the calibration variables, the quantile levels
+  // kaosexpert's: the experts, the calibration variables, the quantile
+  // levels, the evidence items (goal-controller#199)
   const experts: ExpertEntry[] = [];
   const calibrations: CalibrationEntry[] = [];
+  const evidence: EvidenceEntry[] = [];
   let quantiles: string | null = null;
   let expertForms = false;
 
@@ -271,6 +276,10 @@ export const readKaos = (
     const word = declaration.kind;
     if (word === 'expert' || word === 'calibration') {
       resource(declaration, where);
+      return null;
+    }
+    if (word === 'evidence') {
+      evidenceItem(declaration, where);
       return null;
     }
     if (!isKaosDeclaration(word)) {
@@ -427,18 +436,36 @@ export const readKaos = (
           return;
         }
         // kaosexpert's: an obstacle's or a domain property's estimate, a
-        // distribution or an expert's (`probability[e1] (…)`)
-        if (word === 'obstacle' || isDomain(word)) {
-          const estimate = estimateOf(attribute);
+        // distribution or an expert's (`probability[e1] (…)`); a goal's
+        // `esr`/`eps` as a distribution too (goal-controller#199, HASE'11's
+        // P(G), no expert form)
+        if (word === 'obstacle' || isDomain(word) || isGoal(word)) {
+          const estimate = estimateOf(
+            attribute,
+            isGoal(word) ? 'ESR' : 'Probability',
+          );
           if (estimate) {
             element.props.set(estimate.key, estimate.text);
             // only kaosexpert reads these (kaosprop: a point on an obstacle)
             if (
               estimate.key !== 'Probability' ||
               estimate.distribution ||
-              isDomain(word)
+              isDomain(word) ||
+              isGoal(word)
             )
               expertForms = true;
+            return;
+          }
+        }
+        break;
+      // kaosexpert's β (goal-controller#199, HASE'11): an obstacle's,
+      // read only when it has more than one refinement, folded in there
+      case 'beta':
+        if (word === 'obstacle') {
+          const estimate = estimateOf(attribute, 'Beta');
+          if (estimate) {
+            element.props.set(estimate.key, estimate.text);
+            expertForms = true;
             return;
           }
         }
@@ -449,7 +476,11 @@ export const readKaos = (
           CUSTOM_KEYS[type]?.includes(name.slice(1)) &&
           value?.atom.$type === 'StringAtom'
         ) {
-          element.props.set(name.slice(1), unquote(sourceOf(value.atom)));
+          const key = name.slice(1);
+          element.props.set(key, unquote(sourceOf(value.atom)));
+          // Evidence is kaosexpert's only (goal-controller#199): a model
+          // using it needs that dialect even with no elicited quantity set
+          if (key === 'Evidence') expertForms = true;
           return;
         }
     }
@@ -457,10 +488,10 @@ export const readKaos = (
   };
 
   const whyRaw = (name: string, attribute: Attribute, word: string) =>
-    ['esr', 'eps', 'probability', 'rsr', 'rds'].includes(name) &&
+    ['esr', 'eps', 'probability', 'rsr', 'rds', 'beta'].includes(name) &&
     attribute.params.length
       ? 'a per-expert estimate'
-      : ['esr', 'eps', 'probability', 'rsr', 'rds'].includes(name) &&
+      : ['esr', 'eps', 'probability', 'rsr', 'rds', 'beta'].includes(name) &&
           attribute.values.some(
             (v) => v.atom.$type !== 'NumberAtom' || v.bracket.length,
           )
@@ -481,20 +512,25 @@ export const readKaos = (
                 'esr',
                 'eps',
                 'probability',
+                'beta',
               ].includes(name)
             ? `not in this form on a ${word}`
             : `no place in the model for ${name}`;
 
   /**
    * `probability X` (a value or a distribution) or `probability[e1] X` as
-   * kaosexpert's key and the value as written; null in any other form.
+   * kaosexpert's key (`Probability` by default; `ESR`'s and `Beta`'s have
+   * no per-expert form, goal-controller#199) and the value as written; null
+   * in any other form.
    */
   const estimateOf = (
     attribute: Attribute,
+    base: string = 'Probability',
   ): { key: string; text: string; distribution: boolean } | null => {
     if (attribute.values.length !== 1 || attribute.params.length > 1)
       return null;
     const [param] = attribute.params;
+    if (param && base !== 'Probability') return null;
     if (
       param &&
       (param.atom.$type !== 'NameAtom' || param.op || param.bracket.length)
@@ -512,8 +548,8 @@ export const readKaos = (
         : value.atom.$type === 'NameAtom' && value.bracket.length > 0);
     if ('error' in read && !shaped) return null;
     const key = param
-      ? `Probability[${(param.atom as { value: string }).value}]`
-      : 'Probability';
+      ? `${base}[${(param.atom as { value: string }).value}]`
+      : base;
     return {
       key,
       text,
@@ -585,6 +621,49 @@ export const readKaos = (
       ...(name !== undefined && { name }),
       ...(value !== undefined && { value }),
       estimates,
+      ...(kept.length && { kept }),
+    });
+  };
+
+  /** `declare evidence`: an entry of kaosexpert's evidence resource (goal-controller#199). */
+  const evidenceItem = (declaration: Declaration, where: Where) => {
+    expertForms = true;
+    if (!declaration.id) {
+      raw.push(sourceOf(declaration));
+      say(
+        where,
+        'warning',
+        `${headOf(declaration)}: an evidence item without an identifier, kept as written (an Evidence key names it by it)`,
+        headAt(declaration),
+      );
+      return;
+    }
+    const kept: string[] = [];
+    let name: string | undefined;
+    let kind: string | undefined;
+    for (const attribute of declaration.attributes) {
+      const single1 = single(attribute);
+      const lower = attribute.name.toLowerCase();
+      if (lower === 'name' && single1?.atom.$type === 'StringAtom') {
+        name = unquote(sourceOf(single1.atom));
+        continue;
+      }
+      if (lower === 'kind' && single1?.atom.$type === 'StringAtom') {
+        kind = unquote(sourceOf(single1.atom));
+        continue;
+      }
+      kept.push(oneLine(sourceOf(attribute)));
+      say(
+        where,
+        'warning',
+        `${attribute.name} of evidence ${declaration.id}: kept as written, not read`,
+        at(attribute),
+      );
+    }
+    evidence.push({
+      id: declaration.id,
+      ...(name !== undefined && { name }),
+      ...(kind !== undefined && { kind }),
       ...(kept.length && { kept }),
     });
   };
@@ -1029,6 +1108,10 @@ export const readKaos = (
   if (calibrations.length)
     projectResources.calibration = {
       [CALIBRATIONS_PATH]: calibrationsText({ calibrations }),
+    };
+  if (evidence.length)
+    projectResources.evidence = {
+      [EVIDENCE_PATH]: evidenceText({ evidence }),
     };
   return {
     model,
