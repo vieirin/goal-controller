@@ -40,6 +40,32 @@ const propertyKeysOfLink = (kind: string): string[] =>
     ] ?? []
   ).map((property) => property.key);
 
+/** Written but unreadable: unset in `props`, the dialect's value check says so too. */
+const unreadableFormula = (
+  problems: CgmProblem[],
+  at: string,
+  name: string,
+  key: string,
+  raw: string | undefined,
+  value: unknown,
+) => {
+  if (raw?.trim() && value === undefined)
+    problems.push({
+      severity: 'error',
+      at,
+      message: `${name}'s ${key} is not a formula: ${raw.trim()}`,
+    });
+};
+
+/** The analyses stop on these (as tropos4as does on its problems). */
+export const refuseOnCgmProblems = (model: AnalysisModel): void => {
+  const errors = cgmProblems(model).filter(
+    (problem) => problem.severity === 'error',
+  );
+  if (errors.length)
+    throw new Error(errors.map((problem) => problem.message).join('; '));
+};
+
 export const cgmProblems = (model: AnalysisModel): CgmProblem[] => {
   const cgm = readCgmModel(model);
   const problems: CgmProblem[] = [];
@@ -79,6 +105,14 @@ export const cgmProblems = (model: AnalysisModel): CgmProblem[] => {
   for (const element of model.elements) {
     const id = cgm.idOf(element.id);
     const values = elementValues(element);
+    unreadableFormula(
+      problems,
+      element.id,
+      id,
+      CGM_KEYS.activation,
+      element.properties.activation,
+      values.activation,
+    );
     formulas(element.id, id, values);
     // what its checks are given, as the editors give it
     const input: CheckInput = {
@@ -114,6 +148,17 @@ export const cgmProblems = (model: AnalysisModel): CgmProblem[] => {
     const name = `${cgm.idOf(link.source)} → ${cgm.idOf(link.target)}`;
     const values = linkValues(link);
     formulas(link.id, name, values);
+    for (const key of [CGM_KEYS.context, CGM_KEYS.opposite]) {
+      if (!propertyKeysOfLink(link.kind).includes(key)) continue;
+      unreadableFormula(
+        problems,
+        link.id,
+        name,
+        key,
+        link.properties[key],
+        values[key],
+      );
+    }
     for (const key of [CGM_KEYS.context, CGM_KEYS.opposite])
       if (
         link.properties[key]?.trim() &&

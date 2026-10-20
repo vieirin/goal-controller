@@ -34,6 +34,7 @@ import {
   resourceFiles,
   type RelationSet,
 } from './resources';
+import { refuseOnCgmProblems } from './problems';
 import { contextsHolding, contributionSign } from './situation';
 import { elementValues, linkValues } from './values';
 
@@ -188,6 +189,7 @@ export const runVariantsInSituation = (
   model: AnalysisModel,
   resource?: Readonly<Record<string, string>>,
 ): AnalysisResult => {
+  refuseOnCgmProblems(model);
   const cgm = readCgmModel(model);
   const { situations } = readSituations(resourceFiles(resource));
   const all = cgmVariants(cgm).flatMap(({ variants }) => variants);
@@ -241,6 +243,7 @@ export const runUnadoptable = (
   model: AnalysisModel,
   resource?: Readonly<Record<string, string>>,
 ): AnalysisResult => {
+  refuseOnCgmProblems(model);
   const cgm = readCgmModel(model);
   const { relations } = readRelationSets(resourceFiles(resource));
   const all = cgmVariants(cgm).flatMap(({ variants }) => variants);
@@ -337,6 +340,7 @@ export const runCoreVariants = (
   model: AnalysisModel,
   resource?: Readonly<Record<string, string>>,
 ): AnalysisResult => {
+  refuseOnCgmProblems(model);
   const cgm = readCgmModel(model);
   const { relations } = readRelationSets(resourceFiles(resource));
   const all = cgmVariants(cgm).flatMap(({ variants }) => variants);
@@ -447,6 +451,7 @@ export const runMinimumCost = (
   model: AnalysisModel,
   resource?: Readonly<Record<string, string>>,
 ): AnalysisResult => {
+  refuseOnCgmProblems(model);
   const cgm = readCgmModel(model);
   const { relations } = readRelationSets(resourceFiles(resource));
   const all = cgmVariants(cgm).flatMap(({ variants }) => variants);
