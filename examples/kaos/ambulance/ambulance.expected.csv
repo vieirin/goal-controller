@@ -1,0 +1,124 @@
+# The oracle of the ambulance seed (ADS's Brussels ambulance dispatching model, ancailliau/ADS da3241f, MIT; RE'15's field validation, DOI 10.1109/RE.2015.7320413, §VIII), checked by scripts/kaos-stress (goal-controller#190, #198): each row what kaosexpert gives, within `tolerance`, beside what RE'15 prints (`paper`). The root is Achieve [Incident Resolved] (achieve_incident_resolved, RSR 95 %), las.kaos's root, obstructed through obstacles.kaos's 76 obstacles (47 leaves).
+# `data` "ADS": ADS's own estimates, all five experts (the seed removes the '#' ADS puts before e1–e3 and e5's: the file keeps every expert's estimates and comments out all but one run's, e4's here and e1's in the thesis's copy; RE'15 combines all five). e4's (30%, 10%, 50%) for Allocated Ambulance Not At Station is kept as written, a Problem, and left out.
+# RE'15's ADS numbers are not reproducible from ADS's file, which RE'15 says is "fictitious but realistic" data: its Table IV differs from the file (Allocated Ambulance Not At Station, Service End Before Intervention), and its four obstacles over 90 % are not ours. Cailliau's thesis (2017, a later 54-leaf version of the model) prints yet other numbers (US 0.9258, 0.9487 with Expert 1, seven obstacles over 90 %, 30 with US > 0.10).
+# Second oracle, KAOSTools itself: the tool that made RE'15's numbers (KAOSTools 0f17b6e, 2015-11-20, the last commit before ADS's first, its UncertaintySimulation; ExpertOpinionSharp and BDDSharp as committed in 2017-04, the 2015 working copies they record) built under Mono in Docker, on ADS's 2016 files (746a247, the same model in the syntax that KAOSTools reads; KAOSTools of 2017 can't read ADS's anonymous nested obstacles), all five experts, without resolutions.kaos (RE'15: no countermeasure). As is, it gives every expert a NaN information score (the 6 variables every expert estimates at 0 %) and NaN weights. With two rules kaosexpert has (a point-range variable left out of the information scores, r clamped at machine epsilon) and e4's estimate corrected to Table IV's 30/40/50 %, it gives kaosexpert's information, calibration and weights to 1e-8, and the root at 100 000 samples: VU 100 %, US 0.9461, mean 0.395 %, where kaosexpert gives US 0.9462, mean 0.380 %. The rest is a difference of rules: KAOSTools uses a draw below 0 (a range's overshoot below 0 %) as a negative probability, kaosexpert clamps it to 0; without the clamp kaosexpert gives US 0.9461 and 0.40 % too. Its §VII run (each leaf alone, 100 000 samples) agrees with the VU alone and US alone rows on 38 of 47 leaves within 0.006, with the same two over 90 % and the same 8 at VU 0; the 9 others have an expert quantile of exactly 5 %, which KAOSTools reads in single precision (0.0500000007), so the leaf alone puts the root just below 95 % and violates it there, where kaosexpert's exact 95 % meets the RSR (#343).
+# Monte Carlo rows: 100 000 samples, seed 1 (the tolerance, at least 4 × the spread over seeds 1–6, covers other seeds); deterministic rows: 1e-6.
+quantity,id,goal,given,expected,tolerance,paper,data,derivation
+information,e1,,,8.264733,0.000001,,ADS,"mean over the 50 variables but the 6 whose every estimate is (0%, 0%, 0%) (a point range: no information, left out, #198) of Σ p ln(p/max(r, ε)), p = (.05, .45, .45, .05), r its interpolated masses on the variable's range (all quantiles and the known value, 10 % overshoot). An expert's point estimate (1%, 1%, 1%) on a wider range has r = 0 in its inner bins: the ε clamp (machine epsilon) makes those terms large, hence scores of 8–16. KAOSTools' CookFramework (2015), run with the same two rules, gives e1–e3 and e5's to 1e-6, and e4's with its falling estimate corrected (#343)"
+calibration,e1,,,1,0.000001,,ADS,"N = 50 (47 leaves, 3 calibrations). Two of its three realisations fall in a 5 % tail (Mobilization Cancelled's 13 % below its 13.33 %, MDT Turned Off's 33.3 % below its 53.33 %), but 2/50 < .05 clamps every term to 0: calibration 1"
+weight,e1,,,0.144099,0.000001,,ADS,"information × calibration, normalised; Brent's cut-off (the largest weight, 0.27) cuts no one. KAOSTools gives the same weights with e4's estimate corrected to Table IV's (#343)"
+information,e2,,,15.593669,0.000001,,ADS,"mean over the 50 variables but the 6 whose every estimate is (0%, 0%, 0%) (a point range: no information, left out, #198) of Σ p ln(p/max(r, ε)), p = (.05, .45, .45, .05), r its interpolated masses on the variable's range (all quantiles and the known value, 10 % overshoot). An expert's point estimate (1%, 1%, 1%) on a wider range has r = 0 in its inner bins: the ε clamp (machine epsilon) makes those terms large, hence scores of 8–16. KAOSTools' CookFramework (2015), run with the same two rules, gives e1–e3 and e5's to 1e-6, and e4's with its falling estimate corrected (#343)"
+calibration,e2,,,1,0.000001,,ADS,"one realisation in a tail (MDT Turned Off's 33.3 % above its 0 %): 1/50 < .05, clamped to 0: calibration 1"
+weight,e2,,,0.271883,0.000001,,ADS,"information × calibration, normalised; Brent's cut-off (the same) cuts no one. KAOSTools gives the same weights with e4's estimate corrected to Table IV's (#343)"
+information,e3,,,10.550757,0.000001,,ADS,"mean over the 50 variables but the 6 whose every estimate is (0%, 0%, 0%) (a point range: no information, left out, #198) of Σ p ln(p/max(r, ε)), p = (.05, .45, .45, .05), r its interpolated masses on the variable's range (all quantiles and the known value, 10 % overshoot). An expert's point estimate (1%, 1%, 1%) on a wider range has r = 0 in its inner bins: the ε clamp (machine epsilon) makes those terms large, hence scores of 8–16. KAOSTools' CookFramework (2015), run with the same two rules, gives e1–e3 and e5's to 1e-6, and e4's with its falling estimate corrected (#343)"
+calibration,e3,,,0.77854,0.000001,,ADS,"three realisations above its 90 % quantile (50 % > 25 %, 13 % > 2 %, 33.3 % > 0 %): s₃ = 3/50, 2·50·(3/50)·ln(1.2) = 1.0939, 1 − χ²₃(1.0939) = 0.778540"
+weight,e3,,,0.143218,0.000001,,ADS,"information × calibration, normalised; Brent's cut-off (the same) cuts no one. KAOSTools gives the same weights with e4's estimate corrected to Table IV's (#343)"
+information,e4,,,12.500883,0.000001,,ADS,"mean over the 50 variables but the 6 whose every estimate is (0%, 0%, 0%) (a point range: no information, left out, #198) of Σ p ln(p/max(r, ε)), p = (.05, .45, .45, .05), r its interpolated masses on the variable's range (all quantiles and the known value, 10 % overshoot). An expert's point estimate (1%, 1%, 1%) on a wider range has r = 0 in its inner bins: the ε clamp (machine epsilon) makes those terms large, hence scores of 8–16. KAOSTools' CookFramework (2015), run with the same two rules, gives e1–e3 and e5's to 1e-6, and e4's with its falling estimate corrected (#343)"
+calibration,e4,,,1,0.000001,,ADS,"N = 48: its (30%, 10%, 50%) for Allocated Ambulance Not At Station (the leaf and the calibration) is a Problem (falling quantiles; RE'15's Table IV prints 30/40/50 %), left out. Two realisations left, both in tails (13 % below its 15 %, 33.3 % above its 1 %), 1/48 < .05 each: calibration 1"
+weight,e4,,,0.217959,0.000001,,ADS,"information × calibration, normalised; Brent's cut-off (the same) cuts no one. KAOSTools gives the same weights with e4's estimate corrected to Table IV's (#343)"
+information,e5,,,16.416492,0.000001,,ADS,"mean over the 50 variables but the 6 whose every estimate is (0%, 0%, 0%) (a point range: no information, left out, #198) of Σ p ln(p/max(r, ε)), p = (.05, .45, .45, .05), r its interpolated masses on the variable's range (all quantiles and the known value, 10 % overshoot). An expert's point estimate (1%, 1%, 1%) on a wider range has r = 0 in its inner bins: the ε clamp (machine epsilon) makes those terms large, hence scores of 8–16. KAOSTools' CookFramework (2015), run with the same two rules, gives e1–e3 and e5's to 1e-6, and e4's with its falling estimate corrected (#343)"
+calibration,e5,,,0.77854,0.000001,,ADS,"as e3: three realisations above its 90 % quantile, 0.778540"
+weight,e5,,,0.222841,0.000001,,ADS,"information × calibration, normalised; Brent's cut-off (the same) cuts no one. KAOSTools gives the same weights with e4's estimate corrected to Table IV's (#343)"
+mean,achieve_incident_resolved,,,0.003866,0.0002,,ADS,"Achieve [Incident Resolved] (the root, RSR 95 %) over 100 000 samples: each of the 47 leaves drawn from its experts' mixture by weight, 1 − Pr[OS] by the BDD of its obstruction superset. Fig. 8's curve sits near 0 % too, but RE'15's US implies a mean near 3 %"
+VU,achieve_incident_resolved,,,1,0,100%,ADS,"every sample is below 95 % (the highest is 0.18): VU = 1, as RE’15"
+US,achieve_incident_resolved,,,0.946162,0.0002,0.9189,ADS,"√(Σ (xᵢ − 0.95)² / k) over the k samples below 0.95 (all): about 0.95 − the mean. RE'15 prints 0.9189 (mean ≈ 3 %), Cailliau's thesis 0.9258 for its later 54-leaf model; ours is 0.0273 above RE'15's. Not reproducible from ADS's file: RE'15's run is on data the paper calls 'fictitious but realistic', and its Table IV differs from ADS's estimates (Allocated Ambulance Not At Station, e1 30 % vs 33.33 %, e2 50 % vs 75 %, e4 40 % vs 10 %; Service End Before Intervention, e1 10/12/15 % vs 46.67/53.33/66.67 %). Putting Table IV's values in moves US by 0.0005 only: the gap is elsewhere, unpublished"
+q5,achieve_incident_resolved,,,0,0,,ADS,the 5 % quantile of Achieve [Incident Resolved]
+q50,achieve_incident_resolved,,,0.001225,0.0001,,ADS,the 50 % quantile of Achieve [Incident Resolved]
+q95,achieve_incident_resolved,,,0.01666,0.002,,ADS,the 95 % quantile of Achieve [Incident Resolved]
+mean,achieve_incident_resolved,,experts=e1,0.000367,0.0001,,ADS,"Expert 1 alone (the estimates of e2–e5 removed, as ADS comments them out to select a run): every leaf drawn from its quantiles, weight 1"
+VU,achieve_incident_resolved,,experts=e1,1,0,,ADS,Expert 1 alone: every sample below 95 %
+US,achieve_incident_resolved,,experts=e1,0.949634,0.0001,0.9471,ADS,"Expert 1 alone: RE'15 prints 0.9471 (the thesis 0.9487); ours is 0.0025 above. More experts lower the spread here too (0.9496 → 0.9462), as RE'15 says, by less"
+VU alone,ambulance_stopped_in_traffic,achieve_incident_resolved,,0.96904,0.005,,ADS,"Ambulance Stopped In Traffic alone, every other leaf at 0 (§VII): more than 90 % certain to violate the root; US > 0.10"
+US alone,ambulance_stopped_in_traffic,achieve_incident_resolved,,0.419134,0.006,,ADS,Ambulance Stopped In Traffic alone: √(Σ (xᵢ − 0.95)² / k) below 0.95
+VU alone,ambulance_traffic_deviation,achieve_incident_resolved,,0.96836,0.004,,ADS,"Ambulance In Traffic Deviation alone, every other leaf at 0 (§VII): more than 90 % certain to violate the root; US > 0.10"
+US alone,ambulance_traffic_deviation,achieve_incident_resolved,,0.418124,0.004,,ADS,Ambulance In Traffic Deviation alone: √(Σ (xᵢ − 0.95)² / k) below 0.95
+VU alone,wrong_info_about_patient,achieve_incident_resolved,,0.87937,0.02,,ADS,"Wrong Info About Patient alone, every other leaf at 0 (§VII): US > 0.10"
+US alone,wrong_info_about_patient,achieve_incident_resolved,,0.581717,0.02,,ADS,Wrong Info About Patient alone: √(Σ (xᵢ − 0.95)² / k) below 0.95
+VU alone,special_unit_required,achieve_incident_resolved,,0.85054,0.02,,ADS,"Special Unit Required alone, every other leaf at 0 (§VII): US > 0.10"
+US alone,special_unit_required,achieve_incident_resolved,,0.302977,0.01,,ADS,Special Unit Required alone: √(Σ (xᵢ − 0.95)² / k) below 0.95
+VU alone,service_end,achieve_incident_resolved,,0.80206,0.02,,ADS,"Service End Before Intervention alone, every other leaf at 0 (§VII): US > 0.10"
+US alone,service_end,achieve_incident_resolved,,0.264502,0.009,,ADS,Service End Before Intervention alone: √(Σ (xᵢ − 0.95)² / k) below 0.95
+VU alone,ambulance_not_at_station,achieve_incident_resolved,,0.79917,0.02,,ADS,"Allocated Ambulance Not At Station alone, every other leaf at 0 (§VII): US > 0.10"
+US alone,ambulance_not_at_station,achieve_incident_resolved,,0.355923,0.02,,ADS,Allocated Ambulance Not At Station alone: √(Σ (xᵢ − 0.95)² / k) below 0.95
+VU alone,forget_to_encode_status,achieve_incident_resolved,,0.76749,0.01,,ADS,"Forget To Encode Status alone, every other leaf at 0 (§VII): US > 0.10"
+US alone,forget_to_encode_status,achieve_incident_resolved,,0.171868,0.005,,ADS,Forget To Encode Status alone: √(Σ (xᵢ − 0.95)² / k) below 0.95
+VU alone,blackspot,achieve_incident_resolved,,0.74734,0.04,>0.9,ADS,"Blackspot alone, every other leaf at 0 (§VII): US > 0.10. RE'15 names Blackspot among its four over 90 %; ours is 0.74734"
+US alone,blackspot,achieve_incident_resolved,,0.225033,0.003,,ADS,Blackspot alone: √(Σ (xᵢ − 0.95)² / k) below 0.95
+VU alone,mobilization_cancelled,achieve_incident_resolved,,0.73553,0.02,>0.9,ADS,"Mobilization Cancelled alone, every other leaf at 0 (§VII): US > 0.10. RE'15 names Mobilization Cancelled among its four over 90 %; ours is 0.73553"
+US alone,mobilization_cancelled,achieve_incident_resolved,,0.187008,0.004,,ADS,Mobilization Cancelled alone: √(Σ (xᵢ − 0.95)² / k) below 0.95
+VU alone,data_lost,achieve_incident_resolved,,0.67533,0.008,,ADS,"Data Lost alone, every other leaf at 0 (§VII): US > 0.10"
+US alone,data_lost,achieve_incident_resolved,,0.441328,0.006,,ADS,Data Lost alone: √(Σ (xᵢ − 0.95)² / k) below 0.95
+VU alone,location_innaccurate,achieve_incident_resolved,,0.62709,0.03,,ADS,"Location Innaccurate alone, every other leaf at 0 (§VII): US > 0.10"
+US alone,location_innaccurate,achieve_incident_resolved,,0.170769,0.005,,ADS,Location Innaccurate alone: √(Σ (xᵢ − 0.95)² / k) below 0.95
+VU alone,patient_cannot_reach_ambulance,achieve_incident_resolved,,0.57646,0.02,,ADS,"Patient Cannot Reach Ambulance alone, every other leaf at 0 (§VII): US > 0.10"
+US alone,patient_cannot_reach_ambulance,achieve_incident_resolved,,0.116238,0.002,,ADS,Patient Cannot Reach Ambulance alone: √(Σ (xᵢ − 0.95)² / k) below 0.95
+VU alone,gps_lost_connection,achieve_incident_resolved,,0.52776,0.01,,ADS,"GPS lost connection alone, every other leaf at 0 (§VII): US > 0.10"
+US alone,gps_lost_connection,achieve_incident_resolved,,0.28131,0.005,,ADS,GPS lost connection alone: √(Σ (xᵢ − 0.95)² / k) below 0.95
+VU alone,paper_jam,achieve_incident_resolved,,0.51581,0.02,,ADS,"Paper Jam alone, every other leaf at 0 (§VII): US > 0.10"
+US alone,paper_jam,achieve_incident_resolved,,0.25647,0.02,,ADS,Paper Jam alone: √(Σ (xᵢ − 0.95)² / k) below 0.95
+VU alone,hazardous_environment,achieve_incident_resolved,,0.51497,0.03,,ADS,"Hazardous Environment alone, every other leaf at 0 (§VII): US > 0.10"
+US alone,hazardous_environment,achieve_incident_resolved,,0.28678,0.02,,ADS,Hazardous Environment alone: √(Σ (xᵢ − 0.95)² / k) below 0.95
+VU alone,qualification_missing_for_ressource,achieve_incident_resolved,,0.51423,0.03,,ADS,"Qualification Missing For Ressource alone, every other leaf at 0 (§VII): US > 0.10"
+US alone,qualification_missing_for_ressource,achieve_incident_resolved,,0.229196,0.004,,ADS,Qualification Missing For Ressource alone: √(Σ (xᵢ − 0.95)² / k) below 0.95
+VU alone,crew_not_in_ambulance,achieve_incident_resolved,,0.51031,0.02,,ADS,"Crew Not In Ambulance alone, every other leaf at 0 (§VII)"
+US alone,crew_not_in_ambulance,achieve_incident_resolved,,0.088132,0.002,,ADS,Crew Not In Ambulance alone: √(Σ (xᵢ − 0.95)² / k) below 0.95
+VU alone,allocated_ambulance_not_available,achieve_incident_resolved,,0.49066,0.03,,ADS,"Allocated Ambulance Not Available alone, every other leaf at 0 (§VII): US > 0.10"
+US alone,allocated_ambulance_not_available,achieve_incident_resolved,,0.224247,0.007,,ADS,Allocated Ambulance Not Available alone: √(Σ (xᵢ − 0.95)² / k) below 0.95
+VU alone,ambulance_not_available_when_moborder_displayed,achieve_incident_resolved,,0.46771,0.02,,ADS,"Ambulance Not Available And Mobilization Order Displayed alone, every other leaf at 0 (§VII): US > 0.10"
+US alone,ambulance_not_available_when_moborder_displayed,achieve_incident_resolved,,0.226865,0.003,,ADS,Ambulance Not Available And Mobilization Order Displayed alone: √(Σ (xᵢ − 0.95)² / k) below 0.95
+VU alone,destination_forgotten,achieve_incident_resolved,,0.41452,0.02,,ADS,"Destination Forgotten alone, every other leaf at 0 (§VII): US > 0.10"
+US alone,destination_forgotten,achieve_incident_resolved,,0.239135,0.009,,ADS,Destination Forgotten alone: √(Σ (xᵢ − 0.95)² / k) below 0.95
+VU alone,unreachable_patient,achieve_incident_resolved,,0.41304,0.03,,ADS,"Unreachable Patient alone, every other leaf at 0 (§VII): US > 0.10"
+US alone,unreachable_patient,achieve_incident_resolved,,0.166182,0.005,,ADS,Unreachable Patient alone: √(Σ (xᵢ − 0.95)² / k) below 0.95
+VU alone,ressource_not_available,achieve_incident_resolved,,0.37612,0.03,,ADS,"Ressource Not Available alone, every other leaf at 0 (§VII): US > 0.10"
+US alone,ressource_not_available,achieve_incident_resolved,,0.189729,0.01,,ADS,Ressource Not Available alone: √(Σ (xᵢ − 0.95)² / k) below 0.95
+VU alone,ressource_out_of_order,achieve_incident_resolved,,0.35831,0.02,,ADS,"Ressource Out Of Order alone, every other leaf at 0 (§VII): US > 0.10"
+US alone,ressource_out_of_order,achieve_incident_resolved,,0.281135,0.006,,ADS,Ressource Out Of Order alone: √(Σ (xᵢ − 0.95)² / k) below 0.95
+VU alone,mobilized_to_wrong_destination,achieve_incident_resolved,,0.34096,0.02,,ADS,"Mobilization For Wrong Destination alone, every other leaf at 0 (§VII)"
+US alone,mobilized_to_wrong_destination,achieve_incident_resolved,,0.046843,0.002,,ADS,Mobilization For Wrong Destination alone: √(Σ (xᵢ − 0.95)² / k) below 0.95
+VU alone,no_bed,achieve_incident_resolved,,0.33114,0.02,,ADS,"No Bed Available alone, every other leaf at 0 (§VII): US > 0.10"
+US alone,no_bed,achieve_incident_resolved,,0.121175,0.004,,ADS,No Bed Available alone: √(Σ (xᵢ − 0.95)² / k) below 0.95
+VU alone,destination_confused,achieve_incident_resolved,,0.31102,0.02,,ADS,"Destination Confused alone, every other leaf at 0 (§VII)"
+US alone,destination_confused,achieve_incident_resolved,,0.019132,0.0004,,ADS,Destination Confused alone: √(Σ (xᵢ − 0.95)² / k) below 0.95
+VU alone,available_bed_not_assigned,achieve_incident_resolved,,0.30654,0.02,>0.9,ADS,"Available Bed Not Assigned alone, every other leaf at 0 (§VII). RE'15 names AvailableBedNotAssigned among its four over 90 %; ours is 0.30654"
+US alone,available_bed_not_assigned,achieve_incident_resolved,,0.03001,0.002,,ADS,Available Bed Not Assigned alone: √(Σ (xᵢ − 0.95)² / k) below 0.95
+VU alone,out_of_paper,achieve_incident_resolved,,0.30584,0.02,,ADS,"Out Of Paper alone, every other leaf at 0 (§VII): US > 0.10"
+US alone,out_of_paper,achieve_incident_resolved,,0.275128,0.005,,ADS,Out Of Paper alone: √(Σ (xᵢ − 0.95)² / k) below 0.95
+VU alone,patient_not_transportable,achieve_incident_resolved,,0.305,0.02,,ADS,"Patient Not Transportable alone, every other leaf at 0 (§VII): US > 0.10"
+US alone,patient_not_transportable,achieve_incident_resolved,,0.106514,0.005,,ADS,Patient Not Transportable alone: √(Σ (xᵢ − 0.95)² / k) below 0.95
+VU alone,wrong_button_pressed,achieve_incident_resolved,,0.28185,0.02,,ADS,"Wrong Button Pressed alone, every other leaf at 0 (§VII)"
+US alone,wrong_button_pressed,achieve_incident_resolved,,0.045771,0.0007,,ADS,Wrong Button Pressed alone: √(Σ (xᵢ − 0.95)² / k) below 0.95
+VU alone,fire_environment,achieve_incident_resolved,,0.28113,0.02,,ADS,"Fire Environment alone, every other leaf at 0 (§VII)"
+US alone,fire_environment,achieve_incident_resolved,,0.019175,0.0003,,ADS,Fire Environment alone: √(Σ (xᵢ − 0.95)² / k) below 0.95
+VU alone,destination_changed,achieve_incident_resolved,,0.24647,0.03,,ADS,"Destination Changed alone, every other leaf at 0 (§VII)"
+US alone,destination_changed,achieve_incident_resolved,,0.05079,0.002,,ADS,Destination Changed alone: √(Σ (xᵢ − 0.95)² / k) below 0.95
+VU alone,ambulance_broken,achieve_incident_resolved,,0.24379,0.02,,ADS,"Ambulance Broken Down Or Accident alone, every other leaf at 0 (§VII)"
+US alone,ambulance_broken,achieve_incident_resolved,,0.032342,0.0007,,ADS,Ambulance Broken Down Or Accident alone: √(Σ (xᵢ − 0.95)² / k) below 0.95
+VU alone,mdt_turned_off,achieve_incident_resolved,,0.2219,0.006,>0.9,ADS,"MDT Turned Off alone, every other leaf at 0 (§VII): US > 0.10. RE'15 names MDTTurnedOff among its four over 90 %; ours is 0.2219"
+US alone,mdt_turned_off,achieve_incident_resolved,,0.572783,0.01,,ADS,MDT Turned Off alone: √(Σ (xᵢ − 0.95)² / k) below 0.95
+VU alone,overweight_patient,achieve_incident_resolved,,0.18771,0.02,,ADS,"Overweight Patient alone, every other leaf at 0 (§VII)"
+US alone,overweight_patient,achieve_incident_resolved,,0.034512,0.0008,,ADS,Overweight Patient alone: √(Σ (xᵢ − 0.95)² / k) below 0.95
+VU alone,crew_not_near_printer,achieve_incident_resolved,,0.14156,0.02,,ADS,"Crew Not Near Printer alone, every other leaf at 0 (§VII)"
+US alone,crew_not_near_printer,achieve_incident_resolved,,0.015401,0.0004,,ADS,Crew Not Near Printer alone: √(Σ (xᵢ − 0.95)² / k) below 0.95
+VU alone,crew_distracted,achieve_incident_resolved,,0.13904,0.02,,ADS,"Crew Distracted alone, every other leaf at 0 (§VII)"
+US alone,crew_distracted,achieve_incident_resolved,,0.015384,0.0004,,ADS,Crew Distracted alone: √(Σ (xᵢ − 0.95)² / k) below 0.95
+VU alone,insufficient_capacity,achieve_incident_resolved,,0.12894,0.01,,ADS,"Insufficient Capacity alone, every other leaf at 0 (§VII)"
+US alone,insufficient_capacity,achieve_incident_resolved,,0.015539,0.0005,,ADS,Insufficient Capacity alone: √(Σ (xᵢ − 0.95)² / k) below 0.95
+VU alone,printer_off,achieve_incident_resolved,,0.11463,0.02,,ADS,"Printer Off alone, every other leaf at 0 (§VII)"
+US alone,printer_off,achieve_incident_resolved,,0.015748,0.0003,,ADS,Printer Off alone: √(Σ (xᵢ − 0.95)² / k) below 0.95
+VU alone,avls_out_of_service,achieve_incident_resolved,,0,0,,ADS,"AVLS Out of Service alone, every other leaf at 0 (§VII): certainly not violating the root (VU 0)"
+US alone,avls_out_of_service,achieve_incident_resolved,,0,0,,ADS,AVLS Out of Service alone: √(Σ (xᵢ − 0.95)² / k) below 0.95
+VU alone,no_line_free,achieve_incident_resolved,,0,0,,ADS,"No Line Free alone, every other leaf at 0 (§VII): certainly not violating the root (VU 0)"
+US alone,no_line_free,achieve_incident_resolved,,0,0,,ADS,No Line Free alone: √(Σ (xᵢ − 0.95)² / k) below 0.95
+VU alone,mobilization_taken_by_other_ambulance,achieve_incident_resolved,,0,0,,ADS,"Mobilization Taken By Other Ambulance alone, every other leaf at 0 (§VII): certainly not violating the root (VU 0)"
+US alone,mobilization_taken_by_other_ambulance,achieve_incident_resolved,,0,0,,ADS,Mobilization Taken By Other Ambulance alone: √(Σ (xᵢ − 0.95)² / k) below 0.95
+VU alone,congestion,achieve_incident_resolved,,0,0,,ADS,"Congestion alone, every other leaf at 0 (§VII): certainly not violating the root (VU 0)"
+US alone,congestion,achieve_incident_resolved,,0,0,,ADS,Congestion alone: √(Σ (xᵢ − 0.95)² / k) below 0.95
+VU alone,corrupted_mobilization_order,achieve_incident_resolved,,0,0,,ADS,"Corrupted Mobilization Order alone, every other leaf at 0 (§VII): certainly not violating the root (VU 0)"
+US alone,corrupted_mobilization_order,achieve_incident_resolved,,0,0,,ADS,Corrupted Mobilization Order alone: √(Σ (xᵢ − 0.95)² / k) below 0.95
+VU alone,ambulance_in_unfamiliar_area,achieve_incident_resolved,,0,0,,ADS,"Ambulance In Unfamiliar Area alone, every other leaf at 0 (§VII): certainly not violating the root (VU 0)"
+US alone,ambulance_in_unfamiliar_area,achieve_incident_resolved,,0,0,,ADS,Ambulance In Unfamiliar Area alone: √(Σ (xᵢ − 0.95)² / k) below 0.95
+VU alone,gps_broken,achieve_incident_resolved,,0,0,,ADS,"GPS Broken alone, every other leaf at 0 (§VII): certainly not violating the root (VU 0)"
+US alone,gps_broken,achieve_incident_resolved,,0,0,,ADS,GPS Broken alone: √(Σ (xᵢ − 0.95)² / k) below 0.95
+VU alone,ressource_confusion,achieve_incident_resolved,,0,0,,ADS,"Ressource Confusion alone, every other leaf at 0 (§VII): certainly not violating the root (VU 0)"
+US alone,ressource_confusion,achieve_incident_resolved,,0,0,,ADS,Ressource Confusion alone: √(Σ (xᵢ − 0.95)² / k) below 0.95

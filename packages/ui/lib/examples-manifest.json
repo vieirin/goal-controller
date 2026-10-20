@@ -872,6 +872,7 @@
     "root": "kaos/ambulance",
     "files": [
       "README.md",
+      "ambulance.expected.csv",
       "ambulance.kaos",
       "ambulance.txt",
       "calibrations.json",

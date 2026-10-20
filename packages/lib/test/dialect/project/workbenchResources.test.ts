@@ -133,10 +133,11 @@ describe('ui project resources', () => {
       'edge/experiments/1-minimal',
     ]);
     // a seed whose source has an error keeps it as written: ADS's calibration
-    // gives e4's quantiles as (30%, 10%, 50%) (#190; #198 owns ADS's oracle)
+    // gives e4's quantiles as (30%, 10%, 50%), RE'15's Table IV (30%, 40%,
+    // 50%); kaosexpert leaves the estimate out (#190, #198)
     const KNOWN_PROBLEMS: Record<string, string[]> = {
       'kaos/ambulance': [
-        "calibrations.json:7:9: Calibration Calibration [Allocated Ambulance Not At Station], e4's estimate: Quantiles don't decrease: 0.1 after 0.3",
+        "calibrations.json:10:9: Calibration Calibration [Allocated Ambulance Not At Station], e4's estimate: Quantiles don't decrease: 0.1 after 0.3",
       ],
     };
     for (const { folder, manifest } of projects) {

@@ -123,6 +123,17 @@ export const cooke = ({
     if (v.known !== undefined) values.push(v.known);
     if (values.length) ranges.set(v.id, intrinsicRange(values, overshoot));
   }
+  /**
+   * a variable whose range is a point (every estimate one value, ADS's
+   * `(0%, 0%, 0%)` from all five experts) tells no expert's information
+   * from another's: its masses per bin are 0/0. RE'15's tool averages the
+   * NaN in, which makes every weight NaN; it is left out of the information
+   * scores here, and still counts in N.
+   */
+  const informative = (v: CookeVariable) => {
+    const range = ranges.get(v.id);
+    return range !== undefined && range[1] > range[0];
+  };
   /** an expert's interpolated masses per bin on a variable (r) */
   const interpolated = (v: CookeVariable, q: readonly number[]) => {
     const [low, high] = ranges.get(v.id)!;
@@ -143,11 +154,12 @@ export const cooke = ({
         : own;
     const calibrating = own.filter((v) => v.known !== undefined);
     const n = scored.length;
-    const information = n
-      ? scored.reduce(
+    const informing = scored.filter(informative);
+    const information = informing.length
+      ? informing.reduce(
           (sum, v) => sum + relative(interpolated(v, v.estimates.get(expert)!)),
           0,
-        ) / n
+        ) / informing.length
       : 0;
     const counts = p.map(() => 0);
     for (const v of calibrating) {
@@ -193,7 +205,8 @@ export const cooke = ({
     const w = weightsAt(alpha);
     const sum = w.reduce((a, b) => a + b, 0);
     let score = 0;
-    for (const v of variables) {
+    const informing = variables.filter(informative);
+    for (const v of informing) {
       const r = p.map((_, i) => {
         let mass = 0;
         experts.forEach((expert, e) => {
@@ -207,7 +220,7 @@ export const cooke = ({
         0,
       );
     }
-    return variables.length ? score / variables.length : 0;
+    return informing.length ? score / informing.length : 0;
   };
 
   let alpha = 0;

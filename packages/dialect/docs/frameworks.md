@@ -948,6 +948,108 @@ and uncertainty spread (US). Results and the attempts log are in #343.
   - SU's prose contradicts its formula;
   - §V mentions three calibration variables, Table I gives two.
 
+### Step 3 part B: ADS's five experts, the field oracle (goal-controller#198)
+
+RE'15's §VIII validates the approach on the Brussels ambulance dispatching
+model with five paramedics as experts. ADS (ancailliau/ADS, MIT) has that
+model: `las.kaos` (41 goals) and `obstacles.kaos` (76 obstacles, 47 of them
+leaves, as §VIII counts). The `ambulance` seed is PR F's, now with all five
+experts. Results and attempts are on #343.
+
+- **The commented estimates are the run's selection, so the seed
+  uncomments them.** `obstacles.kaos` writes every expert's estimate on
+  every leaf and calibration variable, and comments out all but one
+  expert's:
+  - e4's in ADS, from its first commit (746a247, 2016) to its last;
+  - e1's in Cailliau's thesis's copy of the model (ancailliau/phd-thesis,
+    `obstacles-uncertainty.kaos`), for its "Expert 1" run.
+
+  RE'15 combines all five, and its Table IV prints the commented values
+  (PatientCannotReachAmbulance's five rows exactly). So the seed removes
+  the `#` before e1, e2, e3 and e5's estimates. That is its one edit
+  beyond PR F's commented imports, and the header says so. e4's `(30%,
+  10%, 50%)` for Allocated Ambulance Not At Station is kept as written: on
+  the leaf and on the calibration variable, a Problem the workbench
+  reports (Table IV prints 30/40/50 %). kaosexpert leaves both out, so e4
+  scores on 48 variables, the others on 50.
+- **A variable every expert estimates at one value has no information.**
+  Six ADS leaves are `(0%, 0%, 0%)` from all five experts, for example
+  AVLS Out of Service. Their range is a point, so the masses per bin are
+  0/0. RE'15's tool averages that NaN into every expert's information
+  score, which makes every weight NaN. Part A's port did the same, and
+  then gave every obstacle probability 0: the root was 100 % satisfied.
+  `cooke()` now leaves such a variable out of the information scores (the
+  experts' and the decision maker's). It still counts in N, and its
+  decision maker is the point. Calibration is unchanged.
+- **The diagnostics.** `obstacles.kaos` reads with none. The seed has two
+  infos: `@author` and `@version` are kept as written, because the KAOS
+  model has no model-level key for them. Read alone, `las.kaos` also warns
+  about its two imports when it isn't given the files. Nothing
+  per-expert or distributional is kept raw.
+- **The oracle** (`ambulance.expected.csv`, in `stress:kaos`) is what
+  kaosexpert gives on the seed (100 000 samples, seed 1), with a tolerance
+  of at least 4 × the spread over seeds 1–6:
+  - each expert's information, calibration and weight;
+  - the root `Achieve [Incident Resolved]` (RSR 95 %): VU 1 (RE'15
+    100 %) and US 0.9462 (RE'15 0.9189);
+  - Expert 1 alone (`given` `experts=e1`, the stress script's run on some
+    experts' estimates only): US 0.9496 (RE'15 0.9471);
+  - each of the 47 leaves alone against the root (§VII's violation
+    diagram):
+    - two are over 90 %: Ambulance Stopped In Traffic and Ambulance In
+      Traffic Deviation (RE'15's four are Mobilization Cancelled,
+      MDTTurnedOff, Blackspot and AvailableBedNotAssigned: 0.74, 0.22,
+      0.75 and 0.31 here);
+    - 26 have US > 0.10 (RE'15 counts 18 and names none);
+    - 8 have VU 0 (RE'15 counts 14).
+
+  RE'15's numbers can't be reproduced from ADS's file. RE'15 calls its
+  data "fictitious but realistic", and Table IV differs from the file
+  (Allocated Ambulance Not At Station, Service End Before Intervention).
+  Putting Table IV's values in moves US by 0.0005 only. The thesis prints
+  yet other numbers for its later 54-leaf version (US 0.9258, 0.9487 with
+  Expert 1).
+- **KAOSTools as the second oracle (#190 oracle 4).** KAOSTools of July
+  2017 can't read ADS's files: they have anonymous nested `declare
+  obstacle`, and its PEG wants `[id]`. ADS's 2016 files are the same model
+  in the older syntax, which KAOSTools of 2015 reads. So the second oracle
+  is:
+  - KAOSTools 0f17b6e (2015-11-20, the last commit before ADS's first),
+    whose `UncertaintySimulation` made RE'15's numbers;
+  - BDDSharp and ExpertOpinionSharp as committed in April 2017 (the 2015
+    tool needs APIs that only those commits have);
+  - built with `mcs` under Mono 6.12 in Docker (`msbuild` and `csc` abort
+    under amd64 emulation on the host);
+  - run on ADS 746a247's `las.kaos` and `obstacles.kaos`, all five experts,
+    without `resolutions.kaos`.
+
+  Two findings about the tool:
+  - With `resolutions.kaos` imported, its weakening and restoration of
+    Achieve [Mobilized Ambulance Intervention] take that goal's eight
+    leaves out of the root's obstruction set. RE'15 models "the ideal
+    case", without countermeasures, and the seed doesn't have the file.
+  - As is, every weight is NaN (the six point-range variables).
+
+  With the two rules above (the point range left out, r clamped at machine
+  epsilon) and e4's estimate corrected to Table IV's, its information,
+  calibration and weights are kaosexpert's to 1e-8. At 100 000 samples
+  its root is VU 100 %, US 0.9461, mean 0.395 %; kaosexpert's is US 0.9462,
+  mean 0.380 %. The rest is one rule: KAOSTools uses a draw below 0 (an
+  overshoot below 0 %) as a negative probability, and kaosexpert clamps it
+  to 0. Without the clamp, kaosexpert gives 0.9461 and 0.40 % too.
+
+  Its §VII run (each leaf alone, 100 000 samples) agrees with kaosexpert's
+  on 38 of the 47 leaves, within 0.006 in VU and in US. It names the same
+  two obstacles over 90 % and the same 8 with VU 0. The 9 others each have
+  an expert quantile of exactly 5 %, so the leaf alone puts the root at
+  exactly 95 %. KAOSTools reads quantiles in single precision
+  (`float.Parse(…) / 100f`): 5 % is 0.0500000007, the root 94.99999993 %,
+  a violation. kaosexpert reads 0.05, and 95 % meets the RSR. So
+  KAOSTools' VU is higher there by the expert's weight times the mass at
+  5 %: 0.17 for e4's `(5%, 5%, 5%)`, 0.08 for `(5%, 5%, 10%)`. Patient
+  Not Transportable's US falls to 0.086, and KAOSTools counts 25 with
+  US > 0.10.
+
 ### Models typed by their framework (goal-controller#185)
 
 - **Framework-aware, option 1.** goal-tree's `Model<EK, LK>` (lib's
