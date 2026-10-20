@@ -1,6 +1,6 @@
 import { defineEngine } from '../engine';
 import { nfrprop } from './definition';
-import { nfrpropAnalyses } from './index';
+import { nfrpropAnalyses, nfrpropProjectResourceParsers } from './index';
 import { nfrpropAnalysisModel, nfrpropEngineMapper } from './mapper';
 
 /**
@@ -16,5 +16,9 @@ export const nfrpropEngine = defineEngine({
   mapper: nfrpropEngineMapper,
   output: { label: 'Labels', extension: 'json', language: 'text' },
   analyses: nfrpropAnalyses,
-  analysisModel: nfrpropAnalysisModel,
+  // a model of any framework, as the workbench parses it: the function at
+  // string kinds (defineEngine infers no engine from a generic one beside
+  // projectResources, goal-controller#185)
+  analysisModel: nfrpropAnalysisModel<string, string>,
+  projectResources: nfrpropProjectResourceParsers,
 });

@@ -5,6 +5,11 @@
  * softgoal decided by hand. Unset, an operationalization or claim nothing
  * contributes to is satisficed (chosen, held), and every other element's
  * label is propagated (a softgoal nothing contributes to is undecided).
+ *
+ * Several strategies (alternative initial label sets) may be compared side
+ * by side, as a project resource (goal-controller#328), following GRL's
+ * strategies: the model's own `initialLabel` properties stay the seed's
+ * case, so it still runs without a project.
  */
 import { defineDialect, property } from '@goal-controller/dialect';
 import { nfr } from '../../dialects/nfr';
@@ -31,4 +36,15 @@ export const nfrprop = defineDialect({
     'nfr.Claim': [...nfr.properties['nfr.Claim'], INITIAL_LABEL],
   },
   propertyLineOrder: [...nfr.propertyLineOrder, 'initialLabel'],
+  projectResources: {
+    strategies: {
+      label: 'Strategies',
+      format: 'json',
+      many: true,
+      role: 'strategies',
+      path: 'strategies/',
+      accept: ['.json'],
+      help: 'one file per strategy: the initial labels it sets, which the propagation runs from, in place of the model’s own',
+    },
+  },
 });

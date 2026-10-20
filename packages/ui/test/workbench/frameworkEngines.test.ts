@@ -111,11 +111,13 @@ describe("the frameworks' engines (#171)", () => {
     const result = engine.analyses.nfrLabels!.run(
       engine.model(parseModel(NFR_WELCOME) as never),
     );
-    // the oracle's rows: `id,element,label,derivation`
+    // the oracle's rows: `id,element,label,derivation,strategy`; "Model
+    // labels" (no strategy, goal-controller#328) is this case's, first
     const rows = read('examples/nfr/nfr-welcome.labels.csv')
       .trim()
       .split('\n')
       .slice(1)
+      .filter((line) => line.endsWith(','))
       .map((line) => ({
         id: line.split(',')[0]!,
         label:

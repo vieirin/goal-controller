@@ -364,8 +364,46 @@ Each PR of #171 appends its decisions here.
   its canvas, its Notation tab in the engine's dialect, `frameworkProblems`,
   and no piStar mode. Settings offer each framework's engines under it, and
   recording an engine's mode records its framework beside it.
-- **Deferred.** More than one strategy per NFR model. KAOS's FormalSpec as
-  LTL.
+- **Deferred.** KAOS's FormalSpec as LTL.
+
+### goal-controller#328: several strategies per NFR model
+
+- **A project resource, GRL's pattern.** nfrprop's dialect declares
+  `projectResources.strategies` (`format: 'json', many: true, path:
+  'strategies/'`); one file is one strategy, `{ name, labels: { [id]:
+  NfrLabel } }`, parsed by `parseNfrStrategies`
+  (`packages/lib/src/engines/nfrprop/strategies.ts`). Unlike GRL's groups
+  (several strategies, with includes, per file), the NFR Framework has no
+  such structure to carry over, so one file is one strategy and there is
+  no `includes`.
+- **A key is an element's name, tried first, or its piStar id.** Resolving
+  it needs the model (a project resource's parser never has one in scope),
+  so it happens in `runPropagation`, at analysis time, as GRL's unknown
+  evaluations are: a key resolving to nothing is said in the strategy's
+  case label, not a Problems diagnostic.
+- **`propagateLabels` takes its initial labels as an argument**
+  (`ReadonlyMap<string, NfrLabel>`, default: `modelLabels(model)`, the
+  model's own `initialLabel` properties), rather than reading them itself.
+  `runPropagation` gives "Model labels" first (the seed's own case, so it
+  still runs without a project), then one case per strategy, in file
+  order, each with its own steps: a step series per case, as the step
+  control already supports, and no series over the strategies'
+  differences (the issue's open question, resolved this way).
+  `examples/nfr/nfr-welcome.labels.csv` gained a `strategy` column (one
+  CSV, not one per strategy) for the "RSA 260 only" strategy's expected
+  labels, next to the "Model labels" rows (its column blank).
+- **Out of scope: wiring project resources into the UI for framework
+  engines.** `nfrprop`'s dialect (like `kaosdoc`'s and `kaosprop`'s) is
+  kept out of `ENGINE_DIALECTS` (`FRAMEWORK_ENGINE_DIALECTS` instead, see
+  above), and the workbench's project-resource pipeline
+  (`declarationsOf`/`parseResources`,
+  `packages/ui/lib/workbench/projectResources.ts`) gates on
+  `isDialectEngine`, so it never reaches `ENGINE_PROJECT_RESOURCES` for a
+  framework engine: a `strategies/` folder in a project would not yet show
+  up in the file tree or reach the analysis's `resource` argument from the
+  live workbench. The lib-level pipeline (the dialect, the parser, the
+  cases) is complete and tested directly, resource maps built by hand; the
+  UI wiring is goal-controller#334.
 
 ## KAOS stress test (goal-controller#181)
 
