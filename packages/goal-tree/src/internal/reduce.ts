@@ -11,7 +11,7 @@ import {
 } from '@istar-ts/core';
 import { linkEnds, linkRelation } from './roots';
 
-const isRefinement = (link: IstarLink): boolean => {
+const isRefinement = (link: IstarLink<string>): boolean => {
   const relation = linkRelation(link);
   return relation === 'and' || relation === 'or';
 };
@@ -23,7 +23,9 @@ const RT_ID = /^\s*([A-Za-z]+\d+[A-Za-z0-9.]*)\s*:/;
  * piStar ids of the goals with exactly one child (through AND/OR refinements) and at
  * least one parent: roots are never reduced.
  */
-export function singleChildGoals(model: IstarModel): string[] {
+export function singleChildGoals<EK extends string, LK extends string>(
+  model: IstarModel<EK, LK>,
+): string[] {
   const children = new Map<string, number>();
   const hasParent = new Set<string>();
   for (const link of model.links.values()) {
@@ -64,8 +66,10 @@ const renameInNotation = (text: string, from: string, to: string): string => {
  * removed goal. Anything else attached to a removed goal (its properties, Needed-By,
  * Qualification or Contribution links) goes with it.
  */
-export function reduceModel(model: IstarModel): {
-  model: IstarModel;
+export function reduceModel<EK extends string, LK extends string>(
+  model: IstarModel<EK, LK>,
+): {
+  model: IstarModel<EK, LK>;
   removed: string[];
 } {
   const removed = singleChildGoals(model);
@@ -92,7 +96,7 @@ export function reduceModel(model: IstarModel): {
   const rtId = (id: string): string | null =>
     RT_ID.exec(model.elements.get(id)?.name ?? '')?.[1] ?? null;
 
-  const links = new Map<string, IstarLink>();
+  const links = new Map<string, IstarLink<LK>>();
   const renames: Array<[parent: string, from: string, to: string]> = [];
   for (const [id, link] of model.links) {
     if (!isRefinement(link)) {
@@ -113,7 +117,7 @@ export function reduceModel(model: IstarModel): {
     if (from && to) renames.push([parent, from, to]);
   }
 
-  let reduced: IstarModel = { ...model, links };
+  let reduced: IstarModel<EK, LK> = { ...model, links };
   for (const [parent, from, to] of renames) {
     const element = reduced.elements.get(parent);
     if (!element) continue;

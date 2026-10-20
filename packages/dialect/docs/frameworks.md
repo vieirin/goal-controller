@@ -595,3 +595,42 @@ log are in #182.
   LAS seed waits for PR F's seeds. A ui test runs both analyses on the
   RE'12 model, read by the workbench's own parser.
 
+
+### Models typed by their framework (goal-controller#185)
+
+- **Framework-aware, option 1.** goal-tree's `Model<EK, LK>` (lib's
+  `IStarModel`) is typed by the model's element and link kinds, iStar
+  2.0's by default, so iStar engines compile as before. A model read with
+  its framework's root keeps that root's kinds: `parsePistar(text, {
+  metamodel: KAOS_OBSTACLES })` is a KAOS model, and the `as unknown as
+  IStarModel` casts that made every model an iStar one are gone.
+- **A mapper reads its framework's models.** `GoalTree.fromModel` and
+  `GoalTree.goalModel` take `ModelFor<D, EK, LK>`: a model with an element
+  kind of another framework than its dialect's (`FrameworkOf<D>`, iStar
+  2.0 without a `framework`) doesn't compile. The frameworks' kinds come
+  from `FRAMEWORK_KINDS` and core's `ElementKind`.
+  `lib/src/engines/frameworkTypes.ts` pins this: a KAOS model given to
+  Edge, an iStar one to kaosdoc, an NFR one to kaosdoc each fail to
+  compile.
+- **A framework known at run time is `string`.** A model whose framework
+  is read from its file (the workbench's `parseModel`, a file's own
+  metamodel) is `AnyModel`, `Model<string, string>`, which any mapper
+  accepts; its dialect checks it then. goal-tree's own code reads
+  `AnyModel`, as do the engine registry's `analysisModel`,
+  `propertyErrors` and `refuseOnPropertyErrors`, which take any
+  framework's model.
+- **Each engine's model functions are typed by its dialect.**
+  `kaosdocGoalModel`, `godaGoalModel` and the `…AnalysisModel` functions
+  take `ModelFor` of their own dialect. cgm, grl and tropos4as register
+  theirs at string kinds (`grlAnalysisModel<string, string>`, the same
+  function): `defineEngine` infers no engine from a generic function
+  beside `projectResources` (a TypeScript inference limit).
+- **Actors and nodes by the model's root.** goal-tree asks
+  `isActorIn(metamodelOf(model))` and `isNodeIn(…)`, not core's iStar-only
+  `isActor`/`isNode`, wherever it reads a model of any framework. Today
+  they answer the same; an extension with actor kinds would tell them
+  apart. `Model.reduce` keeps `isNode` and `istar.Goal`: it reduces iStar
+  goals only, and leaves another framework's model as it is.
+- **The workbench's own model plumbing** (`dialects.ts`, `frameworks.ts`,
+  `pistar.ts`, the canvas and its store) still types every model as iStar
+  2.0's, with its own casts: goal-controller#316.

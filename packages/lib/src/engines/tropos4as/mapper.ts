@@ -10,10 +10,9 @@ import {
   createEngineMapper,
   GoalTree,
   useIstarDefaultNaming,
-  type IStarModel,
+  type ModelFor,
   type ModelOf,
 } from '@goal-controller/goal-tree';
-import type { IstarModel } from '@istar-ts/core';
 import { analysisViewOf, type AnalysisModel } from '../analysis';
 import { tropos4as } from './definition';
 
@@ -80,9 +79,7 @@ export type Tropos4asGoalModel = ModelOf<typeof tropos4asEngineMapper>;
  * its `GoalModel`, with the extension's kinds (parsed with its metamodel
  * block).
  */
-export const tropos4asAnalysisModel = (
-  model: IStarModel | IstarModel<string, string>,
+export const tropos4asAnalysisModel = <EK extends string, LK extends string>(
+  model: ModelFor<typeof tropos4as, EK, LK>,
 ): AnalysisModel =>
-  analysisViewOf(
-    GoalTree.goalModel(model as IStarModel, tropos4asEngineMapper),
-  );
+  analysisViewOf(GoalTree.goalModel(model, tropos4asEngineMapper));

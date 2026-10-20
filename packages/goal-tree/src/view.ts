@@ -7,7 +7,7 @@
  */
 import {
   isActorIn,
-  isNode,
+  isNodeIn,
   metamodelOf,
   type IstarModel,
 } from '@istar-ts/core';
@@ -178,6 +178,8 @@ export function goalView(
   // a framework's refinements and hubs, by kind (not through core's registry)
   const refined = refinementsOf(model, dialect);
   const framework = (dialect.framework ?? DEFAULT_FRAMEWORK) !== 'istar-2.0';
+  // a node by the model's own root, not iStar's (goal-controller#185)
+  const isNode = isNodeIn(metamodelOf(model));
   const byIStarId = new Map<string, GoalViewNode>();
   const dependumsByIStarId = new Map<string, GoalViewNode>();
   const children = new Map<string, string[]>();

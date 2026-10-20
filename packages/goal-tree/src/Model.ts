@@ -1,7 +1,12 @@
 /**
  * Model namespace - Utilities for working with iStar models
  */
-import { isActor, parsePistar, updateElement } from '@istar-ts/core';
+import {
+  isActorIn,
+  metamodelOf,
+  parsePistar,
+  updateElement,
+} from '@istar-ts/core';
 import { readFileSync } from 'fs';
 import { reduceModel, singleChildGoals } from './internal/reduce';
 import {
@@ -19,12 +24,17 @@ import type { Model as IStarModel } from './types/';
  * @returns the model with each root marked by the `root: "true"` custom property
  * @throws Error if the model is outside the shape (`modelShapeProblem`)
  */
-function validateModel(model: IStarModel, dialect?: RootReading): IStarModel {
+function validateModel<EK extends string, LK extends string>(
+  model: IStarModel<EK, LK>,
+  dialect?: RootReading,
+): IStarModel<EK, LK> {
   const problem = modelShapeProblem(model, dialect);
   if (problem) throw new Error(`[INVALID_MODEL]: ${problem}`);
 
   let validated = model;
-  for (const actor of [...model.elements.values()].filter(isActor))
+  for (const actor of [...model.elements.values()].filter(
+    isActorIn(metamodelOf(model)),
+  ))
     for (const root of actorRoots(model, actor.id, dialect))
       validated = updateElement(validated, root.id, {
         customProperties: { ...root.customProperties, root: 'true' },

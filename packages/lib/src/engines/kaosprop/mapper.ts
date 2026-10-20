@@ -14,7 +14,7 @@ import { linkPropertyKeys } from '@goal-controller/dialect';
 import {
   createEngineMapper,
   GoalTree,
-  type IStarModel,
+  type ModelFor,
   type ModelOf,
   type NodeOf,
 } from '@goal-controller/goal-tree';
@@ -104,11 +104,13 @@ export type KaospropGoalModel = ModelOf<typeof kaospropEngineMapper>;
 export type KaospropNode = NodeOf<typeof kaospropEngineMapper>;
 
 /** A KAOS model as kaosprop's analyses read it: the view of its `GoalModel`. */
-export const kaospropAnalysisModel = (model: IStarModel): AnalysisModel =>
+export const kaospropAnalysisModel = <EK extends string, LK extends string>(
+  model: ModelFor<typeof kaosprop, EK, LK>,
+): AnalysisModel =>
   analysisViewOf(GoalTree.goalModel(model, kaospropEngineMapper), {
     fromEntries: true,
   });
 
 /** A KAOS model's piStar text, read with KAOS and its obstacle analysis. */
-export const readKaosObstacleModel = (text: string): IStarModel =>
-  parsePistar(text, { metamodel: KAOS_OBSTACLES }) as unknown as IStarModel;
+export const readKaosObstacleModel = (text: string) =>
+  parsePistar(text, { metamodel: KAOS_OBSTACLES });

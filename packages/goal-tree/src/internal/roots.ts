@@ -5,8 +5,9 @@
  */
 import {
   childrenOf,
-  isActor,
+  isActorIn,
   linksOf,
+  metamodelOf,
   type IstarElement,
   type IstarLink,
   type IstarModel,
@@ -224,7 +225,9 @@ export function modelShapeProblem<EK extends string, LK extends string>(
   dialect?: RootReading,
 ): string | null {
   const shape = dialect?.model ?? DEFAULT_MODEL_SHAPE;
-  const actors = [...model.elements.values()].filter(isActor);
+  const actors = [...model.elements.values()].filter(
+    isActorIn(metamodelOf(model)),
+  );
   const reads = `${dialect?.name ?? 'The engine'} reads ${
     shape.actors === 'one'
       ? shape.treesPerActor === 'one'

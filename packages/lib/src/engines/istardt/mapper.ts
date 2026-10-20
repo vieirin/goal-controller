@@ -10,10 +10,9 @@ import {
   createEngineMapper,
   GoalTree,
   useIstarDefaultNaming,
-  type IStarModel,
+  type ModelFor,
   type ModelOf,
 } from '@goal-controller/goal-tree';
-import type { IstarModel } from '@istar-ts/core';
 import { analysisViewOf, type AnalysisModel } from '../analysis';
 import { istardt } from './definition';
 
@@ -81,7 +80,7 @@ export type IstardtGoalModel = ModelOf<typeof istardtEngineMapper>;
  * `GoalModel`. It has the extension's kinds (parsed with its metamodel
  * block), which goal-tree reads as it reads GRL's; its types name iStar's.
  */
-export const istardtAnalysisModel = (
-  model: IStarModel | IstarModel<string, string>,
+export const istardtAnalysisModel = <EK extends string, LK extends string>(
+  model: ModelFor<typeof istardt, EK, LK>,
 ): AnalysisModel =>
-  analysisViewOf(GoalTree.goalModel(model as IStarModel, istardtEngineMapper));
+  analysisViewOf(GoalTree.goalModel(model, istardtEngineMapper));

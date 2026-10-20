@@ -16,7 +16,6 @@ import {
   GoalTree,
   useIstarDefaultNaming,
   type EngineProps,
-  type IStarModel,
   type LinkEntryFn,
   type NodeOf,
 } from '../../src';
@@ -53,7 +52,7 @@ const node = (
 const modelWith = (
   nodes: ReturnType<typeof node>[],
   linkList: Record<string, unknown>[],
-): IStarModel =>
+) =>
   parsePistar(
     {
       actors: [
@@ -74,7 +73,7 @@ const modelWith = (
       },
     },
     { fileMetamodel: true },
-  ) as unknown as IStarModel;
+  );
 
 const MODEL = modelWith(
   [

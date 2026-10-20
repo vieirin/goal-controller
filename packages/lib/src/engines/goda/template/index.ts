@@ -8,7 +8,7 @@
 import {
   GoalTree,
   modelShapeProblem,
-  type IStarModel,
+  type ModelFor,
   type ModelOf,
 } from '@goal-controller/goal-tree';
 import {
@@ -97,7 +97,9 @@ export type GodaGoalModel = ModelOf<typeof godaEngineMapper>;
  * A model (goal-tree's validated model) as GODA reads it: its `GoalModel`.
  * Throws an Error for a model outside GODA's shape (an actor with two roots).
  */
-export const godaGoalModel = (model: IStarModel): GodaGoalModel => {
+export const godaGoalModel = <EK extends string, LK extends string>(
+  model: ModelFor<typeof godaEngineMapper.dialect, EK, LK>,
+): GodaGoalModel => {
   const problem = modelShapeProblem(model, godaEngineMapper.dialect);
   if (problem) throw new Error(`[INVALID_MODEL]: ${problem}`);
   return GoalTree.goalModel(model, godaEngineMapper);

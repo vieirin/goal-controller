@@ -2,7 +2,7 @@
  * Internal tree creation logic: the IR of a model, built with a mapper as
  * goal-tree runs it (`RunMapper`, goal-controller#215).
  */
-import { childrenOf, isActor } from '@istar-ts/core';
+import { childrenOf, isActorIn, metamodelOf } from '@istar-ts/core';
 import { hasIds, ISTAR_KIND_OF } from '@goal-controller/dialect';
 import {
   readProperties,
@@ -10,7 +10,12 @@ import {
   type ReadingContext,
 } from '@goal-controller/goal-language';
 import { getGoalDetail } from '../parsers/goalNameParser';
-import type { GoalExecutionDetail, Model, Node, Relation } from '../types/';
+import type {
+  AnyModel,
+  GoalExecutionDetail,
+  Node as ModelNode,
+  Relation,
+} from '../types/';
 import type {
   KindModel,
   KindNode,
@@ -32,6 +37,9 @@ import { runMapperOf, type RunEntry, type RunMapper } from './runMapper';
 
 export { createEngineMapper } from './engineMapper';
 export type { GoalExecutionDetail };
+
+/** An element of a model of any framework (goal-controller#185). */
+type Node = ModelNode<string>;
 
 /** A node as the builder makes it, before the types say which kind it is. */
 type BuiltNode = {
@@ -174,8 +182,9 @@ type CreationContext = {
  * `reference` resolves against (goal-controller#243). Read once per model,
  * on first use.
  */
-const readingOf = (model: Model, mapper: RunMapper): ReadingContext => {
+const readingOf = (model: AnyModel, mapper: RunMapper): ReadingContext => {
   let kinds: Map<string, string> | undefined;
+  const isActor = isActorIn(metamodelOf(model));
   return {
     kindOf: (id) => {
       if (!kinds) {
@@ -447,10 +456,12 @@ function runAfterCreation(
 
 /** The IR, for a mapper as goal-tree runs it. */
 function build(
-  model: Model,
+  model: AnyModel,
   mapper: RunMapper,
   { dependums: withDependums = true }: { dependums?: boolean } = {},
 ): KindModel<KindProps, Naming, unknown, unknown, Shape> {
+  // an actor by the model's own root, not iStar's (goal-controller#185)
+  const isActor = isActorIn(metamodelOf(model));
   const context: CreationContext = {
     inputs: new Map(),
     reading: readingOf(model, mapper),
@@ -623,12 +634,12 @@ function build(
  * trees never maps one).
  */
 export function buildGoalModel<D, P, N, A, L, S extends Shape>(
-  model: Model,
+  model: AnyModel,
   mapper: KindEngineMapper<D, P, N, A, L, S>,
   options?: { dependums?: boolean },
 ): KindModel<P, N, A, L, S>;
 export function buildGoalModel(
-  model: Model,
+  model: AnyModel,
   mapper: KindEngineMapper,
   options: { dependums?: boolean } = {},
 ): unknown {
@@ -641,10 +652,13 @@ export function buildGoalModel(
  * the engine reads (`model` on its dialect; default one actor, one root).
  */
 export function convertToTree<D, P, N, A, L, S extends Shape>(
-  model: Model,
+  model: AnyModel,
   mapper: KindEngineMapper<D, P, N, A, L, S>,
 ): Array<KindNode<P, N, S>>;
-export function convertToTree(model: Model, mapper: KindEngineMapper): unknown {
+export function convertToTree(
+  model: AnyModel,
+  mapper: KindEngineMapper,
+): unknown {
   const run = runMapperOf(mapper);
   const problem = modelShapeProblem(model, run.dialect);
   if (problem) {

@@ -19,7 +19,7 @@ import {
   mutroseEngineMapper,
   sleecEngineMapper,
   type KaosdocGoalModel,
-  type IStarModel,
+  type AnyModel,
 } from '@goal-controller/lib';
 
 export interface ParseError {
@@ -43,7 +43,7 @@ type TreeOf<M> =
 
 /** A model parsed, validated and read by an engine's mapper into its tree. */
 export type ParseModelResult<TTree> =
-  | { success: true; model: IStarModel; tree: TTree }
+  | { success: true; model: AnyModel; tree: TTree }
   | ParseError;
 
 /**
@@ -58,9 +58,9 @@ export const GoalModel = {
     modelJson: string,
     options: ParseOptions = {},
     dialect?: RootReading,
-  ): { success: true; model: IStarModel } | ParseError {
+  ): { success: true; model: AnyModel } | ParseError {
     // Parse the piStar file
-    let model: IStarModel;
+    let model: AnyModel;
     try {
       // an engine whose models declare kinds of their own reads its block
       const mode = recordedMode(modelJson);
@@ -69,7 +69,7 @@ export const GoalModel = {
       model = parsePistar(modelJson, {
         metamodel: FRAMEWORK_ROOTS[framework],
         fileMetamodel: mode !== null && mode in ENGINE_FILE_KINDS,
-      }) as unknown as IStarModel;
+      });
     } catch (error) {
       return {
         success: false,
@@ -138,7 +138,7 @@ export const GoalModel = {
   parseForKaosdoc(modelJson: string):
     | {
         success: true;
-        model: IStarModel;
+        model: AnyModel;
         tree: null;
         goalModel: KaosdocGoalModel;
       }
