@@ -8,9 +8,11 @@
  * held, is set aside when one is denied, and decides nothing while one is
  * undecided. A cycle decides nothing where it closes.
  *
- * The result is one case, its labels drawn on the model, run as steps: one
- * per element, in the order the propagation labels them, each saying why
- * (the propagation report).
+ * The result is "Model labels" (the model's own `initialLabel`
+ * properties), then one case per strategy of the `strategies` project
+ * resource (goal-controller#328), in file order; each keeps its own
+ * steps, one per element, in the order the propagation labels them, each
+ * saying why (the propagation report).
  */
 import type {
   AnalysisLink,
@@ -28,6 +30,7 @@ import {
   refined,
   type NfrLabel,
 } from './labels';
+import { readNfrStrategies } from './strategies';
 
 const REFINEMENTS: Readonly<Record<string, 'and' | 'or'>> = {
   'nfr.AndRefinementLink': 'and',
@@ -50,9 +53,26 @@ export const labelValue = (label: NfrLabel): AnalysisValue => ({
     label === 'conflict') && { severity: 'warning' }),
 });
 
-/** Every element's label, and the steps that gave them, in order. */
+/** An element's label before propagation, from the model's own `initialLabel` properties. */
+export const modelLabels = (
+  model: AnalysisModel,
+): ReadonlyMap<string, NfrLabel> =>
+  new Map(
+    model.elements.flatMap((element) => {
+      const initial = element.properties.initialLabel;
+      return isLabel(initial) ? [[element.id, initial] as const] : [];
+    }),
+  );
+
+/**
+ * Every element's label, and the steps that gave them, in order.
+ * `initialLabels` (default: the model's own `initialLabel` properties) is
+ * what an element starts from, before what refines or contributes to it is
+ * considered.
+ */
 export const propagateLabels = (
   model: AnalysisModel,
+  initialLabels: ReadonlyMap<string, NfrLabel> = modelLabels(model),
 ): {
   labels: ReadonlyMap<string, NfrLabel>;
   steps: readonly { id: string; label: NfrLabel; why: string }[];
@@ -108,9 +128,8 @@ export const propagateLabels = (
     if (known) return known;
     const element = elements.get(id);
     if (!element) return 'undecided';
-    // its entry's: the mapper keeps a label only (goal-controller#226)
-    const initial = element.properties.initialLabel;
-    if (isLabel(initial)) return settle(id, initial, 'its initial label');
+    const initial = initialLabels.get(id);
+    if (initial) return settle(id, initial, 'its initial label');
     // a cycle decides nothing where it closes
     if (visiting.has(id)) return 'undecided';
     visiting.add(id);
@@ -151,29 +170,79 @@ export const propagateLabels = (
   return { labels, steps };
 };
 
-/** The propagation as an analysis result: one case, a step per element labelled. */
-export const runPropagation = (model: AnalysisModel): AnalysisResult => {
-  const { labels, steps } = propagateLabels(model);
-  const nameOf = (id: string) =>
-    model.elements.find((e) => e.id === id)?.name.trim() ?? id;
+/** One strategy's labels resolved by name, then by piStar id; a key neither finds is unknown. */
+const resolve = (
+  model: AnalysisModel,
+  labels: ReadonlyMap<string, NfrLabel>,
+): { initialLabels: Map<string, NfrLabel>; unknown: string[] } => {
+  const byName = new Map(model.elements.map((e) => [e.name.trim(), e.id]));
+  const known = new Set(model.elements.map((e) => e.id));
+  const initialLabels = new Map<string, NfrLabel>();
+  const unknown: string[] = [];
+  for (const [key, label] of labels) {
+    const id = byName.get(key) ?? (known.has(key) ? key : undefined);
+    if (id) initialLabels.set(id, label);
+    else unknown.push(key);
+  }
+  return { initialLabels, unknown };
+};
+
+/** One case: a strategy's propagation, drawn with its own steps. */
+const caseOf = (
+  model: AnalysisModel,
+  id: string,
+  label: string,
+  initialLabels: ReadonlyMap<string, NfrLabel>,
+): AnalysisResult['cases'][number] => {
+  const { labels, steps } = propagateLabels(model, initialLabels);
+  const nameOf = (elementId: string) =>
+    model.elements.find((e) => e.id === elementId)?.name.trim() ?? elementId;
   const values: Record<string, AnalysisValue> = {};
-  const series: AnalysisStep[] = steps.map(({ id, label, why }) => {
-    values[id] = labelValue(label);
+  const series: AnalysisStep[] = steps.map((step) => {
+    values[step.id] = labelValue(step.label);
     return {
-      label: `${nameOf(id)}: ${NFR_LABEL_SYMBOL[label]} ${label} (${why})`,
+      label: `${nameOf(step.id)}: ${NFR_LABEL_SYMBOL[step.label]} ${step.label} (${step.why})`,
       values: { ...values },
     };
   });
   return {
+    id,
+    label,
+    values: Object.fromEntries(
+      [...labels].map(([elementId, l]) => [elementId, labelValue(l)]),
+    ),
+    steps: series,
+  };
+};
+
+/**
+ * The propagation as an analysis result: "Model labels" (the model's own
+ * `initialLabel` properties), then one case per strategy of the
+ * `strategies` project resource, in file order (goal-controller#328).
+ */
+export const runPropagation = (
+  model: AnalysisModel,
+  resource: Readonly<Record<string, string>> = {},
+): AnalysisResult => {
+  const { strategies } = readNfrStrategies(
+    Object.entries(resource).map(([path, text]) => ({ path, text })),
+  );
+  return {
     cases: [
-      {
-        id: 'labels',
-        label: 'Labels',
-        values: Object.fromEntries(
-          [...labels].map(([id, label]) => [id, labelValue(label)]),
-        ),
-        steps: series,
-      },
+      caseOf(model, 'labels', 'Model labels', modelLabels(model)),
+      ...strategies.map((strategy) => {
+        const { initialLabels, unknown } = resolve(model, strategy.labels);
+        return caseOf(
+          model,
+          strategy.id,
+          `${strategy.name}${
+            unknown.length
+              ? ` (sets ${unknown.join(', ')}, which the model doesn't have)`
+              : ''
+          }`,
+          initialLabels,
+        );
+      }),
     ],
   };
 };

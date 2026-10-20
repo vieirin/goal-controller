@@ -1,0 +1,6 @@
+{
+  "name": "RSA 260 only",
+  "labels": {
+    "Encrypt with RSA 128 bits": "denied"
+  }
+}
