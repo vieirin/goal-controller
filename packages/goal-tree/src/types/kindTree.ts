@@ -96,25 +96,28 @@ export type ModelRefinement = {
   child: id;
 };
 
-/**
- * An element of the model as it is written, whatever its kind; one of a kind
- * with an entry has its `as`, and one of a kind held in no tree (`tree:
- * false`, an extension's kind under the iStar naming) its engine properties
- * (a tree kind's are on its node).
- */
-export type ModelElement<P = KindProps, N = Naming> = {
+/** What every element has, whatever its kind. */
+type ModelElementBase = {
   id: id;
-  kind: string;
   name: string;
   /** the actor it is in; none: a dependum, or on the paper */
   actor?: id;
   /** its custom properties, as written */
   properties: Record<string, string>;
-} & Partial<
-  {
-    [K in keyof N & keyof P]: { kind: K; as: N[K]; engine: P[K] };
-  }[keyof N & keyof P]
->;
+};
+
+/**
+ * An element of the model as it is written, whatever its kind; one of a kind
+ * with an entry has its `kind` narrowed and its `as`/`engine` (narrowing on
+ * either narrows the others), and one of an ignored kind, or of a kind with
+ * no entry, keeps `kind: string` and no `as`/`engine`.
+ */
+export type ModelElement<P = KindProps, N = Naming> =
+  | (ModelElementBase &
+      {
+        [K in keyof N & keyof P]: { kind: K; as: N[K]; engine: P[K] };
+      }[keyof N & keyof P])
+  | (ModelElementBase & { kind: string; as?: undefined; engine?: undefined });
 
 /** An actor of the IR: its properties, its roots, its trees (one per root) and its elements. */
 export type KindModelActor<P, N, A, S extends Shape = 'kinds'> = {

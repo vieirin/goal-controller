@@ -165,8 +165,8 @@ describe('the IR of a framework besides iStar 2.0 (#171)', () => {
       'kaos.Conflict': null,
       'kaos.ResponsibilityAssignment': null,
     });
-    // an ignored kind's elements are typed out of `kind` (goal-controller#315)
-    const hub = (e: { kind: string }) => e.kind === 'kaos.RefinementLinkHub';
+    const hub = (e: (typeof model.elements)[number]) =>
+      e.kind === 'kaos.RefinementLinkHub';
     expect(model.elements.filter((e) => !hub(e)).length).to.equal(8);
     expect(model.elements.filter(hub).length).to.equal(4);
   });
