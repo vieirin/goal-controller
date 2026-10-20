@@ -40,7 +40,17 @@ Anyone may, free of charge:
 3. **Dependencies.** Packages this repository depends on (installed from
    npm, PyPI, crates or other registries, or vendored) keep their own
    licenses.
-4. **No endorsement.** Derived works may not state or imply that they are
+4. **Publication is reserved.** The authors reserve the right to publish,
+   in any form (papers, articles, theses, talks, books, datasets, software
+   releases), anything in this repository that was made by them: its
+   designs, methods, results, analyses, models and text. Nobody else may
+   publish that original content, or a work that presents it as their own
+   contribution, without contacting the authors first and obtaining their
+   agreement. This does not restrict the permissions above: forking,
+   extending, redistributing the code and building on it remain allowed;
+   it restricts presenting the authors' original work as a new
+   contribution in a publication.
+5. **No endorsement.** Derived works may not state or imply that they are
    produced, endorsed or maintained by the authors, LES or UnB without
    written permission. The names of the authors, the laboratory and the
    university may not be used to promote derived works.
