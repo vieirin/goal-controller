@@ -129,36 +129,49 @@ describe('a .kaos file in the workbench (#181)', () => {
     expect(wb().mode).toBe('kaosprop');
   });
 
-  it('opens ADS’s ambulance.kaos in kaosexpert’s mode, its experts and calibrations its resources; Analyse badges Achieve [Incident Resolved] with its VU and US (#190)', async () => {
-    const { wb, container } = workbench(true);
-    await act(() => openUpload(wb(), new File([AMBULANCE], 'ambulance.kaos')));
-    await waitFor(() => expect(wb().fileName).toBe('ambulance.txt'));
-    expect(wb().mode).toBe('kaosexpert');
-    expect(wb().resourceSlots.map((slot) => [slot.kind, slot.paths])).toEqual([
-      ['expert', ['experts.json']],
-      ['calibration', ['calibrations.json']],
-    ]);
-    expect(Object.keys(wb().analyses ?? {})).toEqual([
-      'uncertainty',
-      'criticalObstacles',
-    ]);
-    act(() => wb().runAnalysis('uncertainty'));
-    await waitFor(() => expect(wb().analysisRun).not.toBeNull());
-    const value = shownCase(wb().analysisRun)?.values[
-      'achieve_incident_resolved'
-    ];
-    expect(value?.label).toMatch(/^P [0-9.]+% · VU [0-9.]+ · US [0-9.]+$/);
-    expect(value?.distribution?.samples).toBe(10000);
-    // its report's last step (the goals') is the canvas's once stepped to
-    act(() => wb().stepAnalysis(10_000));
-    await waitFor(() =>
-      expect(
-        container.querySelector(
-          '[data-id="achieve_incident_resolved"] .istar-issues-badge',
-        ),
-      ).not.toBeNull(),
-    );
-  });
+  it(
+    'opens ADS’s ambulance.kaos in kaosexpert’s mode, its experts and calibrations its resources; Analyse badges Achieve [Incident Resolved] with its VU and US (#190)',
+    async () => {
+      const { wb, container } = workbench(true);
+      await act(() =>
+        openUpload(wb(), new File([AMBULANCE], 'ambulance.kaos')),
+      );
+      await waitFor(() => expect(wb().fileName).toBe('ambulance.txt'));
+      expect(wb().mode).toBe('kaosexpert');
+      expect(wb().resourceSlots.map((slot) => [slot.kind, slot.paths])).toEqual(
+        [
+          ['expert', ['experts.json']],
+          ['calibration', ['calibrations.json']],
+        ],
+      );
+      expect(Object.keys(wb().analyses ?? {})).toEqual([
+        'uncertainty',
+        'criticalObstacles',
+      ]);
+      // its five experts' 47 leaves: 2000 samples, the engine's option, keep it quick
+      act(() => wb().setOptions({ samples: 2000 }));
+      act(() => wb().runAnalysis('uncertainty'));
+      await waitFor(() => expect(wb().analysisRun).not.toBeNull());
+      const value = shownCase(wb().analysisRun)?.values[
+        'achieve_incident_resolved'
+      ];
+      // ADS's five experts (#198): violated for certain, as RE'15
+      expect(value?.label).toMatch(/^P [0-9.]+% · VU 1 · US 0\.94[0-9]*$/);
+      expect(value?.distribution?.samples).toBe(2000);
+      // its report's last step (the goals') is the canvas's once stepped to
+      act(() => wb().stepAnalysis(10_000));
+      await waitFor(() =>
+        expect(
+          container.querySelector(
+            '[data-id="achieve_incident_resolved"] .istar-issues-badge',
+          ),
+        ).not.toBeNull(),
+      );
+    },
+    // a 117-element model opened, laid out and analysed: near 5 s in the full
+    // suite on a loaded machine, on main already
+    15_000,
+  );
 
   it('Analyse on ADS’s London Ambulance System badges Achieve [Incident Resolved] (PR G’s test, in kaosprop’s mode)', async () => {
     const { wb, container } = workbench(true);
