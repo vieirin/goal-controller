@@ -21,6 +21,7 @@ import {
   expressionText,
   parseDocument,
   parseElementLine,
+  parseElementLineIn,
   parseValue,
   readAssertion,
   readExpression,
@@ -492,6 +493,58 @@ describe('values', () => {
     assert.equal(parseValue('int', 'x').errors.length, 1);
     assert.equal(parseValue('bool', '1').errors.length, 1);
     assert.equal(parseValue('refList', 'G2 G3').errors.length, 1);
+  });
+});
+
+describe('an id is one lexical unit (#186)', () => {
+  const messages = (read: { errors: { message: string }[] }) =>
+    read.errors.map((error) => error.message);
+
+  it('rejects a space inside an id, not read across it', () => {
+    assert.deepEqual(messages(parseValue('refList', 'G 1')), [
+      "an id has no spaces: 'G1', not 'G 1'",
+    ]);
+    assert.deepEqual(messages(parseValue('refList', 'T 1.2')), [
+      "an id has no spaces: 'T1.2', not 'T 1.2'",
+    ]);
+    assert.deepEqual(messages(parseValue('refList', 'G1 X')), [
+      "an id has no spaces: 'G1X', not 'G1 X'",
+    ]);
+    assert.equal(parseValue('refList', 'G X').errors.length, 1);
+    assert.equal(parseValue('refList', 'G 1a').errors.length, 1);
+  });
+
+  it('points at the gap', () => {
+    const [error] = parseValue('refList', 'G2, T  3').errors;
+    assert.deepEqual(
+      { column: error?.column, offset: error?.offset, length: error?.length },
+      { column: 5, offset: 5, length: 2 },
+    );
+  });
+
+  it('keeps spaces around the separators', () => {
+    assert.deepEqual(parseValue('refList', 'G1 ,G2'), {
+      value: ['G1', 'G2'],
+      errors: [],
+    });
+    assert.deepEqual(parseValue('refList', ' T1.2X , R3 ').errors, []);
+  });
+
+  it('rejects a gap in a notation where spaces or tabs are skipped', () => {
+    assert.equal(parseElementLine('G1: Name [G\t2;G3]').errors.length, 1);
+    assert.equal(
+      parseValue('annotatedName', '<<s>> Name [G 2;G3]').errors.length,
+      1,
+    );
+  });
+
+  it("still reads GODA's bracket without its spaces", () => {
+    const read = parseElementLineIn(
+      { notation: { whitespace: 'ignore' } },
+      'T1: Name [D M(T1.1 2)]',
+    );
+    assert.deepEqual(read.errors, []);
+    assert.equal(read.value?.notation?.text(), 'DM(T1.12)');
   });
 });
 

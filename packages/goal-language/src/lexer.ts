@@ -268,6 +268,42 @@ const AFTER_KEY = /[ \t]+/y;
 const LINE_REST = /[^\r\n]*/y;
 const PROPERTY_VALUE = /[^\s](?:[^\r\n]*[^\s])?/y;
 
+/** An id's prefix token (`G`, `T`, `R`, `AT`, an extension kind's `E`). */
+const isPrefixToken = (name: string) =>
+  name === 'ID_PREFIX' || (ID_PREFIXES as readonly string[]).includes(name);
+
+/**
+ * An id is one lexical unit (goal-controller#186): a hidden space between its
+ * prefix and its number (`G 1`), or its number and its `X` (`G1 X`), is an
+ * error, not an id read across it. Spaces around a separator stay (`G1 ,G2`).
+ */
+const idGaps = (text: string, tokens: readonly IToken[]): ILexingError[] =>
+  tokens.flatMap((token, i) => {
+    const before = tokens[i - 1];
+    if (!before) return [];
+    const [prev, next] = [before.tokenType.name, token.tokenType.name];
+    const number = next === 'FLOAT' || next === 'DIGIT_SUBID';
+    const idPart =
+      (isPrefixToken(prev) && (number || next === 'X')) ||
+      (prev === 'FLOAT' &&
+        next === 'X' &&
+        isPrefixToken(tokens[i - 2]?.tokenType.name ?? ''));
+    const gap = before.endOffset! + 1;
+    if (!idPart || token.startOffset === gap) return [];
+    // from the id's prefix (`G1 X`: the `G`)
+    const from = isPrefixToken(prev) ? before : tokens[i - 2]!;
+    const written = text.slice(from.startOffset, token.endOffset! + 1);
+    return [
+      {
+        offset: gap,
+        line: before.endLine,
+        column: before.endColumn! + 1,
+        length: token.startOffset - gap,
+        message: `an id has no spaces: '${written.replace(/\s+/g, '')}', not '${written}'`,
+      },
+    ];
+  });
+
 const at = (pattern: RegExp, text: string, offset: number) => {
   pattern.lastIndex = offset;
   return pattern.exec(text)?.[0];
@@ -373,7 +409,7 @@ export class GoalLexer extends DefaultLexer {
         if (best) push(best.name, best.image);
         else unrecognized();
       }
-      return { tokens, hidden, errors };
+      return { tokens, hidden, errors: [...errors, ...idGaps(text, tokens)] };
     }
 
     const document = start === 'document' || start === 'plainDocument';
@@ -524,6 +560,6 @@ export class GoalLexer extends DefaultLexer {
       } else if (state === 'rt' && best.name === '{') state = 'declaration';
       else if (state === 'declaration' && best.name === '}') state = 'rt';
     }
-    return { tokens, hidden, errors };
+    return { tokens, hidden, errors: [...errors, ...idGaps(text, tokens)] };
   }
 }
