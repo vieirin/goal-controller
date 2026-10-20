@@ -13,16 +13,29 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Anything to check?
+        id: affected
+        env:
+          CI_EVENT: ${{ github.event_name }}
+          CI_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          CI_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: .github/ci/affected.sh prism
 
       - name: Set up QEMU for ARM emulation
+        if: steps.affected.outputs.run == 'true'
         uses: docker/setup-qemu-action@v3
         with:
           platforms: arm64
 
       - name: Set up Docker Buildx
+        if: steps.affected.outputs.run == 'true'
         uses: docker/setup-buildx-action@v3
 
       - name: Build Docker image for ARM
+        if: steps.affected.outputs.run == 'true'
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -34,6 +47,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Run PRISM test in Docker
+        if: steps.affected.outputs.run == 'true'
         run: |
           docker run --rm --platform linux/arm64 \
             -v ${{ github.workspace }}:/workspace \
