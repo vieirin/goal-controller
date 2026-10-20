@@ -121,6 +121,19 @@ describe('frameworks: the kaos and nfr dialects (#171)', () => {
     ]);
   });
 
+  it('gives a domain property its formal specification and Kind (#338), then piStar’s Description', () => {
+    const keys = (list: readonly { key: string }[]) => list.map((p) => p.key);
+    expect(keys(kaos.properties['kaos.DomainProperty'])).to.deep.equal([
+      'FormalSpec',
+      'Kind',
+      'Description',
+    ]);
+    const formalSpec = kaos.properties['kaos.DomainProperty'].find(
+      (p) => p.key === 'FormalSpec',
+    )!.value;
+    expect(formalSpec).to.deep.equal({ type: 'formula', language: 'ltl' });
+  });
+
   it('types the keys with a vocabulary, one source each, and FormalSpec as a formula (#181)', () => {
     // a vocabulary's values, or the value config
     const typeOf = (value: unknown) => {
@@ -505,6 +518,18 @@ describe('frameworks: the KAOS obstacle analysis (#181)', () => {
     ])
       for (const p of list)
         expect(['RSR', 'ESR', 'Probability']).not.to.include(p.key);
+  });
+
+  it('types a domain property’s FormalSpec (#338), not an unknown key', () => {
+    const model = read('kaos')(LAS);
+    const property = [...model.elements.values()].find(
+      (e) => e.name === 'Ambulance On Scene Not In Traffic Jam',
+    )!;
+    expect(property.customProperties).to.include({
+      FormalSpec:
+        'always (if ambulanceOnScene() then not ambulanceInTrafficJam())',
+    });
+    expect(frameworkProblems(model, kaos)).to.deep.equal([]);
   });
 
   it('finds no Problem in LAS; an obstruction of a refined goal and a dangling anchor are', () => {
