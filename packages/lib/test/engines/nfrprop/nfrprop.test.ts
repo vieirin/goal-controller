@@ -11,10 +11,13 @@ import { analysisText } from '../../../src/engines/analysis';
 import {
   combined,
   impact,
+  nfrprop,
   nfrpropAnalyses,
   nfrpropAnalysisModel,
+  nfrpropProjectResourceParsers,
   propagateLabels,
   readNfrModel,
+  readNfrStrategies,
   refined,
   type NfrContribution,
   type NfrLabel,
@@ -26,8 +29,13 @@ const ORACLE = readFileSync(
   '../../examples/nfr/nfr-welcome.labels.csv',
   'utf8',
 );
+const RSA_260_ONLY = readFileSync(
+  '../../examples/nfr/strategies/rsa-260-only.json',
+  'utf8',
+);
+const BOTH = readFileSync('../../examples/nfr/strategies/both.json', 'utf8');
 
-/** A CSV's rows, its quoted fields unquoted. */
+/** A CSV's rows (`id,element,label,derivation,strategy`), its quoted fields unquoted. */
 const csv = (text: string): string[][] =>
   text
     .trim()
@@ -68,7 +76,7 @@ const byName = (text: string) => {
 describe('nfrprop: the NFR Framework’s label propagation', () => {
   it('labels DSM3’s example as Chung et al.’s rules do by hand', () => {
     const labels = labelsOf(SEED);
-    const expected = csv(ORACLE);
+    const expected = csv(ORACLE).filter(([, , , , strategy]) => !strategy);
     assert.strictEqual(expected.length, 9);
     for (const [id, name, label] of expected)
       assert.strictEqual(labels.get(id!), label, name);
@@ -243,5 +251,112 @@ describe('nfrprop: the NFR Framework’s label propagation', () => {
     assert.strictEqual(nfrpropEngine.id, 'nfrprop');
     assert.deepStrictEqual(Object.keys(nfrpropEngine.analyses!), ['nfrLabels']);
     assert.ok(!('outputs' in nfrpropEngine));
+    assert.strictEqual(nfrprop.projectResources.strategies.many, true);
+  });
+});
+
+describe('nfrprop strategies (the strategies resource, goal-controller#328)', () => {
+  const file = (text: object, path = 'strategies/a.json') => ({
+    path,
+    text: JSON.stringify(text),
+  });
+
+  it('resolves a strategy’s labels by name or by piStar id', () => {
+    const { strategies, diagnostics } = readNfrStrategies([
+      file({
+        name: 'A',
+        labels: { 'Can be broken quickly': 'denied', x: 'conflict' },
+      }),
+    ]);
+    assert.deepStrictEqual(diagnostics, []);
+    assert.deepStrictEqual(strategies.length, 1);
+    assert.deepStrictEqual(
+      [...strategies[0]!.labels],
+      [
+        ['Can be broken quickly', 'denied'],
+        ['x', 'conflict'],
+      ],
+    );
+  });
+
+  it('says what is wrong: no `labels`, an unknown label', () => {
+    const { diagnostics } = readNfrStrategies([
+      file({ name: 'A' }),
+      file(
+        { name: 'B', labels: { a: 'satisficed', b: 'fine' } },
+        'strategies/b.json',
+      ),
+    ]);
+    assert.deepStrictEqual(
+      diagnostics.map((d) => d.message),
+      [
+        'A strategy file has a `labels` object',
+        "Strategy B: element b's label is one of satisficed, weakly-satisficed, undecided, weakly-denied, denied, conflict",
+      ],
+    );
+  });
+
+  it('gives one case per strategy, "Model labels" first, by file order', () => {
+    const resource = {
+      'strategies/rsa-260-only.json': RSA_260_ONLY,
+      'strategies/both.json': BOTH,
+    };
+    const result = nfrpropAnalyses.nfrLabels.run(
+      nfrpropAnalysisModel(readNfrModel(SEED)),
+      resource,
+    );
+    assert.deepStrictEqual(
+      result.cases.map((c) => c.label),
+      ['Model labels', 'RSA 260 only', 'both'],
+    );
+    const names = new Map(
+      JSON.parse(SEED).orphans.map((e: { id: string; text: string }) => [
+        e.id,
+        e.text,
+      ]),
+    );
+    const byName = (values: (typeof result.cases)[number]['values']) =>
+      Object.fromEntries(
+        Object.entries(values).map(([id, v]) => [
+          names.get(id) as string,
+          v.value,
+        ]),
+      );
+    const expectedStrategy = csv(ORACLE).filter(
+      ([, , , , strategy]) => strategy === 'RSA 260 only',
+    );
+    assert.strictEqual(expectedStrategy.length, 9);
+    const strategyCase = byName(result.cases[1]!.values);
+    for (const [, name, label] of expectedStrategy)
+      assert.strictEqual(strategyCase[name!], label, name);
+    // "both": no overrides, the same labels as the model's own
+    assert.deepStrictEqual(
+      byName(result.cases[2]!.values),
+      byName(result.cases[0]!.values),
+    );
+  });
+
+  it('says what a strategy sets the model doesn’t have, in its case label', () => {
+    const resource = {
+      'strategies/ghost.json': JSON.stringify({
+        name: 'Ghost',
+        labels: { ghost: 'satisficed' },
+      }),
+    };
+    const result = nfrpropAnalyses.nfrLabels.run(
+      nfrpropAnalysisModel(readNfrModel(SEED)),
+      resource,
+    );
+    assert.strictEqual(
+      result.cases[1]!.label,
+      "Ghost (sets ghost, which the model doesn't have)",
+    );
+  });
+
+  it('is a project resource, parsed, that `defineEngine` checks is paired', () => {
+    assert.strictEqual(
+      nfrpropProjectResourceParsers.strategies,
+      nfrpropEngine.projectResources!.strategies,
+    );
   });
 });

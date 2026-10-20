@@ -12,6 +12,7 @@
 import { validateModel } from '@istar-ts/core';
 import { refinementsOf } from '@goal-controller/goal-tree';
 import {
+  enumOptionOf,
   valueOf,
   type AnyDialect,
   type PropertyDefinition,
@@ -39,6 +40,7 @@ export const frameworkProblems = (
 ): Problem[] => [
   ...leafTargetProblems(model, definition),
   ...referenceProblems(model, definition),
+  ...enumValueProblems(model, definition),
   ...validateModel(model).map((issue): Problem => ({
     severity: 'error',
     source: definition.name,
@@ -156,5 +158,51 @@ const referenceProblems = (
         ];
       },
     );
+  });
+};
+
+/**
+ * A property's value, when it isn't one its dialect's enum lists (a typo in
+ * `initialLabel`), as `unknown-label` reports one for a link's label. An
+ * `open` enum (free text besides its options) and an unset value (`''`,
+ * which a schema's enum keeps as "unset", goal-controller#327) are not
+ * problems.
+ */
+const enumValueProblems = (
+  model: AnyModel,
+  definition: Pick<AnyDialect, 'name'> &
+    Partial<Pick<AnyDialect, 'properties' | 'links'>>,
+): Problem[] => {
+  const owners = [
+    ...[...model.elements.values()].map((element) => ({
+      owner: element,
+      list: definition.properties?.[element.kind],
+    })),
+    ...[...model.links.values()].map((link) => ({
+      owner: link,
+      list: definition.links?.[link.kind],
+    })),
+  ];
+  return owners.flatMap(({ owner, list }) => {
+    const properties = textsOf(owner.customProperties);
+    return (list ?? []).flatMap((property): Problem[] => {
+      const config = valueOf(property, properties);
+      const value = properties[property.key];
+      if (config.type !== 'enum' || config.open || !value) return [];
+      if (enumOptionOf(config, value) !== undefined) return [];
+      const options = config.options
+        .map((option) => option.value)
+        .filter((option) => option !== '');
+      return [
+        {
+          severity: 'error',
+          source: definition.name,
+          elementId: owner.id,
+          key: property.key,
+          code: 'unknown-property-value',
+          message: `${property.key} is one of ${options.join(', ')}, not "${value}"`,
+        },
+      ];
+    });
   });
 };
