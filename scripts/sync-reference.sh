@@ -67,7 +67,7 @@ TS
 # no longer have (goal-controller#187): its KeysOf reads them from its dialect.
 # Its variables and maxRetries checks are gone too (#187, #251): a pairList of
 # int, an int with a min, are the dialect's, and its value check says what it
-# can't read
+# can't read. utility/cost gain min: 0 (#236).
 {
   header packages/ui/lib/workbench/edgeProperties.ts
   show packages/ui/lib/workbench/edgeProperties.ts | sed \
@@ -75,7 +75,10 @@ TS
     -e "/validate: edgeGoalChecks.variables,/d" \
     -e "/validate: edgeGoalChecks.maxRetries,/d" \
     -e "/validate: edgeTaskChecks.maxRetries,/d" \
-    -e "/^  edgeTaskChecks,$/d" | perl -0pe '
+    -e "/^  edgeTaskChecks,$/d" \
+    -e "s_| { kind: 'number' }_| { kind: 'number'; min?: number }_" \
+    -e "s_input: { kind: 'number' }_input: { kind: 'number', min: 0 }_g" \
+    -e "s_both engines, no engine check._min 0 (goal-controller 236)._" | perl -0pe '
     s{/\*\* The keys an engine mapper reads, per node kind\. \*/\ntype KeysOf<M> = .*?\n  : never;\n}{/** The keys an engine mapper reads, per node kind: its dialect\x27s. */
 type KeysOf<M> = M extends {
   dialect: {
@@ -127,7 +130,7 @@ edgeProperties.ts's \`KeysOf\` reads a mapper's keys from its dialect (its
 mapper's \`allowed*Keys\` are gone, goal-controller#187), and its
 \`variables\` and \`maxRetries\` have no \`validate\` (the engine's checks are
 gone, #187 and #251: the dialect's value check reads a pairList of int and an
-int with a min). Do not
+int with a min). \`utility\` / \`cost\` are \`number\` with \`min: 0\` (#236). Do not
 edit them: a mismatch is fixed in the definition, not here.
 \`test/dialect/harness.test.ts\` checks that re-running the script gives these
 files unchanged.

@@ -2,7 +2,8 @@
 const varId = (nodeId: string): string => nodeId.toLowerCase();
 
 /** 0 not pursued, 1 currently pursued — goals and tasks */
-export const stateVariable = (nodeId: string): string => `${varId(nodeId)}_state`;
+export const stateVariable = (nodeId: string): string =>
+  `${varId(nodeId)}_state`;
 /** Achieved formula: g<id>_achieved for goals, t<id>_achieved for tasks */
 export const achievedFormula = (nodeId: string): string =>
   `${varId(nodeId)}_achieved`;

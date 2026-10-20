@@ -5,10 +5,7 @@ import {
   goalFailedVariable,
 } from '../../../../../template/common';
 import { orderedChildIds, retriedChildren } from '../children';
-import {
-  hasFailedExactlyNTimes,
-  hasFailedLessThanNTimes,
-} from './common';
+import { hasFailedExactlyNTimes, hasFailedLessThanNTimes } from './common';
 import {
   childShouldPursue,
   joinGuards,
@@ -83,7 +80,10 @@ export const pursueChoiceGoal = (
   };
 
   const continueChosen: PursueStatement = {
-    left: joinGuards(`${chosen}=${chosenIndex}`, childShouldPursue(currentChildId)),
+    left: joinGuards(
+      `${chosen}=${chosenIndex}`,
+      childShouldPursue(currentChildId),
+    ),
     right: 'true',
   };
 

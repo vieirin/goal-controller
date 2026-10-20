@@ -123,10 +123,14 @@ const validateChangeManager = (
 ): ChangeManagerValidation => {
   // tasks live in the ChangeManager module or in one module per task, depending on the layout
   const taskModules = [
-    ...(parsedModel.changeManagerModule ? [parsedModel.changeManagerModule] : []),
+    ...(parsedModel.changeManagerModule
+      ? [parsedModel.changeManagerModule]
+      : []),
     ...parsedModel.taskModules.values(),
   ];
-  const emittedVariables = taskModules.flatMap((m) => m.variables.map((v) => v.name));
+  const emittedVariables = taskModules.flatMap((m) =>
+    m.variables.map((v) => v.name),
+  );
   const emittedTransitions = taskModules.flatMap((m) =>
     m.transitions.map((t) => t.label),
   );

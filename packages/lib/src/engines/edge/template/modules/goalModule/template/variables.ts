@@ -1,4 +1,3 @@
-import { Node } from '@goal-controller/goal-tree';
 import type { EdgeGoalNode, EdgeTask } from '../../../../types';
 import { getLogger } from '../../../../logger/logger';
 import { failed } from '../../../../mdp/common';
@@ -7,6 +6,10 @@ import {
   chosenVariable,
   pursuedVariable,
 } from '../../../../template/common';
+import {
+  edgeChildren,
+  edgeChildrenWithRetries,
+} from '../../../../../edgeFamily/nodeAccess';
 
 export const variablesDefinition = (goal: EdgeGoalNode): string => {
   const logger = getLogger();
@@ -26,19 +29,19 @@ export const variablesDefinition = (goal: EdgeGoalNode): string => {
     ? defineVariable(achievedVariable(goal.id), 1)
     : null;
 
-  const children = Node.children(goal);
+  const children = edgeChildren(goal);
   const chosenVariableStatement =
     goal.properties.engine.executionDetail?.type === 'choice'
       ? defineVariable(chosenVariable(goal.id), children.length)
       : null;
 
-  const childrenWithMaxRetries = Node.childrenWithRetries(goal);
+  const childrenWithMaxRetries = edgeChildrenWithRetries(goal);
   const maxRetriesVariableStatement =
     childrenWithMaxRetries.length > 0
       ? childrenWithMaxRetries
-          .map((child: EdgeGoalNode | EdgeTask) => {
-            const maxRetries = child.properties.engine.maxRetries;
-            return defineVariable(failed(child.id), maxRetries);
+          .map((child) => {
+            const engine = (child as EdgeGoalNode | EdgeTask).properties.engine;
+            return defineVariable(failed(child.id), engine.maxRetries);
           })
           .join('\n')
       : null;

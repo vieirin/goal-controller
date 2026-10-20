@@ -20,7 +20,7 @@ edgeProperties.ts's `KeysOf` reads a mapper's keys from its dialect (its
 mapper's `allowed*Keys` are gone, goal-controller#187), and its
 `variables` and `maxRetries` have no `validate` (the engine's checks are
 gone, #187 and #251: the dialect's value check reads a pairList of int and an
-int with a min). Do not
+int with a min). `utility` / `cost` are `number` with `min: 0` (#236). Do not
 edit them: a mismatch is fixed in the definition, not here.
 `test/dialect/harness.test.ts` checks that re-running the script gives these
 files unchanged.
