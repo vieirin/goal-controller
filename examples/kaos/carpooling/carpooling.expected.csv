@@ -1,0 +1,27 @@
+# The oracle of the carpooling seed (carpooling.kaos, REJ'13 §6.3: Fig. 4's goals, Fig. 6's obstacle tree, Table 3's estimates), kaosprop's propagation;
+# `paper` is what REJ'13 prints: a leaf's Table 3 estimate (as carpooling.kaos re-keys it), §6.3's chain for the rest, `derivation` kaosprop's step. Checked by scripts/kaos-stress (goal-controller#190) within the paper's rounding.
+id,element,probability,paper,derivation
+ride_planned_when_request_encoded,Achieve [RidePlannedWhenRequestEncoded],0.660000,0.66,"leaf, nothing obstructs it: its ESR"
+ride_instructions_known_by_riders_when_ride_planned,Achieve [RideInstructionsKnownByRidersWhenRidePlanned],0.808000,0.808,"leaf, nothing obstructs it: its ESR"
+passenger_in_drivers_car_when_instructions_known,Achieve [PassengerInDriver'sCarWhenInstructionsKnown],0.650000,0.65,"leaf, nothing obstructs it: its ESR"
+driver_got_lost,Driver Got Lost,0.060000,6%,its estimate
+car_broken_down,Car Broken Down,0.005000,0.5%,its estimate
+wrong_instructions_sent,Wrong Instructions Sent,0.001000,0.1%,its estimate
+drop_point_confused,Drop Point Confused,0.010000,1%,its estimate
+unclear_instructions,Unclear Instructions,0.005000,0.5%,its estimate
+driver_at_other_drop_point,Driver At Other Drop Point,0.014950,0.015,OR of 1.00% (AND of Drop Point Confused (1.00%)); 0.50% (AND of Unclear Instructions (0.50%))
+drop_point_inaccessible,Drop Point Inaccessible,0.001000,0.1%,its estimate
+drop_point_never_reached,Drop Point Never Reached,0.080524,0.08,OR of 6.00% (AND of Driver Got Lost (6.00%)); 0.50% (AND of Car Broken Down (0.50%)); 0.10% (AND of Wrong Instructions Sent (0.10%)); 1.50% (AND of Driver At Other Drop Point (1.50%)); 0.10% (AND of Drop Point Inaccessible (0.10%))
+stuck_in_traffic_jam,Stuck In Traffic Jam,0.100000,10%,its estimate
+detour_on_planned_road,Detour On Planned Road,0.015000,1.5%,its estimate
+other_passenger_late,Other Passenger Late,0.005000,0.5%,its estimate
+drop_point_not_reached_in_time,Drop Point Not Reached In Time,0.118815,0.12,OR of 0.10% (AND of Wrong Instructions Sent (0.10%)); 10.00% (AND of Stuck In Traffic Jam (10.00%)); 1.50% (AND of Detour On Planned Road (1.50%)); 0.50% (AND of Other Passenger Late (0.50%))
+drop_point_not_reached_when_passenger_in_car,Drop Point Not Reached When Passenger In Car,0.189772,0.19,OR of 8.05% (AND of Drop Point Never Reached (8.05%)); 11.88% (AND of Drop Point Not Reached In Time (11.88%))
+drop_point_from_instructions_reached_when_passenger_in_car,Achieve [DropPointFromInstructionsReachedWhenPassengerInCar],0.810228,0.81,"leaf, obstructed by Drop Point Not Reached When Passenger In Car (18.98%)"
+instructions_known_when_passenger_in_car,Maintain [InstructionsKnownWhenPassengerInCar],1.000000,,"leaf, nothing obstructs it"
+drop_point_reached_when_passenger_in_car,Achieve [DropPointReachedWhenPassengerInCar],0.810228,0.81,unmonitorability: Achieve [DropPointFromInstructionsReachedWhenPassengerInCar] (81.02%) × Maintain [InstructionsKnownWhenPassengerInCar] (100.00%)
+passenger_at_destination_when_drop_point_reached,Achieve [PassengerAtDestinationWhenDropPointReached],1.000000,,"leaf, nothing obstructs it"
+passenger_at_destination_when_in_car,Achieve [PassengerAtDestinationWhenInCar],0.810228,0.81,milestone-driven: Achieve [DropPointReachedWhenPassengerInCar] (81.02%) × Achieve [PassengerAtDestinationWhenDropPointReached] (100.00%)
+passenger_at_destination_when_instructions_known,Achieve [PassengerAtDestinationWhenInstructionsKnown],0.526649,0.526,milestone-driven: Achieve [PassengerInDriver'sCarWhenInstructionsKnown] (65.00%) × Achieve [PassengerAtDestinationWhenInCar] (81.02%)
+passenger_at_destination_when_ride_planned,Achieve [PassengerAtDestinationWhenRidePlanned],0.425532,0.425,milestone-driven: Achieve [RideInstructionsKnownByRidersWhenRidePlanned] (80.80%) × Achieve [PassengerAtDestinationWhenInstructionsKnown] (52.66%)
+ride_request_served,Achieve [RideRequestServed],0.280851,0.28,milestone-driven: Achieve [RidePlannedWhenRequestEncoded] (66.00%) × Achieve [PassengerAtDestinationWhenRidePlanned] (42.55%)

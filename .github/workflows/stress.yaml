@@ -32,6 +32,8 @@ jobs:
             args: --strict
           - engine: cgm
             args: --strict --oracle
+          - engine: kaos
+            args: --strict
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

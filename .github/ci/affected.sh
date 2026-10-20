@@ -55,7 +55,7 @@ untested() {
     logs/* | output/* | hooks/* | .vscode/* | .devcontainer/* | .cursor/* | .vercel/*) return 0 ;;
     .github/workflows/stress.yaml | .github/workflows/prism-test.yaml | .github/workflows/pages.yaml) return 0 ;;
     # the stress scripts no test requires (lib's tests do require goda's)
-    scripts/cgm-stress/* | scripts/grl-stress/* | scripts/istardt-stress/* | scripts/tropos4as-stress/*) return 0 ;;
+    scripts/cgm-stress/* | scripts/grl-stress/* | scripts/istardt-stress/* | scripts/tropos4as-stress/* | scripts/kaos-stress/*) return 0 ;;
   esac
   return 1
 }
@@ -84,6 +84,12 @@ affects() {
       esac
       # cgm's oracle runs in CI on the DLV image built from docker/dlv
       [ "$engine" = cgm ] && case "$file" in docker/dlv/*) return 0 ;; esac
+      # KAOS's is the framework's: its engines, its dialect, its seeds, and
+      # kaosprop's hand-drawn RE'12 fixture (las.expected.csv's model)
+      [ "$engine" = kaos ] && case "$file" in
+        packages/lib/src/engines/kaosprop/* | packages/lib/src/engines/kaosexpert/* | packages/lib/src/dialects/kaos/*) return 0 ;;
+        packages/lib/test/engines/kaosprop/fixtures/*) return 0 ;;
+      esac
       ;;
     *)
       echo "unknown job '$job'" >&2
