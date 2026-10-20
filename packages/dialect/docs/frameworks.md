@@ -1093,7 +1093,14 @@ no experts, evidence on the leaves instead. Results in #343.
   paper's printed digits but not identical (~5e-5, ~1e-4) — both of the
   paper's own values solve the same two equations to within 5e-4 of
   0.05/0.95, not exactly, so this reads as the paper's rounding or a
-  lower-precision solver, not a different formula.
+  lower-precision solver, not a different formula. Both equations factor
+  through `(a0 − a)` and `(b0 − b)`, so `a = a0`/`b = b0` is always a
+  spurious root, degenerate (a double root) exactly when the mode sits at
+  an elicited bound (`m = a0` or `m = b0`); the initial guess is offset by
+  the elicited range (`b0 − a0`), which stays nonzero there (rv199's
+  finding — a guess scaled by `m − a0`/`b0 − m` collapses onto the
+  spurious root in that case), and the result is checked against the two
+  equations and `a < m < b` before being returned, else an error.
   `examples/kaos/mooring/mooring.expected.csv` checks the exact solve;
   Table II's Spearman correlations depend on the withheld leaf estimates
   and α, so they are listed as not reproducible (`expected = -`), not fit
@@ -1135,9 +1142,15 @@ no experts, evidence on the leaves instead. Results in #343.
     refinement hub already has (`P(O | SO1..n)`, RE'12's own conditional):
     set to `1 − α`, it multiplies the exact product the rule needs — the
     same mathematical form, just not previously declared on a goal hub.
-    **α folds in exactly, no new key.** (β = 0 for goals always, per the
-    paper; the goal hub's rule has no OR term for it to replace, so this
-    is consistent, not a gap.)
+    **α folds in exactly, no new key, on both of the hub's tactics**: the
+    "any other tactic" product and the case-driven sum (`Σ caseᵢ · P(Gᵢ)`)
+    are each multiplied by it (rv199 caught the case-driven branch
+    computing the sum and never reading the slot — fixed in both engines,
+    with a counter-model pinned as a test in each: a case-driven hub,
+    legs at cases 0.6/0.4 and P 1 each, hub Probability 0.5, expects 0.5,
+    not the undamped 1). (β = 0 for goals always, per the paper; the goal
+    hub's rule has no OR term for it to replace, so this is consistent,
+    not a gap.)
   - **Obstacles, complete OR:** `P(O) = 1 − Π(1 − P(Oᵢ))`, kaosprop's
     `any` across an obstacle's several refinement hubs, unchanged.
   - **Obstacles, partial OR (d):** `P(O) = 1 − (1 − β) · Π(1 − P(Oᵢ))`.

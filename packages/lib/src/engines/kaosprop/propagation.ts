@@ -193,18 +193,22 @@ export const propagateProbabilities = (
         cases[cases.findIndex(Number.isNaN)] =
           1 - cases.find((c) => !Number.isNaN(c))!;
       const known = cases.map((c) => (Number.isNaN(c) ? 0 : c));
-      const p = known.reduce(
-        (a, c, i) => a + c * probabilityOfElement(hub.legs[i]!.child),
-        0,
-      );
+      // × this hub's Probability too (default 1): HASE'11's α applies to
+      // a case-driven hub the same way (goal-controller#199, rv199)
+      const given = hub.values.Probability ?? 1;
+      const p =
+        known.reduce(
+          (a, c, i) => a + c * probabilityOfElement(hub.legs[i]!.child),
+          0,
+        ) * given;
       const total = round(known.reduce((a, c) => a + c, 0));
       return [
         p,
         `case-driven: ${hub.legs
           .map((leg, i) => `${known[i]} × ${named(leg.child)}`)
-          .join(
-            ' + ',
-          )}${total === 1 ? '' : ` (the cases sum to ${total}, not 1)`}`,
+          .join(' + ')}${given !== 1 ? ` × (1 − α) ${given}` : ''}${
+          total === 1 ? '' : ` (the cases sum to ${total}, not 1)`
+        }`,
       ];
     }
     // any other tactic's rule is the product of the sub-goals' (Table I),

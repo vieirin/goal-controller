@@ -311,6 +311,24 @@ describe('kaosprop: RE’12’s rules (Table I and §IV)', () => {
     near(p(refined(''), 'g'), 0.72, 1e-12, 'g (alpha unset)');
   });
 
+  it('alpha applies to a case-driven hub too (rv199’s counter-model: it was dropped there)', () => {
+    const model = tiny(
+      [
+        ['g', G],
+        ['a', G, { ESR: '1' }],
+        ['b', G, { ESR: '1' }],
+        ['h', GH, { Tactic: 'case-driven', Probability: '0.5' }],
+      ],
+      [
+        ['kaos.RefinementLinkStart', 'a', 'h', { Probability: '0.6' }],
+        ['kaos.RefinementLinkStart', 'b', 'h', { Probability: '0.4' }],
+        ['kaos.RefinementLinkEnd', 'h', 'g'],
+      ],
+    );
+    // without alpha: 0.6 × 1 + 0.4 × 1 = 1; with alpha = 0.5: 0.5
+    near(p(model, 'g'), 0.5, 1e-12, 'g (case-driven, with alpha)');
+  });
+
   it('an obstacle’s Beta is HASE’11’s β, read only with more than one refinement (goal-controller#199)', () => {
     // P(O) = 1 − (1 − β) · Π(1 − P(SOi)): Fig. 4(d)'s partial OR, across
     // an obstacle's several refinement hubs, not any one hub's own product

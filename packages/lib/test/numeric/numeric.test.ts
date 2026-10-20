@@ -154,6 +154,35 @@ describe('numeric: distributions', () => {
     close(0.5 - min, max - 0.5, 1e-9);
   });
 
+  it('extends a triangular when the mode equals the elicited lower or upper bound (rv199’s finding: the naive initial guess collapses onto a spurious root there)', () => {
+    const atLower = extendTriangular(0.5, 0.5, 0.9, 0.05);
+    assert.ok(atLower.min < 0.5, `min ${atLower.min} should be below a0`);
+    let c = continuousOf({
+      kind: 'triangular',
+      min: atLower.min,
+      mode: 0.5,
+      max: atLower.max,
+    });
+    close(c.cdf(0.5), 0.05, 1e-6);
+    close(c.cdf(0.9), 0.95, 1e-6);
+
+    const atUpper = extendTriangular(0.3, 0.9, 0.9, 0.05);
+    assert.ok(atUpper.max > 0.9, `max ${atUpper.max} should be above b0`);
+    c = continuousOf({
+      kind: 'triangular',
+      min: atUpper.min,
+      mode: 0.9,
+      max: atUpper.max,
+    });
+    close(c.cdf(0.3), 0.05, 1e-6);
+    close(c.cdf(0.9), 0.95, 1e-6);
+  });
+
+  it('refuses an elicitation with no range, or the mode outside it', () => {
+    assert.throws(() => extendTriangular(0.5, 0.5, 0.5, 0.05), /a0 < b0/);
+    assert.throws(() => extendTriangular(0.5, 0.9, 0.6, 0.05), /a0 ≤ m ≤ b0/);
+  });
+
   it('draws the same from the same seed, and uniformly', () => {
     const a = seededRandom(42);
     const b = seededRandom(42);

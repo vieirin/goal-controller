@@ -425,6 +425,24 @@ describe('kaosexpert: HASE’11’s alpha and beta fold-in (goal-controller#199)
     close(mean, 0.9 * 0.8 * 0.9, 0.01);
   });
 
+  it('alpha applies to a case-driven hub too (rv199’s counter-model: it was dropped there)', () => {
+    const model = tiny(
+      [
+        ['g', G],
+        ['a', G, { ESR: '1' }],
+        ['b', G, { ESR: '1' }],
+        ['h', GH, { Tactic: 'case-driven', Probability: '0.5' }],
+      ],
+      [
+        ['kaos.RefinementLinkStart', 'a', 'h', { Probability: '0.6' }],
+        ['kaos.RefinementLinkStart', 'b', 'h', { Probability: '0.4' }],
+        ['kaos.RefinementLinkEnd', 'h', 'g'],
+      ],
+    );
+    // without alpha: 0.6 × 1 + 0.4 × 1 = 1; with alpha = 0.5: 0.5
+    close(singleSample(model, 'g'), 0.5, 1e-9);
+  });
+
   it('a goal hub with no Probability has alpha = 0, the point rule exactly', () => {
     const model = tiny(
       [

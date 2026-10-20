@@ -195,13 +195,24 @@ export const extendTriangular = (
   b0: number,
   tail = 0.05,
 ): { min: number; max: number } => {
+  if (!(a0 < b0))
+    throw new Error(
+      `extendTriangular: a0 < b0 is needed (not ${a0}, ${b0}): no range to extend`,
+    );
+  if (!(a0 <= m && m <= b0))
+    throw new Error(
+      `extendTriangular: a0 ≤ m ≤ b0 is needed (not ${a0} ≤ ${m} ≤ ${b0})`,
+    );
   const f = (a: number, b: number) => (a0 - a) ** 2 - tail * (b - a) * (m - a);
   const g = (a: number, b: number) => (b - b0) ** 2 - tail * (b - a) * (b - m);
-  // the system has a spurious root close to (a0, b0) itself (inside the
-  // elicited range); the physical one is outside it, so the initial guess
-  // starts there, mirrored by (m - a0) and (b0 - m), not scaled by `tail`
-  let a = a0 - (m - a0);
-  let b = b0 + (b0 - m);
+  // f and g each factor as (a0 − a)·[…] and (b0 − b)·[…]: a = a0 (b = b0)
+  // is always a spurious root, degenerate exactly when m = a0 (m = b0), the
+  // mode at an elicited bound. The initial guess is offset by the elicited
+  // range (b0 − a0), not by (m − a0)/(b0 − m), which collapses to 0 there
+  // and traps Newton on the spurious root.
+  const range = b0 - a0;
+  let a = a0 - range * 0.5;
+  let b = b0 + range * 0.5;
   const h = 1e-7;
   for (let i = 0; i < 100; i++) {
     const fa = (f(a + h, b) - f(a - h, b)) / (2 * h);
@@ -218,6 +229,15 @@ export const extendTriangular = (
     b -= db;
     if (Math.abs(da) < 1e-14 && Math.abs(db) < 1e-14) break;
   }
+  const tolerance = 1e-6 * Math.max(1, range);
+  if (
+    !(a < m && m < b) ||
+    Math.abs(f(a, b)) > tolerance ||
+    Math.abs(g(a, b)) > tolerance
+  )
+    throw new Error(
+      `extendTriangular: no valid (a, b) found for (${a0}, ${m}, ${b0}), tail ${tail}`,
+    );
   return { min: a, max: b };
 };
 

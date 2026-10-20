@@ -397,7 +397,12 @@ export const expertAnalysis = (
             obstructed(leg.child),
             formula,
           );
-        return formula;
+        // alpha applies to a case-driven hub the same way (rv199): an
+        // independent residual-failure event OR'd with the case chain's own
+        const given = hub.values.Probability ?? 1;
+        return given >= 1
+          ? formula
+          : bdd.or(event(`α of ${nameOf(id)}`, 1 - given), formula);
       });
       node = bdd.or(bdd.and(...alternatives), ...own);
     } else if (own.length) node = bdd.or(...own);
