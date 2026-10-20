@@ -83,7 +83,7 @@ export default function ModelSettingsModal() {
     wb.text,
     TARGET_IDS,
     !wb.text.trim(),
-    projectFrameworkOf(wb.project),
+    projectFrameworkOf(wb.project, wb.modelPath ?? undefined),
   );
   const [draft, setDraft] = useState<ModelSettings>(wb.settings);
   // the model's framework (goal-controller#171): a new, empty model's may be chosen

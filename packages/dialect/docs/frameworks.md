@@ -3,8 +3,10 @@
 A **framework** is the goal-modelling language a project's models are
 written in: iStar 2.0, KAOS or the NFR Framework. It sits one level above the
 dialect. A dialect is a profile of one framework's metamodel, and an engine
-reads one dialect. A project's models are all in one framework, and nothing
-converts a model from one framework to another.
+reads one dialect. A project may hold models of several frameworks (#329):
+the framework is each model entry's, the project's is the default for
+entries that name none. Nothing converts a model from one framework to
+another.
 
 Each framework is one of istar-ts's root metamodels (istar-ts 0.13.3,
 [`docs/dsm3-goals.md`](https://github.com/vieirin/istar-ts/blob/main/docs/dsm3-goals.md)):
@@ -103,8 +105,9 @@ Conformity checks a model against an engine on two axes, framework first
 
 1. **Framework.** The model's framework is what its content says
    (`frameworkOfModel`: istar-ts's `detectFramework` over the three roots),
-   falling back to its record. It must match the project's framework, and so
-   must the framework of the target's dialect (`frameworkOfMode`). A mismatch
+   falling back to its record. It must match its own entry's framework (the
+   project's when the entry names none; #329), and so must the framework of
+   the target's dialect (`frameworkOfMode`). A mismatch
    (`frameworkMismatch`) becomes the target's plan error, and the target is
    blocked before any engine reads the model.
 2. **Engine.** The conversion the target needs and the engine's own checks,
@@ -730,3 +733,41 @@ log are in #182.
   (not every value outside a schema's `enum` is rejected: `open` enums and
   free text aren't), so a typo (`initialLabel propagated`, not one of
   `NFR_LABELS`) is flagged rather than silently kept.
+
+### Add to project: a project of several frameworks (goal-controller#329)
+
+- **A project may hold models of several frameworks** (the owner's decision,
+  2026-10-19). The framework is each model entry's; the project's
+  `framework` is the default for entries without one. A mixed project is
+  never refused.
+- **Add beside Open.** The top bar has an "Add" button next to Open while a
+  project is open; it adds a model file (piStar's, or an importer's) to the
+  project and opens it. Open keeps replacing the project, and still asks
+  through `FrameworkSwitchDialog` for a model of another framework than the
+  open model's own; adding never asks. An archive or a native file is a
+  project of its own: Add refuses it ("Open it instead").
+- **Drop: on the side bar, add; elsewhere, open.** While a project is open,
+  a file dropped on the side bar (the project's files) is added; dropped
+  anywhere else it opens, replacing the project, as before. The drop
+  overlay says which, and where to drop to add.
+- **The added model's framework is its content's.** `inItsFramework`
+  records its framework's mode as Open does, and the only refusal
+  (`addingMismatch`) is a model that isn't in the framework it declares: its
+  framework record, or its recorded mode's. `withModel` writes the entry's
+  `framework` only when it isn't the project's (`manifest.framework ??
+  'istar-2.0'`), so an iStar model added to an iStar project leaves
+  project.json as it was but for `{ "path": … }`. The entry also gets the
+  model's recorded mode as `dialect` when the project's differs (an NFR
+  project's `dialect: "nfr"` would otherwise be the KAOS model's mode).
+- **A read-only project becomes a browser copy.** Adding to a file opened
+  (or an example) copies the project to the browser first, as adding a
+  project resource does; the original stays in Recent.
+- **The open model, not the first.** The workbench keeps which model of the
+  project is open (`modelPath`). Its options, outputs, export and conformity
+  (`projectFrameworkOf(project, modelPath)`) read that model's entry, and
+  Open's mismatch compares a file with the open model's own framework
+  (`frameworkOfEntry`: its entry's, the project's, else its content's). The
+  side bar lists the project's other models (with their frameworks when
+  they differ); one clicked opens in its own framework: its entry's mode,
+  else its framework's mode, so its palette. The left model's edits stay in
+  the project in memory and in Recent, as an open model's always have.

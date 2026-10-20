@@ -51,7 +51,7 @@ export default function ConvertDialog({
     wb.text,
     engineIds,
     skipChecks,
-    projectFrameworkOf(wb.project),
+    projectFrameworkOf(wb.project, wb.modelPath ?? undefined),
   );
   const [selected, setSelected] = useState<ConversionTarget>(
     candidates.some((c) => c.id === target)

@@ -114,5 +114,18 @@ describe('framework conformity', () => {
       }) as unknown as Parameters<typeof projectFrameworkOf>[0];
     expect(projectFrameworkOf(project())).toBe('istar-2.0');
     expect(projectFrameworkOf(project('kaos'))).toBe('kaos');
+    // a project's models may be of several frameworks (#329): the open one's entry
+    const mixed = {
+      manifest: {
+        version: 1,
+        framework: 'nfr',
+        models: [{ path: 'a.txt' }, { path: 'b.txt', framework: 'kaos' }],
+        projectResources: {},
+        outputs: [],
+      },
+      models: [{ path: 'a.txt' }, { path: 'b.txt' }],
+    } as unknown as Parameters<typeof projectFrameworkOf>[0];
+    expect(projectFrameworkOf(mixed)).toBe('nfr');
+    expect(projectFrameworkOf(mixed, 'b.txt')).toBe('kaos');
   });
 });

@@ -13,6 +13,7 @@ import {
   Download,
   FileJson,
   FileOutput,
+  FilePlus2,
   FolderArchive,
   FolderOpen,
   Gauge,
@@ -138,25 +139,58 @@ export const openUpload = async (
     : wb.openModelFile(file.name, text);
 };
 
-/** What the open dialog takes (piStar models, archives, the declared native files, the importers'). */
-export const OPEN_ACCEPT = openAccept(
-  NATIVE_EXTENSIONS,
-  FILE_IMPORTERS.flatMap((importer) => importer.extensions),
+/**
+ * A file added to the open project (goal-controller#329): a model, in its own
+ * framework by its content, or another tool's model (imported). An archive or
+ * a native file is a project of its own: it is opened, not added.
+ */
+export const addUpload = async (
+  wb: Pick<ReturnType<typeof useWorkbench>, 'addModelFile'>,
+  file: File,
+  /** the dialects whose native files it opens (the registered engines') */
+  dialects = NATIVE_DIALECTS,
+): Promise<void> => {
+  if (isArchiveName(file.name) || nativeFileFor(dialects, file.name))
+    throw new Error(`${file.name} is a project of its own: Open it instead`);
+  const text = await readFile(file);
+  const imported = importedModel(file.name, text);
+  return imported
+    ? wb.addModelFile(imported.fileName, imported.text)
+    : wb.addModelFile(file.name, text);
+};
+
+const IMPORTER_EXTENSIONS = FILE_IMPORTERS.flatMap(
+  (importer) => importer.extensions,
 );
 
-export const useOpenFile = (): { open: () => void; input: ReactElement } => {
+/** What the open dialog takes (piStar models, archives, the declared native files, the importers'). */
+export const OPEN_ACCEPT = openAccept(NATIVE_EXTENSIONS, IMPORTER_EXTENSIONS);
+
+/** What the add dialog takes: models (piStar's, the importers'). */
+export const ADD_ACCEPT = [
+  '.txt',
+  '.json',
+  ...IMPORTER_EXTENSIONS,
+  'application/json',
+].join(',');
+
+/** A file picker: `open` opens what is chosen; `add` adds it to the open project. */
+export const useOpenFile = (
+  how: 'open' | 'add' = 'open',
+): { open: () => void; input: ReactElement } => {
   const wb = useWorkbench();
   const ref = useRef<HTMLInputElement>(null);
   const input = (
     <input
       ref={ref}
       type='file'
-      accept={OPEN_ACCEPT}
+      accept={how === 'add' ? ADD_ACCEPT : OPEN_ACCEPT}
       className='hidden'
       onChange={async (event) => {
         const file = event.target.files?.[0];
         try {
-          if (file) await openUpload(wb, file);
+          if (file)
+            await (how === 'add' ? addUpload(wb, file) : openUpload(wb, file));
         } catch (error) {
           window.alert(error instanceof Error ? error.message : String(error));
         } finally {
@@ -256,6 +290,7 @@ export default function TopBar() {
   // what the model is for: the engine it records (also in the piStar view), else its mode
   const kind = wb.recordedEngine ?? wb.mode;
   const { open, input } = useOpenFile();
+  const { open: add, input: addInput } = useOpenFile('add');
   const lastOutput = wb.lastGood?.files ?? null;
   // one file: its extension (the engine's); several: a zip
   const outputExtension = lastOutput
@@ -273,6 +308,7 @@ export default function TopBar() {
   return (
     <header className='flex h-12 min-w-0 shrink-0 items-center gap-2 border-b border-line bg-white px-3 xl:gap-3'>
       {input}
+      {addInput}
       <div className='flex min-w-0 items-center gap-2'>
         {/* the side bar is the open project's files: none on the start screen */}
         {wb.hasModel && (
@@ -295,6 +331,14 @@ export default function TopBar() {
         >
           <FolderOpen className='h-4 w-4' aria-hidden /> Open
         </Button>
+        {wb.project && (
+          <Button
+            onClick={add}
+            title='Add a goal model to this project (piStar .txt / .json): it keeps its own framework (iStar 2.0, KAOS, NFR). Open replaces the project instead'
+          >
+            <FilePlus2 className='h-4 w-4' aria-hidden /> Add
+          </Button>
+        )}
         {wb.hasModel && (
           <span
             className='flex min-w-0 items-center gap-1.5 text-[13px]'
