@@ -9,7 +9,12 @@ import * as assert from 'assert';
 import { describe, it } from 'mocha';
 import { parsePistar } from '@istar-ts/core';
 import { property } from '@goal-controller/dialect';
-import { createEngineMapper, GoalTree, type IStarModel } from '../../src';
+import {
+  createEngineMapper,
+  GoalTree,
+  useIstarDefaultNaming,
+  type IStarModel,
+} from '../../src';
 
 const dialect = {
   name: 'toy',
@@ -68,15 +73,21 @@ const MODEL = parsePistar({
 describe('mapper references (#243)', () => {
   it('gives a reference resolved against the model, or unset', () => {
     const seen: Record<string, unknown> = {};
-    const mapper = createEngineMapper<{}, {}>()({
+    const mapper = createEngineMapper({
       dialect,
-      skipResource: true,
-      mapGoalProps: () => ({}),
-      mapTaskProps: ({ id, props, raw }) => {
-        seen[id] = { anchor: props.anchor, raw: raw.anchor };
-        if (raw.after !== undefined) seen[`${id} after`] = props.after;
-        return {};
-      },
+      naming: useIstarDefaultNaming(),
+      elements: (entry) => [
+        entry({ kinds: ['istar.Goal', 'istar.Quality'], mapProps: () => ({}) }),
+        entry({
+          kind: 'istar.Task',
+          mapProps: ({ id, props, raw }) => {
+            seen[id] = { anchor: props.anchor, raw: raw.anchor };
+            if (raw.after !== undefined) seen[`${id} after`] = props.after;
+            return {};
+          },
+        }),
+      ],
+      ignore: ['istar.Resource'],
     });
     GoalTree.goalModel(MODEL, mapper);
     assert.deepStrictEqual(seen, {

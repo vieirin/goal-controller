@@ -14,6 +14,7 @@ import { readAssertion } from '@goal-controller/goal-language';
 import {
   createEngineMapper,
   GoalTree,
+  useIstarDefaultNaming,
   type IStarModel,
 } from '@goal-controller/goal-tree';
 import {
@@ -64,13 +65,26 @@ export const situated = defineDialect({
   }),
 });
 
-const mapper = createEngineMapper<object, object, never>()({
+const mapper = createEngineMapper({
   dialect: situated,
-  skipResource: true,
-  allowLeafGoals: true,
-  mapGoalProps: () => ({}),
-  mapTaskProps: () => ({}),
-  mapLinkProps: ({ raw }) => raw,
+  naming: useIstarDefaultNaming({ leafGoals: 'allow' }),
+  elements: (entry) => [
+    entry({ kinds: ['istar.Goal', 'istar.Quality'], mapProps: () => ({}) }),
+    entry({ kind: 'istar.Task', mapProps: () => ({}) }),
+  ],
+  // contexts are read off the model's elements, as written
+  ignore: ['istar.Resource', 'situ.Context'],
+  links: (entry) => [
+    entry({
+      kinds: [
+        'istar.AndRefinementLink',
+        'istar.OrRefinementLink',
+        'istar.ContributionLink',
+        'istar.DependencyLink',
+      ],
+      mapProps: ({ raw }) => raw,
+    }),
+  ],
 });
 
 /** The model as its analyses read it. */

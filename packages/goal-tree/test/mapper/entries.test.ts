@@ -2,7 +2,8 @@
  * A mapper by kind (goal-controller#215): an entry per kind of the dialect,
  * or per group of kinds, each saying what the kinds are to the engine (`as`)
  * and mapping their properties; the iStar reading (`useIstarDefaultNaming`)
- * builds the trees a mapper written per role does, an own naming every
+ * builds iStar's trees (a goal's goals and tasks, a task's tasks and
+ * resources), an own naming every
  * refinement child in `children`, and the IR gives every root, the
  * refinement graph and each element's kind as the engine names it.
  */
@@ -100,13 +101,25 @@ const MODEL = modelWith(
   ],
 );
 
-/** A node without what the iStar reading's entries add: its `kind`, and the roles' `isQuality`. */
-const asRoles = (tree: unknown): unknown =>
-  JSON.parse(
-    JSON.stringify(tree, (key, value) =>
-      key === 'kind' || key === 'isQuality' ? undefined : value,
-    ),
-  );
+/** A node as the trees hold it: its kind and type, its engine properties, its children by role. */
+type Shown = {
+  id: string;
+  kind?: string;
+  type: string;
+  properties: { root?: boolean; engine: unknown };
+  children?: Shown[];
+  tasks?: Shown[];
+  resources?: Shown[];
+};
+const shown = ({ id, kind, type, properties, ...node }: Shown): unknown => ({
+  id,
+  kind,
+  type,
+  properties,
+  ...(node.children && { children: node.children.map(shown) }),
+  ...(node.tasks && { tasks: node.tasks.map(shown) }),
+  ...(node.resources && { resources: node.resources.map(shown) }),
+});
 
 /** The toy's link entries: its contribution's weight. */
 const LINKS = (entry: LinkEntryFn<typeof dialect>) => [
@@ -117,7 +130,6 @@ const LINKS = (entry: LinkEntryFn<typeof dialect>) => [
 ];
 
 describe('a mapper by kind (#215)', () => {
-  // the same mapping, written per role and with entries
   // a goal's and a Quality's (which has no maxRetries)
   const goal = ({ props }: { props: object }) => ({
     retries: (props as { maxRetries?: number | null }).maxRetries ?? 0,
@@ -127,17 +139,6 @@ describe('a mapper by kind (#215)', () => {
   });
   const resource = ({ props }: { props: { initial?: number | null } }) => ({
     initial: props.initial ?? 0,
-  });
-  const byRole = createEngineMapper<
-    ReturnType<typeof goal>,
-    ReturnType<typeof task>,
-    ReturnType<typeof resource>
-  >()({
-    dialect,
-    mapGoalProps: goal,
-    mapTaskProps: task,
-    mapResourceProps: resource,
-    mapLinkProps: ({ props }) => ({ weight: props.weight ?? null }),
   });
   const byKind = createEngineMapper({
     dialect,
@@ -155,18 +156,54 @@ describe('a mapper by kind (#215)', () => {
     links: LINKS,
   });
 
-  it('builds, under the iStar reading, the trees a mapper written per role does', () => {
-    const roles = GoalTree.goalModel(MODEL, byRole);
+  it("builds, under the iStar reading, iStar's trees", () => {
     const kinds = GoalTree.goalModel(MODEL, byKind);
+    // a goal holds its goals (a Quality too) and tasks, a task its resources
+    assert.deepStrictEqual(kinds.actors[0]!.trees.map(shown), [
+      {
+        id: 'G1',
+        kind: 'istar.Goal',
+        type: 'goal',
+        properties: { root: true, engine: { retries: 3 } },
+        children: [
+          {
+            id: 'G2',
+            kind: 'istar.Goal',
+            type: 'goal',
+            properties: { engine: { retries: 0 } },
+            children: [],
+            tasks: [
+              {
+                id: 'T1',
+                kind: 'istar.Task',
+                type: 'task',
+                properties: { engine: { optional: true } },
+                tasks: [],
+                resources: [
+                  {
+                    id: 'R1',
+                    kind: 'istar.Resource',
+                    type: 'resource',
+                    properties: { engine: { initial: 0.5 } },
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            id: 'G3',
+            kind: 'istar.Quality',
+            type: 'goal',
+            properties: { engine: { retries: 0 } },
+            children: [],
+          },
+        ],
+      },
+    ]);
+    // a link kind's entry maps it; one without (a refinement) has `{}`
     assert.deepStrictEqual(
-      asRoles(kinds.actors[0]!.trees),
-      asRoles(roles.actors[0]!.trees),
-    );
-    // a link kind's entry maps it; one without (a refinement) has `{}`,
-    // where a mapLinkProps maps every link
-    assert.deepStrictEqual(
-      kinds.links.find((link) => link.id === 'l5'),
-      roles.links.find((link) => link.id === 'l5'),
+      kinds.links.find((link) => link.id === 'l5')?.properties,
+      { engine: { weight: 50 } },
     );
     assert.deepStrictEqual(
       kinds.links.find((link) => link.id === 'l1')?.properties,
@@ -245,7 +282,7 @@ describe('a mapper by kind (#215)', () => {
     ]);
   });
 
-  it('leaves an ignored kind out of the trees, as skipResource does', () => {
+  it('leaves an ignored kind out of the trees', () => {
     const ignoring = createEngineMapper({
       dialect,
       naming: useIstarDefaultNaming(),

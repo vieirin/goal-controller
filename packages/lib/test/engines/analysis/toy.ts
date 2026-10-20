@@ -3,6 +3,7 @@ import { defineDialect, type ProblemKind } from '@goal-controller/dialect';
 import {
   createEngineMapper,
   GoalTree,
+  useIstarDefaultNaming,
   type IStarModel,
 } from '@goal-controller/goal-tree';
 import {
@@ -40,14 +41,18 @@ export const toyGraph = defineDialect({
 });
 
 /** The toy's mapper: its actors' and links' properties kept as written (goal-controller#125). */
-export const toyMapper = createEngineMapper<object, object, never>()({
+export const toyMapper = createEngineMapper({
   dialect: toyGraph,
-  skipResource: true,
-  allowLeafGoals: true,
-  mapGoalProps: () => ({}),
-  mapTaskProps: () => ({}),
+  naming: useIstarDefaultNaming({ leafGoals: 'allow' }),
+  elements: (entry) => [
+    entry({ kinds: ['istar.Goal', 'istar.Quality'], mapProps: () => ({}) }),
+    entry({ kind: 'istar.Task', mapProps: () => ({}) }),
+  ],
+  ignore: ['istar.Resource'],
   mapActorProps: ({ raw }) => raw,
-  mapLinkProps: ({ raw }) => raw,
+  links: (entry) => [
+    entry({ kind: 'istar.ContributionLink', mapProps: ({ raw }) => raw }),
+  ],
 });
 
 /** A toy model as its analyses read it: the view of its GoalModel. */

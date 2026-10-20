@@ -13,7 +13,7 @@ import {
   GoalTree,
   Model,
   modelShapeProblem,
-  type GoalModel,
+  useIstarDefaultNaming,
 } from '@goal-controller/goal-tree';
 import { toyGraph, toyMapper } from '../engines/analysis/toy';
 
@@ -72,7 +72,7 @@ const FILE = {
 };
 const TWO_ACTORS = JSON.stringify(FILE);
 
-const ids = (model: GoalModel) =>
+const ids = (model: { actors: { name: string; trees: { id: string }[] }[] }) =>
   model.actors.map((actor) => [actor.name, actor.trees.map((tree) => tree.id)]);
 
 describe('the typed IR (#125)', () => {
@@ -141,6 +141,8 @@ describe('the typed IR (#125)', () => {
       kind: 'istar.Goal',
       name: 'G9: Sample',
       properties: {},
+      // its kind as the engine names it (goal-controller#215)
+      as: 'goal',
     });
     // a dependency is a link, no refinement: the trees are as without it
     expect(ids(model)).to.deep.equal([
@@ -161,23 +163,30 @@ describe('the typed IR (#125)', () => {
 
   it('actor and link properties reach their mappers, typed by the definition’s keys', () => {
     const seen: string[] = [];
-    const mapper = createEngineMapper<object, object, never>()({
+    const mapper = createEngineMapper({
       dialect: toyGraph,
-      skipResource: true,
-      allowLeafGoals: true,
-      mapGoalProps: () => ({}),
-      mapTaskProps: () => ({}),
+      naming: useIstarDefaultNaming({ leafGoals: 'allow' }),
+      elements: (entry) => [
+        entry({ kinds: ['istar.Goal', 'istar.Quality'], mapProps: () => ({}) }),
+        entry({ kind: 'istar.Task', mapProps: () => ({}) }),
+      ],
+      ignore: ['istar.Resource'],
       mapActorProps: ({ raw, kind, id, name }) => {
         seen.push(`${kind} ${id} ${name}`);
         // @ts-expect-error: the toy's actors have a budget only
         void raw.note;
         return { budget: raw.budget === undefined ? null : Number(raw.budget) };
       },
-      mapLinkProps: ({ raw }) => ({
-        // @ts-expect-error: the toy's links have a weight only
-        other: raw.budget,
-        weight: raw.weight === undefined ? 0 : Number(raw.weight),
-      }),
+      links: (entry) => [
+        entry({
+          kind: 'istar.ContributionLink',
+          mapProps: ({ raw }) => ({
+            // @ts-expect-error: the toy's links have a weight only
+            other: raw.budget,
+            weight: raw.weight === undefined ? 0 : Number(raw.weight),
+          }),
+        }),
+      ],
     });
     const model = GoalTree.goalModel(parsePistar(TWO_ACTORS), mapper);
     const budgets: Array<number | null> = model.actors.map(
@@ -185,19 +194,32 @@ describe('the typed IR (#125)', () => {
     );
     expect(budgets).to.deep.equal([5, null]);
     expect(seen).to.deep.equal(['istar.Actor a1 Lab', 'istar.Role b1 Robot']);
-    const weights: number[] = model.links.map(
-      (l) => l.properties.engine.weight,
-    );
-    expect(weights).to.deep.equal([0, 0, 0, 3]);
+    // a contribution's entry maps it; a refinement, no kind with
+    // properties, has none and maps to {}
+    expect(model.links.map((l) => l.properties.engine)).to.deep.equal([
+      {},
+      {},
+      {},
+      { other: undefined, weight: 3 },
+    ]);
+    const weight: number | undefined = model.links.find(
+      (l) => l.kind === 'istar.ContributionLink',
+    )?.properties.engine.weight;
+    expect(weight).to.equal(3);
   });
 
-  it('without the mappers an actor and a link map to {}', () => {
-    const mapper = createEngineMapper<object, object, never>()({
+  it("without mapActorProps an actor maps to {}, a link to its entry's {}", () => {
+    const mapper = createEngineMapper({
       dialect: toyGraph,
-      skipResource: true,
-      allowLeafGoals: true,
-      mapGoalProps: () => ({}),
-      mapTaskProps: () => ({}),
+      naming: useIstarDefaultNaming({ leafGoals: 'allow' }),
+      elements: (entry) => [
+        entry({ kinds: ['istar.Goal', 'istar.Quality'], mapProps: () => ({}) }),
+        entry({ kind: 'istar.Task', mapProps: () => ({}) }),
+      ],
+      ignore: ['istar.Resource'],
+      links: (entry) => [
+        entry({ kind: 'istar.ContributionLink', mapProps: () => ({}) }),
+      ],
     });
     const model = GoalTree.goalModel(parsePistar(TWO_ACTORS), mapper);
     expect(model.actors.map((a) => a.properties.engine)).to.deep.equal([
@@ -214,16 +236,24 @@ describe('the typed IR (#125)', () => {
 
   it('afterCreation sees the whole GoalModel', () => {
     const actorsSeen: number[] = [];
-    const mapper = createEngineMapper<object, object, never>()({
+    const mapper = createEngineMapper({
       dialect: toyGraph,
-      skipResource: true,
-      allowLeafGoals: true,
-      mapGoalProps: () => ({}),
-      mapTaskProps: () => ({}),
-      afterCreationMapper: ({ node, model }) => {
-        actorsSeen.push(model.actors.length);
-        return node.properties.engine;
-      },
+      naming: useIstarDefaultNaming({ leafGoals: 'allow' }),
+      elements: (entry) => [
+        entry({
+          kinds: ['istar.Goal', 'istar.Quality'],
+          mapProps: () => ({}),
+          afterCreation: ({ node, model }) => {
+            actorsSeen.push(model.actors.length);
+            return node.properties.engine;
+          },
+        }),
+        entry({ kind: 'istar.Task', mapProps: () => ({}) }),
+      ],
+      ignore: ['istar.Resource'],
+      links: (entry) => [
+        entry({ kind: 'istar.ContributionLink', mapProps: () => ({}) }),
+      ],
     });
     GoalTree.goalModel(parsePistar(TWO_ACTORS), mapper);
     // once per goal: G1, G4, G2

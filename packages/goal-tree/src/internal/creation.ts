@@ -1,6 +1,6 @@
 /**
  * Internal tree creation logic: the IR of a model, built with a mapper as
- * goal-tree runs it (`RunMapper`, goal-controller#215), either form.
+ * goal-tree runs it (`RunMapper`, goal-controller#215).
  */
 import { childrenOf, isActor } from '@istar-ts/core';
 import { hasIds, ISTAR_KIND_OF } from '@goal-controller/dialect';
@@ -10,14 +10,7 @@ import {
   type ReadingContext,
 } from '@goal-controller/goal-language';
 import { getGoalDetail } from '../parsers/goalNameParser';
-import type {
-  GoalExecutionDetail,
-  GoalModel,
-  GoalTree,
-  Model,
-  Node,
-  Relation,
-} from '../types/';
+import type { GoalExecutionDetail, Model, Node, Relation } from '../types/';
 import type {
   KindModel,
   KindNode,
@@ -26,7 +19,7 @@ import type {
   Naming,
   Shape,
 } from '../types/kindTree';
-import type { EngineMapper, MapperDialect, PropsOf } from './engineMapper';
+import type { MapperDialect, PropsOf } from './engineMapper';
 import type { KindEngineMapper } from './entries';
 import {
   actorRoots,
@@ -37,9 +30,7 @@ import {
 } from './roots';
 import { runMapperOf, type RunEntry, type RunMapper } from './runMapper';
 
-// Re-export types from engineMapper for backwards compatibility
 export { createEngineMapper } from './engineMapper';
-export type { EngineMapper, NodePropertiesUnion } from './engineMapper';
 export type { GoalExecutionDetail };
 
 /** A node as the builder makes it, before the types say which kind it is. */
@@ -222,7 +213,7 @@ function istarNode(
   mapper: RunMapper,
   context: CreationContext,
   { relation, children, isRoot, actor }: Placement,
-): BuiltNode | null {
+): BuiltNode {
   const read = readText(node, mapper.dialect);
   const { id, goalName } = read;
   // every element the engines read is named after its RT id ("G4: …")
@@ -233,12 +224,6 @@ function istarNode(
   }
   const nodeType = entry.as;
   const isQualityNode = node.kind === 'istar.Quality';
-  // a framework's node says what it is (goal-controller#171); with
-  // entries, every node does (goal-controller#215)
-  const kind =
-    !mapper.legacy || otherFrameworkOf(mapper.dialect)
-      ? { kind: node.kind }
-      : {};
 
   if (nodeType === 'resource' && children.length > 0) {
     throw new Error(
@@ -277,14 +262,12 @@ function istarNode(
     );
   }
 
-  // a skipped kind (a mapper's skipResource) is checked, then left out
-  if (entry.skip) return null;
-
   const input = inputOf(node, mapper, read, context.reading);
   context.inputs.set(id, input);
   const base = {
     id,
-    ...kind,
+    // every node says what it is (goal-controller#171, #215)
+    kind: node.kind,
     name: goalName,
     iStarId: node.id,
     x: node.x,
@@ -314,8 +297,6 @@ function istarNode(
     children: goals,
     properties: {
       ...(isRoot && { root: true }),
-      // a mapper written per role's goal nodes say whether they are a Quality
-      ...(mapper.legacy && { isQuality: isQualityNode }),
       engine: entry.mapProps(input),
     },
     ...(tasks.length > 0 && { tasks }),
@@ -359,7 +340,7 @@ function kindNode(
 const isTreeKind = (mapper: RunMapper, kind: string): boolean =>
   mapper.entries.get(kind)?.tree === true;
 
-/** A node and its descendants (null: left out). */
+/** A node and its descendants. */
 function nodeToTree({
   nodes,
   refinements,
@@ -377,7 +358,7 @@ function nodeToTree({
   context: CreationContext;
   isRoot?: boolean;
   actor?: string;
-}): BuiltNode | null {
+}): BuiltNode {
   // the refinements into it: its children (goal-controller#125: any other
   // link into it, a qualification, a contribution, a dependency, an
   // extension's, is one of the model's links, not a child)
@@ -396,8 +377,7 @@ function nodeToTree({
     .filter((child): child is Node => !!child && isTreeKind(mapper, child.kind))
     .map((child) =>
       nodeToTree({ nodes, refinements, node: child, mapper, context, actor }),
-    )
-    .filter((child): child is BuiltNode => child !== null);
+    );
 
   const entry = mapper.entries.get(node.kind)!;
   const placement: Placement = {
@@ -446,15 +426,11 @@ function runAfterCreation(
   };
   trees.forEach(collect);
 
-  // children first, as afterCreationMapper always ran: a node is given its
+  // children first: a node is given its
   // children as built (and, in place, already afterCreation'd)
   const processed = (node: BuiltNode): void => {
     childNodes(node).forEach(processed);
-    const after =
-      mapper.entries.get(node.kind ?? '')?.afterCreation ??
-      (node.type === 'goal' && mapper.legacy
-        ? mapper.entries.get('istar.Goal')?.afterCreation
-        : undefined);
+    const after = mapper.entries.get(node.kind ?? '')?.afterCreation;
     const input = context.inputs.get(node.id);
     if (after && input) {
       node.properties.engine = after({
@@ -479,7 +455,6 @@ function build(
     inputs: new Map(),
     reading: readingOf(model, mapper),
   };
-  const isTree = (node: BuiltNode | null): node is BuiltNode => node !== null;
 
   const iStarLinks = [...model.links.values()];
   const elements = [...model.elements.values()];
@@ -496,19 +471,17 @@ function build(
       isTreeKind: treeKind,
       shape: mapper.shape,
     });
-    const trees = roots
-      .map((root) =>
-        nodeToTree({
-          nodes,
-          node: root,
-          refinements,
-          mapper,
-          context,
-          isRoot: true,
-          actor: actor.id,
-        }),
-      )
-      .filter(isTree);
+    const trees = roots.map((root) =>
+      nodeToTree({
+        nodes,
+        node: root,
+        refinements,
+        mapper,
+        context,
+        isRoot: true,
+        actor: actor.id,
+      }),
+    );
     const engine = mapper.mapActorProps?.({
       ...propsOf(
         mapper.dialect,
@@ -565,8 +538,7 @@ function build(
     )
     .map((node) =>
       nodeToTree({ nodes: [], node, refinements, mapper, context }),
-    )
-    .filter(isTree);
+    );
 
   // a framework without actors (goal-controller#171): its trees lie on the
   // paper, one per element of a tree kind that refines nothing (a hub is no
@@ -583,18 +555,16 @@ function build(
     : [];
   const children = new Set(refinements.map((refinement) => refinement.child));
   const paperRoots = onPaper.filter((node) => !children.has(node.id));
-  const paper = paperRoots
-    .map((node) =>
-      nodeToTree({
-        nodes: onPaper,
-        node,
-        refinements,
-        mapper,
-        context,
-        isRoot: true,
-      }),
-    )
-    .filter(isTree);
+  const paper = paperRoots.map((node) =>
+    nodeToTree({
+      nodes: onPaper,
+      node,
+      refinements,
+      mapper,
+      context,
+      isRoot: true,
+    }),
+  );
 
   // with entries, an element says what its kind is to the engine, and one
   // no tree holds has its engine properties (goal-controller#215)
@@ -609,7 +579,7 @@ function build(
         properties: { ...element.customProperties },
       };
       const entry = mapper.entries.get(element.kind);
-      if (mapper.legacy || !entry) return written;
+      if (!entry) return written;
       if (entry.tree) return { ...written, as: entry.as } as ModelElement;
       const read = readText(element as Node, mapper.dialect, {
         lenient: true,
@@ -657,34 +627,9 @@ export function buildGoalModel<D, P, N, A, L, S extends Shape>(
   mapper: KindEngineMapper<D, P, N, A, L, S>,
   options?: { dependums?: boolean },
 ): KindModel<P, N, A, L, S>;
-export function buildGoalModel<
-  TGoalEngine,
-  TTaskEngine,
-  TResourceEngine,
-  TDialect extends MapperDialect = MapperDialect,
-  TActorEngine = {},
-  TLinkEngine = {},
->(
-  model: Model,
-  mapper: EngineMapper<
-    TGoalEngine,
-    TTaskEngine,
-    TResourceEngine,
-    TDialect,
-    TActorEngine,
-    TLinkEngine
-  >,
-  options?: { dependums?: boolean },
-): GoalModel<
-  TGoalEngine,
-  TTaskEngine,
-  TResourceEngine,
-  TActorEngine,
-  TLinkEngine
->;
 export function buildGoalModel(
   model: Model,
-  mapper: object,
+  mapper: KindEngineMapper,
   options: { dependums?: boolean } = {},
 ): unknown {
   return build(model, runMapperOf(mapper), options);
@@ -699,25 +644,7 @@ export function convertToTree<D, P, N, A, L, S extends Shape>(
   model: Model,
   mapper: KindEngineMapper<D, P, N, A, L, S>,
 ): Array<KindNode<P, N, S>>;
-export function convertToTree<
-  TGoalEngine,
-  TTaskEngine,
-  TResourceEngine,
-  TDialect extends MapperDialect = MapperDialect,
-  TActorEngine = {},
-  TLinkEngine = {},
->(
-  model: Model,
-  mapper: EngineMapper<
-    TGoalEngine,
-    TTaskEngine,
-    TResourceEngine,
-    TDialect,
-    TActorEngine,
-    TLinkEngine
-  >,
-): GoalTree<TGoalEngine, TTaskEngine, TResourceEngine>;
-export function convertToTree(model: Model, mapper: object): unknown {
+export function convertToTree(model: Model, mapper: KindEngineMapper): unknown {
   const run = runMapperOf(mapper);
   const problem = modelShapeProblem(model, run.dialect);
   if (problem) {

@@ -18,9 +18,7 @@ import {
   kaosdocGoalModel,
   mutroseEngineMapper,
   sleecEngineMapper,
-  type EngineMapper,
   type KaosdocGoalModel,
-  type GoalTreeType,
   type IStarModel,
 } from '@goal-controller/lib';
 
@@ -37,13 +35,11 @@ export interface ParseOptions {
   framework?: Framework;
 }
 
-/** The tree an engine's mapper reads a model into: written per role, or by kind (goal-controller#215). */
+/** The tree an engine's mapper reads a model into, its nodes typed by kind (goal-controller#215). */
 type TreeOf<M> =
   M extends KindEngineMapper<any, any, any, any, any, any>
     ? NodeOf<M>[]
-    : M extends EngineMapper<infer G, infer T, infer R, any>
-      ? GoalTreeType<G, T, R>
-      : never;
+    : never;
 
 /** A model parsed, validated and read by an engine's mapper into its tree. */
 export type ParseModelResult<TTree> =

@@ -21,8 +21,8 @@ import {
 } from '@goal-controller/goal-language';
 import {
   goalView,
-  type EngineMapper,
   type IStarModel,
+  type KindEngineMapper,
 } from '@goal-controller/goal-tree';
 import {
   analysesProblems,
@@ -47,7 +47,7 @@ export type EngineOutputInfo = {
 export type EngineOutputDeclaration = { id: string; language?: string };
 
 /** What the workbench reads of an engine's mapper. */
-type MapperOf = Pick<EngineMapper<never, never>, 'allowLeafGoals'>;
+type MapperOf = Partial<Pick<KindEngineMapper, 'allowLeafGoals'>>;
 
 /** An engine, as `defineEngine` takes it. */
 export type EngineDefinition = {

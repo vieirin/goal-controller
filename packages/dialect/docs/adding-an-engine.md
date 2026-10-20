@@ -193,7 +193,7 @@ Any operator not listed is **disabled** for the dialect: the language parses it,
 
 Three more options, for what a lab dialect's text may be like (GODA's, [goda.md](goda.md)):
 
-- `notation.leafBracket: 'cost'`: a leaf's bracket holds its cost (`T1.1: Pick [W = 0.5x]`), not a notation. The mapper reads it with `parseElementLine(text).value.cost` (`mapTaskProps` is given the task's `text`). The validator reports a cost on a refined element and a notation on a leaf.
+- `notation.leafBracket: 'cost'`: a leaf's bracket holds its cost (`T1.1: Pick [W = 0.5x]`), not a notation. The mapper reads it with `parseElementLine(text).value.cost` (the task entry's `mapProps` is given the task's `text`). The validator reports a cost on a refined element and a notation on a leaf.
 - `notation.whitespace: 'ignore'`: the spaces in a bracket aren't read (`[D M(T1.1 2)]` is `[DM(T1.12)]`). The editors read the line without them and point at what they report where it is written. Read a text in the dialect with `parseElementLineIn(definition, text)`.
 - `idScope: 'ancestorGoal'` (on the definition, not its notation): a task's id is unique under its goal only, so two goals may each have a `T1.1`.
 
@@ -312,7 +312,7 @@ export const mission = defineDialect({
 - **The engine's kinds** are its dialect's extension: `defineEngine` takes
   them from `dialect.extension` (§3.9).
 
-**Reading the notation in the engine:** nothing to write. goal-tree reads each goal's text in your dialect and gives the mapper (`mapGoalProps`) and the template its `executionDetail`: `{ type, ids, modifiers }`, the notation's construct (its outermost enabled operator, or a standalone one), its operands' ids in the order written, and the arguments of the modifiers that apply to it (`modifiers.retry`: `{ G2: 3 }`). Syntax errors and operators your dialect doesn't enable are reported for you.
+**Reading the notation in the engine:** nothing to write. goal-tree reads each goal's text in your dialect and gives the mapper (the goal entry's `mapProps`) and the template its `executionDetail`: `{ type, ids, modifiers }`, the notation's construct (its outermost enabled operator, or a standalone one), its operands' ids in the order written, and the arguments of the modifiers that apply to it (`modifiers.retry`: `{ G2: 3 }`). Syntax errors and operators your dialect doesn't enable are reported for you.
 
 ### 2.7 An engine of another framework (goal-controller#171)
 
@@ -352,26 +352,35 @@ export type MissionTaskProps = { robot: string; duration: number };
 
 ### 3.2 `mapper.ts`: the language's values → the engine's types, keys from the definition
 ```ts
-import { createEngineMapper } from '@goal-controller/goal-tree';
+import { createEngineMapper, useIstarDefaultNaming } from '@goal-controller/goal-tree';
 import { mission } from './definition';
 
-export const missionEngineMapper = createEngineMapper<
-  MissionGoalProps,
-  MissionTaskProps,
-  never
->()({
+export const missionEngineMapper = createEngineMapper({
   dialect: mission, // the definition: goal texts and properties are read in it (no parser to write)
-  skipResource: true,            // or mapResourceProps
-  mapGoalProps: ({ props, id /*, raw, executionDetail */ }) => ({
-    priority: props.priority ?? 'normal', // 'high' | 'low' | null | undefined: the enum's options
-    deadline: props.deadline ?? null,     // number | null | undefined: an int
-  }),
-  mapTaskProps: ({ props, name, id }) => {
-    if (!props.robot?.trim()) throw new Error(`Task "${name}" (${id}) needs a robot`);
-    return { robot: props.robot, duration: props.duration ?? 0 };
-  },
-  // a Quality's properties (the definition's `quality`) are mapped with the goal's
-  // afterCreationMapper: resolve cross-node refs (Edge's dependsOn) once all nodes exist
+  naming: useIstarDefaultNaming(), // the iStar reading: goal, task and resource nodes
+  elements: (entry) => [
+    // a Quality's properties (the definition's `quality`) are mapped with the goal's
+    entry({
+      kinds: ['istar.Goal', 'istar.Quality'],
+      mapProps: (input): MissionGoalProps => {
+        if (input.kind !== 'istar.Goal') return { priority: 'normal', deadline: null };
+        const { props /*, id, raw, executionDetail */ } = input;
+        return {
+          priority: props.priority ?? 'normal', // 'high' | 'low' | null | undefined: the enum's options
+          deadline: props.deadline ?? null,     // number | null | undefined: an int
+        };
+      },
+      // afterCreation: resolve cross-node refs (Edge's dependsOn) once all nodes exist
+    }),
+    entry({
+      kind: 'istar.Task',
+      mapProps: ({ props, name, id }): MissionTaskProps => {
+        if (!props.robot?.trim()) throw new Error(`Task "${name}" (${id}) needs a robot`);
+        return { robot: props.robot, duration: props.duration ?? 0 };
+      },
+    }),
+  ],
+  ignore: ['istar.Resource'], // or an entry for it
 });
 ```
 Each mapper is given the properties its element's kind has in the definition (`properties.goal`, …; a framework's kinds their own), twice: `props`, each value as the goal language reads its type (`int` a number, `bool` a boolean, `refList` its ids, `assertion` its tree, an enum one of its options; a conditional value either of its types; `null` when empty; unset when written with an error, which the definition's checks report), and `raw`, the strings as written. A key the definition doesn't give the kind doesn't compile. The mapper never parses a value's text (goal-controller#187).
@@ -380,11 +389,11 @@ Rules of thumb (from Edge's mapper):
 - Throw with the node id in the message; the Problems panel navigates to it.
 - Put reusable validation in **checks** (3.3) and call them from the mapper (`firstGoalOrTaskIssue` pattern), so the inspector and the engine agree word for word.
 - `dialect` is required: the definition (or, for an engine without one, `{ name }`: ids and names are read, no notation).
-- `executionDetail` (`{ type, ids, modifiers }`, see 2.3) arrives in `mapGoalProps` for notation engines: the outermost construct and its operands. `text` is the goal's text as written; an engine that reads nested constructs or calls reads it with `parseElementLine` (MutRoSe does).
+- `executionDetail` (`{ type, ids, modifiers }`, see 2.3) arrives in the goal entry's `mapProps` for notation engines: the outermost construct and its operands. `text` is the goal's text as written; an engine that reads nested constructs or calls reads it with `parseElementLine` (MutRoSe does).
 - Every node has its diagram position, `x`, for an engine that orders siblings by it (left to right; MutRoSe's decomposer does).
-- A goal without children or tasks is a model error, unless the mapper sets `allowLeafGoals` (MutRoSe's Query goals).
-- Actors and links have mappers too (`mapActorProps`, `mapLinkProps`), and `afterCreationMapper` sees the whole model: see 3.8.
-- `mapGoalProps` and `mapTaskProps` are given the element's `kind`, and the properties of that kind: a framework's goal node is given its kind's (a domain property its `Description` and `Kind`, §3.10).
+- A goal without children or tasks is a model error, unless the mapper's naming is `useIstarDefaultNaming({ leafGoals: 'allow' })` (MutRoSe's Query goals).
+- Actors and links have mappers too (`mapActorProps`, and `links: (entry) => [...]` for the link kinds the definition gives properties), and an entry's `afterCreation` sees the whole model: see 3.8.
+- Each entry's `mapProps` is given the element's `kind`, and the properties of that kind (narrow on `kind` to read a kind's own keys): a framework's node is given its kind's (a domain property its `Description` and `Kind`, §3.10).
 
 ### 3.3 `checks.ts`: the named checks the definition refers to
 ```ts
@@ -577,8 +586,9 @@ export const missionAnalyses = defineAnalyses(mission, {
   name, properties, its actor) and every link (kind, ends, label,
   properties). An element's properties are as the piStar file has them. An
   actor's and a link's are what the mapper keeps: give it
-  `mapActorProps: ({ raw }) => raw` and `mapLinkProps: ({ raw }) => raw`
-  (the definition's keys, as written), as GRL's does. An engine with analyses reads
+  `mapActorProps: ({ raw }) => raw` and a link entry per kind with
+  properties, `mapProps: ({ raw }) => raw` (the definition's keys, as
+  written), as GRL's does. An engine with analyses reads
   every actor and tree, so declare `model: { actors: 'many', treesPerActor:
   'many' }`. `resource` is the `input` kind's files, path → text, as the
   tabs hold them (a `many` kind: all its files).
@@ -783,12 +793,14 @@ type GoalModel = {
   link. A tree's children are its refinements only. A contribution, a
   qualification or a dependency is one of the model's `links`, with its
   `relation` `null`. Every node knows its actor (`node.actor`, a piStar id).
-- **The mappers.** `mapActorProps({ props, raw, kind, id, name })` and
-  `mapLinkProps({ props, raw, kind, id })`: `props` are the definition's
-  `actors` properties for the actor's kind and its `links[kind]`, typed as
-  `mapGoalProps`'s are; `raw` has every actor's and every link kind's keys,
-  as written. Both are optional: an engine without them gets `{}`.
-  `afterCreationMapper` gets `model`, the whole `GoalModel`.
+- **The mappers.** `mapActorProps({ props, raw, kind, id, name })` and the
+  link entries (`links: (entry) => [entry({ kind, mapProps: ({ props, raw,
+  kind, id }) => … })]`): `props` are the definition's `actors` properties
+  for the actor's kind and its `links[kind]`, typed as an element entry's
+  are; `raw` holds them as written. An engine without `mapActorProps` gets
+  `{}` for its actors; every link kind the definition gives properties needs
+  an entry, and any other link kind gets `{}`. An entry's `afterCreation`
+  gets `model`, the whole IR.
 - **The shape your engine reads.** Declare it on the definition: `model: {
   actors: 'one' | 'many', treesPerActor: 'one' | 'many' }`. The default is
   `one`/`one`. Edge, edgeV2, MutRoSe and SLEEC keep it. GODA reads
@@ -804,10 +816,10 @@ type GoalModel = {
   an IR. A node's id is its piStar id and its name is its text, unparsed.
 - **Another framework** (goal-controller#171). Its models have no actors, so
   their trees are the IR's `paper`: one tree per element that no refinement
-  makes a child (`fromModel` returns them too). `FRAMEWORK_NODE_TYPES` says
-  how a tree holds the framework's kinds. KAOS's goals and domain properties,
-  and NFR's softgoals and operationalizations, are goal nodes that may be
-  leaves, and each keeps its `kind`. Agents, claims and hubs belong to no
+  makes a child (`fromModel` returns them too). The engine's entries say
+  how a tree holds the framework's kinds, each with its own `as` (kaosdoc's
+  `goal`, `domainProperty`, `obstacle`); without a naming, a node may be a
+  leaf, holds every refinement child in `children`, and keeps its `kind`. Agents, claims and hubs belong to no
   tree: they are in `elements`, and their links in `links`. A refinement is
   whatever the dialect's `refinements` says (`refinementsOf`). An n-ary
   link's legs refine the hub's end's target, so a KAOS hub is an AND with n
@@ -971,7 +983,7 @@ numbers (`examples/kaos/las/las.expected.csv`).
 | Where a property is written | property line · declaration on the element line · annotation before the id   | lines by default; declaration for a compact "type + bounds + initial"; annotations for stereotype-like tags           |
 | Output emitter              | string templates · AST + printer                                             | strings for flat text; AST for structured targets or when you'll emit two formats                                     |
 | Output files                | one (`singleFileOutput`) · several, one primary (`EngineOutput`)             | one unless the target is a set of files (a model and its properties, a runtime artefact and a readable one)            |
-| Resources                   | `skipResource: true` · `mapResourceProps`                                    | skip unless the output models state/variables                                                                         |
+| Resources                   | `ignore: ['istar.Resource']` · an `istar.Resource` entry                     | skip unless the output models state/variables                                                                         |
 | Engine options              | none · `defineOptions` (§3.8) + `TransformOptions`                           | only if the template has knobs                                                                                        |
 | Validation of the output    | none · `validator/`                                                          | when the output has structure the generator can get wrong                                                             |
 

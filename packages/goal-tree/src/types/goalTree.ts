@@ -81,8 +81,8 @@ export type TreeNode<
   | Resource<TResourceEngine>;
 
 /**
- * A node shape that traversal and `Node` helpers accept: per-role trees
- * (`GoalNode`, with `isQuality`) and kind-entry trees (`KindNode`, without).
+ * A node shape that traversal and `Node` helpers accept: hand-typed trees
+ * (`GoalNode`) and kind-entry trees (`KindNode`).
  */
 export type TraversalNode = {
   type: string;
@@ -128,7 +128,7 @@ export type GoalModelActor<
 /**
  * A link of the IR: every link of the model, refinement links included, its
  * `relation` as a refinement reads it (none: not a refinement), and its
- * properties as the engine maps them (`mapLinkProps`).
+ * properties as the engine maps them (its kind's link entry).
  */
 export type GoalModelLink<TLinkEngine = unknown> = {
   id: id;

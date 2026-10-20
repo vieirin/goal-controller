@@ -7,7 +7,12 @@ import * as assert from 'assert';
 import { before, describe, it } from 'mocha';
 import { parsePistar } from '@istar-ts/core';
 import { actors, links, property } from '@goal-controller/dialect';
-import { createEngineMapper, GoalTree, type GoalNode } from '../../src';
+import {
+  createEngineMapper,
+  GoalTree,
+  useIstarDefaultNaming,
+  type NodeOf,
+} from '../../src';
 
 const dialect = {
   name: 'toy',
@@ -118,44 +123,65 @@ const MODEL = parsePistar({
 
 describe('mapper props (#187)', () => {
   const seen: Seen = {};
-  const mapper = createEngineMapper<Seen, Seen, Seen>()({
+  const mapper = createEngineMapper({
     dialect,
-    allowLeafGoals: true,
-    mapGoalProps: ({ props, raw, kind }) => {
-      // the goal kinds' keys (a Quality's too), typed
-      const retries: number | null | undefined = props.maxRetries;
-      const type: 'achieve' | 'maintain' | null | undefined = props.type;
-      const dependsOn: string[] | undefined = props.dependsOn;
-      // @ts-expect-error a task's key
-      void props.optional;
-      seen[kind] = { props, raw, retries, type, dependsOn };
-      return {};
-    },
-    mapTaskProps: ({ props, raw }) => {
-      const optional: boolean | null | undefined = props.optional;
-      seen.task = { props, raw, optional };
-      return {};
-    },
-    mapResourceProps: ({ props, raw, id }) => {
-      const initial: number | null | undefined = props.initial;
-      seen.resource = { props, raw, id, initial };
-      return {};
-    },
+    naming: useIstarDefaultNaming({ leafGoals: 'allow' }),
+    elements: (entry) => [
+      entry({
+        kinds: ['istar.Goal', 'istar.Quality'],
+        mapProps: (input): Seen => {
+          if (input.kind === 'istar.Quality') {
+            seen[input.kind] = { props: input.props, raw: input.raw };
+            return {};
+          }
+          const { props, raw, kind } = input;
+          // the goal kind's keys, typed
+          const retries: number | null | undefined = props.maxRetries;
+          const type: 'achieve' | 'maintain' | null | undefined = props.type;
+          const dependsOn: string[] | undefined = props.dependsOn;
+          // @ts-expect-error a task's key
+          void props.optional;
+          seen[kind] = { props, raw, retries, type, dependsOn };
+          return {};
+        },
+        afterCreation: ({ node, input }) => {
+          if (input.kind === 'istar.Goal')
+            seen.after = { kind: input.kind, props: input.props };
+          return node.properties.engine;
+        },
+      }),
+      entry({
+        kind: 'istar.Task',
+        mapProps: ({ props, raw }): Seen => {
+          const optional: boolean | null | undefined = props.optional;
+          seen.task = { props, raw, optional };
+          return {};
+        },
+      }),
+      entry({
+        kind: 'istar.Resource',
+        mapProps: ({ props, raw, id }): Seen => {
+          const initial: number | null | undefined = props.initial;
+          seen.resource = { props, raw, id, initial };
+          return {};
+        },
+      }),
+    ],
     mapActorProps: ({ props, raw }) => {
       const budget: number | null | undefined = props.budget;
       seen.actor = { props, raw, budget };
       return {};
     },
-    mapLinkProps: ({ props, raw, id }) => {
-      const weight: number | null | undefined = props.weight;
-      seen[id] = { props, raw, weight };
-      return {};
-    },
-    afterCreationMapper: ({ node, rawProperties }) => {
-      if (rawProperties.nodeType === 'goal')
-        seen.after = { kind: rawProperties.kind, props: rawProperties.props };
-      return node.properties.engine;
-    },
+    links: (entry) => [
+      entry({
+        kind: 'istar.AndRefinementLink',
+        mapProps: ({ props, raw, id }) => {
+          const weight: number | null | undefined = props.weight;
+          seen[id] = { props, raw, weight };
+          return {};
+        },
+      }),
+    ],
   });
   before(() => GoalTree.goalModel(MODEL, mapper));
 
@@ -192,7 +218,7 @@ describe('mapper props (#187)', () => {
     });
   });
 
-  it("gives an actor the dialect's actor properties, a link its kind's typed and every kind's as written", () => {
+  it("gives an actor the dialect's actor properties, a link its kind's typed and as written", () => {
     assert.deepStrictEqual(seen.actor, {
       props: { budget: 5 },
       raw: { budget: '5' },
@@ -203,20 +229,22 @@ describe('mapper props (#187)', () => {
       raw: { weight: '50' },
       weight: 50,
     });
-    // a qualification has no properties in the dialect: its weight is
-    // typed on no kind, kept as written for a check to report
-    assert.deepStrictEqual(seen.l4, {
-      props: {},
-      raw: { weight: '1' },
-      weight: undefined,
-    });
+    // a qualification has no properties in the dialect, so no entry: it
+    // is mapped by none, and its engine properties are `{}`
+    assert.strictEqual(seen.l4, undefined);
+    assert.deepStrictEqual(
+      GoalTree.goalModel(MODEL, mapper).links.find((link) => link.id === 'l4')
+        ?.properties,
+      { engine: {} },
+    );
   });
 
   it('types a node of a tree by what its mapper gives', () => {
     const tree = GoalTree.fromModel(MODEL, mapper);
-    const root: GoalNode<Seen, Seen, Seen> | undefined = tree.nodes[0] as
-      | GoalNode<Seen, Seen, Seen>
-      | undefined;
+    const root: NodeOf<typeof mapper> | undefined = tree.nodes[0];
     assert.strictEqual(root?.id, 'G1');
+    assert.ok(root?.type === 'goal');
+    const engine: Seen = root.properties.engine;
+    void engine;
   });
 });

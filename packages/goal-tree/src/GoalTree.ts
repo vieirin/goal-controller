@@ -5,9 +5,7 @@ import {
   buildGoalModel,
   convertToTree,
   createEngineMapper,
-  type EngineMapper,
 } from './internal/creation';
-import type { MapperDialect } from './internal/engineMapper';
 import type { KindEngineMapper } from './internal/entries';
 import type { KindModel, KindNode, Naming, Shape } from './types/kindTree';
 import {
@@ -21,7 +19,6 @@ import {
 } from './internal/variables';
 import { Model } from './Model';
 import type {
-  GoalModel,
   GoalNode,
   GoalTree as GoalTreeArray,
   Model as IStarModel,
@@ -89,38 +86,18 @@ export class GoalTree<
   /**
    * Create a GoalTree from an iStar model with a specific engine mapper: the
    * trees of its `GoalModel`, for an engine that reads one actor with one
-   * root goal (throws on a model outside its dialect's `model` shape)
+   * root goal (throws on a model outside its dialect's `model` shape), its
+   * nodes typed by kind (goal-controller#215)
    */
-  static fromModel<
-    TGoalEngine,
-    TTaskEngine,
-    TResourceEngine,
-    TDialect extends MapperDialect = MapperDialect,
-    TActorEngine = {},
-    TLinkEngine = {},
-  >(
-    model: IStarModel,
-    mapper: EngineMapper<
-      TGoalEngine,
-      TTaskEngine,
-      TResourceEngine,
-      TDialect,
-      TActorEngine,
-      TLinkEngine
-    >,
-  ): GoalTree<TGoalEngine, TTaskEngine, TResourceEngine>;
-  /** The trees of a mapper by kind (goal-controller#215), its nodes typed by kind. */
   static fromModel<D, P, N extends Naming, A, L, S extends Shape>(
     model: IStarModel,
     mapper: KindEngineMapper<D, P, N, A, L, S>,
   ): GoalTree<unknown, unknown, unknown, KindNode<P, N, S> & QueryNode>;
   static fromModel(
     model: IStarModel,
-    mapper: EngineMapper<unknown, unknown, unknown> | KindEngineMapper,
+    mapper: KindEngineMapper,
   ): GoalTree<unknown, unknown, unknown, QueryNode> {
-    return new GoalTree(
-      convertToTree(model, mapper as KindEngineMapper) as QueryNode[],
-    );
+    return new GoalTree(convertToTree(model, mapper) as QueryNode[]);
   }
 
   /**
@@ -129,64 +106,23 @@ export class GoalTree<
    * actors' and links' properties as the engine maps them, the dependums,
    * and every element as written. `fromModel` gives the trees of an engine
    * that reads one actor with one root (its dialect's `model`, the default).
+   * Every node and element is typed by kind (goal-controller#215).
    */
-  static goalModel<
-    TGoalEngine,
-    TTaskEngine,
-    TResourceEngine,
-    TDialect extends MapperDialect = MapperDialect,
-    TActorEngine = {},
-    TLinkEngine = {},
-  >(
-    model: IStarModel,
-    mapper: EngineMapper<
-      TGoalEngine,
-      TTaskEngine,
-      TResourceEngine,
-      TDialect,
-      TActorEngine,
-      TLinkEngine
-    >,
-  ): GoalModel<
-    TGoalEngine,
-    TTaskEngine,
-    TResourceEngine,
-    TActorEngine,
-    TLinkEngine
-  >;
-  /** The typed IR of a mapper by kind (goal-controller#215): every node and element typed by kind. */
   static goalModel<D, P, N, A, L, S extends Shape>(
     model: IStarModel,
     mapper: KindEngineMapper<D, P, N, A, L, S>,
   ): KindModel<P, N, A, L, S>;
-  static goalModel(
-    model: IStarModel,
-    mapper: EngineMapper<unknown, unknown, unknown> | KindEngineMapper,
-  ): unknown {
-    return buildGoalModel(model, mapper as KindEngineMapper);
+  static goalModel(model: IStarModel, mapper: KindEngineMapper): unknown {
+    return buildGoalModel(model, mapper);
   }
 
   /**
    * Create a GoalTree from a pistar model file with a specific engine mapper
    */
-  static fromFile<
-    TGoalEngine,
-    TTaskEngine,
-    TResourceEngine,
-    TDialect extends MapperDialect = MapperDialect,
-    TActorEngine = {},
-    TLinkEngine = {},
-  >(
+  static fromFile<D, P, N extends Naming, A, L, S extends Shape>(
     filename: string,
-    mapper: EngineMapper<
-      TGoalEngine,
-      TTaskEngine,
-      TResourceEngine,
-      TDialect,
-      TActorEngine,
-      TLinkEngine
-    >,
-  ): GoalTree<TGoalEngine, TTaskEngine, TResourceEngine> {
+    mapper: KindEngineMapper<D, P, N, A, L, S>,
+  ): GoalTree<unknown, unknown, unknown, KindNode<P, N, S> & QueryNode> {
     const model = Model.load(filename);
     return GoalTree.fromModel(model, mapper);
   }
@@ -194,24 +130,10 @@ export class GoalTree<
   /**
    * Create a GoalTree from JSON string with a specific engine mapper
    */
-  static fromJSON<
-    TGoalEngine,
-    TTaskEngine,
-    TResourceEngine,
-    TDialect extends MapperDialect = MapperDialect,
-    TActorEngine = {},
-    TLinkEngine = {},
-  >(
+  static fromJSON<D, P, N extends Naming, A, L, S extends Shape>(
     json: string,
-    mapper: EngineMapper<
-      TGoalEngine,
-      TTaskEngine,
-      TResourceEngine,
-      TDialect,
-      TActorEngine,
-      TLinkEngine
-    >,
-  ): GoalTree<TGoalEngine, TTaskEngine, TResourceEngine> {
+    mapper: KindEngineMapper<D, P, N, A, L, S>,
+  ): GoalTree<unknown, unknown, unknown, KindNode<P, N, S> & QueryNode> {
     const model = Model.parse(json);
     return GoalTree.fromModel(model, mapper);
   }
@@ -400,6 +322,3 @@ export class GoalTree<
     };
   }
 }
-
-// Re-export EngineMapper type
-export type { EngineMapper } from './internal/creation';
