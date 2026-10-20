@@ -2,6 +2,13 @@
 import * as assert from 'assert';
 import { describe, it } from 'mocha';
 import {
+  OCL_BOOLEANS,
+  OCL_OPERATIONS,
+  OCL_OPERATORS,
+} from '@goal-controller/goal-language';
+import { AstUtils, GrammarAST } from 'langium';
+import { MutRoSeGrammar } from '../../../src/engines/mutrose/language/generated/grammar';
+import {
   readCreationCondition,
   readForAll,
   readNames,
@@ -13,6 +20,17 @@ import {
   readVariableType,
   type OclName,
 } from '../../../src/engines/mutrose/language';
+
+const rule = (name: string) => {
+  const found = MutRoSeGrammar().rules.find((r) => r.name === name);
+  assert.ok(found, `no rule ${name}`);
+  return found;
+};
+const keywords = (name: string) =>
+  AstUtils.streamAllContents(rule(name))
+    .filter(GrammarAST.isKeyword)
+    .map((k) => k.value)
+    .toArray();
 
 /** The `nth` occurrence of a word in a text, as a name (offsets plus `offset`). */
 const at = (text: string, word: string, nth = 0, offset = 0): OclName => {
@@ -35,6 +53,31 @@ const read = (text: string) => {
 };
 const fails = (reader: (text: string) => { errors: unknown[] }, text: string) =>
   assert.ok(reader(text).errors.length > 0, text);
+
+describe('mutrose.langium’s OCL vocabulary and the catalog (#172)', () => {
+  it('keeps OclOperation in sync with the catalog’s collection operations', () => {
+    assert.deepEqual(
+      new Set(keywords('OclOperation')),
+      new Set(OCL_OPERATIONS.map((operation) => operation.name)),
+    );
+  });
+
+  it('keeps OclComparator a subset of the catalog’s operators, plus `in`', () => {
+    for (const comparator of keywords('OclComparator'))
+      assert.ok(
+        comparator === 'in' ||
+          (OCL_OPERATORS as readonly string[]).includes(comparator),
+        comparator,
+      );
+  });
+
+  it('keeps OclPrimary’s booleans in sync with the catalog', () => {
+    const booleans = keywords('OclPrimary').filter(
+      (k) => k !== '(' && k !== ')',
+    );
+    assert.deepEqual(new Set(booleans), new Set(OCL_BOOLEANS));
+  });
+});
 
 describe('readOclExpression', () => {
   it('reads a select on the world: its variable and type, and no source', () => {
@@ -112,6 +155,13 @@ describe('readOclExpression', () => {
       { head: at(text, 'r'), attributes: [at(text, 'staphylococcus')] },
       { head: at(text, 'r', 1), attributes: [at(text, 'pending')] },
       { head: at(text, 's'), attributes: [] },
+    ]);
+  });
+
+  it('reads `!=` as a synonym of `<>` (#172)', () => {
+    const text = 'r.x != 0';
+    assert.deepStrictEqual(read(text).paths, [
+      { head: at(text, 'r'), attributes: [at(text, 'x')] },
     ]);
   });
 

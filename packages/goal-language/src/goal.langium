@@ -206,7 +206,7 @@ OclValue:
 OclPart returns string:
     IDENT | STRING | INTEGER | NUMBER | OclKeyword
     | '->' | '.' | ',' | ':' | '|' | '(' | ')' | '[' | ']'
-    | '=' | '<>' | '<' | '<=' | '>' | '>=' | '&&' | '||' | '!';
+    | '=' | '<>' | '!=' | '<' | '<=' | '>' | '>=' | '&&' | '||' | '!';
 
 OclKeyword returns string:
     'select' | 'forAll' | 'exists' | 'collect' | 'reject' | 'in' | 'not'

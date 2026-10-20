@@ -12,6 +12,11 @@ import {
   CALL_NAMES,
   EXPRESSION,
   INFIX_SYMBOLS,
+  OCL_BOOLEANS,
+  OCL_CONDITION_WORDS,
+  OCL_KEYWORDS,
+  OCL_OPERATIONS,
+  OCL_OPERATORS,
   POSTFIX_SYMBOLS,
   PREFIX_SYMBOLS,
   STANDALONE_SYMBOLS,
@@ -118,6 +123,24 @@ describe('the grammar and the catalog', () => {
   it('reads every value type with a rule of its own', () => {
     for (const type of VALUE_TYPES)
       assert.doesNotThrow(() => parseValue(type, ''));
+  });
+
+  it('keeps goal.langium’s OCL vocabulary (OclKeyword, OclPart) in sync with the catalog (#172)', () => {
+    assert.deepEqual(
+      new Set(keywords('OclKeyword')),
+      new Set([
+        ...OCL_OPERATIONS.map((operation) => operation.name),
+        ...OCL_KEYWORDS,
+        ...OCL_CONDITION_WORDS,
+        ...OCL_BOOLEANS,
+      ]),
+    );
+    assert.deepEqual(new Set(keywords('OclPart')), new Set(OCL_OPERATORS));
+  });
+
+  it('reads `!=` in an ocl value as a token, a synonym of `<>` (#172)', () => {
+    const { errors } = parseValue('ocl', 'r.x != 0');
+    assert.deepEqual(errors.map(errorText), []);
   });
 
   it('is generated from goal.langium as committed', () => {

@@ -10,7 +10,12 @@ import {
   EXPRESSION,
   EXPRESSION_REF,
   ID_PREFIXES,
+  OCL_BOOLEANS,
+  OCL_CONDITION_WORDS,
+  OCL_KEYWORDS,
+  OCL_LITERALS,
   OCL_OPERATIONS,
+  OCL_OPERATORS,
   idPrefixPattern,
   propertyKeyOf,
 } from './catalog.js';
@@ -217,18 +222,18 @@ const VALUES = {
     ['IDENT', /[A-Za-z_][A-Za-z0-9_]*/],
     SPACE,
   ]),
-  // longest match: `->` before `-`, `<>` and `<=` before `<`; a keyword ties
-  // with an IDENT of its length and wins, a longer word (`index`) is an IDENT
+  // longest match: `->` before `-`, `<>`/`!=` and `<=` before `<`; a keyword
+  // ties with an IDENT of its length and wins, a longer word (`index`) is an
+  // IDENT
   ocl: rules([
-    ...literal('->', '<>', '<=', '>=', '&&', '||'),
-    ...literal('.', ',', ':', '|', '(', ')', '[', ']', '=', '<', '>', '!'),
+    ...literal(...OCL_OPERATORS),
     ...literal(...OCL_OPERATIONS.map((operation) => operation.name)),
-    ...literal('in', 'not', 'and', 'or', 'assertion', 'condition', 'trigger'),
-    ...literal('true', 'false', 'True', 'False'),
-    ['STRING', /"[^"\r\n]*"/],
-    ['NUMBER', /-?[0-9]+\.[0-9]+/],
-    ['INTEGER', /-?[0-9]+/],
-    ['IDENT', /[A-Za-z_][A-Za-z0-9_]*/],
+    ...literal(...OCL_KEYWORDS, ...OCL_CONDITION_WORDS),
+    ...literal(...OCL_BOOLEANS),
+    ['STRING', OCL_LITERALS.STRING],
+    ['NUMBER', OCL_LITERALS.NUMBER],
+    ['INTEGER', OCL_LITERALS.INTEGER],
+    ['IDENT', OCL_LITERALS.IDENT],
     SPACE,
   ]),
 } as const;

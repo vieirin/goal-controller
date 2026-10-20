@@ -309,6 +309,64 @@ export const OCL_OPERATIONS = [
 ] as const;
 
 /**
+ * OCL's keywords, besides its collection operations and booleans
+ * (`not current_room.occupied`, `a and b`).
+ */
+export const OCL_KEYWORDS = ['in', 'not', 'and', 'or'] as const;
+
+/** OCL's boolean literals (lsp-mutrose reads both cases). */
+export const OCL_BOOLEANS = ['true', 'false', 'True', 'False'] as const;
+
+/**
+ * OCL's operators and punctuation, multi-character ones first so a lexer's
+ * longest match tries them before their shorter prefixes (`->` before `-`,
+ * `<>`/`!=`/`<=` before `<`). `!=` is `<>`'s synonym (lsp-mutrose's OCL.g4
+ * has both; MutRoSe's decomposer already accepts either).
+ */
+export const OCL_OPERATORS = [
+  '->',
+  '<>',
+  '!=',
+  '<=',
+  '>=',
+  '&&',
+  '||',
+  '.',
+  ',',
+  ':',
+  '|',
+  '(',
+  ')',
+  '[',
+  ']',
+  '=',
+  '<',
+  '>',
+  '!',
+] as const;
+
+/** OCL's literal token patterns: a quoted string, a decimal, an integer, a name. */
+export const OCL_LITERALS = {
+  STRING: /"[^"\r\n]*"/,
+  NUMBER: /-?[0-9]+\.[0-9]+/,
+  INTEGER: /-?[0-9]+/,
+  IDENT: /[A-Za-z_][A-Za-z0-9_]*/,
+} as const;
+
+/**
+ * The condition-kind words the goal-language's `ocl` value tolerates
+ * (GODA's CreationCondition: `assertion condition "…"`, `assertion trigger
+ * "…"`). These are not OCL: MutRoSe's own language reads them only in
+ * `CreationCondition`, case-insensitively, so they are not part of the
+ * vocabulary MutRoSe's lexer builds from.
+ */
+export const OCL_CONDITION_WORDS = [
+  'assertion',
+  'condition',
+  'trigger',
+] as const;
+
+/**
  * The value types a property may have; each is a rule of the grammar that
  * reads one value on its own (an inspector field).
  *
