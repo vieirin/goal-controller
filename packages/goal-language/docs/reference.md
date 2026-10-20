@@ -467,7 +467,9 @@ model-based reflex
 
 ### `refList`
 
-Element ids, separated by commas, with optional spaces. A dialect adds the
+Element ids, separated by commas, with optional spaces around the commas.
+An id has no spaces inside it (`G 1` and `G1 X` are errors, not `G1` and
+`G1X`). A dialect adds the
 `kind` the ids must name. The validator checks that each id is an element
 of the model, of that kind.
 
@@ -480,6 +482,9 @@ T1.2X, R3
 ```goal-value refList reject
 G2 G5
 G2,
+G 1
+G1 X
+T 1.2
 ```
 
 ### `pairList`
@@ -823,6 +828,13 @@ two things this needs:
 A character that no token of the current set matches is a **token
 recognition error** (`token recognition error at: '$'`). The lexer skips
 it and carries on.
+
+An id is one lexical unit, wherever the set skips spaces or tabs: a gap
+between its prefix and its number, or its number and its `X`, is an error
+(`an id has no spaces: 'G1', not 'G 1'`), not an id read across it
+(goal-controller#186). GODA's `notation.whitespace: 'ignore'` removes the
+spaces in a bracket before the line is read, so `[D M(T1.1 2)]` still reads
+`[DM(T1.12)]`.
 
 ```goal reject
 G1: Deliver [G2$G3]
