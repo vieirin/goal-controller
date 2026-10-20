@@ -6,10 +6,12 @@
 import { actors, links, property } from '@goal-controller/dialect';
 import { expect } from 'chai';
 import {
+  checkInputOf,
   parseValue,
   readProperties,
   valueProblem,
   type Assertion,
+  type CheckInput,
   type NameList,
   type PairList,
   type AssertionTree,
@@ -600,5 +602,31 @@ describe('readProperties (#187)', () => {
     same<Same<typeof values, { weight?: number | null }>>();
     // @ts-expect-error a key the dialect doesn't give a task
     void readProperties(dialect, { element: 'task' }, {}).values.maxRetries;
+  });
+
+  it('types a check input by the dialect (#222)', () => {
+    type GoalInput = CheckInput<typeof dialect.properties.goal>;
+    same<Same<GoalInput['props']['maxRetries'], number | null | undefined>>();
+    same<
+      Same<
+        GoalInput['props']['type'],
+        'achieve' | 'maintain' | null | undefined
+      >
+    >();
+    type IsAny<T> = 0 extends 1 & T ? true : false;
+    same<Same<IsAny<GoalInput['props']['type']>, false>>();
+    const input = checkInputOf(
+      dialect,
+      { element: 'goal' },
+      {
+        type: 'achieve',
+        maxRetries: '2',
+      },
+    );
+    same<
+      Same<typeof input.props.type, 'achieve' | 'maintain' | null | undefined>
+    >();
+    same<Same<typeof input.props.maxRetries, number | null | undefined>>();
+    same<Same<IsAny<typeof input.props.type>, false>>();
   });
 });
