@@ -18,6 +18,7 @@ import {
   type NfrElementKind,
   type NfrLinkKind,
 } from '@istar-ts/dsm3-nfr/metamodel';
+import type { DistributionRange } from './distribution';
 
 /** The iStar element kinds a model has (what an engine may read). */
 export type ElementKind = 'goal' | 'task' | 'resource' | 'quality';
@@ -229,6 +230,13 @@ export type ValueConfig =
    * (`80%`), kept as written
    */
   | { type: 'probability' }
+  /**
+   * a probability distribution in its text forms (`beta[2, 3]`,
+   * `pert[1%, 2%, 5%]`, `(2.4%, 2.7%, 3%)` quantiles; ./distribution),
+   * kept as written; with `point`, a single value too (the degenerate
+   * case); over probabilities (default) or the reals (goal-controller#190)
+   */
+  | { type: 'distribution'; point?: boolean; range?: DistributionRange }
   /** `name:value` pairs, comma-separated */
   | { type: 'pairList'; value: 'int' | 'number' | 'text' }
   /**
@@ -429,6 +437,14 @@ export type PropertyDefinition<C extends string = string> = {
   check?: C;
   /** offered as an inspector field (default: true) */
   inspector?: boolean;
+  /**
+   * keyed by a project resource's names (goal-controller#190, D2): besides
+   * its own value (`Probability`), one per name of that resource kind,
+   * `Probability[e1]` on disk (`keyedKeyOf`), each of its value type; the
+   * inspector shows a row per name. The kind is one of the dialect's
+   * `projectResources`.
+   */
+  keyed?: string;
   /**
    * `'engine'`: an engine-owned language server serves this property's value
    * (its sub-language): the shared goal-language server and the local
@@ -1357,6 +1373,10 @@ export const defineDialect = <const D extends AnyDialect>(
       fail(`repeated ${owner} property key`);
     for (const property of list) {
       const value = property.value;
+      if (property.keyed !== undefined && !(property.keyed in resources))
+        fail(
+          `${owner}.${property.key} is keyed by unknown project resource ${property.keyed}`,
+        );
       for (const key of [property.applies, property.required, value].map(
         conditionKey,
       ))

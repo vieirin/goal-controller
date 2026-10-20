@@ -45,6 +45,7 @@ export const pistarPaletteFor = (
     // a framework's engine has no iStar palette (goal-controller#171)
     case 'kaosdoc':
     case 'kaosprop':
+    case 'kaosexpert':
     case 'nfrprop':
       return null;
   }

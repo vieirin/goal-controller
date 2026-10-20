@@ -11,6 +11,9 @@ import {
   enumOptionOf,
   linkPropertiesOf,
   probabilityOf,
+  distributionOf,
+  keyedKeyOf,
+  type Distribution,
   valueOf,
   type ConditionalValue,
   type PropertyDefinition,
@@ -45,9 +48,11 @@ export type ValueDataOf<C> = C extends { type: 'enum'; open: true }
           ? string | null
           : C extends { type: 'probability' }
             ? number | null
-            : C extends { type: infer T extends keyof ValueData }
-              ? ValueData[T]
-              : never;
+            : C extends { type: 'distribution' }
+              ? Distribution | null
+              : C extends { type: infer T extends keyof ValueData }
+                ? ValueData[T]
+                : never;
 
 /** What a property reads into: a conditional one's, either of its configs'. */
 export type PropertyDataOf<V> = V extends ConditionalValue
@@ -55,7 +60,8 @@ export type PropertyDataOf<V> = V extends ConditionalValue
   : ValueDataOf<V>;
 
 /** Properties as a dialect lists them (only their keys and values are read here). */
-export type PropertyList = readonly Pick<PropertyDefinition, 'key' | 'value'>[];
+export type PropertyList = readonly (Pick<PropertyDefinition, 'key' | 'value'> &
+  Partial<Pick<PropertyDefinition, 'keyed'>>)[];
 
 /**
  * A record's values, typed by its properties: each key's data
@@ -160,6 +166,10 @@ const readValue = (
       if (!text.trim()) return null;
       return probabilityOf(text) ?? undefined;
     }
+    case 'distribution': {
+      if (!text.trim()) return null;
+      return distributionOf(text, config) ?? undefined;
+    }
     case 'int':
     case 'number': {
       const read = parseValue(config.type, text);
@@ -258,11 +268,23 @@ export const readProperties = <
   const values: Record<string, unknown> = {};
   const text: Record<string, string> = {};
   for (const property of list) {
-    const written = stored[property.key];
-    if (written === undefined || property.key in text) continue;
-    text[property.key] = written;
-    const value = readValue(valueOf(property, stored), written, context);
-    if (value !== undefined) values[property.key] = value;
+    // a keyed property's names' values too (`Probability[e1]`,
+    // goal-controller#190), each by its key on disk
+    const keys = [
+      property.key,
+      ...(property.keyed === undefined
+        ? []
+        : Object.keys(stored).filter(
+            (key) => keyedKeyOf(key)?.key === property.key,
+          )),
+    ];
+    for (const key of keys) {
+      const written = stored[key];
+      if (written === undefined || key in text) continue;
+      text[key] = written;
+      const value = readValue(valueOf(property, stored), written, context);
+      if (value !== undefined) values[key] = value;
+    }
   }
   return { values, text } as PropertyRecord<OwnerPropertiesOf<D, O>>;
 };

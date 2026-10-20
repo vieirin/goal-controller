@@ -53,6 +53,7 @@ functions return plain data, with no Langium types:
   its options' values (when the definition keeps their literal types, as
   `property.enum` does) or any word when it is `open`; a `reference` is the
   id written, a `formula` its text, a `probability` its number in [0, 1],
+  a `distribution` the dialect package's `Distribution` (goal-controller#190),
   and a `pairList` a `PairList` of its value type (`PairList<number>` for
   `int` and `number`, `PairList<string>` for `text`; a member that isn't
   of its type leaves the whole value unset, goal-controller#235).

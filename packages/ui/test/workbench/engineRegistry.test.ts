@@ -39,6 +39,10 @@ import {
   istardtOptions,
   kaos,
   kaosdocEngineMapper,
+  kaosexpert,
+  kaosexpertAnalyses,
+  kaosexpertAnalysisModel,
+  kaosexpertOptions,
   kaosprop,
   kaospropAnalyses,
   kaospropAnalysisModel,
@@ -100,6 +104,7 @@ const ALL: TransformEngine[] = [
   'cgm',
   'kaosdoc',
   'kaosprop',
+  'kaosexpert',
   'nfrprop',
 ];
 
@@ -130,11 +135,13 @@ describe('the engine registry', () => {
     expectSameEntries(FRAMEWORK_ENGINE_DIALECTS, {
       kaosdoc: kaos,
       kaosprop,
+      kaosexpert,
       nfrprop,
     });
     expect(ALL.filter(isFrameworkEngine)).toEqual([
       'kaosdoc',
       'kaosprop',
+      'kaosexpert',
       'nfrprop',
     ]);
   });
@@ -178,8 +185,14 @@ describe('the engine registry', () => {
     expect(none).toEqual({});
     expect(nothing).toEqual({});
     expectSameEntries(parsers, {
+      kaosexpert: FRAMEWORK_ENGINE_PROJECT_RESOURCES.kaosexpert,
       nfrprop: nfrpropProjectResourceParsers,
     });
+    // kaosexpert's experts and calibration variables (#190)
+    expect(Object.keys(FRAMEWORK_ENGINE_PROJECT_RESOURCES.kaosexpert)).toEqual([
+      'expert',
+      'calibration',
+    ]);
   });
 
   it('derives ENGINE_POOLS', () =>
@@ -198,6 +211,8 @@ describe('the engine registry', () => {
       cgm: cgmEngineMapper,
       kaosdoc: kaosdocEngineMapper,
       kaosprop: kaospropEngineMapper,
+      // kaosprop's: its entries and link keys (#190)
+      kaosexpert: kaospropEngineMapper,
       nfrprop: nfrpropEngineMapper,
     }));
 
@@ -225,6 +240,7 @@ describe('the engine registry', () => {
       sleec: sleecOptions,
       goda: godaOptions,
       istardt: istardtOptions,
+      kaosexpert: kaosexpertOptions,
     });
   });
 
@@ -241,6 +257,7 @@ describe('the engine registry', () => {
       cgm: 'Contextual goal model',
       kaosdoc: 'KAOS document',
       kaosprop: 'KAOS obstacle probabilities',
+      kaosexpert: 'KAOS expert estimates and uncertainty',
       nfrprop: 'NFR propagation',
     }));
 
@@ -339,6 +356,15 @@ describe('the engine registry', () => {
         generates: false,
       },
       {
+        id: 'kaosexpert',
+        label: 'KAOS expert estimates and uncertainty',
+        output: 'Uncertainty',
+        extension: 'json',
+        language: 'text',
+        help: "Cailliau and van Lamsweerde's handling of knowledge uncertainty (RE'15): the experts' estimates combined by Cooke's model, each goal's probability of satisfaction sampled by Monte Carlo over its obstacles' BDD, with its violation uncertainty and uncertainty spread against its required rate, and the critical obstacles",
+        generates: false,
+      },
+      {
         id: 'nfrprop',
         label: 'NFR propagation',
         output: 'Labels',
@@ -356,8 +382,11 @@ describe('the engine registry', () => {
       'tropos4as',
       'cgm',
       'kaosprop',
+      'kaosexpert',
       'nfrprop',
     ]);
+    expect(ENGINE_ANALYSES.kaosexpert?.analyses).toBe(kaosexpertAnalyses);
+    expect(ENGINE_ANALYSES.kaosexpert?.model).toBe(kaosexpertAnalysisModel);
     expect(ENGINE_ANALYSES.kaosprop?.analyses).toBe(kaospropAnalyses);
     expect(ENGINE_ANALYSES.kaosprop?.model).toBe(kaospropAnalysisModel);
     expect(ENGINE_ANALYSES.nfrprop?.analyses).toBe(nfrpropAnalyses);
@@ -389,6 +418,7 @@ describe('the engine registry', () => {
       cgm: ['Variants', 'txt', 'text', false, false, cgm],
       kaosdoc: ['Requirements document', 'md', 'text', true, false, kaos],
       kaosprop: ['Probabilities', 'json', 'text', false, false, kaosprop],
+      kaosexpert: ['Uncertainty', 'json', 'text', false, true, kaosexpert],
       nfrprop: ['Labels', 'json', 'text', false, false, nfrprop],
     } as const;
     for (const engine of ALL) {

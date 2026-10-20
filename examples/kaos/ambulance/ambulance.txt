@@ -839,7 +839,8 @@
       "customProperties": {
         "Description": "",
         "FormalSpec": "",
-        "Category": ""
+        "Category": "",
+        "Probability[e4]": "(20.00%, 20.00%, 40.00%)"
       },
       "x": 2920,
       "y": 1080
@@ -851,7 +852,8 @@
       "customProperties": {
         "Description": "",
         "FormalSpec": "",
-        "Category": ""
+        "Category": "",
+        "Probability[e4]": "(5.00%, 5.00%, 10.00%)"
       },
       "x": 3080,
       "y": 1080
@@ -863,7 +865,8 @@
       "customProperties": {
         "Description": "",
         "FormalSpec": "",
-        "Category": ""
+        "Category": "",
+        "Probability[e4]": "(1.00%, 10.00%, 15.00%)"
       },
       "x": 3240,
       "y": 1080
@@ -875,7 +878,8 @@
       "customProperties": {
         "Description": "",
         "FormalSpec": "",
-        "Category": ""
+        "Category": "",
+        "Probability[e4]": "(1.00%, 1.00%, 1.00%)"
       },
       "x": 3400,
       "y": 1080
@@ -899,7 +903,8 @@
       "customProperties": {
         "Description": "",
         "FormalSpec": "",
-        "Category": ""
+        "Category": "",
+        "Probability[e4]": "(1.00%, 1.00%, 1.00%)"
       },
       "x": 5640,
       "y": 1080
@@ -923,7 +928,8 @@
       "customProperties": {
         "Description": "",
         "FormalSpec": "",
-        "Category": ""
+        "Category": "",
+        "Probability[e4]": "(0.00%, 0.00%, 0.00%)"
       },
       "x": 4360,
       "y": 880
@@ -935,7 +941,8 @@
       "customProperties": {
         "Description": "",
         "FormalSpec": "",
-        "Category": ""
+        "Category": "",
+        "Probability[e4]": "(30.00%, 40.00%, 50.00%)"
       },
       "x": 4520,
       "y": 880
@@ -947,7 +954,8 @@
       "customProperties": {
         "Description": "",
         "FormalSpec": "",
-        "Category": ""
+        "Category": "",
+        "Probability[e4]": "(25.00%, 30.00%, 30.00%)"
       },
       "x": 4680,
       "y": 880
@@ -971,7 +979,8 @@
       "customProperties": {
         "Description": "",
         "FormalSpec": "",
-        "Category": ""
+        "Category": "",
+        "Probability[e4]": "(20.00%, 25.00%, 40.00%)"
       },
       "x": 840,
       "y": 1080
@@ -983,7 +992,8 @@
       "customProperties": {
         "Description": "",
         "FormalSpec": "",
-        "Category": ""
+        "Category": "",
+        "Probability[e4]": "(10.00%, 10.00%, 10.00%)"
       },
       "x": 1000,
       "y": 1080
@@ -1007,7 +1017,8 @@
       "customProperties": {
         "Description": "",
         "FormalSpec": "",
-        "Category": ""
+        "Category": "",
+        "Probability[e4]": "(10.00%, 15.00%, 20.00%)"
       },
       "x": 6440,
       "y": 480
@@ -1031,7 +1042,8 @@
       "customProperties": {
         "Description": "",
         "FormalSpec": "",
-        "Category": ""
+        "Category": "",
+        "Probability[e4]": "(5.00%, 5.00%, 10.00%)"
       },
       "x": 6600,
       "y": 580
@@ -1043,7 +1055,8 @@
       "customProperties": {
         "Description": "",
         "FormalSpec": "",
-        "Category": ""
+        "Category": "",
+        "Probability[e4]": "(10.00%, 15.00%, 20.00%)"
       },
       "x": 6760,
       "y": 580
@@ -1055,7 +1068,8 @@
       "customProperties": {
         "Description": "",
         "FormalSpec": "",
-        "Category": ""
+        "Category": "",
+        "Probability[e4]": "(15.00%, 20.00%, 20.00%)"
       },
       "x": 6920,
       "y": 580
@@ -1091,7 +1105,8 @@
       "customProperties": {
         "Description": "",
         "FormalSpec": "",
-        "Category": ""
+        "Category": "",
+        "Probability[e4]": "(5.00%, 5.00%, 5.00%)"
       },
       "x": 7080,
       "y": 680
@@ -1103,7 +1118,8 @@
       "customProperties": {
         "Description": "",
         "FormalSpec": "",
-        "Category": ""
+        "Category": "",
+        "Probability[e4]": "(40.00%, 50.00%, 70.00%)"
       },
       "x": 7240,
       "y": 680
@@ -1139,7 +1155,8 @@
       "customProperties": {
         "Description": "",
         "FormalSpec": "",
-        "Category": ""
+        "Category": "",
+        "Probability[e4]": "(0.00%, 0.00%, 0.00%)"
       },
       "x": 7560,
       "y": 780
@@ -1151,7 +1168,8 @@
       "customProperties": {
         "Description": "",
         "FormalSpec": "",
-        "Category": ""
+        "Category": "",
+        "Probability[e4]": "(20.00%, 20.00%, 30.00%)"
       },
       "x": 7400,
       "y": 780
@@ -1163,7 +1181,8 @@
       "customProperties": {
         "Description": "",
         "FormalSpec": "",
-        "Category": ""
+        "Category": "",
+        "Probability[e4]": "(40.00%, 50.00%, 70.00%)"
       },
       "x": 7720,
       "y": 680
@@ -1211,7 +1230,8 @@
       "customProperties": {
         "Description": "",
         "FormalSpec": "",
-        "Category": ""
+        "Category": "",
+        "Probability[e4]": "(7.00%, 7.00%, 7.00%)"
       },
       "x": 8680,
       "y": 580
@@ -1223,7 +1243,8 @@
       "customProperties": {
         "Description": "",
         "FormalSpec": "",
-        "Category": ""
+        "Category": "",
+        "Probability[e4]": "(25.00%, 30.00%, 65.00%)"
       },
       "x": 8840,
       "y": 580
@@ -1235,7 +1256,8 @@
       "customProperties": {
         "Description": "",
         "FormalSpec": "",
-        "Category": ""
+        "Category": "",
+        "Probability[e4]": "(15.00%, 20.00%, 35.00%)"
       },
       "x": 9000,
       "y": 580
@@ -1271,7 +1293,8 @@
       "customProperties": {
         "Description": "",
         "FormalSpec": "",
-        "Category": ""
+        "Category": "",
+        "Probability[e4]": "(25.00%, 40.00%, 45.00%)"
       },
       "x": 8360,
       "y": 680
@@ -1283,7 +1306,8 @@
       "customProperties": {
         "Description": "",
         "FormalSpec": "",
-        "Category": ""
+        "Category": "",
+        "Probability[e4]": "(20.00%, 30.00%, 40.00%)"
       },
       "x": 8520,
       "y": 680
@@ -1307,7 +1331,8 @@
       "customProperties": {
         "Description": "",
         "FormalSpec": "",
-        "Category": ""
+        "Category": "",
+        "Probability[e4]": "(0.00%, 0.00%, 0.00%)"
       },
       "x": 7880,
       "y": 680
@@ -1319,7 +1344,8 @@
       "customProperties": {
         "Description": "",
         "FormalSpec": "",
-        "Category": ""
+        "Category": "",
+        "Probability[e4]": "(10.00%, 15.00%, 20.00%)"
       },
       "x": 8040,
       "y": 680
@@ -1343,7 +1369,8 @@
       "customProperties": {
         "Description": "",
         "FormalSpec": "",
-        "Category": ""
+        "Category": "",
+        "Probability[e4]": "(25.00%, 30.00%, 30.00%)"
       },
       "x": 8200,
       "y": 680
@@ -1391,7 +1418,8 @@
       "customProperties": {
         "Description": "",
         "FormalSpec": "",
-        "Category": ""
+        "Category": "",
+        "Probability[e4]": "(5.00%, 5.00%, 5.00%)"
       },
       "x": 9640,
       "y": 680
@@ -1403,7 +1431,8 @@
       "customProperties": {
         "Description": "",
         "FormalSpec": "",
-        "Category": ""
+        "Category": "",
+        "Probability[e4]": "(5.00%, 5.00%, 5.00%)"
       },
       "x": 9160,
       "y": 680
@@ -1415,7 +1444,8 @@
       "customProperties": {
         "Description": "",
         "FormalSpec": "",
-        "Category": ""
+        "Category": "",
+        "Probability[e4]": "(3.00%, 5.00%, 10.00%)"
       },
       "x": 9320,
       "y": 680
@@ -1427,7 +1457,8 @@
       "customProperties": {
         "Description": "",
         "FormalSpec": "",
-        "Category": ""
+        "Category": "",
+        "Probability[e4]": "(5.00%, 10.00%, 25.00%)"
       },
       "x": 9480,
       "y": 680
@@ -1451,7 +1482,8 @@
       "customProperties": {
         "Description": "",
         "FormalSpec": "",
-        "Category": ""
+        "Category": "",
+        "Probability[e4]": "(5.00%, 7.00%, 10.00%)"
       },
       "x": 9960,
       "y": 580
@@ -1463,7 +1495,8 @@
       "customProperties": {
         "Description": "",
         "FormalSpec": "",
-        "Category": ""
+        "Category": "",
+        "Probability[e4]": "(20.00%, 25.00%, 40.00%)"
       },
       "x": 10120,
       "y": 580
@@ -1475,7 +1508,8 @@
       "customProperties": {
         "Description": "",
         "FormalSpec": "",
-        "Category": ""
+        "Category": "",
+        "Probability[e4]": "(10.00%, 15.00%, 25.00%)"
       },
       "x": 9800,
       "y": 580
@@ -1499,7 +1533,8 @@
       "customProperties": {
         "Description": "",
         "FormalSpec": "",
-        "Category": ""
+        "Category": "",
+        "Probability[e4]": "(30.00%, 10.00%, 50.00%)"
       },
       "x": 3560,
       "y": 980
@@ -1511,7 +1546,8 @@
       "customProperties": {
         "Description": "",
         "FormalSpec": "",
-        "Category": ""
+        "Category": "",
+        "Probability[e4]": "(10.00%, 20.00%, 30.00%)"
       },
       "x": 3720,
       "y": 980
@@ -1535,7 +1571,8 @@
       "customProperties": {
         "Description": "",
         "FormalSpec": "",
-        "Category": ""
+        "Category": "",
+        "Probability[e4]": "(5.00%, 5.00%, 5.00%)"
       },
       "x": 3880,
       "y": 1080
@@ -1547,7 +1584,8 @@
       "customProperties": {
         "Description": "",
         "FormalSpec": "",
-        "Category": ""
+        "Category": "",
+        "Probability[e4]": "(0.00%, 0.00%, 0.00%)"
       },
       "x": 4040,
       "y": 980
@@ -1559,7 +1597,8 @@
       "customProperties": {
         "Description": "",
         "FormalSpec": "",
-        "Category": ""
+        "Category": "",
+        "Probability[e4]": "(5.00%, 5.00%, 10.00%)"
       },
       "x": 4200,
       "y": 980
@@ -1583,7 +1622,8 @@
       "customProperties": {
         "Description": "",
         "FormalSpec": "",
-        "Category": ""
+        "Category": "",
+        "Probability[e4]": "(0.00%, 0.00, 0.00%)"
       },
       "x": 5000,
       "y": 1180
@@ -1619,7 +1659,8 @@
       "customProperties": {
         "Description": "",
         "FormalSpec": "",
-        "Category": ""
+        "Category": "",
+        "Probability[e4]": "(0.00%, 0.00, 0.00%)"
       },
       "x": 5160,
       "y": 1080
@@ -1631,7 +1672,8 @@
       "customProperties": {
         "Description": "",
         "FormalSpec": "",
-        "Category": ""
+        "Category": "",
+        "Probability[e4]": "(10.00%, 15.00%, 20.00%)"
       },
       "x": 5320,
       "y": 1080
@@ -1643,7 +1685,8 @@
       "customProperties": {
         "Description": "",
         "FormalSpec": "",
-        "Category": ""
+        "Category": "",
+        "Probability[e4]": "(0.00%, 0.00, 0.00%)"
       },
       "x": 5480,
       "y": 1080
@@ -1667,7 +1710,8 @@
       "customProperties": {
         "Description": "",
         "FormalSpec": "",
-        "Category": ""
+        "Category": "",
+        "Probability[e4]": "(10.00%, 20.00%, 30.00%)"
       },
       "x": 5800,
       "y": 980
@@ -1691,7 +1735,8 @@
       "customProperties": {
         "Description": "",
         "FormalSpec": "",
-        "Category": ""
+        "Category": "",
+        "Probability[e4]": "(5.00%, 5.00%, 7.00%)"
       },
       "x": 6280,
       "y": 1080
@@ -1715,7 +1760,8 @@
       "customProperties": {
         "Description": "",
         "FormalSpec": "",
-        "Category": ""
+        "Category": "",
+        "Probability[e4]": "(10.00%, 15.00%, 20.00%)"
       },
       "x": 6120,
       "y": 1080
@@ -1727,7 +1773,8 @@
       "customProperties": {
         "Description": "",
         "FormalSpec": "",
-        "Category": ""
+        "Category": "",
+        "Probability[e4]": "(5.00%, 5.00%, 5.00%)"
       },
       "x": 5960,
       "y": 1080
@@ -4050,7 +4097,7 @@
     "name": "London Ambulance System",
     "customProperties": {
       "Description": "",
-      "kaosUnsupported": "@author \"Antoine Cailliau, Axel van Lamsweerde\"\n\n@version \"0.2\"\n\n@experts.quantiles \"(.1, .5, .9)\"\n\noverride obstacle [ paper_jam ]\n  probability[e4] (20.00%, 20.00%, 40.00%)\nend\n\noverride obstacle [ out_of_paper ]\n  probability[e4] (5.00%, 5.00%, 10.00%)\nend\n\noverride obstacle [ data_lost ]\n  probability[e4] (1.00%, 10.00%, 15.00%)\nend\n\noverride obstacle [ printer_off ]\n  probability[e4] (1.00%, 1.00%, 1.00%)\nend\n\noverride obstacle [ mdt_turned_off ]\n  probability[e4] (1.00%, 1.00%, 1.00%)\nend\n\noverride obstacle [ avls_out_of_service ]\n  probability[e4] (0.00%, 0.00%, 0.00%)\nend\n\noverride obstacle [ gps_lost_connection ]\n  probability[e4] (30.00%, 40.00%, 50.00%)\nend\n\noverride obstacle [ location_innaccurate ]\n  probability[e4] (25.00%, 30.00%, 30.00%)\nend\n\noverride obstacle [ forget_to_encode_status ]\n  probability[e4] (20.00%, 25.00%, 40.00%)\nend\n\noverride obstacle [ wrong_button_pressed ]\n  probability[e4] (10.00%, 10.00%, 10.00%)\nend\n\noverride obstacle [ service_end ]\n  probability[e4] (10.00%, 15.00%, 20.00%)\nend\n\noverride obstacle [ destination_changed ]\n  probability[e4] (5.00%, 5.00%, 10.00%)\nend\n\noverride obstacle [ destination_forgotten ]\n  probability[e4] (10.00%, 15.00%, 20.00%)\nend\n\noverride obstacle [ mobilization_cancelled ]\n  probability[e4] (15.00%, 20.00%, 20.00%)\nend\n\noverride obstacle [ ambulance_broken ]\n  probability[e4] (5.00%, 5.00%, 5.00%)\nend\n\noverride obstacle [ ambulance_stopped_in_traffic ]\n  probability[e4] (40.00%, 50.00%, 70.00%)\nend\n\noverride obstacle [ gps_broken ]\n  probability[e4] (0.00%, 0.00%, 0.00%)\nend\n\noverride obstacle [ ambulance_in_unfamiliar_area ]\n  probability[e4] (20.00%, 20.00%, 30.00%)\nend\n\noverride obstacle [ ambulance_traffic_deviation ]\n  probability[e4] (40.00%, 50.00%, 70.00%)\nend\n\noverride obstacle [ fire_environment ]\n  probability[e4] (7.00%, 7.00%, 7.00%)\nend\n\noverride obstacle [ hazardous_environment ]\n  probability[e4] (25.00%, 30.00%, 65.00%)\nend\n\noverride obstacle [ unreachable_patient ]\n  probability[e4] (15.00%, 20.00%, 35.00%)\nend\n\noverride obstacle [ ressource_out_of_order ]\n  probability[e4] (25.00%, 40.00%, 45.00%)\nend\n\noverride obstacle [ qualification_missing_for_ressource ]\n  probability[e4] (20.00%, 30.00%, 40.00%)\nend\n\noverride obstacle [ ressource_confusion ]\n  probability[e4] (0.00%, 0.00%, 0.00%)\nend\n\noverride obstacle [ ressource_not_available ]\n  probability[e4] (10.00%, 15.00%, 20.00%)\nend\n\noverride obstacle [ wrong_info_about_patient ]\n  probability[e4] (25.00%, 30.00%, 30.00%)\nend\n\noverride obstacle [ patient_not_transportable ]\n  probability[e4] (5.00%, 5.00%, 5.00%)\nend\n\noverride obstacle [ insufficient_capacity ]\n  probability[e4] (5.00%, 5.00%, 5.00%)\nend\n\noverride obstacle [ overweight_patient ]\n  probability[e4] (3.00%, 5.00%, 10.00%)\nend\n\noverride obstacle [ patient_cannot_reach_ambulance ]\n  probability[e4] (5.00%, 10.00%, 25.00%)\nend\n\noverride obstacle [ available_bed_not_assigned ]\n  probability[e4] (5.00%, 7.00%, 10.00%)\nend\n\noverride obstacle [ special_unit_required ]\n  probability[e4] (20.00%, 25.00%, 40.00%)\nend\n\noverride obstacle [ no_bed ]\n  probability[e4] (10.00%, 15.00%, 25.00%)\nend\n\noverride obstacle [ ambulance_not_at_station ]\n  probability[e4] (30.00%, 10.00%, 50.00%)\nend\n\noverride obstacle [ allocated_ambulance_not_available ]\n  probability[e4] (10.00%, 20.00%, 30.00%)\nend\n\noverride obstacle [ crew_not_near_printer ]\n  probability[e4] (5.00%, 5.00%, 5.00%)\nend\n\noverride obstacle [ mobilization_taken_by_other_ambulance ]\n  probability[e4] (0.00%, 0.00%, 0.00%)\nend\n\noverride obstacle [ mobilized_to_wrong_destination ]\n  probability[e4] (5.00%, 5.00%, 10.00%)\nend\n\noverride obstacle [ no_line_free ]\n  probability[e4] (0.00%, 0.00, 0.00%)\nend\n\noverride obstacle [ congestion ]\n  probability[e4] (0.00%, 0.00, 0.00%)\nend\n\noverride obstacle [ blackspot ]\n  probability[e4] (10.00%, 15.00%, 20.00%)\nend\n\noverride obstacle [ corrupted_mobilization_order ]\n  probability[e4] (0.00%, 0.00, 0.00%)\nend\n\noverride obstacle [ ambulance_not_available_when_moborder_displayed ]\n  probability[e4] (10.00%, 20.00%, 30.00%)\nend\n\noverride obstacle [ destination_confused ]\n  probability[e4] (5.00%, 5.00%, 7.00%)\nend\n\noverride obstacle [ crew_not_in_ambulance ]\n  probability[e4] (10.00%, 15.00%, 20.00%)\nend\n\noverride obstacle [ crew_distracted ]\n  probability[e4] (5.00%, 5.00%, 5.00%)\nend\n\ndeclare expert [ e1 ]\n\tname \"Expert 1\"\nend\n\ndeclare expert [ e2 ]\n\tname \"Expert 2\"\nend\n\ndeclare expert [ e3 ]\n\tname \"Expert 3\"\nend\n\ndeclare expert [ e4 ]\n\tname \"Expert 4\"\nend\n\ndeclare expert [ e5 ]\n\tname \"Expert 5\"\nend\n\ndeclare calibration\n\tname \"Calibration [Allocated Ambulance Not At Station]\"\n\tprobability 50%\n\t#probability[e1] (13.33%, 33.33%, 53.33%)\n\t#probability[e2] (15.00%, 40.00%, 75.00%)\n\t#probability[e3] (10.00%, 15.00%, 25.00%)\n\tprobability[e4] (30.00%, 10.00%, 50.00%)\n\t#probability[e5] (2.00%, 4.00%, 10.00%)\nend\n\ndeclare calibration\n\tname \"Calibration [Mobilization Cancelled]\"\n\tprobability 13%\n\t#probability[e1] (13.33%, 20.00%, 33.33%)\n\t#probability[e2] (0.00%, 25.00%, 40.00%)\n\t#probability[e3] (1.00%, 1.00%, 2.00%)\n\tprobability[e4] (15.00%, 20.00%, 20.00%)\n\t#probability[e5] (4.00%, 6.00%, 10.00%)\nend\n\ndeclare calibration\n\tname \"Calibration [MDT Turned Off]\"\n\tprobability 33.3%\n\t#probability[e1] (53.33%, 66.67%, 80.00%)\n\t#probability[e2] (0.00%, 0.00%, 0.00%)\n\t#probability[e3] (0.00%, 0.00%, 0.00%)\n\tprobability[e4] (1.00%, 1.00%, 1.00%)\n\t#probability[e5] (0.00%, 0.00%, 0.00%)\nend"
+      "kaosUnsupported": "@author \"Antoine Cailliau, Axel van Lamsweerde\"\n\n@version \"0.2\""
     }
   }
 }

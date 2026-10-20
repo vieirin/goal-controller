@@ -138,17 +138,23 @@ describe('readKaos: the corpus, counted', () => {
         validateModel(parsePistar(model, { metamodel: KAOS_OBSTACLES })),
         [],
       );
-      assert.deepStrictEqual(dialectRecord, {
-        engine: 'kaosprop',
-        projectResources: {},
-      });
-      // the mode is the project's (the native file's dialect, kaosprop), the framework the kinds'
+      // a file with experts, calibrations or their quantiles opens in
+      // kaosexpert's mode, with them as its resources (#190); any other in kaosprop's
+      assert.deepStrictEqual(
+        [dialectRecord.engine, Object.keys(dialectRecord.projectResources)],
+        path === 'ads/las.kaos'
+          ? ['kaosexpert', ['expert']]
+          : path === 'ads/obstacles.kaos'
+            ? ['kaosexpert', ['expert', 'calibration']]
+            : ['kaosprop', []],
+      );
+      // the mode is the project's (the native file's dialect), the framework the kinds'
       assert.strictEqual(model.diagram.customProperties.engine, undefined);
       assert.strictEqual(model.diagram.customProperties.framework, undefined);
     });
 
   it('reads ADS’s las.kaos with the files it imports: one model of the three', () => {
-    const { model, diagnostics } = read('ads/las.kaos', {
+    const { model, diagnostics, dialectRecord } = read('ads/las.kaos', {
       'obstacles.kaos': fixture('ads/obstacles.kaos'),
       'resolutions.kaos': fixture('ads/resolutions.kaos'),
     });
@@ -162,11 +168,28 @@ describe('readKaos: the corpus, counted', () => {
       'kaos.ResolutionLink': 33,
       'kaos.ResponsibilityAssignment': 18,
     });
-    // an imported file's diagnostics are named by it
+    // nothing the imports declare is kept now (#190); what one would keep
+    // is said, named by its file
     assert.ok(
-      diagnostics.some((d) =>
-        d.message.startsWith('obstacles.kaos: declare expert [ e1 ]'),
+      !diagnostics.some((d) =>
+        /^(obstacles|resolutions)\.kaos: /.test(d.message),
       ),
+    );
+    const imported = readKaos('import "x.kaos"', {
+      files: { 'x.kaos': 'declare entity [ e ] end' },
+    }).diagnostics;
+    assert.ok(
+      imported.some((d) =>
+        d.message.startsWith('x.kaos: declare entity [ e ]'),
+      ),
+      JSON.stringify(imported),
+    );
+    // its experts are the model's (#190)
+    assert.deepStrictEqual(
+      JSON.parse(
+        dialectRecord!.projectResources.expert!['experts.json']!,
+      ).experts.map((e: Json) => e.id),
+      ['e1', 'e2', 'e3', 'e4', 'e5'],
     );
     assert.ok(
       !/^import /m.test(model.diagram.customProperties[KAOS_UNSUPPORTED_KEY]),
@@ -393,38 +416,41 @@ declare obstacle [ o ] probability 2% end`);
 });
 
 describe('readKaos: nothing silently dropped', () => {
-  it('keeps experts, calibrations and per-expert estimates as written, in file order, and says each', () => {
-    const { model, diagnostics } = read('ads/obstacles.kaos');
-    const kept: string = model.diagram.customProperties[KAOS_UNSUPPORTED_KEY];
-    assert.ok(
-      kept.startsWith(
-        'override obstacle [ paper_jam ]\n  probability[e4] (20.00%, 20.00%, 40.00%)\nend\n\n',
+  it('reads experts, calibrations and per-expert estimates as kaosexpert’s (#190): nothing kept', () => {
+    const { model, diagnostics, dialectRecord } = read('ads/obstacles.kaos');
+    assert.strictEqual(
+      model.diagram.customProperties[KAOS_UNSUPPORTED_KEY],
+      undefined,
+    );
+    assert.deepStrictEqual(diagnostics, []);
+    // an estimate is its expert's Probability, as written (ADS's falling
+    // quantiles too: the dialect reports them)
+    assert.strictEqual(
+      nodeOf(model, 'paper_jam').customProperties['Probability[e4]'],
+      '(20.00%, 20.00%, 40.00%)',
+    );
+    const estimates = model.orphans.flatMap((n: Json) =>
+      Object.keys(n.customProperties).filter((k) =>
+        k.startsWith('Probability['),
       ),
     );
-    assert.ok(kept.includes('declare expert [ e1 ]\n\tname "Expert 1"\nend'));
-    assert.ok(
-      kept.includes(
-        'declare calibration\n\tname "Calibration [Allocated Ambulance Not At Station]"\n\tprobability 50%',
-      ),
-    );
-    assert.strictEqual(
-      diagnostics.filter((d) => /per-expert estimate/.test(d.message)).length,
-      47,
-    );
-    assert.strictEqual(
-      diagnostics.filter((d) => /^declare (expert|calibration)/.test(d.message))
-        .length,
-      8,
-    );
-    // each a warning with its range in the file
-    const expert = diagnostics.find((d) =>
-      d.message.startsWith('declare expert [ e1 ]'),
-    )!;
-    assert.strictEqual(expert.severity, 'warning');
-    assert.strictEqual(
-      fixture('ads/obstacles.kaos').slice(expert.from, expert.to),
-      'declare expert',
-    );
+    assert.strictEqual(estimates.length, 47);
+    const resources = dialectRecord!.projectResources;
+    assert.deepStrictEqual(JSON.parse(resources.expert!['experts.json']!), {
+      experts: [1, 2, 3, 4, 5].map((n) => ({
+        id: `e${n}`,
+        name: `Expert ${n}`,
+      })),
+    });
+    const [first] = JSON.parse(
+      resources.calibration!['calibrations.json']!,
+    ).calibrations;
+    // anonymous, as ADS declares it; its commented estimates are comments
+    assert.deepStrictEqual(first, {
+      name: 'Calibration [Allocated Ambulance Not At Station]',
+      value: '50%',
+      estimates: { e4: '(30.00%, 10.00%, 50.00%)' },
+    });
   });
 
   it('keeps the model attributes but `@title`, custom attributes, and an import it isn’t given', () => {
@@ -435,14 +461,13 @@ describe('readKaos: nothing silently dropped', () => {
       [
         '@author "Antoine Cailliau, Axel van Lamsweerde"',
         '@version "0.2"',
-        '@experts.quantiles "(.1, .5, .9)"',
         'import "obstacles.kaos"',
         'import "resolutions.kaos"',
       ].join('\n\n'),
     );
     assert.deepStrictEqual(
       diagnostics.map((d) => d.severity),
-      ['info', 'info', 'info', 'warning', 'warning'],
+      ['info', 'info', 'warning', 'warning'],
     );
     const simple = read('ads/simple.kaos');
     assert.ok(
@@ -500,15 +525,16 @@ declare domainproperty [ d ] probability 90% end`;
         'declare predicate [ allocated_p ]',
         'declare type [ boolean ] end',
         'override goal [ g ]',
-        'override domainproperty [ d ]',
       ],
     );
+    // a domain property's probability is kaosexpert's now (#190), a goal's distribution isn't
+    assert.strictEqual(nodeOf(model, 'd').customProperties.Probability, '90%');
     assert.ok(
       kept.includes(
         'override goal [ g ]\n  refinedby [context=night] a, b\n  provided x() and y()\n  except z()\n  relaxedTo w\n  replaces h\n  esr beta [ 1, 2 ]\nend',
       ),
     );
-    assert.strictEqual(diagnostics.length, 11);
+    assert.strictEqual(diagnostics.length, 10);
     // the refinement in a context isn't read: g refines into nothing
     assert.strictEqual(hubsOf(model, 'g').length, 0);
   });
@@ -582,6 +608,61 @@ describe('writeKaos: back to .kaos', () => {
         trip.written,
       );
     });
+
+  it('writes kaosexpert’s back: estimates, distributions, experts, calibrations and their quantiles (#190)', () => {
+    const text = `@experts.quantiles "(.1, .5, .9)"
+declare goal [ g ] rsr 98% obstructedby o end
+declare obstacle [ o ] refinedby a, h refinedby b end
+declare obstacle [ a ]
+  probability[e1] (2.4%, 2.7%, 3%)
+  probability[e2] quantile[2.1%, 2.4%, 2.7%]
+end
+declare obstacle [ b ] probability pert[1%, 2%, 5%] end
+declare domainhypothesis [ h ] probability 98% end
+declare expert [ e1 ] name "Expert1" end
+declare expert [ e2 ] name "Expert2" $affiliation "UCL" end
+declare calibration [ c1 ]
+  name "TemperatureSensorBroken"
+  probability 4.4%
+  probability[e1] (2.3%, 2.5%, 2.8%)
+  probability[e2] (4.1%, 4.7%, 5.2%)
+end
+declare calibration
+  name "Anonymous"
+  probability 1%
+  probability[e1] (30%, 10%, 50%)
+end
+`;
+    const first = kaosNativeFile.read(text, { modelName: 'm' });
+    assert.ok(first.model);
+    assert.strictEqual(first.dialectRecord.engine, 'kaosexpert');
+    const projectResources = first.dialectRecord.projectResources;
+    const written = kaosNativeFile.write!(first.model, {
+      modelName: 'm',
+      projectResources,
+    });
+    assert.deepStrictEqual(written.diagnostics, []);
+    for (const line of [
+      '@experts.quantiles "(.1, .5, .9)"',
+      '  probability[e1] (2.4%, 2.7%, 3%)',
+      '  probability[e2] quantile[2.1%, 2.4%, 2.7%]',
+      '  probability pert[1%, 2%, 5%]',
+      '  probability 98%',
+      'declare expert [ e2 ]\n  name "Expert2"\n  $affiliation "UCL"\nend',
+      'declare calibration\n  name "Anonymous"\n  probability 1%\n  probability[e1] (30%, 10%, 50%)\nend',
+    ])
+      assert.ok(written.text!.includes(line), line);
+    // read back: the same model, the same resources, byte for byte
+    const again = kaosNativeFile.read(written.text!, { modelName: 'm' });
+    assert.deepStrictEqual(again.dialectRecord, first.dialectRecord);
+    assert.deepStrictEqual(
+      modelRoundTrip(kaosNativeFile, first.model, {
+        modelName: 'm',
+        projectResources,
+      }).ok,
+      true,
+    );
+  });
 
   it('writes the syntax KAOSTools’ PEG reads: patterns by KAOSTools’ names, quantities as read', () => {
     const { text } = writeKaos(read('kaostools/las.kaos').model, {
@@ -693,7 +774,7 @@ describe('the KAOS seeds (examples/kaos): each model is its .kaos read', () => {
       'kaos.ObstructionLink': 11,
       'kaos.ResponsibilityAssignment': 18,
     });
-    // its obstacles' estimates are per expert, kept as written: none is read, every goal holds
+    // its obstacles' estimates are per expert: kaosprop reads none, every goal holds
     const analysis = kaospropAnalysisModel(
       readKaosObstacleModel(seed('ambulance').model),
     );

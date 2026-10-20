@@ -1,4 +1,5 @@
 export * from './schema';
+export * from './distribution';
 export * from './options';
 export * from './derive/properties';
 export * from './derive/operators';

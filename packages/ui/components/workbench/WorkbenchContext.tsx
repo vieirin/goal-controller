@@ -166,6 +166,7 @@ import { mergeProblems } from '@/lib/workbench/diagnostics';
 import { saveQueue } from '@/lib/workbench/saveQueue';
 import {
   analyse,
+  analysisContext,
   analysisResource,
   stepped,
   type AnalysisRun,
@@ -2060,10 +2061,16 @@ function WorkbenchState({
             resourceSlotsNow,
             resourceTextsRef.current,
           ),
+          analysisContext(
+            analysis,
+            resourceSlotsNow,
+            resourceTextsRef.current,
+            optionsFor(engine, options),
+          ),
         ),
       );
     },
-    [analyses, analysisEngine, resourceSlotsNow],
+    [analyses, analysisEngine, resourceSlotsNow, engine, options],
   );
   const setAnalysisCase = useCallback(
     (caseId: string) =>

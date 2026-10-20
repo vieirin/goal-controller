@@ -17,7 +17,8 @@ export const kaosNativeFile: NativeFileDefinition = {
       modelName,
       files: Object.assign({}, ...Object.values(projectResources)),
     }),
-  write: (model, { modelName }) => writeKaos(model, { modelName }),
+  write: (model, { modelName, projectResources }) =>
+    writeKaos(model, { modelName, projectResources }),
   lossy: KAOS_LOSSY,
   language: kaosLanguage,
 };

@@ -710,6 +710,8 @@ log are in #182.
   - an import the reader isn't given;
   - a domain property's `probability`.
 
+  Since #190 part A, experts, calibrations, `@experts.quantiles`, an obstacle's per-expert and distribution `probability`, and a domain property's `probability` are read (kaosexpert's keys and resources, "Step 3 part A" below); a goal's per-expert or distribution `esr`/`rsr` is still kept.
+
   An attribute of a placed element is kept as `override <kind> [ <id> ] … end`, so reading it back keeps it in the same place. Each item gets a diagnostic: a warning, or an info for a model attribute. The key is on the diagram, a model-level record; it adds nothing to either dialect's element keys.
 - **Domain properties carry `FormalSpec`** (the book, ch. 17), from KAOSTools' `formalspec`, same as a goal's and an obstacle's: istar-ts's domain-property schema gained the optional key (istar-ts#24), and the `kaos` dialect types it as the same `ltl` formula (goal-controller#338).
 - **References.** A reference resolves by identifier, and by name when the reference is a quoted name (ADS). An element that nothing declares is created with the kind its reference implies (a refinee of a goal is a goal, of an obstacle an obstacle; `obstructedby` an obstacle; `resolvedby` a goal; `assignedto` an agent), with a warning. An anonymous element's identifier is made from its name (`Paper Jam` → `paper_jam`). An `override` of an element not yet seen creates it. A second `declare` of one adds its attributes, with an info diagnostic.
@@ -752,6 +754,170 @@ log are in #182.
   - `carpooling`: REJ'13 re-keyed in `.kaos` from Fig. 4, Fig. 6 and Table 3 (PR G's leftover), citing REJ 18(2):129–146, 2013. kaosprop gives the same numbers as PR G's hand-drawn fixture, to the last digit: 0.015 → … → 0.28.
   - Provenance is in `home/references.ts` under KAOS: RE'12, REJ'13, RE'15, SEAMS'17, KAOSTools and ADS (MIT).
 - **PR G's ui test** ("Analyse on the LAS seed shows the badge on `Achieve[IncidentResolved]`") runs on the `ambulance` seed. `Achieve [Incident Resolved]` is ADS's London Ambulance System's root, and KAOSTools' LAS doesn't have it.
+
+### Step 3 part A: expert combination and uncertainty (goal-controller#190)
+
+Cailliau and van Lamsweerde's RE'15 (DOI 10.1109/RE.2015.7320413, the
+authors' copy `RE2015.pdf`): several experts estimate each leaf obstacle,
+calibration variables weigh them (Cooke's classical model), and each goal's
+probability of satisfaction becomes a distribution, sampled by Monte Carlo
+over a BDD of its obstruction superset, with its violation uncertainty (VU)
+and uncertainty spread (US). Results and the attempts log are in #343.
+
+- **The engine is `kaosexpert`** (D1's working name, kept). Its dialect is
+  kaosprop's with three changes:
+  - a leaf obstacle's `Probability` is a `distribution` that also takes a
+    single value, so kaosprop's point estimates are its degenerate case;
+  - that `Probability` is keyed by expert (D2): `Probability[e1]`;
+  - a domain property has a `Probability` (how likely it holds, RE'15's
+    domain hypotheses; default 1, as kaosprop reads one).
+
+  Its project resources are the experts (`experts.json`) and the
+  calibration variables (`calibrations.json`). Every other key is
+  kaosprop's, so the same file runs under both.
+- **`.kaos` is the native file of both, one definition.** A registry
+  refused two dialects sharing an extension. Now two dialects may share one
+  only through the same `NativeFileDefinition` (`sharedNativeExtensions`),
+  and the reader says which mode a file opens in (`dialectRecord.engine`).
+  A file with experts, calibrations, `@experts.quantiles`, per-expert or
+  distribution estimates, or a domain property's probability opens in
+  kaosexpert's mode; any other in kaosprop's, as before.
+- **A generic `distribution` value type** (the dialect package's
+  `distribution.ts`, shared with the quantitative round, #193). Its forms
+  are KAOSTools' (`ESRAttributeParser`): `beta[α, β]`, `uniform[min, max]`,
+  `triangular[min, mode, max]`, `pert[min, mode, max]`, `quantile[…]`
+  (`quantiles`), and ADS's tuple `(q1, …, qn)`. With `point`, a single value
+  too. It ranges over probabilities by default, or the reals (`range:
+  'real'`). It is written back as read; a value it rejects is a Problem and
+  stays as written. ADS's calibration estimate `(30%, 10%, 50%)` (falling
+  quantiles) is the corpus's one such value.
+- **Keyed properties (D2).** `keyed: 'expert'` on a property, the kind one
+  of the dialect's `projectResources` (`defineDialect` checks it). On disk
+  `Probability[e1]` (`keyedKey`/`keyedKeyOf`). `propertyOf` resolves the key
+  to the property, so the checks read it, and `readProperties` reads each
+  name's value. The framework inspector has a row per expert
+  (`frameworkProperties.ts`'s `schemaOf` takes the resources' names,
+  `resourceNames`), and a `distribution` is a text field there. The Notation
+  view writes no line for a keyed key, because its keys are words: #345.
+- **The `.kaos` grammar is unchanged.** It already parses every form
+  generically: `probability[e1] (…)` is an attribute with a parameter and a
+  tuple, `beta[2, 3]` a name with a bracket. Typing the forms in the grammar
+  would make `beta`, `pert`, … keywords, which KAOSTools doesn't (it matches
+  the distribution's name on an identifier). The reader types them:
+  - an obstacle's or a domain property's `probability X` is `Probability`;
+  - `probability[e] X` is `Probability[e]`, as written (one line, whitespace
+    runs as one space);
+  - `declare expert [ e ]` and `declare calibration` (its known value
+    `probability v`, its experts' `probability[e] X`) are entries of the
+    resources, an attribute they have no key for kept in the entry
+    (`kept`);
+  - `@experts.quantiles "…"` is `experts.json`'s `quantiles`, as written.
+
+  Nothing of these is kept raw any more (ADS's `obstacles.kaos` reads with
+  no diagnostic at all); a goal's per-expert or distribution `esr` still
+  is, since no engine reads it. The writer writes them back after the
+  elements, from the project's resources (`NativeFileContext`), and a read
+  of what it wrote gives the same model and resources, byte for byte.
+- **Cooke's model as RE'15 applies it (D3).** RE'15 gives its numbers, not
+  its formulas, so the rules are those of the tool that made them:
+  KAOSTools' `UncertaintySimulation` (2498386, March 2015) over
+  ExpertOpinionSharp's `CookFramework` (both MIT). It differs from the
+  textbook model:
+  - the bins' masses are hard-coded (.05, .45, .45, .05), though the model
+    declares the levels (.1, .5, .9);
+  - every estimated variable counts, the leaf obstacles too (N):
+    information is averaged over all of them, and the calibration's
+    empirical masses are realisations per bin over N, so they sum to less
+    than 1;
+  - each bin's term of I(s, p) is clamped at 0; calibration is
+    1 − χ²₃(2·N·I);
+  - the cut-off α maximises the decision maker's information, by Brent's
+    search on [0, the largest weight] (ported line for line with the C#'s
+    one departure from Brent's text).
+
+  The evidence: with N = 16 (13 leaf obstacles and 3 calibration
+  variables), Table I's bins give Expert1 1 − χ²₃(2·ln 1.25) = **0.9305**
+  and Expert2 **1**, RE'15's scores exactly. The clamp is needed (without
+  it the statistic is negative and both get 1), and the tail mass .05 too
+  (with .1 the clamp zeroes Expert1's term). ExpertOpinionSharp itself, run
+  under Mono in Docker on the same inputs, gives 0.93052310130834992, which
+  `cooke.test.ts` pins to 1e-12 with its information scores, weights and
+  cut-off. The textbook model is the `classical` option, and `equal` weighs
+  experts the same.
+- **No fitting.** RE'15 fits nothing to the fire alarm: the decision maker
+  is the experts' quantile distributions mixed by weight, each CDF linear
+  between its quantiles and reaching 0 and 1 at the variable's intrinsic
+  range (all experts' quantiles and the known value, 10 % beyond each end),
+  as the tool samples it. A named distribution is sampled by its own
+  inverse CDF: Beta by the inverse regularised incomplete beta function,
+  PERT as a Beta with λ = 4. For Cooke's scores it gives its quantiles at
+  the levels. The brief's "Beta/PERT/Triangular as RE'15 does" is the
+  named distributions ADS's experts may give, not a fit.
+- **Numerics in pure TypeScript (D5)**, generic, in `lib/src/numeric/`:
+  - ln Γ, the incomplete beta and gamma functions and their inverses
+    (Numerical Recipes);
+  - distributions, a mixture, a seeded generator (sfc32 seeded through
+    splitmix32);
+  - ROBDDs with apply, ite and the probability walk of §VI.B;
+  - Brent's minimiser.
+
+  No numeric library.
+- **Obstruction supersets as BDDs (§VI.A–B)**, with kaosprop's quantities as
+  kaosprop reads them:
+  - an obstacle refinement is an AND (times its `P(O|SO)` as an event),
+    several refinements an OR;
+  - a domain property in one holds with its probability;
+  - an obstruction is the obstacle and its `P(¬G|O)`;
+  - a refined goal is obstructed when any sub-goal is, its alternatives
+    when all are;
+  - a case-driven refinement is a chain of case events;
+  - a leaf goal nothing obstructs fails with 1 − its `ESR`.
+
+  With point estimates only, every sample is kaosprop's EPS: RE'12's LAS to
+  1e-12. REJ'13's carpooling differs by 0.0008 at one goal, because the BDD
+  counts Wrong Instructions Sent, shared by two sub-obstacles, once. §VI.B's
+  worked example is 98.22 % (0.982199524); the paper prints 98.21 %, its
+  digits truncated.
+- **Monte Carlo (D4).** Each sample draws every event in a fixed order
+  (a mixture draws the expert by weight, then from that expert's
+  distribution, as KAOSTools does). Each goal's sample is 1 − Pr[OS(G)].
+  The options are `samples` (default 10000), `seed` (default 1) and
+  `weighting`, engine options (§3.8 of the guide), and the analyses get
+  them. VU and US are §III.B's:
+  - VU = SU(RDS), the share of samples below the RSR;
+  - US = √(Σ (xᵢ − RSR)² / k) over the k samples below it.
+
+  SU(p) is the formula's ∫ₓ<ₚ; the paper's prose ("at least p") says the
+  opposite, a slip, logged.
+- **The result shape gains a distribution** (the guide's §3.7): a value's
+  `distribution` carries its quantiles, mean, sample count and a
+  histogram. An analysis may read several resource kinds (`inputs`) and is
+  given them and the options (`context`). `analysisText` prints a
+  distribution after its value; other engines' reports are unchanged.
+- **The report.** One case, run as steps:
+  - the run (samples, seed, events);
+  - each expert's information, calibration and weight;
+  - each goal (`P 82.27% · VU 1 · US 0.1582`, a warning when VU > 0) and
+    obstacle, with how its estimate was made.
+
+  "Critical obstacles" (§VII) is one case per leaf obstacle and goal it
+  violates (VU > 0): the obstacle alone, every other leaf at 0, ranked by
+  VU then US, as Table III.
+- **The fire alarm.** RE'15 prints too little to re-key the model whole:
+  - Fig. 2 has the obstacle trees of three leaf goals;
+  - Table I has two of the three calibration variables;
+  - Table II has 3 of the 13 leaf obstacles' estimates.
+
+  The calibration scores need only Table I's bins and N, and are
+  reproduced exactly. The information scores (0.4216, 0.4740), so the
+  weights, VU 1, US 0.1645 and Table III, depend on the estimates the paper
+  doesn't print. The seed and its oracle are part A's second PR.
+- **Paper findings** (#343):
+  - US is 0.1645 in §III and 0.1529 in §VII, for the same goal;
+  - the weights are truncated, not rounded (0.45285 is printed 0.4528);
+  - so is §VI.B's 98.2199 % (98.21 %);
+  - SU's prose contradicts its formula;
+  - §V mentions three calibration variables, Table I gives two.
 
 ### Models typed by their framework (goal-controller#185)
 

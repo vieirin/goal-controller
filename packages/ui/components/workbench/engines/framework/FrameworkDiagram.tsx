@@ -12,7 +12,11 @@ import {
 } from '@istar-ts/core';
 import { IstarInspector, type IstarExtension } from '@istar-ts/react';
 import { nextFrameworkId } from '@/lib/workbench/frameworkOpen';
-import { linkSchemaOf, schemaOf } from '@/lib/workbench/frameworkProperties';
+import {
+  linkSchemaOf,
+  schemaOf,
+  type KeyNames,
+} from '@/lib/workbench/frameworkProperties';
 import type { FrameworkMode } from '@/lib/workbench/frameworkModes';
 import WorkbenchCanvas from '../shared/WorkbenchCanvas';
 
@@ -40,7 +44,10 @@ const labelOf = (kind: string): string =>
  * kind's definition declares (nfrprop's `initialLabel`, goal-controller#327)
  * are typed here too, element kinds and link kinds alike.
  */
-export const dialectParts = (definition: AnyDialect): IstarExtension =>
+export const dialectParts = (
+  definition: AnyDialect,
+  names?: KeyNames,
+): IstarExtension =>
   ({
     name: `${definition.id}-dialect`,
     elements: Object.fromEntries(
@@ -51,7 +58,7 @@ export const dialectParts = (definition: AnyDialect): IstarExtension =>
         ]),
       ].flatMap((kind) => {
         const element = (definition.elements as AnyDialect['elements'])[kind];
-        const properties = schemaOf(definition, kind);
+        const properties = schemaOf(definition, kind, names);
         if (!element?.prefix && !properties) return [];
         return [
           [
@@ -140,14 +147,25 @@ const BASE_EXTENSIONS: Readonly<Record<FrameworkMode, IstarExtension>> = {
 export default function FrameworkDiagram({
   mode,
   definition,
+  names,
 }: {
   mode: FrameworkMode;
   definition: AnyDialect;
+  /** the project resources' names a keyed property has a field per (kaosexpert's experts, goal-controller#190) */
+  names?: KeyNames;
 }) {
   const base = BASE_EXTENSIONS[mode];
+  // by content: the resources are parsed again on every edit of theirs
+  const namesKey = JSON.stringify(names ?? {});
   const extensions = useMemo(
-    () => [base, withOwnProperties(dialectParts(definition), base)],
-    [base, definition],
+    () => [
+      base,
+      withOwnProperties(
+        dialectParts(definition, JSON.parse(namesKey) as KeyNames),
+        base,
+      ),
+    ],
+    [base, definition, namesKey],
   );
   return (
     <WorkbenchCanvas

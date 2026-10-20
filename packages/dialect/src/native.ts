@@ -53,18 +53,28 @@ export const nativeExtensions = (
 
 /**
  * The extensions two dialects' native files both take: which the Open
- * dialog can't tell apart (a registry checks there are none).
+ * dialog can't tell apart (a registry checks there are none). Dialects
+ * over one another that declare the same native file (one definition,
+ * goal-controller#190) share it: its reader says which of them a file opens
+ * in (`dialectRecord.engine`).
  */
 export const sharedNativeExtensions = (
   dialects: readonly Pick<AnyDialect, 'id' | 'nativeFiles'>[],
 ): { extension: string; dialects: string[] }[] => {
-  const by = new Map<string, string[]>();
+  const by = new Map<
+    string,
+    { dialects: string[]; files: Set<NativeFileDefinition> }
+  >();
   for (const { dialect, file } of nativeFilesOf(dialects))
-    for (const extension of file.extensions)
-      by.set(extension, [...(by.get(extension) ?? []), dialect]);
+    for (const extension of file.extensions) {
+      const owners = by.get(extension) ?? { dialects: [], files: new Set() };
+      owners.dialects.push(dialect);
+      owners.files.add(file);
+      by.set(extension, owners);
+    }
   return [...by]
-    .filter(([, owners]) => owners.length > 1)
-    .map(([extension, owners]) => ({ extension, dialects: owners }));
+    .filter(([, owners]) => owners.files.size > 1)
+    .map(([extension, owners]) => ({ extension, dialects: owners.dialects }));
 };
 
 /** The native file a file's name says it is (its longest extension wins), or null. */

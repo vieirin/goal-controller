@@ -10,6 +10,7 @@ import {
   enumOptionOf,
   linkPropertiesOf,
   probabilityOf,
+  readDistribution,
   propertyOf,
   valueOf,
   type AnyDialect,
@@ -449,6 +450,10 @@ export const valueProblem = (
       return probabilityOf(text) === null
         ? `A probability in [0, 1] (0.8, .8 or 80%), not ${text.trim()}`
         : null;
+    case 'distribution': {
+      const read = readDistribution(text, value);
+      return 'error' in read ? read.error : null;
+    }
     case 'text':
     case 'formula':
       return null;

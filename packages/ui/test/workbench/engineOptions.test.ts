@@ -58,6 +58,10 @@ describe('engine options', () => {
       runtimeFormulas: false,
       continuous: true,
       infeasibleActionPenalty: 100,
+      // kaosexpert's (#190)
+      samples: 10000,
+      seed: 1,
+      weighting: 're15',
     });
   });
 

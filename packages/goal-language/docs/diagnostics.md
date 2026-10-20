@@ -273,6 +273,7 @@ first.
 | `An element's id (G1), not G1, G2` | error | `reference` that is neither one id, as a `refList` reads them, nor the piStar id of an element of the model |
 | `G9 is not an element of this model`, `A1 is a kaos.Agent, not a kaos.BehavioralGoal` | error | `reference` naming a missing element, or one of a kind it doesn't take |
 | `A probability in [0, 1] (0.8, .8 or 80%), not 120%` | error | `probability` that is neither a decimal nor a percentage in [0, 1] |
+| `Quantiles don't decrease: 0.1 after 0.3`, `pert[min, mode, max]: min ≤ mode ≤ max, not …`, `No distribution gamma: …`, `uniform[…] takes 2 parameters, not 1` | error | `distribution` that isn't one of its forms, or whose parameters aren't its form's |
 
 ```goal-check edgeV2
 G1: Deliver

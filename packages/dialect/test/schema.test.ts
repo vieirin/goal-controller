@@ -4,7 +4,10 @@ import {
   defineDialect,
   defineExtension,
   hasIds,
+  keyedKey,
+  keyedKeyOf,
   probabilityOf,
+  propertyOf,
   type AnyDialect,
   type CheckNameOf,
   type ConstructOf,
@@ -293,6 +296,62 @@ describe('defineDialect', () => {
     expect(ocl({ resource: 'hddl', category: 'tasks' })).to.throw(
       /quality.Controls completes from unknown project resource hddl/,
     );
+  });
+
+  it('keys a property by a project resource it declares only (#190)', () => {
+    const keyed = (keyedBy: string) =>
+      bad(
+        (d) =>
+          ({
+            ...d,
+            projectResources: {
+              expert: {
+                label: 'Experts',
+                format: 'json',
+                path: 'experts.json',
+              },
+            },
+            properties: {
+              ...d.properties,
+              quality: [
+                {
+                  key: 'Probability',
+                  value: { type: 'distribution', point: true },
+                  keyed: keyedBy,
+                  help: '',
+                },
+              ],
+            },
+          }) as AnyDialect,
+      );
+    expect(keyed('expert')).not.to.throw();
+    expect(keyed('judge')).to.throw(
+      /quality.Probability is keyed by unknown project resource judge/,
+    );
+    const dialect = {
+      properties: {
+        quality: [
+          {
+            key: 'Probability',
+            value: { type: 'probability' },
+            keyed: 'expert',
+            help: '',
+          },
+          { key: 'Weight', value: { type: 'int' }, help: '' },
+        ],
+      },
+    } as unknown as AnyDialect;
+    // its names' keys on disk are it; another property's aren't
+    expect(propertyOf(dialect, 'quality', 'Probability[e1]')?.key).to.equal(
+      'Probability',
+    );
+    expect(propertyOf(dialect, 'quality', 'Weight[e1]')).to.equal(undefined);
+    expect(keyedKeyOf('Probability[e1]')).to.deep.equal({
+      key: 'Probability',
+      name: 'e1',
+    });
+    expect(keyedKeyOf('Probability')).to.equal(null);
+    expect(keyedKey('Probability', 'e2')).to.equal('Probability[e2]');
   });
 
   it('declares properties on links by link kind, iStar’s or an extension’s (#107)', () => {

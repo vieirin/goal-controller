@@ -9,7 +9,7 @@
 import { defineProperties, prop } from '@istar-ts/core';
 import { kaosExtension } from '@istar-ts/dsm3-kaos';
 import { behavioralGoalProperties } from '@istar-ts/dsm3-kaos/metamodel';
-import { kaos, nfrprop } from '@goal-controller/lib';
+import { kaos, kaosexpert, nfrprop } from '@goal-controller/lib';
 import type { IstarExtension } from '@istar-ts/react';
 import { describe, expect, it } from 'vitest';
 import {
@@ -32,6 +32,35 @@ describe("a dialect's own properties, typed for istar-ts's inspector (#327)", ()
     // Anchor is a reference, ResolutionType an enum: only the latter is typed
     const schema = linkSchemaOf(kaos, 'kaosObstacles.ResolutionLink')!;
     expect(Object.keys(schema.shape)).toEqual(['ResolutionType']);
+  });
+
+  it('types a distribution as its text, and a keyed property one row per name (kaosexpert’s experts, #190)', () => {
+    const plain = schemaOf(kaosexpert, 'kaosObstacles.Obstacle')!;
+    expect(Object.keys(plain.shape)).toEqual([
+      'Description',
+      'Category',
+      'Probability',
+    ]);
+    expect(plain.shape.Probability!.type).toBe('string');
+    const schema = schemaOf(kaosexpert, 'kaosObstacles.Obstacle', {
+      expert: ['e1', 'e2'],
+    })!;
+    expect(Object.keys(schema.shape)).toEqual([
+      'Description',
+      'Category',
+      'Probability',
+      'Probability[e1]',
+      'Probability[e2]',
+    ]);
+    // the parts take the names too
+    const parts = dialectParts(kaosexpert, { expert: ['e1'] });
+    expect(
+      Object.keys(
+        (parts.elements as Record<string, { properties?: { shape: object } }>)[
+          'kaosObstacles.Obstacle'
+        ]!.properties!.shape,
+      ),
+    ).toContain('Probability[e1]');
   });
 
   it('has no schema for a kind with no properties, or none istar-ts has a field for', () => {
