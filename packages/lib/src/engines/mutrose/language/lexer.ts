@@ -1,3 +1,10 @@
+import {
+  OCL_BOOLEANS,
+  OCL_KEYWORDS,
+  OCL_LITERALS,
+  OCL_OPERATIONS,
+  OCL_OPERATORS,
+} from '@goal-controller/goal-language';
 import { DefaultLexer, type LexerResult } from 'langium';
 
 // chevrotain's (Langium's lexer), through Langium: lib does not depend on it
@@ -17,19 +24,31 @@ const literal = (...keywords: string[]): Array<[string, RegExp]> =>
   ]);
 
 /**
- * OCL (OclExpression): longest match, so `->` beats `-`, `<>` and `<=` beat
- * `<`; a keyword ties with an IDENT of its length and wins, a longer word
- * (`index`) is an IDENT. Spaces are skipped.
+ * The catalog's operators and punctuation, without `,`, `[`, `]`: OCL's
+ * grammar here (OclExpression) never uses them (those are OclVariables',
+ * tokenized separately by `variables`).
+ */
+const OCL_SYMBOLS = OCL_OPERATORS.filter(
+  (symbol) => symbol !== ',' && symbol !== '[' && symbol !== ']',
+);
+
+/**
+ * OCL (OclExpression), built from the goal-language catalog
+ * (goal-controller#172): longest match, so `->` beats `-`, `<>`/`!=` and
+ * `<=` beat `<`; a keyword ties with an IDENT of its length and wins, a
+ * longer word (`index`) is an IDENT. Spaces are skipped. The condition
+ * words (`assertion`, `condition`, `trigger`) are not OCL, so they are not
+ * here: this lexer reads them only in `creationCondition`.
  */
 const OCL = rules([
-  ...literal('->', '<>', '<=', '>=', '!=', '&&', '||'),
-  ...literal('.', ':', '|', '(', ')', '=', '<', '>', '!'),
-  ...literal('select', 'forAll', 'exists', 'collect', 'reject'),
-  ...literal('in', 'not', 'and', 'or', 'true', 'false', 'True', 'False'),
-  ['STRING', /"[^"\r\n]*"/],
-  ['NUMBER', /-?[0-9]+\.[0-9]+/],
-  ['INTEGER', /-?[0-9]+/],
-  ['IDENT', /[A-Za-z_][A-Za-z0-9_]*/],
+  ...literal(...OCL_SYMBOLS),
+  ...literal(...OCL_OPERATIONS.map((operation) => operation.name)),
+  ...literal(...OCL_KEYWORDS),
+  ...literal(...OCL_BOOLEANS),
+  ['STRING', OCL_LITERALS.STRING],
+  ['NUMBER', OCL_LITERALS.NUMBER],
+  ['INTEGER', OCL_LITERALS.INTEGER],
+  ['IDENT', OCL_LITERALS.IDENT],
   ['SKIPPED', /\s+/],
 ]);
 

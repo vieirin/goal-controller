@@ -92,6 +92,30 @@ rules give them.
 Every change kept the Edge engines byte for byte: the Notation documents
 and PRISM of every example are the same (`pnpm snapshot:language`).
 
+## OCL vocabulary (goal-controller#172)
+
+The goal-language's `ocl` value and MutRoSe's own Langium language (#62) each
+named the collection operations, the keywords, the operators and the literal
+patterns; the copies had drifted. The vocabulary now has one source, the
+goal-language's catalog (`packages/goal-language/src/catalog.ts`:
+`OCL_OPERATIONS`, `OCL_KEYWORDS`, `OCL_OPERATORS`, `OCL_BOOLEANS`,
+`OCL_LITERALS`): both lexers (`goal-language/src/lexer.ts`'s `ocl` rules and
+`lib/src/engines/mutrose/language/lexer.ts`'s `OCL`) build from it, and
+`goal.langium`'s `OclPart`/`OclKeyword` restate it (a `.langium` file can't
+import TS), checked against the catalog by a drift test on each side.
+
+- **`!=` is a synonym of `<>`.** lsp-mutrose's OCL.g4 has it, and MutRoSe's
+  decomposer already accepted it; the goal-language's `ocl` value didn't
+  (`r.x != 0` was a token error there). It is now in `OCL_OPERATORS`, so both
+  lexers accept it.
+- **`assertion`/`condition`/`trigger` are goal-language-only, not OCL.**
+  They are the condition-kind words GODA's `CreationCondition` uses
+  (`assertion condition "…"`, `assertion trigger "…"`), which the
+  goal-language's lenient `ocl` value tolerates everywhere. They are kept
+  separate (`OCL_CONDITION_WORDS`), not in the vocabulary MutRoSe's lexer
+  builds from: MutRoSe keeps reading them only in `creationCondition`,
+  case-insensitively.
+
 ## Project resources (goal-controller#25)
 
 MutRoSe's definition declares what the decomposer reads beside the model:

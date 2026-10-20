@@ -658,10 +658,10 @@ export function isOclKeyword(item: unknown): item is OclKeyword {
     return item === 'select' || item === 'forAll' || item === 'exists' || item === 'collect' || item === 'reject' || item === 'in' || item === 'not' || item === 'and' || item === 'or' || item === 'assertion' || item === 'condition' || item === 'trigger' || item === 'true' || item === 'false' || item === 'True' || item === 'False';
 }
 
-export type OclPart = '!' | '&&' | '(' | ')' | ',' | '->' | '.' | ':' | '<' | '<=' | '<>' | '=' | '>' | '>=' | '[' | ']' | '|' | '||' | OclKeyword | string;
+export type OclPart = '!' | '!=' | '&&' | '(' | ')' | ',' | '->' | '.' | ':' | '<' | '<=' | '<>' | '=' | '>' | '>=' | '[' | ']' | '|' | '||' | OclKeyword | string;
 
 export function isOclPart(item: unknown): item is OclPart {
-    return isOclKeyword(item) || item === '->' || item === '.' || item === ',' || item === ':' || item === '|' || item === '(' || item === ')' || item === '[' || item === ']' || item === '=' || item === '<>' || item === '<' || item === '<=' || item === '>' || item === '>=' || item === '&&' || item === '||' || item === '!' || (typeof item === 'string' && (/[A-Za-z_][A-Za-z0-9_]*/.test(item) || /"[^"\r\n]*"/.test(item) || /-?[0-9]+/.test(item) || /-?[0-9]+\.[0-9]+/.test(item)));
+    return isOclKeyword(item) || item === '->' || item === '.' || item === ',' || item === ':' || item === '|' || item === '(' || item === ')' || item === '[' || item === ']' || item === '=' || item === '<>' || item === '!=' || item === '<' || item === '<=' || item === '>' || item === '>=' || item === '&&' || item === '||' || item === '!' || (typeof item === 'string' && (/[A-Za-z_][A-Za-z0-9_]*/.test(item) || /"[^"\r\n]*"/.test(item) || /-?[0-9]+/.test(item) || /-?[0-9]+\.[0-9]+/.test(item)));
 }
 
 export interface OclValue extends langium.AstNode {
