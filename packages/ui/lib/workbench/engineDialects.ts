@@ -21,6 +21,7 @@ import {
   sleecEngine,
   type Analyses,
   type AnalysisModel,
+  type AnyModel,
   type Check,
   type Engine,
   type OutputLanguage,
@@ -33,7 +34,6 @@ import type {
   ExtensionDefinition,
   OptionDefinition,
 } from '@goal-controller/dialect';
-import type { IStarModel } from '@goal-controller/goal-tree';
 import type { TransformEngine } from '@/lib/types';
 
 export const ENGINE_LIST = registerEngines(
@@ -238,7 +238,7 @@ export const dialectOf = (engine: TransformEngine): AnyDialect | null =>
 /** An analysis engine's analyses, by id, and how it reads a model for them (the view of its `KindModel`, goal-controller#125). */
 export type AnalysisEngine = {
   analyses: Analyses;
-  model: (model: IStarModel) => AnalysisModel;
+  model: (model: AnyModel) => AnalysisModel;
 };
 
 /**

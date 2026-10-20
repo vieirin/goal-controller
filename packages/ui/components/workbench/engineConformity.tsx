@@ -69,7 +69,7 @@ const localProblems = (text: string, engine: TransformEngine): Problem[] => {
   try {
     const framework = frameworkEditorOf(engine);
     if (framework)
-      return frameworkProblems(parseModel(text) as never, framework.definition);
+      return frameworkProblems(parseModel(text), framework.definition);
     const tree = treeView(text, engine);
     return [
       ...treeProblems(tree, engine),

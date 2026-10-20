@@ -12,7 +12,6 @@ import {
   ISTAR_2_0,
   toPistar,
   type AnyMetamodel,
-  type IstarModel,
 } from '@istar-ts/core';
 import { KAOS_OBSTACLES } from '@istar-ts/dsm3-kaos/metamodel';
 import { NFR } from '@istar-ts/dsm3-nfr/metamodel';
@@ -23,6 +22,7 @@ import {
   type ExtensionDefinition,
   type Framework,
 } from '@goal-controller/dialect';
+import type { AnyModel } from '@goal-controller/lib';
 import { recordedFramework, withModelSettings } from '../project';
 
 /**
@@ -81,10 +81,10 @@ export const hostFor = (
     : FRAMEWORK_ROOTS[framework];
 
 /** An empty model of a framework, written with its root's tool and version. */
-export const emptyModelOf = (framework: Framework): IstarModel =>
+export const emptyModelOf = (framework: Framework): AnyModel =>
   createEmptyModel(undefined, {
     metamodel: FRAMEWORK_ROOTS[framework],
-  }) as unknown as IstarModel;
+  });
 
 /**
  * A new, empty model file of a framework: its root's piStar text, recording

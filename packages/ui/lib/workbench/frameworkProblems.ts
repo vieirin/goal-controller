@@ -9,13 +9,14 @@
  * element (a KAOS obstacle obstructing a refined goal), and a `reference`
  * value naming no element of its kinds (a resolution's `Anchor`).
  */
-import { validateModel, type IstarModel } from '@istar-ts/core';
+import { validateModel } from '@istar-ts/core';
 import { refinementsOf } from '@goal-controller/goal-tree';
 import {
   valueOf,
   type AnyDialect,
   type PropertyDefinition,
 } from '@goal-controller/dialect';
+import type { AnyModel } from '@goal-controller/lib';
 import type { Problem } from './types';
 
 /** A link kind as people read it: `nfr.ContributionLink` is "Contribution link". */
@@ -27,7 +28,7 @@ const linkLabel = (kind: string): string =>
 
 /** The model's problems as its framework's dialect says them (source: the dialect's name). */
 export const frameworkProblems = (
-  model: IstarModel,
+  model: AnyModel,
   definition: Pick<AnyDialect, 'name' | 'linkLabels'> &
     Partial<
       Pick<
@@ -62,19 +63,19 @@ export const frameworkProblems = (
 ];
 
 /** An element as people read it: its text, quoted. */
-const quoted = (model: IstarModel, id: string): string =>
+const quoted = (model: AnyModel, id: string): string =>
   `"${model.elements.get(id)?.name ?? id}"`;
 
 /** Links of a `leafTargets` kind onto an element a refinement refines. */
 const leafTargetProblems = (
-  model: IstarModel,
+  model: AnyModel,
   definition: Pick<AnyDialect, 'name'> &
     Partial<Pick<AnyDialect, 'framework' | 'refinements' | 'leafTargets'>>,
 ): Problem[] => {
   const kinds = definition.leafTargets ?? [];
   if (!kinds.length) return [];
   const refined = new Set(
-    [...refinementsOf(model as never, definition).byLink.values()].map(
+    [...refinementsOf(model, definition).byLink.values()].map(
       (refinement) => refinement.parent,
     ),
   );
@@ -90,7 +91,7 @@ const leafTargetProblems = (
 };
 
 /** The element a reference names: by its piStar id, or the id its text starts with (`G1: …`). */
-const referenced = (model: IstarModel, value: string) =>
+const referenced = (model: AnyModel, value: string) =>
   model.elements.get(value) ??
   [...model.elements.values()].find((element) =>
     element.name.startsWith(`${value}: `),
@@ -118,7 +119,7 @@ const referencesOf = (
 
 /** Each `reference` value, on an element or a link, that names no element of its kinds. */
 const referenceProblems = (
-  model: IstarModel,
+  model: AnyModel,
   definition: Pick<AnyDialect, 'name'> &
     Partial<Pick<AnyDialect, 'properties' | 'links'>>,
 ): Problem[] => {
