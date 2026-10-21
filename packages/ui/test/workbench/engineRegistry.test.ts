@@ -44,6 +44,10 @@ import {
   kaosexpertAnalysisModel,
   kaosexpertOptions,
   kaosprop,
+  kaosres,
+  kaosresAnalyses,
+  kaosresAnalysisModel,
+  kaosresOptions,
   kaospropAnalyses,
   kaospropAnalysisModel,
   kaospropEngineMapper,
@@ -105,6 +109,7 @@ const ALL: TransformEngine[] = [
   'kaosdoc',
   'kaosprop',
   'kaosexpert',
+  'kaosres',
   'nfrprop',
 ];
 
@@ -136,12 +141,14 @@ describe('the engine registry', () => {
       kaosdoc: kaos,
       kaosprop,
       kaosexpert,
+      kaosres,
       nfrprop,
     });
     expect(ALL.filter(isFrameworkEngine)).toEqual([
       'kaosdoc',
       'kaosprop',
       'kaosexpert',
+      'kaosres',
       'nfrprop',
     ]);
   });
@@ -180,10 +187,12 @@ describe('the engine registry', () => {
     const {
       kaosdoc: none,
       kaosprop: nothing,
+      kaosres: neither,
       ...parsers
     } = FRAMEWORK_ENGINE_PROJECT_RESOURCES;
     expect(none).toEqual({});
     expect(nothing).toEqual({});
+    expect(neither).toEqual({});
     expectSameEntries(parsers, {
       kaosexpert: FRAMEWORK_ENGINE_PROJECT_RESOURCES.kaosexpert,
       nfrprop: nfrpropProjectResourceParsers,
@@ -214,6 +223,7 @@ describe('the engine registry', () => {
       kaosprop: kaospropEngineMapper,
       // kaosprop's: its entries and link keys (#190)
       kaosexpert: kaospropEngineMapper,
+      kaosres: kaospropEngineMapper,
       nfrprop: nfrpropEngineMapper,
     }));
 
@@ -242,6 +252,7 @@ describe('the engine registry', () => {
       goda: godaOptions,
       istardt: istardtOptions,
       kaosexpert: kaosexpertOptions,
+      kaosres: kaosresOptions,
     });
   });
 
@@ -259,6 +270,7 @@ describe('the engine registry', () => {
       kaosdoc: 'KAOS document',
       kaosprop: 'KAOS obstacle probabilities',
       kaosexpert: 'KAOS expert estimates and uncertainty',
+      kaosres: 'KAOS countermeasure selection',
       nfrprop: 'NFR propagation',
     }));
 
@@ -366,6 +378,15 @@ describe('the engine registry', () => {
         generates: false,
       },
       {
+        id: 'kaosres',
+        label: 'KAOS countermeasure selection',
+        output: 'Selections',
+        extension: 'json',
+        language: 'text',
+        help: "Cailliau and van Lamsweerde's selection of countermeasures to obstacles (SEAMS'17): each selection of resolutions integrated into the model and propagated, the safe, consistent and cost-optimal ones, and the one of lowest cost that maximises the high-level goals' satisfaction",
+        generates: false,
+      },
+      {
         id: 'nfrprop',
         label: 'NFR propagation',
         output: 'Labels',
@@ -384,9 +405,12 @@ describe('the engine registry', () => {
       'cgm',
       'kaosprop',
       'kaosexpert',
+      'kaosres',
       'nfrprop',
     ]);
     expect(ENGINE_ANALYSES.kaosexpert?.analyses).toBe(kaosexpertAnalyses);
+    expect(ENGINE_ANALYSES.kaosres?.analyses).toBe(kaosresAnalyses);
+    expect(ENGINE_ANALYSES.kaosres?.model).toBe(kaosresAnalysisModel);
     expect(ENGINE_ANALYSES.kaosexpert?.model).toBe(kaosexpertAnalysisModel);
     expect(ENGINE_ANALYSES.kaosprop?.analyses).toBe(kaospropAnalyses);
     expect(ENGINE_ANALYSES.kaosprop?.model).toBe(kaospropAnalysisModel);
@@ -420,6 +444,7 @@ describe('the engine registry', () => {
       kaosdoc: ['Requirements document', 'md', 'text', true, false, kaos],
       kaosprop: ['Probabilities', 'json', 'text', false, false, kaosprop],
       kaosexpert: ['Uncertainty', 'json', 'text', false, true, kaosexpert],
+      kaosres: ['Selections', 'json', 'text', false, true, kaosres],
       nfrprop: ['Labels', 'json', 'text', false, false, nfrprop],
     } as const;
     for (const engine of ALL) {

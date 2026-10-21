@@ -12,8 +12,10 @@ their later papers (RE'15, SEAMS'17).
   (goal-controller#181): the model is read from it, and it is written from
   the model once you edit it, in KAOSTools' syntax.
 - `las.txt`: the model, as the `.kaos` importer reads the file. It opens in
-  kaosprop's mode (RE'12's obstacle probabilities), with the plain `kaos`
-  mode one switch away.
+  kaosres's mode, as a `.kaos` with resolutions does (goal-controller#191):
+  RE'12's obstacle probabilities and the countermeasure selection, whose
+  one resolution, untyped, is left out. kaosprop and the plain `kaos` mode
+  are one switch away.
 - `las.expected.csv`: the oracle of **RE'12's hand-drawn model**
   (`packages/lib/test/engines/kaosprop/fixtures/re12-las.txt`), not of this
   file. KAOSTools' `las.kaos` has `[.8]`/`[.2]` case legs where the paper

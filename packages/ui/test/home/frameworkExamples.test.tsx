@@ -114,6 +114,7 @@ describe('Home: the KAOS and NFR seeds (#171)', () => {
           'ambulance',
           'carpooling',
           'fire-alarm',
+          'flood',
           'kaos-welcome.txt',
           'las',
           'mooring',
@@ -168,6 +169,7 @@ describe('Home: the KAOS and NFR seeds (#171)', () => {
       expect.stringContaining('ambulance'),
       expect.stringContaining('carpooling'),
       expect.stringContaining('fire-alarm'),
+      expect.stringContaining('flood'),
       expect.stringContaining('kaos-welcome.txt'),
       expect.stringContaining('las'),
       expect.stringContaining('mooring'),
@@ -188,6 +190,9 @@ describe('Home: the KAOS and NFR seeds (#171)', () => {
       'https://github.com/ancailliau/ADS',
       // the fire alarm's model beside RE'15's tables (#197)
       'https://github.com/ancailliau/phd-thesis/blob/6a9f5fd81ac0be560d30803f04702d23d5622893/running-examples-others/firesystem.kaos',
+      // the flood detection model, its two sources (#200)
+      'https://github.com/ancailliau/phd-thesis/blob/6a9f5fd81ac0be560d30803f04702d23d5622893/running-example-fds/model2.kaos',
+      'https://github.com/ancailliau/FloodingSimulator/blob/ef6db9fd8ac0e0a038c2006f4633ace84c41b725/FloodingSimulator/Model.kaos',
     ])
       expect(links).toContain(url);
   });

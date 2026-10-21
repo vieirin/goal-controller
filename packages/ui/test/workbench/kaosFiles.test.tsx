@@ -3,9 +3,10 @@
  * is kaosprop's native file, so the Open dialog takes it and opening one
  * makes its project, in kaosprop's mode (the KAOS framework); a `.kaos`
  * while a model of another framework is open waits for the switch to be
- * confirmed (#171). Analyse on ADS's London Ambulance System (the
- * `ambulance` seed) badges `Achieve [Incident Resolved]` with its EPS
- * against its 95%.
+ * confirmed (#171); a `.kaos` with resolutions opens in kaosres's mode
+ * (#191). Analyse on ADS's London Ambulance System (the `ambulance` seed)
+ * badges `Achieve [Incident Resolved]` with its EPS against its 95%; on the
+ * flood seed, the countermeasure selection draws the chosen one.
  */
 import { act, cleanup, render, waitFor } from '@testing-library/react';
 import { readFileSync } from 'node:fs';
@@ -21,6 +22,7 @@ import {
 import { frameworkOfModel } from '@/lib/workbench/frameworks';
 import {
   analysisDiagnostics,
+  selectionStyle,
   shownCase,
   shownStep,
 } from '@/lib/workbench/analysis';
@@ -30,6 +32,7 @@ const ROOT = join(__dirname, '../../../..');
 const read = (path: string) => readFileSync(join(ROOT, path), 'utf8');
 const LAS = read('examples/kaos/las/las.kaos');
 const AMBULANCE = read('examples/kaos/ambulance/ambulance.kaos');
+const FLOOD = read('examples/kaos/flood/flood.kaos');
 const ISTAR = read('examples/edge/simpleChoice.txt');
 
 // what React Flow needs that jsdom lacks (istar-ts's react test setup)
@@ -89,12 +92,12 @@ describe('a .kaos file in the workbench (#181)', () => {
     });
   });
 
-  it('opens as its project, in kaosprop’s mode, the file beside its model', async () => {
+  it('opens as its project, in kaosres’s mode (KAOSTools’ LAS has a resolution, #191), the file beside its model', async () => {
     const { wb } = workbench();
     await act(() => openUpload(wb(), new File([LAS], 'las.kaos')));
     await waitFor(() => expect(wb().fileName).toBe('las.txt'));
     // its mode is the project's (its manifest: the native file's dialect), its framework its kinds'
-    expect(wb().mode).toBe('kaosprop');
+    expect(wb().mode).toBe('kaosres');
     expect(frameworkOfModel(wb().text)).toBe('kaos');
     const model = JSON.parse(wb().text);
     expect(
@@ -126,7 +129,7 @@ describe('a .kaos file in the workbench (#181)', () => {
     await act(() => openUpload(wb(), new File([LAS], 'las.kaos')));
     await act(() => wb().confirmFrameworkSwitch());
     await waitFor(() => expect(wb().fileName).toBe('las.txt'));
-    expect(wb().mode).toBe('kaosprop');
+    expect(wb().mode).toBe('kaosres');
   });
 
   it(
@@ -204,5 +207,31 @@ describe('a .kaos file in the workbench (#181)', () => {
         ),
       ).not.toBeNull(),
     );
+  });
+
+  it('opens the flood seed in kaosres’s mode; the countermeasure selection draws the chosen one, the rest dimmed (#191)', async () => {
+    const { wb } = workbench();
+    await act(() => openUpload(wb(), new File([FLOOD], 'flood.kaos')));
+    await waitFor(() => expect(wb().fileName).toBe('flood.txt'));
+    expect(wb().mode).toBe('kaosres');
+    expect(Object.keys(wb().analyses ?? {})).toEqual([
+      'selection',
+      'probabilities',
+      'criticalCombinations',
+    ]);
+    act(() => wb().runAnalysis('selection'));
+    await waitFor(() => expect(wb().analysisRun).not.toBeNull());
+    const chosen = shownCase(wb().analysisRun);
+    expect(chosen?.label).toBe(
+      'Chosen: Achieve [SpeedAcquiredEvery5SecondsByCamera] + Maintain [CameraSpeedAccurate] + Achieve [LocalsWarnedBySMSWhenLevelsCritical]',
+    );
+    expect(chosen?.values['locals_warned_when_risk_imminent']).toEqual({
+      value: 0.76,
+      label: 'EPS 76.00% · SV -11.00%',
+    });
+    // the phone warning it substitutes is dimmed, the SMS warning kept
+    const style = selectionStyle(chosen)!;
+    expect(style).toContain('[data-id="locals_warned_by_sms"]');
+    expect(style).not.toContain('[data-id="locals_warned"]');
   });
 });

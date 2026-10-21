@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "dialect": "kaosres",
+  "framework": "kaos",
+  "models": [
+    {
+      "path": "flood.txt",
+      "native": {
+        "kaos": "flood.kaos"
+      }
+    }
+  ],
+  "projectResources": {},
+  "outputs": []
+}

@@ -186,7 +186,7 @@ export const SECTION_REFERENCES: Readonly<
     {
       text: 'A. Cailliau, A. van Lamsweerde. Runtime monitoring and resolution of probabilistic obstacles to system goals. SEAMS 2017.',
       url: 'https://doi.org/10.1109/SEAMS.2017.5',
-      examples: ['kaos/ambulance'],
+      examples: ['kaos/ambulance', 'kaos/flood'],
     },
     {
       text: 'M. Sabetzadeh, D. Falessi, L. Briand, S. Di Alesio, D. McGeorge, V. Åhjem, J. Borg. Combining Goal Models, Expert Elicitation, and Probabilistic Simulation for Qualification of New Technology. HASE 2011 (Fig. 2, re-keyed as far as it prints; Sec. V withholds the elicited quantities, goal-controller#199).',
@@ -208,6 +208,17 @@ export const SECTION_REFERENCES: Readonly<
       text: "ancailliau/phd-thesis: A. Cailliau's fire-alarm model, running-examples-others/firesystem.kaos at 6a9f5fd (used with the owner's approval; the repository states no licence).",
       url: 'https://github.com/ancailliau/phd-thesis/blob/6a9f5fd81ac0be560d30803f04702d23d5622893/running-examples-others/firesystem.kaos',
       examples: ['kaos/fire-alarm'],
+    },
+    // SEAMS'17's flood detection system (goal-controller#191, #200)
+    {
+      text: "ancailliau/phd-thesis: A. Cailliau's flood detection model, running-example-fds/model2.kaos at 6a9f5fd (used with the owner's approval; the repository states no licence).",
+      url: 'https://github.com/ancailliau/phd-thesis/blob/6a9f5fd81ac0be560d30803f04702d23d5622893/running-example-fds/model2.kaos',
+      examples: ['kaos/flood'],
+    },
+    {
+      text: 'ancailliau/FloodingSimulator: the flood detection model with its conflicts, FloodingSimulator/Model.kaos at ef6db9f (MIT).',
+      url: 'https://github.com/ancailliau/FloodingSimulator/blob/ef6db9fd8ac0e0a038c2006f4633ace84c41b725/FloodingSimulator/Model.kaos',
+      examples: ['kaos/flood'],
     },
   ],
   nfr: [

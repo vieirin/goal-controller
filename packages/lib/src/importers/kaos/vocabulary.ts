@@ -39,6 +39,7 @@ export const KAOS_TYPES = {
   obstruction: 'kaos.ObstructionLink',
   resolution: 'kaos.ResolutionLink',
   assignment: 'kaos.ResponsibilityAssignment',
+  conflict: 'kaos.Conflict',
 } as const;
 
 /**

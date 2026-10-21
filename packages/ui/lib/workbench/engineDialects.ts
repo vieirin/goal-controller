@@ -16,6 +16,7 @@ import {
   kaosdocEngine,
   kaospropEngine,
   kaosexpertEngine,
+  kaosresEngine,
   mutroseEngine,
   nfrpropEngine,
   registerEngines,
@@ -51,6 +52,7 @@ export const ENGINE_LIST = registerEngines(
   kaosdocEngine,
   kaospropEngine,
   kaosexpertEngine,
+  kaosresEngine,
   nfrpropEngine,
 );
 
