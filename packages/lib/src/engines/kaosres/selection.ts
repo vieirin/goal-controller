@@ -41,7 +41,9 @@
  * SelectionOptimizer` (05a5125) instead: no consistency, the empty
  * selection only for the minimal cost, and the largest satisfaction rate
  * over every non-empty selection when the minimal cost is 0 or none is
- * safe.
+ * safe. With a positive minimal cost it pools only the safe selections
+ * costing no more, which is KAOSTools' answer for its one root goal (see
+ * where `chosen` is computed).
  */
 import {
   type AnalysisCase,
@@ -476,9 +478,16 @@ export const selectCountermeasures = (
   let chosen: Selection[];
   if (kaostools) {
     const nonEmpty = selections.filter((s) => s.goals.length > 0);
+    // GetOptimalSelections pools every selection costing no more than the
+    // minimal cost, safe or not; for its one root goal (`--root`) a cheaper
+    // one is unsafe (ESR ≤ RSR < the safe one's), so it never wins. With
+    // several high-level goals (a mean, which KAOSTools has no notion of)
+    // it could: only the safe ones are pooled, KAOSTools' answer for one goal
     chosen =
       minimalCost !== null && minimalCost > 0
-        ? most(nonEmpty.filter((s) => s.cost <= minimalCost! + EPSILON))
+        ? most(
+            nonEmpty.filter((s) => s.safe && s.cost <= minimalCost! + EPSILON),
+          )
         : nonEmpty.length
           ? most(nonEmpty)
           : [];
@@ -566,7 +575,10 @@ export const runSelection = (
         if (original.has(id))
           values[id] = probabilityValue(elements.get(id)!, p);
       const isChosen = chosen.includes(selection);
-      const label = `${isChosen ? (selection.safe ? 'Chosen: ' : 'Best, none safe: ') : ''}${
+      // "none safe" only when no safe selection was found: under
+      // KAOSTools' rules a minimal cost of 0 picks among the non-empty ones,
+      // safe or not
+      const label = `${isChosen ? (result.minimalCost === null ? 'Best, none safe: ' : 'Chosen: ') : ''}${
         selection.goals.length
           ? selection.goals.map((g) => names.get(g) ?? g).join(' + ')
           : 'no countermeasure'

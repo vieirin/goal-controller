@@ -1511,6 +1511,15 @@ engine, the flood seed, ADS's files. Results and the attempts log are on
     - with the minimal cost 0 or none safe, the most satisfying over every
       non-empty selection, every tie kept (`GetOptimalSelections` filters
       by cost only when the minimal cost is positive).
+
+    With a positive minimal cost, `GetOptimalSelections` pools every
+    selection costing no more than it, safe or not, and keeps the most
+    satisfying. For KAOSTools' one root goal (`--root`) a cheaper selection
+    is unsafe, its rate at most the RSR, so it never wins. With several
+    high-level goals (their mean, which KAOSTools has no notion of) an
+    unsafe one could: kaosres pools only the safe ones (#367's review,
+    rv367; its counter-model is a test under both rules). The chosen case
+    is labelled "Best, none safe" only when no selection is safe.
   - **Scope stays `anchor`**: Table I can't decide it (below). On the flood
     files every countermeasure is a substitution, which the scope doesn't
     touch; `model` is an engine option.

@@ -195,6 +195,60 @@ describe('kaosres: KAOSTools’ rules (semantics kaostools, NaiveCountermeasureS
   });
 });
 
+describe('kaosres: several high-level goals (rv367’s counter-model)', () => {
+  // G1 and G2, RSR .9 each, obstructed by O1 and O2 (.11 each): .89, .89.
+  // CMX (Cost 1, itself obstructed at .01) prevents O1 at G1: (.99, .89),
+  // mean .94, unsafe. CMY (Cost 2, obstructed at .09) prevents both:
+  // (.91, .91), mean .91, safe. The minimal cost is 2: CMY, though CMX,
+  // cheaper, has the larger mean.
+  const TWO = `
+declare goal [ root ] refinedby g1, g2 end
+declare goal [ g1 ] rsr .9 obstructedby o1 end
+declare goal [ g2 ] rsr .9 obstructedby o2 end
+declare obstacle [ o1 ] probability .11 resolvedby [prevention:g1] cmx resolvedby [prevention:g1] cmy end
+declare obstacle [ o2 ] probability .11 resolvedby [prevention:g2] cmy end
+declare goal [ cmx ] obstructedby ox cost [o1] 1 end
+declare goal [ cmy ] obstructedby oy cost [o1] 2 end
+declare obstacle [ ox ] probability .01 end
+declare obstacle [ oy ] probability .09 end
+`;
+
+  it('evaluates as derived: CMX the more satisfying by the mean, unsafe; CMY safe at the minimal cost', () => {
+    const result = select(TWO);
+    assert.deepStrictEqual(
+      result.highLevel.map((g) => g.id),
+      ['g1', 'g2'],
+    );
+    const by = new Map(
+      result.selections.map((s) => [s.goals.join('+') || '∅', s]),
+    );
+    near(by.get('cmx')!.esr.get('g1')!, 0.99, 'CMX, G1');
+    near(by.get('cmx')!.esr.get('g2')!, 0.89, 'CMX, G2');
+    near(by.get('cmx')!.satisfaction, 0.94, 'CMX, mean');
+    assert.ok(!by.get('cmx')!.safe);
+    near(by.get('cmy')!.satisfaction, 0.91, 'CMY, mean');
+    assert.ok(by.get('cmy')!.safe);
+  });
+
+  for (const semantics of ['seams17', 'kaostools'] as const)
+    it(`${semantics}: never an unsafe selection over the safe one at the minimal cost`, () => {
+      const result = select(TWO, { semantics });
+      assert.strictEqual(result.minimalCost, 2);
+      assert.deepStrictEqual(goalsOf(result.chosen), ['cmy']);
+    });
+
+  it('labels the chosen one "Chosen" whenever a safe selection exists', () => {
+    const view = kaosresAnalysisModel(modelOf(TWO));
+    for (const semantics of ['seams17', 'kaostools']) {
+      const out = runAnalysis(kaosresAnalyses.selection, view, undefined, {
+        options: { semantics },
+      });
+      assert.ok('result' in out);
+      assert.strictEqual(out.result.cases[0]!.label, 'Chosen: cmy', semantics);
+    }
+  });
+});
+
 describe('kaosres: the flood seed (SEAMS’17’s running example, the thesis’s model2.kaos)', () => {
   const flood = readFileSync(
     join(__dirname, '../../../../../examples/kaos/flood/flood.kaos'),
