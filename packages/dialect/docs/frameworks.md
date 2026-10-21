@@ -548,7 +548,7 @@ log are in #182.
   | Key | On | Values | Source |
   | --- | --- | --- | --- |
   | `Category` | obstacles | Non-satisfaction, Non-information, Inaccuracy, Hazard, Threat | TSE'00: one per goal category it obstructs |
-  | `ResolutionType` | resolutions | goal substitution, agent substitution, obstacle prevention, goal deidealization, domain transformation, obstacle reduction, goal restoration, obstacle mitigation, do-nothing | TSE'00 §5's nine resolution strategies |
+  | `ResolutionType` | resolutions | goal substitution, agent substitution, obstacle prevention, goal deidealization, domain transformation, obstacle reduction, goal restoration, obstacle mitigation, weak mitigation, strong mitigation, do-nothing | TSE'00 §6's nine resolution strategies (§5 here before #191, a slip), with §6.3.2's two forms of mitigation since #191 ("Step 4 part A" below) |
   | `Kind` | domain properties | invariant, hypothesis | van Lamsweerde 2009: domain invariants and hypotheses (KAOSTools: `domainproperty`, `domainhypothesis`) |
 
 - **KAOSTools' names are values too, labelled with what they stand for.**
@@ -693,7 +693,7 @@ log are in #182.
   | its pattern | the hub's `Tactic`: `milestone` → `milestone-driven`, `case` → `case-driven`, `introduce_guard` → `guard-introduction`, `divide_and_conquer` → `divide-and-conquer`, `uncontrollability`, `unmonitorability`; another one as written | vocabulary |
   | a refinee's `[p]` | its leg's `Probability`, as written | quantity |
   | `obstructedby o` (`o [p]`) | an obstruction (its `Probability`) | structure (quantity) |
-  | `resolvedby [pattern:anchor] g`, `resolvedby(pattern[anchor]) g` | a resolution, `ResolutionType`: `prevention` → `obstacle prevention`, `mitigation` → `obstacle mitigation`, `substitution` → `goal substitution`, `restoration` → `goal restoration`, `weakening` → `goal deidealization`, `obstacle_reduction` → `obstacle reduction`; another one as written. `Anchor` is the anchor's identifier | structure, vocabulary |
+  | `resolvedby [pattern:anchor] g`, `resolvedby(pattern[anchor]) g` | a resolution, `ResolutionType`: `prevention` → `obstacle prevention`, `mitigation` → `obstacle mitigation`, `substitution` → `goal substitution`, `restoration` → `goal restoration`, `weakening` → `goal deidealization`, `obstacle_reduction` → `obstacle reduction`, `weak_mitigation` → `weak mitigation`, `strong_mitigation` → `strong mitigation` (since #191); another one as written. `Anchor` is the anchor's identifier | structure, vocabulary |
   | `assignedto a, b` | one responsibility assignment each | structure |
   | `rsr` (older `rds`) on a goal | `RSR`, as written | quantity |
   | `esr` / `eps` / `probability`, a single number | a goal's `ESR`, an obstacle's `Probability`, as written | quantity |
@@ -703,7 +703,7 @@ log are in #182.
 - **Kept as written, never dropped.** The following are kept in the diagram's `kaosUnsupported`, in file order and separated by blank lines, and the writer writes them back:
   - `expert`, `calibration`, `entity`, `association`, `predicate` and `type` declarations, and any other unknown declaration;
   - per-expert and distribution forms of `probability`/`esr`/`rsr`;
-  - `provided`, `except`, `relaxedTo` and `replaces`;
+  - `provided`, `except`, `relaxedTo` and `replaces` (read since #191 when KAOSTools writes them, `except [o] g`: "Step 4 part A" below);
   - a refinement's `context`;
   - custom `$attributes` with no `kaos` key;
   - `@author`, `@version` and other model attributes;
@@ -1176,6 +1176,252 @@ no experts, evidence on the leaves instead. Results in #343.
   only: β not read" and "α unset: the complete default" edge cases; this
   model sets neither (§III-A's explicit examples, GL3/GL5/GL8's α, are
   withheld).
+
+### Step 4 part A: countermeasures as model transformations (goal-controller#191, #202)
+
+Cailliau and van Lamsweerde, SEAMS'17 (*Runtime monitoring and resolution
+of probabilistic obstacles to system goals*, DOI 10.1109/SEAMS.2017.5, the
+authors' copy `SEAMS17.pdf`): a countermeasure is a resolution with a cost
+and an effect on the model. Selection then picks the countermeasures that
+keep the goals over their RDS at the least cost. Part A is the dialect,
+the `.kaos` reader and writer, and what applying a countermeasure does to
+the model. Part B (#200, #201) is the selection. Results and the attempts
+log are on #353.
+
+- **What the sources have** (verified 2026-10-20; logged on #353 and #189):
+  - **ADS's `resolutions.kaos` has no `cost` and none of the four forms.**
+    Neither does any other ADS file, at any commit. It has `resolvedby` only:
+    13 preventions, 17 mitigations, 2 restorations and 1 weakening. ADS's
+    optimiser (`Optimizer.cs`) and KAOSTools' optimisers
+    (`NaiveCountermeasureSelectionOptimizer`, `cost = selection.Count()`)
+    take a selection's cost to be the number of its countermeasures.
+  - **KAOSTools read `cost [cost_variable] n` on a goal until be2aa0e**
+    (2017-03-22), with `declare cost_variable`; no corpus file uses it.
+  - **The four forms are goal attributes, about an obstacle,** added to
+    KAOSTools in September 2017 (195b8d1, 554f728), after SEAMS'17:
+    - `except [o] cg`, on the anchor;
+    - `provided [o] f`, `providednot [o] f` and `relaxedTo [o] f`, on the
+      goal itself;
+    - `replaces [o] g`, on the replacing goal.
+
+    No KAOSTools propagator reads `provided` or `relaxedTo`. Their
+    definitions are Cailliau's thesis's (2017, ch. 5, "Obstacle resolution
+    as exception handling"), quoted below. So `provided` is an extra
+    conjunct on the goal's antecedent, a deidealisation, not "a new domain
+    hypothesis" as #191's brief has it.
+  - **KAOSTools' `las.kaos` has one resolution, with no pattern**
+    (`resolvedby avoid_ambulance_not_in_familiar_area`).
+    `resolvedby(prevention)` and `resolvedby(mitigation[…])` are ADS's.
+- **The definitions, as the sources give them.** van Lamsweerde and Letier,
+  TSE'00, §6 (the strategies):
+  - goal substitution (§6.1.1): "identify an alternative goal refinement
+    for some higher-level goal, in which the obstructed goal and
+    obstructing obstacle are no longer present";
+  - agent substitution (§6.1.2): "consider alternative agent assignments
+    so that the obstacle scenario may no longer occur";
+  - obstacle prevention (§6.1.3): "resolves the obstruction by adding a new
+    goal requiring that the obstacle be avoided" (G*: ❑ ¬OC);
+  - goal deidealization (§6.1.4): "transform the goal being obstructed in
+    order to make the obstruction disappear";
+  - domain transformation (§6.1.5): "transforming the domain … so as to
+    make the obstruction disappear. The set of domain properties is
+    modified so as to make the obstacle either inconsistent with the domain
+    … or no longer obstructing the goal";
+  - obstacle reduction (§6.2): "one tries to reduce the occurrences of the
+    obstacle instead of eliminating them completely";
+  - goal restoration (§6.3.1): "adding a new goal stating that if the
+    obstacle condition OC becomes true then the obstructed goal assertion G
+    should be satisfied again in some reasonably near future" (G*: OC ⇒
+    ◊G);
+  - obstacle mitigation (§6.3.2): "add a new goal to attenuate the effects
+    of obstacle occurrences". Weak mitigation is "ensuring some weakened
+    version G' of the obstructed goal G whenever the obstacle condition OC
+    becomes true". Strong mitigation is "ensuring some parent goal G' of G
+    whenever the obstacle condition OC becomes true, in spite of G being
+    obstructed";
+  - do-nothing (§6.3.3): "tolerate its occurrences without any resolution
+    action".
+
+  SEAMS'17, §II: "The integration either adds a new goal in the model or
+  replaces the obstructed goal or an ancestor of it by another goal", and
+  "The anchor for a countermeasure goal is the lowest ancestor goal meeting
+  the ancestor-entailment condition". §VI.A: "the obstructed goal is removed
+  from the goal model or kept. In the former case, the obstructed goal is
+  replaced by the countermeasure goal; in the latter case, a new
+  refinement is introduced involving both the obstructed goal and the
+  countermeasure goal". When it is kept, "the anchor goal is refined into
+  two subgoals; one subgoal is the obstructed goal conjoined with the
+  negation of the obstacle condition; the other subgoal is the
+  countermeasure goal. (To preserve the correctness of goal/obstacle
+  refinements, the new conjunct is propagated down to leaf obstacles.)"
+  §VI.B: "Countermeasures come with a cost. … only single costs are
+  considered here. … The resolution cost of a selection is the sum of the
+  costs associated with the selected countermeasures."
+
+  The thesis, ch. 5, gives the two schemas and the tactics that use them.
+  The schema that removes the obstructed goal "should be applied when the
+  *Substitute goal* or *Weaken goal* tactic is used". The schema that keeps
+  it applies to "*Avoid obstacle*, *Reduce obstacle likelihood*, or
+  *Mitigate obstacle*". Its example of *agent substitution* uses the first
+  schema. The four forms:
+  - Except "links a countermeasure goal to its anchor goal" and is "fully
+    equivalent to" the second schema's refinement;
+  - Provided "specifies an extra conjunct on the antecedent of an original
+    goal G" (C ∧ EC ⇒ ΘT), and ProvidedNot EC is Provided ¬EC;
+  - RelaxedTo specifies "an extra disjunct on the consequent" (C ⇒ ΘT ∨
+    ED);
+  - Replaces is "useful for tracing previous versions of a goal".
+- **D1 as built: the `kaosres` dialect** (the working name, kept). It is
+  kaosprop's dialect with four keys on the resolution link from the
+  countermeasure goal to the obstacle:
+  - `Cost`, a number ≥ 0 (SEAMS'17's single cost);
+  - `Form`: `provided`, `providedNot`, `except`, `relaxedTo` or `replaces`.
+    `providedNot` is a fifth value, KAOSTools' `providednot`, kept for the
+    round trip;
+  - `Condition`, an `ltl` formula: provided's and providedNot's extra
+    conjunct, relaxedTo's extra disjunct;
+  - `Replaces`, a reference to a goal: what `replaces` names.
+
+  `except`'s payload is the anchor, the `kaos` dialect's `Anchor`, so the
+  form needs no key of its own. The plain `kaos` dialect and kaosprop's keep
+  all four as unknown keys. kaosres has no engine yet: registering it in the
+  workbench is part B's, with the selection. Until then a `.kaos` file opens
+  in kaosprop's or kaosexpert's mode, as before.
+- **`.kaos`: where each goes.** The grammar is unchanged: it already parses
+  each form generically, the precedent of "Step 3 part A". The reader puts
+  each annotation on the resolution link it is about:
+
+  | `.kaos` (KAOSTools' syntax) | On the resolution | Of |
+  | --- | --- | --- |
+  | `except [o] cg` on goal `ag` | `Form` `except`, `Anchor` `ag` | cg → o |
+  | `provided [o] f`, `providednot [o] f`, `relaxedTo [o] f` on goal `g` | `Form`, `Condition` `f` | g → o |
+  | `replaces [o] h` on goal `g` | `Form` `replaces`, `Replaces` `h` | g → o |
+  | `cost [o] n` on goal `g`; `cost n` | `Cost` `n`; on each of g's resolutions | g → o |
+
+  - An annotation for which no `resolvedby` declares the resolution creates
+    it, with an info.
+  - A second form on the same resolution is kept as written, with a
+    warning.
+  - `cost [x] n` with x not an obstacle is KAOSTools' cost variable, one of
+    the several costs SEAMS'17 leaves out. It is kept as written.
+  - The writer writes `cost [o] n` and each form on the goal it belongs to,
+    in KAOSTools' syntax. It says what it can't write: a form without its
+    payload, a cost that is not a number.
+  - The round trip is structural, as for the rest of `.kaos`.
+- **D2 as built: one transformation per strategy, of the model in memory**
+  (`engines/kaosres/transform.ts`). The input and output are the
+  KAOS-kind-typed istar-ts model (`IstarModel<KaosElementKind,
+  KaosLinkKind>`, the kinds of `KAOS_OBSTACLES`), which `GoalTree.goalModel`
+  reads into the `KindModel`. The `KindModel`'s trees are derived from the
+  model, so transforming the model and reading it again is the sound
+  order:
+  - the `kaos` dialect's Problems read the variant;
+  - kaosdoc reads `kaosdocGoalModel(variant)`;
+  - kaosprop reads `kaosresView(variant)`.
+
+  The file is untouched. A countermeasure's `Form` says what it does when
+  set, its `ResolutionType` otherwise:
+
+  | Strategy or form | KAOSTools | Integration | What the model becomes |
+  | --- | --- | --- | --- |
+  | goal substitution | `substitution` | substitute | the anchor's one refinement loses the sub-goals the obstacle obstructs (directly or below them) and gains CG |
+  | agent substitution | — | substitute | the same (the thesis's example); no agent is reassigned: the model has the resolving goal, not the agent |
+  | goal deidealization | `weakening` | substitute | the same; with the anchor the obstructed leaf itself, CG (its weakened version) takes its place in its parents ("AG' replaces AG"; KAOSTools refuses this case, ANCHOR_NO_REFINEMENT) |
+  | obstacle prevention | `prevention` | anchor | the anchor refined into K ("… unless O": its own refinements and obstructions, O false below it) and CG |
+  | obstacle reduction | `obstacle_reduction` | anchor | the same: KAOSTools resolves the obstacle; the reduced likelihood TSE'00 speaks of has no number to model |
+  | goal restoration | `restoration` | anchor | the same |
+  | obstacle mitigation, weak, strong | `mitigation`, `weak_mitigation`, `strong_mitigation` | anchor | the same; weak and strong differ only in where the anchor is (the goal, or a parent of it) |
+  | domain transformation | — | eliminate | the obstacle cannot occur, anywhere: a leaf's estimate 0, a refined one's every refinement's P(O\|SO) 0, its expert estimates and `Beta` gone (kaosprop's own slots) |
+  | do-nothing | — | record | nothing: the decision is the resolution |
+  | `except` | `except` | anchor | as prevention, at its anchor |
+  | `replaces` | `replaces` | replace | CG takes the replaced goal's place in every refinement it is in |
+  | `provided`, `providedNot`, `relaxedTo` | the same | deidealize | the goal itself, O false below it, in place: O no longer obstructs it |
+
+  Only do-nothing changes nothing. Domain transformation changes no
+  structure, only the obstacle's probability. A resolution with neither a
+  strategy nor a form isn't applied, and says why (KAOSTools: NO_PATTERN).
+- **"O false below a goal" is a copy.** The sub-goals and obstacle trees O
+  reaches are copied with O's branches cut:
+  - an obstacle refinement with O, or with a sub-obstacle that can no
+    longer occur, is an AND with a false member, so it goes;
+  - an obstruction by O goes.
+
+  An original that nothing uses any more is removed, and its copy takes its
+  id and name back. So what only the anchor used changes in place. What
+  something else also uses stays as it was, with its copy beside it, named
+  "… unless O". O itself stays, a root of its own, with its resolutions.
+- **Scope, the owner's call:** the default is SEAMS'17 §VI.A as written
+  (`scope: 'anchor'`). There O is false below the anchor only, the conjunct
+  "propagated down" from the obstructed goal. The thesis says the same:
+  "Only siblings of the anchor goal and its ancestor may need to be
+  de-idealized. The other goals were obstructed by the resolved obstacle
+  and are therefore not concerned". §VI.A's next sentence can be read
+  globally: it "reduces the formal specification of the obstacle … to
+  false; The satisfaction rate of the latter is therefore 0". KAOSTools
+  implements that reading: `ResolutionIntegrator` sets `obstacle.Resolved =
+  true`, and its BDD then samples the obstacle at 0 everywhere. That reading
+  is `scope: 'model'`, where K keeps the anchor's content as it was and O
+  is eliminated. Part B picks the scope that reproduces Table I and says
+  which.
+- **Anchors.**
+  - An `Anchor` resolves by id, then by a goal's name.
+  - Without one, the keep schema anchors on the goal the obstacle's tree
+    obstructs, and substitution anchors on that goal's parent. The goal is
+    found in the model as given, so a second countermeasure for the same
+    obstacle finds the anchor the first one found. When it is not one goal,
+    the countermeasure is refused: "set its Anchor".
+  - A keep schema whose obstacle obstructs nothing below the anchor is
+    applied with a warning: CG is added, and nothing is resolved.
+- **Countermeasures apply one after another**, in the model's order, each
+  to the model the previous ones gave. Two on one anchor nest:
+  - the anchor is refined into K₂ and CG₂;
+  - K₂ is refined into K₁ and CG₁.
+
+  This is KAOSTools' `AddExceptions` loop.
+- **FormalSpec is not rewritten.** K's is empty and its Description says
+  what it is. Deriving "C ∧ ¬OC ⇒ ΘT" needs the antecedent of a formula,
+  which nothing checks yet (the deferred "FormalSpec → LTL").
+- **Oracles (#202: no numbers).**
+  - **Unit:** one test per strategy and form, on a hand-written model
+    (`lib/test/engines/kaosres/transform.test.ts`). The obstacle is at 1,
+    so the root fails for sure until the countermeasure is applied; each
+    test then checks the propagated values against a hand derivation.
+  - **ADS's three files read together** (`lib/test/dialect/kaosres.test.ts`):
+    - all 33 resolutions apply, each alone. Where each is integrated, the
+      obstacle obstructed before, no longer does (`obstructs`), and that
+      goal's EPS is the same with the obstacle alone at 1 and at 0;
+    - all at once, they add no Problem the model didn't have.
+  - **KAOSTools' LAS:** its one resolution has no strategy, so it is not
+    applied, and the test says so. Typed as a prevention (its goal is
+    `Avoid [Ambulance Not In Familiar Area]`), it passes the same checks
+    with no Problem.
+  - **The Respect-IT tutorial's Elevator:** no seed exists (#195's), so it
+    is a test fixture (`lib/test/engines/kaosres/fixtures/elevator.kaos`),
+    re-keyed by hand from Figures 33–35 (© Respect-IT, no licence stated).
+    Only the figures' labels are taken, no text. The five resolutions take
+    their strategies from §3.6's words: two preventions (Fig. 34), and a
+    mitigation, a restoration and a prevention (Fig. 35). All five apply,
+    with no Problem; only the unresolved "Insufficient display contrast"
+    still obstructs; kaosdoc's Obstacles section prints each resolution.
+- **What part B can rely on** (`@goal-controller/lib`, `engines/kaosres`):
+  - `countermeasuresOf(model)`: every resolution link, typed: `strategy`,
+    `form`, `anchor`, `replaces`, `condition`, and `cost` (a number or null).
+  - `applyCountermeasures(model, ids, { scope })`: the variant, which
+    countermeasures were applied and how (`integration`, `at`, `added`,
+    `summary`), problems (an error means not applied), and `cost`, the sum
+    of the applied `Cost`s with unset as 0.
+  - `kaosresView(variant.model)`: what `propagateProbabilities` reads.
+  - `applyCountermeasuresToView(view, ids, options)`: the same on an
+    analysis's `AnalysisModel`, whose kinds are narrowed to KAOS's (an
+    error for any other kind), with the variant's view.
+  - `obstructs(model, goal, obstacle)`.
+  - `integrationOf`, `STRATEGY_INTEGRATIONS` and `FORM_INTEGRATIONS`.
+
+  Each call is pure and costs a copy of the model per variant, so
+  enumerating 2ⁿ selections is B's to bound.
+- **D3 unchanged.** Runtime monitoring and activation, SEAMS'17 §IV–V and
+  §VII, are out of scope. That is the KAOS version of the SA-BSN loop
+  (Vein 6's runtime with GODA formulas, #93, #97).
 
 ### Models typed by their framework (goal-controller#185)
 

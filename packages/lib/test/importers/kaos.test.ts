@@ -669,6 +669,133 @@ end
     );
   });
 
+  it('reads and writes kaosres’s countermeasures (#191): KAOSTools’ annotations of a goal for an obstacle, and cost', () => {
+    // KAOSTools' own cases (Parsing.Tests/Integration/TestParsingGoal.cs,
+    // TestExceptAttribute … TestRelaxedToAttribute), on one model
+    const text = `declare goal [ test ]
+  except [obst] goal2
+  providednot [obst] mycondition() and otherCondition()
+end
+declare goal [ goal2 ] cost [obst] 2 end
+declare goal [ test2 ]
+  replaces [ obst ] test
+  relaxedTo [obst2] mycondition() and otherCondition()
+  cost 1.5
+end
+declare goal [ test3 ] cost 1 provided [obst3] mycondition() end
+declare goal [ test4 ] cost [budget] 4 end
+declare obstacle [ obst ] resolvedby [mitigation:test] goal2 end
+declare obstacle [ obst2 ] end
+declare obstacle [ obst3 ] end`;
+    const { model, diagnostics } = readText(text);
+    const resolutions = model.links
+      .filter((l: Json) => l.type === 'kaos.ResolutionLink')
+      .map((l: Json) => [l.source, l.target, l.customProperties]);
+    assert.deepStrictEqual(resolutions, [
+      [
+        'goal2',
+        'obst',
+        {
+          ResolutionType: 'obstacle mitigation',
+          Anchor: 'test',
+          Form: 'except',
+          Cost: '2',
+        },
+      ],
+      [
+        'test',
+        'obst',
+        {
+          ResolutionType: '',
+          Anchor: '',
+          Form: 'providedNot',
+          Condition: 'mycondition() and otherCondition()',
+        },
+      ],
+      [
+        'test2',
+        'obst',
+        {
+          ResolutionType: '',
+          Anchor: '',
+          Form: 'replaces',
+          Replaces: 'test',
+          Cost: '1.5',
+        },
+      ],
+      [
+        'test2',
+        'obst2',
+        {
+          ResolutionType: '',
+          Anchor: '',
+          Form: 'relaxedTo',
+          Condition: 'mycondition() and otherCondition()',
+          Cost: '1.5',
+        },
+      ],
+      // `cost n` before the annotation that makes its resolution still reaches it
+      [
+        'test3',
+        'obst3',
+        {
+          ResolutionType: '',
+          Anchor: '',
+          Form: 'provided',
+          Condition: 'mycondition()',
+          Cost: '1',
+        },
+      ],
+    ]);
+    // an annotation no resolvedby declares the resolution of makes it, and
+    // says so; a cost of a cost variable (KAOSTools before 2017-03) is kept
+    assert.deepStrictEqual(
+      diagnostics.map((d) => `${d.severity}: ${d.message}`),
+      [
+        'info: providednot of test: no resolvedby says test resolves obst, so it does',
+        'info: replaces of test2: no resolvedby says test2 resolves obst, so it does',
+        'info: relaxedTo of test2: no resolvedby says test2 resolves obst2, so it does',
+        'info: provided of test3: no resolvedby says test3 resolves obst3, so it does',
+        'warning: cost of test4: kept as written, not read (budget is no obstacle: a cost variable has no place in the model)',
+      ],
+    );
+    assert.strictEqual(
+      model.diagram.customProperties[KAOS_UNSUPPORTED_KEY],
+      'override goal [ test4 ]\n  cost [budget] 4\nend',
+    );
+    const written = writeKaos(model, { modelName: 'm' });
+    for (const line of [
+      'declare goal [ test ]\n  except [obst] goal2\n  providednot [obst] mycondition() and otherCondition()\nend',
+      'declare goal [ goal2 ]\n  cost [obst] 2\nend',
+      '  replaces [obst] test\n  cost [obst] 1.5\n  relaxedTo [obst2] mycondition() and otherCondition()\n  cost [obst2] 1.5\n',
+      '  resolvedby [mitigation:test] goal2\n  resolvedby test\n  resolvedby test2\n',
+    ])
+      assert.ok(written.text!.includes(line), `${line}\n---\n${written.text}`);
+    assert.deepStrictEqual(written.diagnostics, []);
+    const trip = modelRoundTrip(kaosNativeFile, model, { modelName: 'm' });
+    assert.ok(trip.ok, trip.problem ?? '');
+  });
+
+  it('says what of a countermeasure it can’t write: a form without its payload, a cost that is no number', () => {
+    const { model } = readText(`declare goal [ g ] end
+declare obstacle [ o ] resolvedby [prevention] g end`);
+    const link = model.links.find(
+      (l: Json) => l.type === 'kaos.ResolutionLink',
+    );
+    link.customProperties = {
+      ...link.customProperties,
+      Form: 'replaces',
+      Cost: 'cheap',
+    };
+    assert.deepStrictEqual(
+      writeKaos(model, { modelName: 'm' }).diagnostics.map((d) => d.message),
+      [
+        'g resolves o: replaces needs the goal it Replaces, not written',
+        'g resolves o: its Cost cheap is no number, not written',
+      ],
+    );
+  });
+
   it('writes the syntax KAOSTools’ PEG reads: patterns by KAOSTools’ names, quantities as read', () => {
     const { text } = writeKaos(read('kaostools/las.kaos').model, {
       modelName: 'm',

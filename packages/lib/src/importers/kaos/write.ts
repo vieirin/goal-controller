@@ -16,6 +16,10 @@
  *   project's resources (`experts.json`, `calibrations.json`) as `declare
  *   expert` and `declare calibration`, after the elements, and their
  *   quantile levels as `@experts.quantiles`.
+ * - kaosres's (goal-controller#191): a resolution's `Form` and its payload
+ *   as KAOSTools annotates a goal for an obstacle (`except [o] g` on the
+ *   anchor; `provided`, `providednot`, `relaxedTo`, `replaces` on the
+ *   countermeasure goal), and its `Cost` as `cost [o] n` on that goal.
  * - What the reader kept as written (`kaosUnsupported`) at the end, as it
  *   was.
  * - Not written, and said: a refinement's `SysRef` and `Status`, an
@@ -38,6 +42,7 @@ import type {
   ExpertsFile,
 } from '../../engines/kaosexpert/resources';
 import { kaosLanguage } from '@goal-controller/goal-language/formats';
+import type { CountermeasureForm } from '../../engines/kaosres/definition';
 import { identifierOf, KAOS_UNSUPPORTED_KEY } from './read';
 import {
   CUSTOM_KEYS,
@@ -148,6 +153,18 @@ const resourceValues = (
       return value === undefined ? [] : [value];
     });
 
+/** A resolution's `Form` (kaosres's, goal-controller#191) and the attribute KAOSTools annotates a goal with. */
+const ANNOTATIONS = {
+  except: 'except',
+  provided: 'provided',
+  providedNot: 'providednot',
+  relaxedTo: 'relaxedTo',
+  replaces: 'replaces',
+} as const satisfies Record<CountermeasureForm, string>;
+
+const isForm = (text: string): text is CountermeasureForm =>
+  Object.hasOwn(ANNOTATIONS, text);
+
 /** A model as a `.kaos` text, with what it doesn't write. */
 export const writeKaos = (
   pistar: PistarJson,
@@ -199,6 +216,62 @@ export const writeKaos = (
     );
   }
   const ref = (id: unknown) => identifier.get(String(id));
+
+  // kaosres's (goal-controller#191): a resolution's Form, payload and Cost
+  // as KAOSTools annotates a goal for an obstacle, on the goal it is about
+  // (`except` on the anchor, the others on the countermeasure goal)
+  const annotations = new Map<string, string[]>();
+  for (const link of (json.links ?? []) as Json[]) {
+    if (link.type !== KAOS_TYPES.resolution) continue;
+    const goal = ref(link.source);
+    const obstacle = ref(link.target);
+    if (goal === undefined || obstacle === undefined) continue;
+    // a link's customProperties are open (piStar keeps every key as read):
+    // narrowed here to the texts of the keys kaosres gives a resolution
+    const value = (
+      key: 'Anchor' | 'Cost' | 'Form' | 'Condition' | 'Replaces',
+    ): string => {
+      const text: unknown = link.customProperties?.[key];
+      return typeof text === 'string' ? text.trim() : '';
+    };
+    const annotate = (on: string, line: string) =>
+      annotations.set(on, [...(annotations.get(on) ?? []), line]);
+    const what = `${goal} resolves ${obstacle}`;
+    const written = value('Form');
+    const form = isForm(written) ? written : null;
+    if (written && !form)
+      say(`${what}: KAOSTools has no form ${written}, not written`);
+    else if (form === 'except') {
+      const anchor = ref(value('Anchor'));
+      if (anchor === undefined)
+        say(`${what}: an except needs its Anchor, not written`);
+      else annotate(value('Anchor'), `except [${obstacle}] ${goal}`);
+    } else if (form === 'replaces') {
+      const replaced = ref(value('Replaces'));
+      if (replaced === undefined)
+        say(`${what}: replaces needs the goal it Replaces, not written`);
+      else annotate(String(link.source), `replaces [${obstacle}] ${replaced}`);
+    } else if (form) {
+      const word = ANNOTATIONS[form];
+      const condition = value('Condition');
+      if (!condition) say(`${what}: ${form} needs its Condition, not written`);
+      else if (isFormula(condition))
+        annotate(String(link.source), `${word} [${obstacle}] ${condition}`);
+      else {
+        annotate(
+          String(link.source),
+          `${word} [${obstacle}] ${quoted(condition)}`,
+        );
+        say(
+          `${what}: its Condition is no KAOSTools formula, written as a string (KAOSTools won't read it)`,
+        );
+      }
+    }
+    const cost = value('Cost');
+    if (cost && /^\d+(?:\.\d+)?$|^\.\d+$/.test(cost))
+      annotate(String(link.source), `cost [${obstacle}] ${cost}`);
+    else if (cost) say(`${what}: its Cost ${cost} is no number, not written`);
+  }
 
   // what each element is the target of, in the model's order
   const refinements = new Map<string, Json[]>();
@@ -418,6 +491,7 @@ export const writeKaos = (
         );
       } else body.push(`assignedto ${source}`);
     }
+    body.push(...(annotations.get(id) ?? []));
     lines.push(
       '',
       `declare ${word} [ ${name} ]`,
