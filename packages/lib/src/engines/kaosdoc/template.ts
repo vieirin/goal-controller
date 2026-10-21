@@ -16,16 +16,20 @@
  * not written as "anchored on nowhere" (goal-controller#243).
  */
 import { singleFileOutput, type EngineOutput } from '../output';
-import type {
-  KaosdocGoalModel,
-  KaosdocNode,
-  KaosdocNodeProps,
-  KaosdocProperties,
-} from './mapper';
+import type { KaosdocGoalModel, KaosdocNode } from './mapper';
 
-const GOAL_KINDS = new Set(['kaos.BehavioralGoal', 'kaos.Softgoal']);
-const AGENT_KINDS = new Set(['kaos.Agent', 'kaos.EnvironmentAgent']);
-const KIND_LABEL: Readonly<Record<string, string>> = {
+const GOAL_KINDS = ['kaos.BehavioralGoal', 'kaos.Softgoal'] as const;
+const AGENT_KINDS = ['kaos.Agent', 'kaos.EnvironmentAgent'] as const;
+const KIND_LABEL: Readonly<
+  Record<
+    | 'kaos.BehavioralGoal'
+    | 'kaos.Softgoal'
+    | 'kaos.Agent'
+    | 'kaos.EnvironmentAgent'
+    | 'kaos.DomainProperty',
+    string
+  >
+> = {
   'kaos.BehavioralGoal': 'Behavioral goal',
   'kaos.Softgoal': 'Softgoal',
   'kaos.Agent': 'Agent',
@@ -51,14 +55,41 @@ const table = (head: readonly string[], rows: readonly string[][]): string =>
         ...rows.map((row) => `| ${row.map(cell).join(' | ')} |`),
       ].join('\n');
 
-/** Whether a node carries kaosdoc's `{ kind, properties }` engine. */
-const isKaosdocNode = (
-  engine: KaosdocNode['properties']['engine'],
-): engine is KaosdocNodeProps =>
-  typeof engine === 'object' &&
-  engine !== null &&
-  'kind' in engine &&
-  'properties' in engine;
+/** The keys across a union of property bags (a link entry's several kinds'). */
+type KeysOfUnion<P> = P extends unknown ? keyof P : never;
+
+/**
+ * A key's value, '' when unset (`mapper.ts`'s `set` already trimmed it):
+ * `properties` may be one of several kinds' bags (a link's), so indexing by
+ * a key only some of them have needs this one cast (none has an index
+ * signature; the key itself is still one of the union's, never arbitrary).
+ */
+const prop = <P extends Record<string, unknown>>(
+  properties: P,
+  key: KeysOfUnion<P> & string,
+): string => (properties as Record<string, string | undefined>)[key] ?? '';
+
+/** A node of one of these kinds (narrows `properties.engine` with it). */
+const nodeIs =
+  <K extends KaosdocNode['kind']>(...kinds: readonly K[]) =>
+  (node: KaosdocNode): node is Extract<KaosdocNode, { kind: K }> =>
+    (kinds as readonly string[]).includes(node.kind);
+
+const isGoalNode = nodeIs(...GOAL_KINDS);
+const isDomainPropertyNode = nodeIs('kaos.DomainProperty');
+const isObstacleNode = nodeIs(OBSTACLE);
+
+/** A model element of one of these kinds (narrows its `kind`). */
+const elementIs =
+  <K extends KaosdocGoalModel['elements'][number]['kind']>(
+    ...kinds: readonly K[]
+  ) =>
+  (
+    e: KaosdocGoalModel['elements'][number],
+  ): e is Extract<KaosdocGoalModel['elements'][number], { kind: K }> =>
+    (kinds as readonly string[]).includes(e.kind);
+
+const isAgentElement = elementIs(...AGENT_KINDS);
 
 /** The tree nodes, depth first, each once. */
 const inTreeOrder = (trees: readonly KaosdocNode[]): KaosdocNode[] => {
@@ -82,16 +113,10 @@ export const kaosdocDocument = (
   const elements = new Map(model.elements.map((e) => [e.id, e]));
   const nameOf = (id: string) => elements.get(id)?.name.trim() ?? id;
   const nodes = inTreeOrder(model.paper);
-  const goals = nodes.filter(
-    (node) =>
-      isKaosdocNode(node.properties.engine) &&
-      GOAL_KINDS.has(node.properties.engine.kind),
-  );
+  const goals = nodes.filter(isGoalNode);
   const rank = new Map(nodes.map((node, i) => [node.iStarId, i]));
   const linksOf = (kind: string) =>
     model.links.filter((link) => link.kind === kind);
-  const prop = (properties: KaosdocProperties, key: string) =>
-    properties[key] ?? '';
 
   // each refinement, by its hub: what it refines, into what, its properties
   // as the hub's entry maps them (goal-controller#226)
@@ -119,14 +144,11 @@ export const kaosdocDocument = (
     assignments.filter((a) => a.target === goal).map((a) => a.source);
   const leaves = goals.filter(
     (goal) =>
-      isKaosdocNode(goal.properties.engine) &&
-      goal.properties.engine.kind === 'kaos.BehavioralGoal' &&
+      goal.kind === 'kaos.BehavioralGoal' &&
       !refinements.some((r) => r.parent === goal.iStarId),
   );
-  const domainProperties = nodes.filter(
-    (node) => node.type === 'domainProperty',
-  );
-  const agents = model.elements.filter((e) => AGENT_KINDS.has(e.kind));
+  const domainProperties = nodes.filter(isDomainPropertyNode);
+  const agents = model.elements.filter(isAgentElement);
   // obstacles in their trees' order, then any no tree holds
   const obstacles = [
     ...nodes
@@ -149,7 +171,7 @@ export const kaosdocDocument = (
       table(
         ['Goal', 'Kind', 'Type', 'Category', 'Priority', 'Fit criterion'],
         goals.map(({ iStarId, properties: { engine } }) => {
-          const { kind, properties } = engine as KaosdocNodeProps;
+          const { kind, properties } = engine;
           return [
             nameOf(iStarId),
             KIND_LABEL[kind]!,
@@ -168,8 +190,8 @@ export const kaosdocDocument = (
         goals
           .map(({ iStarId, properties: { engine } }) => [
             nameOf(iStarId),
-            ...['Source', 'Stability', 'FormalSpec', 'Issue'].map((key) =>
-              prop((engine as KaosdocNodeProps).properties, key),
+            ...(['Source', 'Stability', 'FormalSpec', 'Issue'] as const).map(
+              (key) => prop(engine.properties, key),
             ),
           ])
           .filter(([, ...details]) => details.some(Boolean)),
@@ -200,10 +222,7 @@ export const kaosdocDocument = (
         ['Domain property', 'Description', 'In the refinement of'],
         domainProperties.map((property) => [
           nameOf(property.iStarId),
-          prop(
-            (property.properties.engine as KaosdocNodeProps).properties,
-            'Description',
-          ),
+          prop(property.properties.engine.properties, 'Description'),
           refinements
             .filter((r) => r.children.includes(property.iStarId))
             .map((r) => nameOf(r.parent))
@@ -270,12 +289,12 @@ export const kaosdocDocument = (
           const resolutions = linksOf('kaosObstacles.ResolutionLink').filter(
             (link) => link.target === id,
           );
-          const obstacleNode = nodes.find((node) => node.iStarId === id);
+          const obstacleNode = nodes.find(
+            (node): node is Extract<KaosdocNode, { kind: typeof OBSTACLE }> =>
+              isObstacleNode(node) && node.iStarId === id,
+          );
           const category = obstacleNode
-            ? prop(
-                (obstacleNode.properties.engine as KaosdocNodeProps).properties,
-                'Category',
-              )
+            ? prop(obstacleNode.properties.engine.properties, 'Category')
             : '';
           return [
             nameOf(id),

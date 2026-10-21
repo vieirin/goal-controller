@@ -5,12 +5,14 @@
  * (goal-controller#187); the texts as written are what the templates write.
  */
 import { ISTAR_KIND_OF } from '@goal-controller/dialect';
+import type { PropertyTexts } from '@goal-controller/goal-language';
 import {
   edgeGoalChecks,
   firstGoalOrTaskIssue,
   resourceReading,
   type EdgeValues,
 } from './checks';
+import { edgeProperties } from './properties';
 import type {
   Condition,
   Decision,
@@ -22,7 +24,7 @@ import type {
 /** An element's properties as a mapper is given them: read, and as written. */
 type Input<K extends 'goal' | 'task' | 'resource'> = {
   props: EdgeValues<K>;
-  raw: Partial<Record<string, string>>;
+  raw: PropertyTexts<(typeof edgeProperties)[K]>;
   id: string;
 };
 
@@ -43,7 +45,7 @@ const conditionOf = (
  */
 const assertionCondition = (
   props: EdgeValues<'goal'> | EdgeValues<'task'>,
-  raw: Partial<Record<string, string>>,
+  raw: { readonly assertion?: string },
 ): ExecCondition | undefined =>
   raw.assertion && props.assertion !== undefined
     ? { assertion: conditionOf(props.assertion, raw.assertion) }

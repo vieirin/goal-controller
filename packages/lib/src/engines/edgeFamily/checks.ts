@@ -10,6 +10,7 @@
 import { ISTAR_KIND_OF, type DECLARATION_KEYS } from '@goal-controller/dialect';
 import {
   readProperties,
+  type PropertyTexts,
   type PropertyValues,
 } from '@goal-controller/goal-language';
 import { checkOn, checks, type Check } from '../checks';
@@ -27,6 +28,11 @@ type EdgeKind = 'goal' | 'task' | 'resource';
 export type EdgeValues<K extends EdgeKind> = PropertyValues<
   (typeof edgeProperties)[K]
 >;
+
+/** A goal's or a task's raw texts, as its own kind's: a task's has no `maintain` (not a task key). */
+type GoalOrTaskRaw =
+  | PropertyTexts<(typeof edgeProperties)['goal']>
+  | PropertyTexts<(typeof edgeProperties)['task']>;
 
 /** The Edge dialects' properties, as `readProperties` and `checkOn` read them. */
 const EDGE = { properties: edgeProperties };
@@ -47,13 +53,14 @@ const messageOn = (issues: Issue[], key: string): string | null =>
 const goalOrTaskIssues = (
   kind: 'goal' | 'task',
   values: EdgeValues<'goal'> | EdgeValues<'task'>,
-  raw: Partial<Record<string, string>>,
+  raw: GoalOrTaskRaw,
 ): Issue[] => {
   const issues: Issue[] = [];
 
   if (values.type === 'maintain') {
     // not a task key: a task can never have one
     const maintain = 'maintain' in values ? values.maintain : undefined;
+    const maintainText = 'maintain' in raw ? raw.maintain : undefined;
     // absent or blank: the Inspector validates with maintain:'' while typing
     if (!maintain) {
       issues.push({
@@ -63,7 +70,7 @@ const goalOrTaskIssues = (
     } else if (!values.assertion) {
       issues.push({
         key: 'assertion',
-        message: `[INVALID MODEL]: Maintain condition for ${kind} must have 'maintain' and 'assertion'; got maintain: ${raw.maintain}, assertion: 'empty condition'`,
+        message: `[INVALID MODEL]: Maintain condition for ${kind} must have 'maintain' and 'assertion'; got maintain: ${maintainText}, assertion: 'empty condition'`,
       });
     }
   }
@@ -90,13 +97,21 @@ const dependsOnCheck = onGoal(({ props }, { self, kindOf }) => {
   return null;
 });
 
+/** A resource's raw texts, the ones its checks read. */
+type ResourceRaw = {
+  readonly type?: string;
+  readonly initialValue?: string;
+  readonly lowerBound?: string;
+  readonly upperBound?: string;
+};
+
 /**
  * A resource's variable, or its issues (in the resource entry's order, one branch per
  * resource type): the first is the one the mapper throws.
  */
 export const resourceReading = (
   values: EdgeValues<'resource'>,
-  raw: Partial<Record<string, string>>,
+  raw: ResourceRaw,
 ): { issues: Issue[]; variable: EdgeResourceVariable | null } => {
   const { initialValue, lowerBound, upperBound } = values;
   const issues = (keys: DeclaredKey[], message: string) => ({
@@ -171,12 +186,16 @@ export const resourceReading = (
 export const firstGoalOrTaskIssue = (
   kind: 'goal' | 'task',
   values: EdgeValues<'goal'> | EdgeValues<'task'>,
-  raw: Partial<Record<string, string>>,
+  raw: GoalOrTaskRaw,
 ): string | null => goalOrTaskIssues(kind, values, raw)[0]?.message ?? null;
 
-/** The first issue the resource entry's mapProps throws, if any: of the strings, read as the dialect reads them. */
+/**
+ * The first issue the resource entry's mapProps throws, if any: of the strings, read as
+ * the dialect reads them. `raw` is the element's stored text, before it is read against
+ * the dialect: every key it has, kept as written (the inspector's own properties too).
+ */
 export const firstResourceIssue = (
-  raw: Partial<Record<string, string>>,
+  raw: Readonly<Record<string, string | undefined>>,
 ): string | null =>
   resourceReading(
     readProperties(EDGE, { element: 'resource' }, raw).values,
