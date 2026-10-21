@@ -517,7 +517,7 @@
   ],
   "display": {
     "fb4fa2c1-69b7-44b5-bd61-0161b23d209f": {
-      "backgroundColor": "#75B1FF"
+      "backgroundColor": "#5AEEFA"
     },
     "3c5d314f-16e0-4226-a805-3175390c434a": {
       "width": 130,
@@ -525,7 +525,8 @@
     },
     "04c978fe-5f50-4301-99b7-958a1c9f4245": {
       "width": 136,
-      "height": 37
+      "height": 37,
+      "backgroundColor": "#5AEEFA"
     },
     "dd560575-4794-4a74-b5b0-ad601ab0a2e3": {
       "width": 144,
