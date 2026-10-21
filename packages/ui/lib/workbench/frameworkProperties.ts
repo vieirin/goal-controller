@@ -70,7 +70,9 @@ const shapeOf = (
     const type = typeOf(property);
     if (!type) continue;
     shape[property.key] = type;
-    if (property.keyed !== undefined)
+    // keyed by names the model writes (goal-controller#193): no resource
+    // lists them, so no field per name (a native file's or Notation line)
+    if (typeof property.keyed === 'string')
       for (const name of names[property.keyed] ?? [])
         shape[keyedKey(property.key, name)] = type;
   }

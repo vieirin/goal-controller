@@ -17,6 +17,7 @@ import {
   type ExtensionElementDefinition,
   type ExtensionLinkDefinition,
   type FunctionDefinition,
+  type KeyedByWritten,
   type MemberSource,
   type ISTAR_LINK_KINDS,
   type ModifierDefinition,
@@ -41,8 +42,12 @@ export type PropertyOptions<C extends string = string> = {
   check?: C;
   inspector?: boolean;
   servedBy?: 'engine';
-  /** keyed by a project resource's names (`Probability[e1]`, goal-controller#190) */
-  keyed?: string;
+  /**
+   * keyed by a project resource's names (`Probability[e1]`,
+   * goal-controller#190), or by any name the model writes (`{ names:
+   * 'written' }`, goal-controller#193)
+   */
+  keyed?: string | KeyedByWritten;
   /** an actor property's actor kinds (`actors`) */
   kinds?: readonly string[];
 };

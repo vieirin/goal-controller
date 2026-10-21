@@ -14,11 +14,13 @@
  *   (a piecewise uniform density), from a lower to an upper bound at levels
  *   0 and 1, as Cooke's classical model interpolates an expert's quantiles
  *   (RE'15's tool, ExpertOpinionSharp's `QuantileDistribution`);
+ * - exponential (its mean, goal-controller#193) and normal, closed forms
+ *   (the normal's quantile by ./special's Φ⁻¹), their support unbounded;
  * - a point: that value;
  * - a mixture: components with weights (a decision maker's combination).
  */
 import type { Distribution } from '@goal-controller/dialect';
-import { betaInc, invBetaInc } from './special';
+import { betaInc, invBetaInc, normalCdf, normalQuantile } from './special';
 import type { Random } from './random';
 
 /** A univariate distribution: its quantile function (inverse CDF), CDF, support and mean. */
@@ -157,6 +159,27 @@ export const continuousOf = (
         min,
         max,
       );
+    }
+    case 'exponential': {
+      const { mean } = distribution;
+      return {
+        min: 0,
+        max: Infinity,
+        mean,
+        quantile: (u) => -mean * Math.log1p(-u),
+        cdf: (x) => (x <= 0 ? 0 : -Math.expm1(-x / mean)),
+      };
+    }
+    case 'normal': {
+      const { mean, sd } = distribution;
+      if (sd <= 0) return point(mean);
+      return {
+        min: -Infinity,
+        max: Infinity,
+        mean,
+        quantile: (u) => mean + sd * normalQuantile(u),
+        cdf: (x) => normalCdf((x - mean) / sd),
+      };
     }
     case 'quantiles': {
       const { values } = distribution;

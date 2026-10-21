@@ -47,6 +47,7 @@ export const pistarPaletteFor = (
     case 'kaosprop':
     case 'kaosexpert':
     case 'kaosres':
+    case 'kaossim':
     case 'nfrprop':
       return null;
   }

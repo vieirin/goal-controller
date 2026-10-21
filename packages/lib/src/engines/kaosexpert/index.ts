@@ -14,6 +14,11 @@ import { defineAnalyses } from '../analysis';
 import { projectResourceParsers } from '../projectResources';
 import { kaosexpert } from './definition';
 import { runCriticalObstacles, runUncertainty } from './propagation';
+// the shared back-end's (numeric/samples), where it moved (goal-controller#193)
+export {
+  distributionOfSamples,
+  REPORTED_QUANTILES,
+} from '../../numeric/samples';
 import { parseCalibrations, parseEvidence, parseExperts } from './resources';
 
 export const kaosexpertAnalyses = defineAnalyses(kaosexpert, {
@@ -50,9 +55,7 @@ export {
 export {
   criticalObstacles,
   DEFAULT_EXPERT_OPTIONS,
-  distributionOfSamples,
   expertAnalysis,
-  REPORTED_QUANTILES,
   runCriticalObstacles,
   runUncertainty,
   satisfactionUncertainty,

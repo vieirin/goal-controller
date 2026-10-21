@@ -1822,6 +1822,110 @@ D-decisions on #189.
   written (`ModelEntry.native`, `nativeSlots`). A CAIRIS project's models
   and the seeds opt out of their mode's native files.
 
+### Step 6: quantitative goals, simulation and design-space search (goal-controller#193, #206, #207, #208)
+
+Letier and van Lamsweerde's partial goal satisfaction (FSE'04) simulated as
+Heaven and Letier simulate it (RE'11): the `kaossim` engine. Results and the
+attempts log are on #369. D1's encoding is logged on #189 ("#193 D1").
+
+- **D1: its own dialect, over kaosprop's** (`engines/kaossim/definition.ts`).
+  Every key is keyed by a name the model writes, `Key[name]` on disk, the
+  form kaosexpert's `Probability[e1]` already has. It needs one generic
+  schema change: `keyed: { names: 'written' }`, keyed by any name, with no
+  resource listing the names. The inspector has no field per such name
+  yet; the keys stay native-file and Notation lines.
+  - On a goal:
+    - `QualityVariable[v]`: its sort, `Time` (seconds), `Boolean` or
+      `Number`. FSE'04 §3.1 gives a variable a name, a sort and a
+      definition. RE'11's `Incident → Time` is sample space `Incident`,
+      sort `Time`;
+    - `SampleSpace[v]` and `QualityDefinition[v]`, both text;
+    - `Distribution[v]`: a leaf variable's estimate in every design;
+    - an objective function: `Objective[o]` (an assertion; the objective is
+      its probability) or `Mean[o]` (an expression; its expectation), with
+      `Modal[o]` (Max, Min), `Target[o]` / `Current[o]` (probabilities) and
+      `ObjectiveSpec[o]`, its PCTL definition (a `formula` tagged `pctl`,
+      §3.3, which nothing checks yet). A mean objective has no target this
+      round, because `number` reads no `%` or exponent.
+  - On a refinement's hub:
+    - `Equation[v]`: an expression over variables, with `if(c, a, b)`,
+      `min` and `max`. A Boolean is 0 or 1;
+    - `BooleanEquation[v]`: an assertion over variables;
+    - `Distribution[v]`: FSE'04 §4.1's equation "in terms of probability
+      distribution functions".
+
+    The equations are on the refinement, not the variable, because "in case
+    of alternative goal refinements different refinement equations must be
+    defined for each alternative" (FSE'04 §4.1). They are read by the goal
+    language's expression and assertion readers (#120); there is no second
+    parser.
+  - On a responsibility assignment: `SysRef` and `Distribution[v]`, the
+    responsible agent's estimate.
+- **D2: options and designs.** A goal with several refinements, or several
+  responsibility assignments, is a decision point. Its options are their
+  `SysRef`s (RE'11 §II: "Options correspond to the system reference
+  attribute attached to goal refinements, responsibility assignments"). A
+  design is a project resource (`designs.json`, kind `design`). It picks one
+  option per decision point it reaches, which is #152's selection shape, and
+  it may `set` leaf estimates (FSE'04 §5.1's what-if). With no designs
+  listed, the simulation runs every design, at most 256.
+- **D3: shared back-end.**
+  - The shared `distribution` type gains `exponential[mean]` and
+    `normal[μ, σ]`, over the reals only. `exponential` takes its **mean**:
+    RE'11's `Exp(60)` is "mean varies from 60 seconds to 30 seconds", as
+    Matlab's `exprnd(mu)` takes it.
+  - `numeric/special` gains Φ (through the incomplete gamma, from Q's side
+    in the lower tail) and Φ⁻¹ (Acklam's approximation with one Halley
+    step).
+  - `distributionOfSamples` moved from kaosexpert to `numeric/samples`;
+    kaosexpert re-exports it.
+- **The simulation** (`simulation.ts`) is RE'11 §III.A's procedure:
+  - a design keeps one alternative per decision point, from the roots
+    down;
+  - each variable has one definition in the design. With none it is
+    **unresolved**, and so is every objective depending on it: no number,
+    and the leaves it lacks are listed;
+  - N samples, each leaf drawn independently (FSE'04 §4.3's assumption)
+    and once per sample (§III.A's Gsim);
+  - equations are evaluated element-wise;
+  - objectives use the frequentist reading, with their standard error.
+
+  A Boolean leaf's estimate is its probability of being true: a value, or
+  a distribution of it (a draw, then a Bernoulli draw). Draws are seeded per
+  variable, from its name and the run's seed. Designs therefore share a
+  leaf's draws (common random numbers), and Pareto comparisons are not
+  noise.
+- **The search, D5** (`search.ts`): a design dominates another when it is
+  at least as good on every objective and better on one; a Min objective
+  counts negated (RE'11 §IV.A). There are two methods:
+  - **every design**, the oracle: an odometer over the decision points, at
+    most `limit` designs. Step 4's cost-ordered heap doesn't apply, because
+    designs carry no cost order;
+  - **NSGA-II** (Deb et al. 2002), seeded. A chromosome is one gene per
+    decision point (RE'11 §IV.C: crossovers between decision points, so
+    every child is a valid design). It uses binary tournaments on rank and
+    crowding, uniform crossover, a mutation of 1/M per gene, and one copy
+    per design in P ∪ Q. The result is the last population's first front.
+    On a synthetic 4 × 3 × 3 × 3 × 6 = 648-design space (RE'11's shape),
+    it reaches the exhaustive front at population 40 and 60 generations
+    (`test/engines/kaossim/kaossim.test.ts`).
+- **`.kaos`.** KAOSTools has no quantitative syntax, so these attributes are
+  ours:
+  - on a goal: `qualityvariable [v] Time`, `samplespace [v] "…"`,
+    `qualitydefinition [v] "…"`, `distribution [v] exponential[60]`,
+    `objective ["8MinRespRate"] "…"`, `mean [o] "…"`,
+    `objectivespec [o] "…"`, `modal [o] Max`,
+    `target [o] 50%`, `current [o] 35%`;
+  - on a refinement: `refinedby [milestone, sysref = "1.2", T = "A + B"] a, b`.
+    A `v = "…"` that reads as a distribution is `Distribution[v]`; any other
+    is `BooleanEquation[v]` when v is declared Boolean, and `Equation[v]`
+    otherwise;
+  - on an assignment: `assignedto [sysref = "4.3", A = "exponential[5]"] agent`.
+
+  A file with any of these opens in kaossim's mode (after kaosexpert's,
+  before kaosres's). The writer writes a refinement's `SysRef` now, for
+  every dialect, with an info diagnostic that KAOSTools doesn't read it.
+
 ### Models typed by their framework (goal-controller#185)
 
 - **Framework-aware, option 1.** goal-tree's `Model<EK, LK>` (lib's

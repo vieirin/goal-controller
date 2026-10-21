@@ -11,7 +11,9 @@ import type { GodaVariant } from '@goal-controller/lib';
  * a requirements document; 'kaosprop', goal-controller#181: an analysis
  * engine, probabilistic obstacle analysis; 'kaosexpert', goal-controller#190:
  * an analysis engine, expert estimates and their uncertainty; 'kaosres',
- * goal-controller#191: an analysis engine, countermeasure selection) and
+ * goal-controller#191: an analysis engine, countermeasure selection;
+ * 'kaossim', goal-controller#193: an analysis engine, quantitative goals
+ * simulated per design and the Pareto-optimal designs) and
  * 'nfrprop' (NFR: an analysis engine, label propagation).
  */
 export type TransformEngine =
@@ -28,6 +30,7 @@ export type TransformEngine =
   | 'kaosprop'
   | 'kaosexpert'
   | 'kaosres'
+  | 'kaossim'
   | 'nfrprop';
 
 /** edgeV2: one PRISM module per task (EDGE reference layout) or a single ChangeManager module */
@@ -50,6 +53,7 @@ const TRANSFORM_ENGINES: TransformEngine[] = [
   'kaosprop',
   'kaosexpert',
   'kaosres',
+  'kaossim',
   'nfrprop',
 ];
 

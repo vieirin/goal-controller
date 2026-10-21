@@ -895,7 +895,7 @@ declare agent [ e ] type environment end`);
     const { text, diagnostics } = writeKaos(model, { modelName: 'm' });
     assert.ok(
       text!.includes(
-        'declare goal [ g ]\n  $Priority "high"\n  refinedby [introduce_guard] a\nend',
+        'declare goal [ g ]\n  $Priority "high"\n  refinedby [introduce_guard, sysref = "option A"] a\nend',
       ),
     );
     assert.ok(text!.includes('declare agent [ e ]\n  type environment\nend'));
@@ -916,7 +916,7 @@ declare agent [ e ] type environment end`);
         'Achieve [New]: its id 3f2a-uuid is no KAOSTools identifier, written as achieve_new',
         'g: its RSR most is no number, not written',
         'g: its Owner has no .kaos attribute, not written',
-        "g: a refinement's SysRef has no .kaos attribute, not written",
+        "g: a refinement's SysRef and equations written as parameters KAOSTools doesn't read (only goal-controller does)",
         "achieve_new: its FormalSpec is no KAOSTools formula, written as a string (KAOSTools won't read it)",
       ],
     );
