@@ -12,7 +12,7 @@
       "nodes": [
         {
           "id": "3c5d314f-16e0-4226-a805-3175390c434a",
-          "text": "G0: Deliver sensor data to the gateway [G1;G2]",
+          "text": "G0: Deliver sensor data to the gateway [G1#G2]",
           "type": "istar.Goal",
           "x": 679.9147990919928,
           "y": 51.965919636797096,

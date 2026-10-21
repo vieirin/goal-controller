@@ -15,8 +15,9 @@ P=? [ F g2_achieved ];
 // decision_* constants that minimise it while R1 holds)
 R{"cost"}=? [ F g0_achieved ];
 
-// Sequence G0 [G1;G2]: data is relayed only once packet loss is under control
-P>=1 [ G (g2_state=1 => g1_achieved) ];
+// Interleaved G0 [G1#G2]: neither maintain goal waits for the other;
+// both can be pursued at once (needs R4 > 10 and r3Enabled to be non-vacuous)
+P>0 [ F (g1_state=1 & g2_state=1) ];
 
 // Degradation G1 [G3->G4]: the failsafe and the energy-efficient
 // configuration are never pursued together
