@@ -1,0 +1,52 @@
+{
+  "designs": [
+    {
+      "id": "paper-based",
+      "name": "The paper-based system (Table 3)",
+      "options": [
+        "paper call taking",
+        "human allocation",
+        "radio mobilization"
+      ],
+      "set": {
+        "AmbDelay": "normal[10, 30]"
+      },
+      "source": "FSE'04 Table 3; AmbDelay from §5.1, the paper-based system's"
+    },
+    {
+      "id": "s1",
+      "name": "Automated system S1 (Table 3)",
+      "options": [
+        "on-screen call taking",
+        "automated allocation",
+        "radio mobilization"
+      ],
+      "source": "FSE'04 Table 3: call taking and ambulance allocation automated"
+    },
+    {
+      "id": "s2",
+      "name": "Automated system S2 (Table 3)",
+      "options": [
+        "on-screen call taking",
+        "automated allocation",
+        "MDT mobilization"
+      ],
+      "source": "FSE'04 Table 3: ambulance mobilization automated as well"
+    },
+    {
+      "id": "s2-obstacles",
+      "name": "S2 with more obstacles (§5.1's sensitivity)",
+      "options": [
+        "on-screen call taking",
+        "automated allocation",
+        "MDT mobilization"
+      ],
+      "set": {
+        "FalseAvailability": "5%",
+        "FalseUnavailability": "10%",
+        "MobFailureForAvAmb": "10%"
+      },
+      "source": "FSE'04 §5.1: if the probabilities of these three variables increase to 5%, 10%, and 10%"
+    }
+  ]
+}

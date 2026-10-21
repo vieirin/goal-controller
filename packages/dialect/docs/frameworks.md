@@ -1926,6 +1926,46 @@ attempts log are on #369. D1's encoding is logged on #189 ("#193 D1").
   before kaosres's). The writer writes a refinement's `SysRef` now, for
   every dialect, with an info diagnostic that KAOSTools doesn't read it.
 
+- **The seeds and their oracles (the owner's decision: A plus B, #189).**
+  - **A.** `examples/kaos/las-quantitative` (FSE'04, #206) and
+    `examples/kaos/las-design-space` (RE'11, #207) re-key only what the
+    papers print. Every unprinted input is marked in the `.kaos`.
+    - kaossim reports each objective unresolved, naming what it lacks.
+    - Their `expected.csv` list Table 3 (30 / 47 / 52 %, 84 / 93 / 95 %),
+      §5.1's sensitivity (45 / 90 %) and RE'11's 61 / 97 / 73 % as "not
+      reproducible: inputs not printed", each with its missing inputs.
+    - The engine's numeric oracle is `test/engines/kaossim` (closed forms).
+      On RE'11's structure with synthetic values, the exhaustive search over
+      its 648 designs and seeded NSGA-II reach the same 19-design front
+      (`designSpace.test.ts`).
+    - `examples/kaos/mine-pump` (#208) re-keys FSE'04's targets and PCTL
+      instances, and claims no value.
+    - FSE'04 and RE'11 are two seeds, not one: their variables, structure and
+      fifth decision point differ, and merging them would invent
+      correspondences.
+  - **B.** `examples/kaos/las-radar` re-keys RADAR's `LAS.rdr` (UCL-badass/radar
+    `docs/LAS.rdr` at 53272ca, used with the owner's approval, no licence).
+    RADAR (sbusari/RADAR e0a4503, run in Docker) is the design-by-design
+    oracle.
+    - RADAR has no goals. Each variable is a goal's quality variable, each
+      equation is on the declaring goal's refinement, and each decision is an
+      OR-assignment per option, with SysRef `<decision>: <option>`.
+    - `normalci[a, b]` joins the shared distribution type: RADAR's 90 %
+      interval, σ = (b − a)/3.29.
+- **D4, as run.**
+  - The seed takes the report's sign, `Pr(ResponseTime > 14*60)`.
+  - The report's numbers are the file's sign's. RADAR's CLI prints 0
+    decimals, so "Risk = 0" was rounding. With the file's sign, Risk is
+    0.12–0.14 and the shortlist is 6 or 4 (RADAR is unseeded and the
+    designs are within noise of each other); the report's 5 are a subset.
+  - The report's text also gives the distance from location as
+    `normalCI(10000,100000)` where the file, which produced its numbers, has
+    `triangular(10000, 50000, 100000)`.
+  - With the report's sign, RADAR and kaossim agree on all 648 designs
+    within 4σ (worst 1.2σ) and on the single Pareto-optimal design. With the
+    file's sign, they agree within 4σ (worst 1.1σ), and the exhaustive front
+    is RADAR's 6.
+
 ### Models typed by their framework (goal-controller#185)
 
 - **Framework-aware, option 1.** goal-tree's `Model<EK, LK>` (lib's

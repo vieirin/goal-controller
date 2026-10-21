@@ -1,0 +1,260 @@
+@title "London Ambulance design space (RE'11)"
+
+# Heaven and Letier, "Simulating and optimising design decisions in
+# quantitative goal models", RE'11, DOI 10.1109/RE.2011.6051653
+# (goal-controller#207), re-keyed from its text only: Fig. 1's goals and
+# decision points, Fig. 2's quality variables, §II.B's objective functions,
+# equations and estimates, §III.B's current system, §IV.D's fifth decision
+# point and its two printed designs.
+#
+# What RE'11 doesn't print is not here, and is said where it would go:
+# DistanceAllocatedAmbulance "depends on the quality variables denoting the
+# number of ambulances, the frequency of incidents, the city size, the error
+# in ambulance location and availability information, and error in the
+# allocation decision process attached to lower-level goals and domain
+# properties not shown in Figure 1" (§III.B); the equations of
+# MobilisationTime and MobilisationDistance over their sub-goals' variables
+# (Fig. 2 draws the variables, not the equations); every option's estimate
+# but CallTakingTime's (§II.B) and the current system's (§III.B); the
+# options' costs. kaossim reports the objectives unresolved; RE'11's
+# 61 / 97 / 73 % are listed as not reproducible in
+# las-design-space.expected.csv. The search over the 648 designs is checked
+# on this structure with synthetic values, in lib's tests.
+#
+# Choices this seed makes, each logged (README.md):
+# - RE'11 shows "the options without showing the alternative goal
+#   refinements or responsibility assignments that define them" (§II.A):
+#   each option is an OR responsibility assignment here, its agent named as
+#   Fig. 1 names the option, its SysRef the option's number;
+# - the fifth decision point, "the possibility to increase the number of
+#   ambulances from a current value of 100 to a maximum of 200 ... by 20
+#   units" (§IV.D), impacts DistanceAllocatedAmbulance: it is a goal under
+#   Ambulance Allocated Based on Incident Form, Ambulances deployed, its
+#   options 5.1 (100) to 5.6 (200);
+# - Fig. 2's variables are placed on the goals as its layout reads (its
+#   text extraction is garbled).
+
+declare goal [ ambulance_intervention ]
+  name "Achieve [Ambulance Intervention]"
+  definition "For every urgent call reporting an incident, there should be an ambulance at the incident scene within 14 minutes after receiving the first call."
+  qualityvariable [ResponseTime] Time
+  samplespace [ResponseTime] "Incident"
+  qualitydefinition [ResponseTime] "the duration in seconds between the start of the first call reporting the incident and the arrival of the first ambulance at the incident scene."
+  qualityvariable [IncidentDropped] Boolean
+  samplespace [IncidentDropped] "Incident"
+  qualitydefinition [IncidentDropped] "true of reported incidents for which no ambulance ever arrives at the incident scene"
+  objective ["14MinResponseRate"] "ResponseTime <= 14 * 60"
+  modal ["14MinResponseRate"] Max
+  target ["14MinResponseRate"] 95%
+  objective ["8MinResponseRate"] "ResponseTime <= 8 * 60"
+  modal ["8MinResponseRate"] Max
+  target ["8MinResponseRate"] 50%
+  # IncidentDropped's operators are lost in the PDF's text (its ∨ glyphs):
+  # read as FSE'04 writes the same equation, "or"
+  refinedby [ResponseTime = "MobilisationTime + MobilisationDistance + AmbulanceDelay", IncidentDropped = "NoAmbulanceMobilised | WrongMobilisationDestination | AmbulanceInterventionFailure"] ambulance_mobilised, mobilised_ambulance_intervention
+end
+
+declare goal [ ambulance_mobilised ]
+  name "Achieve [Ambulance Mobilised]"
+  definition "An ambulance be mobilised to an incident within 3 minutes after the first call and the mobilised ambulance is less than 11 minutes away from the incident."
+  qualityvariable [MobilisationTime] Time
+  qualitydefinition [MobilisationTime] "the time it takes to mobilize the first ambulance"
+  qualityvariable [MobilisationDistance] Time
+  qualitydefinition [MobilisationDistance] "the time-distance between the mobilised ambulance and the incident location"
+  qualityvariable [NoAmbulanceMobilised] Boolean
+  qualityvariable [WrongMobilisationDestination] Boolean
+  # not printed: the equations of MobilisationTime and MobilisationDistance
+  refinedby incident_form_encoded, ambulance_mobilised_based_on_incident_form
+end
+
+declare goal [ mobilised_ambulance_intervention ]
+  name "Achieve [Mobilised Ambulance Intervention]"
+  definition "Once an ambulance is mobilised for an incident location it will reach that location without delay."
+  qualityvariable [AmbulanceDelay] Time
+  qualitydefinition [AmbulanceDelay] "the difference between the mobilisation distance and the actual time taken by the ambulance to reach the incident location"
+  distribution [AmbulanceDelay] normal[0, 120]
+  qualityvariable [AmbulanceInterventionFailure] Boolean
+end
+
+declare goal [ incident_form_encoded ]
+  name "Achieve [Incident Form Encoded]"
+  qualityvariable [CallTakingTime] Time
+  qualitydefinition [CallTakingTime] "the time it takes to fill in the incident form after the start of the first call"
+  assignedto [sysref = "1.1", CallTakingTime = "exponential[60]"] option_1_1
+  assignedto [sysref = "1.2", CallTakingTime = "exponential[40]"] option_1_2
+  assignedto [sysref = "1.3", CallTakingTime = "exponential[45]"] option_1_3
+  assignedto [sysref = "1.4", CallTakingTime = "exponential[30]"] option_1_4
+end
+
+declare goal [ ambulance_mobilised_based_on_incident_form ]
+  name "Achieve [Ambulance Mobilised Based on Incident Form]"
+  qualityvariable [AmbulanceMobilisationTimeAfterFormEncoding] Time
+  qualityvariable [DistanceMobilisedAmbulance] Time
+  refinedby ambulance_allocated_based_on_incident_form, allocated_ambulance_mobilised
+end
+
+declare goal [ ambulance_allocated_based_on_incident_form ]
+  name "Achieve [Ambulance Allocated Based on Incident Form]"
+  qualityvariable [AllocationTime] Time
+  qualityvariable [DistanceAllocatedAmbulance] Time
+  qualitydefinition [DistanceAllocatedAmbulance] "the time-distance between the incident location and the ambulance allocated to the incident"
+  # not printed: DistanceAllocatedAmbulance's model (§III.B)
+  refinedby allocated_on_form_and_info, accurate_ambulance_info, ambulances_deployed
+end
+
+declare goal [ allocated_on_form_and_info ]
+  name "Achieve [Ambulance Allocated Based on Incident Form and Ambulance Info]"
+  # 4.2 and 4.3's AllocationTime: not printed. §III.B: "selecting the second
+  # option ... which allocates responsibility for the goal to a software
+  # agent instead of a human operator, giving an estimated mean Allocation
+  # Decision Time of only 5 seconds": a mean, its distribution not printed,
+  # and "the second option" names a decision point Fig. 1 hangs options
+  # 2.x on (README.md)
+  assignedto [sysref = "4.1", AllocationTime = "exponential[60]"] option_4_1
+  assignedto [sysref = "4.2"] option_4_2
+  assignedto [sysref = "4.3"] option_4_3
+end
+
+declare goal [ accurate_ambulance_info ]
+  name "Achieve [Accurate Ambulance Info]"
+  # no option's estimate is printed
+  assignedto [sysref = "3.1"] option_3_1
+  assignedto [sysref = "3.2"] option_3_2
+  assignedto [sysref = "3.3"] option_3_3
+end
+
+declare goal [ allocated_ambulance_mobilised ]
+  name "Achieve [Allocated Ambulance Mobilised]"
+  qualityvariable [MobilisationCommunicationTime] Time
+  # 2.2 and 2.3's: not printed
+  assignedto [sysref = "2.1", MobilisationCommunicationTime = "exponential[60]"] option_2_1
+  assignedto [sysref = "2.2"] option_2_2
+  assignedto [sysref = "2.3"] option_2_3
+end
+
+declare goal [ ambulances_deployed ]
+  name "Ambulances deployed (RE'11 §IV.D's fifth decision point)"
+  qualityvariable [NbAmbulances] Number
+  assignedto [sysref = "5.1", NbAmbulances = "100"] option_5_1
+  assignedto [sysref = "5.2", NbAmbulances = "120"] option_5_2
+  assignedto [sysref = "5.3", NbAmbulances = "140"] option_5_3
+  assignedto [sysref = "5.4", NbAmbulances = "160"] option_5_4
+  assignedto [sysref = "5.5", NbAmbulances = "180"] option_5_5
+  assignedto [sysref = "5.6", NbAmbulances = "200"] option_5_6
+end
+
+declare agent [ option_1_1 ]
+  name "Option 1.1. Current paper-based"
+end
+
+declare agent [ option_1_2 ]
+  name "Option 1.2. Computer-based call taking"
+end
+
+declare agent [ option_1_3 ]
+  name "Option 1.3. Automated Call Location"
+end
+
+declare agent [ option_1_4 ]
+  name "Option 1.4. Computer-based + automated location"
+end
+
+declare agent [ option_2_1 ]
+  name "Option 2.1. Current Radio-based"
+end
+
+declare agent [ option_2_2 ]
+  name "Option 2.2. MDT- System A"
+end
+
+declare agent [ option_2_3 ]
+  name "Option 2.3. MDT- System B"
+end
+
+declare agent [ option_3_1 ]
+  name "Option 3.1. Current radio and paper-based"
+end
+
+declare agent [ option_3_2 ]
+  name "Option 3.2. Automated Vehicle Location (A)"
+end
+
+declare agent [ option_3_3 ]
+  name "Option 3.3. Automated Vehicle Location (B)"
+end
+
+declare agent [ option_4_1 ]
+  name "Option 4.1. Current paper-based"
+end
+
+declare agent [ option_4_2 ]
+  name "Option 4.2. Interactive Allocation"
+end
+
+declare agent [ option_4_3 ]
+  name "Option 4.3. Fully Automated Allocation"
+end
+
+declare agent [ option_5_1 ]
+  name "100 ambulances"
+end
+
+declare agent [ option_5_2 ]
+  name "120 ambulances"
+end
+
+declare agent [ option_5_3 ]
+  name "140 ambulances"
+end
+
+declare agent [ option_5_4 ]
+  name "160 ambulances"
+end
+
+declare agent [ option_5_5 ]
+  name "180 ambulances"
+end
+
+declare agent [ option_5_6 ]
+  name "200 ambulances"
+end
+
+declare design [ as-is ]
+  name "The current system (§III.B)"
+  option "1.1"
+  option "2.1"
+  option "3.1"
+  option "4.1"
+  option "5.1"
+  source "RE'11 §III.B: options 1.1, 2.1, 3.1 and 4.1 (the fifth decision point is §IV.D's, at its current 100 ambulances)"
+end
+
+declare design [ automated-allocation ]
+  name "The current system with automated allocation (§III.B's 73 %)"
+  option "1.1"
+  option "2.1"
+  option "3.1"
+  option "4.3"
+  option "5.1"
+  source "RE'11 §III.B: allocation by a software agent; its option is ambiguous in the text (README.md)"
+end
+
+declare design [ mdt-a ]
+  name "[1.1, 2.2, 3.1, 4.1, 5.1] (§IV.D: 98 %, 500k)"
+  option "1.1"
+  option "2.2"
+  option "3.1"
+  option "4.1"
+  option "5.1"
+  source "RE'11 §IV.D"
+end
+
+declare design [ expensive ]
+  name "[1.1, 2.3, 3.2, 4.3, 5.3] (§IV.D: over 99 %, 3418k)"
+  option "1.1"
+  option "2.3"
+  option "3.2"
+  option "4.3"
+  option "5.3"
+  source "RE'11 §IV.D"
+end

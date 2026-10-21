@@ -158,6 +158,12 @@ describe('kaossim: distributions over the reals (#193)', () => {
     assert.ok(Math.abs(exp.quantile(exp.cdf(123)) - 123) < 1e-9);
     const normal = continuousOf({ kind: 'normal', mean: 10, sd: 30 });
     assert.ok(Math.abs(normal.quantile(0.5) - 10) < 1e-12);
+    // RADAR's normalCI(a, b): a 90 % interval, σ = (b − a)/3.29
+    const ci = continuousOf(
+      distributionOf('normalci[0, 120]', { range: 'real' })!,
+    );
+    assert.ok(Math.abs(ci.mean - 60) < 1e-12);
+    assert.ok(Math.abs(ci.cdf(120) - normalCdf(3.29 / 2)) < 1e-12);
   });
 });
 

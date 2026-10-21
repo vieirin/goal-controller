@@ -35,6 +35,12 @@
  *   it. `cost [x] n` for an x that is no obstacle (KAOSTools' cost variable,
  *   before 2017-03) is kept as written.
  *
+ * - kaossim's (goal-controller#193): a goal's quantities (`qualityvariable
+ *   [v] Time`, `objective [o] "…"`, …), a refinement's and an assignment's
+ *   parameters (`sysref = "…"`, `v = "…"`), and `declare design` the
+ *   project resource `designs.json`. A file with any of these opens in
+ *   kaossim's mode.
+ *
  * Nothing is dropped: what has no place (a per-expert or distribution
  * `esr` on a goal, an `entity`, a custom `$attribute`, an import not
  * given) is kept as written, in file order, in the diagram's
@@ -74,6 +80,11 @@ import {
   type KaosValue as Value,
 } from '@goal-controller/goal-language/formats';
 import type { CountermeasureForm } from '../../engines/kaosres/definition';
+import {
+  DESIGNS_PATH,
+  designsText,
+  type DesignEntry,
+} from '../../engines/kaossim/designs';
 import {
   CUSTOM_KEYS,
   KAOS_DECLARATIONS,
@@ -310,6 +321,7 @@ export const readKaos = (
   let expertForms = false;
   // kaossim's quantities (goal-controller#193): a file with any opens in its mode
   let simForms = false;
+  const designs: DesignEntry[] = [];
   /** `declare constraint … conflict a, b`: two goals that conflict (goal-controller#191) */
   const conflicts: { a: Ref; b: Ref }[] = [];
 
@@ -364,6 +376,10 @@ export const readKaos = (
     }
     if (word === 'evidence') {
       evidenceItem(declaration, where);
+      return null;
+    }
+    if (word === 'design') {
+      designItem(declaration, where);
       return null;
     }
     if (word === 'constraint') {
@@ -781,6 +797,76 @@ export const readKaos = (
   };
 
   /** `declare evidence`: an entry of kaosexpert's evidence resource (goal-controller#199). */
+  /**
+   * kaossim's design (goal-controller#193, D2): `declare design [ id ] name
+   * "…" option "SysRef", "SysRef" set [v] "estimate" source "…" end`, an
+   * entry of the project's `designs.json`
+   */
+  const designItem = (declaration: Declaration, where: Where) => {
+    simForms = true;
+    if (!declaration.id) {
+      raw.push(sourceOf(declaration));
+      say(
+        where,
+        'warning',
+        `${headOf(declaration)}: a design without an identifier, kept as written`,
+        headAt(declaration),
+      );
+      return;
+    }
+    const kept: string[] = [];
+    let name: string | undefined;
+    let source: string | undefined;
+    const options: string[] = [];
+    const set: Record<string, string> = {};
+    const text = (value: Value) =>
+      value.atom.$type === 'StringAtom' && !value.bracket.length && !value.op
+        ? unquote(sourceOf(value.atom))
+        : null;
+    for (const attribute of declaration.attributes) {
+      const single1 = single(attribute);
+      const lower = attribute.name.toLowerCase();
+      const written = single1 ? text(single1) : null;
+      if (lower === 'name' && written !== null) {
+        name = written;
+        continue;
+      }
+      if (lower === 'source' && written !== null) {
+        source = written;
+        continue;
+      }
+      if (lower === 'option' && !attribute.params.length) {
+        const picks = attribute.values.map(text);
+        if (picks.every((p): p is string => p !== null)) {
+          options.push(...picks);
+          continue;
+        }
+      }
+      if (lower === 'set') {
+        const quantity = quantityOf(attribute);
+        if (quantity) {
+          set[quantity.name] = quantity.text;
+          continue;
+        }
+      }
+      kept.push(oneLine(sourceOf(attribute)));
+      say(
+        where,
+        'warning',
+        `${attribute.name} of design ${declaration.id}: kept as written, not read`,
+        at(attribute),
+      );
+    }
+    designs.push({
+      id: declaration.id,
+      ...(name !== undefined && { name }),
+      options,
+      ...(Object.keys(set).length && { set }),
+      ...(source !== undefined && { source }),
+      ...(kept.length && { kept }),
+    });
+  };
+
   const evidenceItem = (declaration: Declaration, where: Where) => {
     expertForms = true;
     if (!declaration.id) {
@@ -1618,6 +1704,8 @@ export const readKaos = (
     projectResources.evidence = {
       [EVIDENCE_PATH]: evidenceText({ evidence }),
     };
+  if (designs.length)
+    projectResources.design = { [DESIGNS_PATH]: designsText({ designs }) };
   return {
     model,
     dialectRecord: {

@@ -65,7 +65,9 @@
  *   - `unresolved`: the variables it lacks (space-separated, any order);
  *   - `target`, `current`: as the model reads them;
  *   - of the design space (`design` `-`): `designs` (how many), `pareto`
- *     (the exhaustive front's designs, ` | `, sorted).
+ *     (the exhaustive front's designs, ` | `, sorted), `pareto nsga2`
+ *     (NSGA-II's, seeded, with kaossim's default population and
+ *     generations).
  *   `expected` `-`: a number the paper prints and the seed can't
  *   reproduce, reported, never a failure.
  *
@@ -443,17 +445,24 @@ const simOracle = (modelText, resources, rows) => {
     }
     return runs.get(id);
   };
-  let front;
-  const frontOf = () =>
-    (front ??= lib
-      .exhaustiveSearch(model, {
-        ...lib.DEFAULT_SIM_OPTIONS,
-        samples: SIM_SAMPLES,
-        seed: 1,
-      })
-      .front.map((s) => s.run.design.id)
-      .sort()
-      .join(' | '));
+  const fronts = new Map();
+  const frontOf = (method) => {
+    if (!fronts.has(method))
+      fronts.set(
+        method,
+        lib
+          .searchDesigns(model, {
+            ...lib.DEFAULT_SIM_OPTIONS,
+            method,
+            samples: SIM_SAMPLES,
+            seed: 1,
+          })
+          .front.map((s) => s.run.design.id)
+          .sort()
+          .join(' | '),
+      );
+    return fronts.get(method);
+  };
   const objectiveOf = (name) => {
     const found = model.objectives.find((o) => o.name === name);
     if (!found) throw new Error(`no objective ${name}`);
@@ -481,7 +490,9 @@ const simOracle = (modelText, resources, rows) => {
       case 'designs':
         return lib.enumerateDesigns(model).designs.length;
       case 'pareto':
-        return frontOf();
+        return frontOf('exhaustive');
+      case 'pareto nsga2':
+        return frontOf('nsga2');
       default:
         throw new Error(`unknown quantity ${row.quantity}`);
     }
@@ -508,7 +519,9 @@ const simOracle = (modelText, resources, rows) => {
         problems: [errorText(error)],
       };
     }
-    const textual = row.quantity === 'unresolved' || row.quantity === 'pareto';
+    const textual = ['unresolved', 'pareto', 'pareto nsga2'].includes(
+      row.quantity,
+    );
     const ok = textual
       ? got ===
         (row.quantity === 'unresolved'

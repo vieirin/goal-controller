@@ -47,6 +47,8 @@ export type DesignEntry = {
   options: string[];
   set?: Readonly<Record<string, string>>;
   source?: string;
+  /** attributes of its `.kaos` declaration no key reads, as written */
+  kept?: string[];
 };
 export type DesignsFile = { designs: DesignEntry[] };
 

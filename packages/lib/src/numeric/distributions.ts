@@ -14,7 +14,8 @@
  *   (a piecewise uniform density), from a lower to an upper bound at levels
  *   0 and 1, as Cooke's classical model interpolates an expert's quantiles
  *   (RE'15's tool, ExpertOpinionSharp's `QuantileDistribution`);
- * - exponential (its mean, goal-controller#193) and normal, closed forms
+ * - exponential (its mean, goal-controller#193), normal and normalci (a
+ *   normal by its 90 % interval, RADAR's), closed forms
  *   (the normal's quantile by ./special's Φ⁻¹), their support unbounded;
  * - a point: that value;
  * - a mixture: components with weights (a decision maker's combination).
@@ -180,6 +181,15 @@ export const continuousOf = (
         quantile: (u) => mean + sd * normalQuantile(u),
         cdf: (x) => normalCdf((x - mean) / sd),
       };
+    }
+    case 'normalci': {
+      // RADAR's normalCI(a, b): a 90 % interval, σ = (b − a)/3.29
+      const { lower, upper } = distribution;
+      return continuousOf({
+        kind: 'normal',
+        mean: (lower + upper) / 2,
+        sd: (upper - lower) / 3.29,
+      });
     }
     case 'quantiles': {
       const { values } = distribution;

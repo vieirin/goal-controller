@@ -1109,6 +1109,69 @@
     "outputs": []
   },
   {
+    "path": "kaos/las-design-space",
+    "group": "kaos",
+    "name": "las-design-space",
+    "form": "file",
+    "dialect": "kaossim",
+    "root": "kaos/las-design-space",
+    "files": [
+      "README.md",
+      "designs.json",
+      "las-design-space.expected.csv",
+      "las-design-space.kaos",
+      "las-design-space.txt",
+      "project.json"
+    ],
+    "models": ["las-design-space.txt"],
+    "projectResources": {
+      "design": "designs.json"
+    },
+    "outputs": []
+  },
+  {
+    "path": "kaos/las-quantitative",
+    "group": "kaos",
+    "name": "las-quantitative",
+    "form": "file",
+    "dialect": "kaossim",
+    "root": "kaos/las-quantitative",
+    "files": [
+      "README.md",
+      "designs.json",
+      "las-quantitative.expected.csv",
+      "las-quantitative.kaos",
+      "las-quantitative.txt",
+      "project.json"
+    ],
+    "models": ["las-quantitative.txt"],
+    "projectResources": {
+      "design": "designs.json"
+    },
+    "outputs": []
+  },
+  {
+    "path": "kaos/las-radar",
+    "group": "kaos",
+    "name": "las-radar",
+    "form": "file",
+    "dialect": "kaossim",
+    "root": "kaos/las-radar",
+    "files": [
+      "README.md",
+      "designs.json",
+      "las-radar.expected.csv",
+      "las-radar.kaos",
+      "las-radar.txt",
+      "project.json"
+    ],
+    "models": ["las-radar.txt"],
+    "projectResources": {
+      "design": "designs.json"
+    },
+    "outputs": []
+  },
+  {
     "path": "kaos/mine-pump",
     "group": "kaos",
     "name": "mine-pump",

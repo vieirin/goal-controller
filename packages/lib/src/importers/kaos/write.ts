@@ -28,6 +28,8 @@
  *   refinement's `SysRef` and equations as its parameters (`refinedby
  *   [sysref = "1.2", T = "A + B"] a, b`), an assignment's as its
  *   (`assignedto [sysref = "4.3", A = "exponential[5]"] agent`).
+ * - kaossim's designs (`designs.json`) as `declare design [ id ] … end`,
+ *   after the evidence items.
  * - A conflict between two goals as KAOSTools' older `declare constraint
  *   [ c ] conflict a, b end` (goal-controller#191), after the elements.
  * - What the reader kept as written (`kaosUnsupported`) at the end, as it
@@ -52,6 +54,7 @@ import type {
   EvidenceFile,
   ExpertsFile,
 } from '../../engines/kaosexpert/resources';
+import type { DesignsFile } from '../../engines/kaossim/designs';
 import { kaosLanguage } from '@goal-controller/goal-language/formats';
 import type { CountermeasureForm } from '../../engines/kaosres/definition';
 import { identifierOf, KAOS_UNSUPPORTED_KEY } from './read';
@@ -664,6 +667,24 @@ export const writeKaos = (
         ...(item.name !== undefined ? [`  name ${quoted(item.name)}`] : []),
         ...(item.kind !== undefined ? [`  kind ${quoted(item.kind)}`] : []),
         ...(item.kept ?? []).map((line) => `  ${line}`),
+        'end',
+      );
+  // kaossim's designs (goal-controller#193): after the evidence items
+  const designFiles = resourceValues(projectResources.design) as DesignsFile[];
+  for (const file of designFiles)
+    for (const design of Array.isArray(file?.designs) ? file.designs : [])
+      lines.push(
+        '',
+        `declare design [ ${design.id} ]`,
+        ...(design.name !== undefined ? [`  name ${quoted(design.name)}`] : []),
+        ...(design.options ?? []).map((o) => `  option ${quoted(o)}`),
+        ...Object.entries(design.set ?? {}).map(
+          ([v, text]) => `  set [${nameParam(v)}] ${quoted(text)}`,
+        ),
+        ...(design.source !== undefined
+          ? [`  source ${quoted(design.source)}`]
+          : []),
+        ...(design.kept ?? []).map((line) => `  ${line}`),
         'end',
       );
   const kept = json.diagram?.customProperties?.[KAOS_UNSUPPORTED_KEY];

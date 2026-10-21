@@ -1,0 +1,230 @@
+@title "London Ambulance, quantitative (FSE'04)"
+
+# Letier and van Lamsweerde, "Reasoning about Partial Goal Satisfaction for
+# Requirements and Design Engineering", SIGSOFT'04/FSE-12, pp. 53-62, DOI
+# 10.1145/1029894.1029905 (goal-controller#206), re-keyed from its text
+# only: Fig. 1's eleven goals, Fig. 3's mitigation, the quality variables
+# and objective functions of §3.1-3.2, the refinement equations of §4.1 and
+# §4.3, the estimates §5.1 prints, and Table 3's three systems as designs.
+#
+# What FSE'04 doesn't print is not here, and is said where it would go
+# ("not printed"). Table 3 gives its parameters' means only, from
+# "plausible (but fictitious) estimations for some of the important
+# parameters": no distribution family but CallTakingTime's and AmbDelay's
+# (§5.1, the paper-based system's), no city size L, no number of truly
+# available ambulances, no equation for MobilizationTime,
+# DistMobilizedAmbulance or AmbIntervFailure. kaossim therefore reports
+# every objective unresolved, with the variables it lacks; Table 3's values
+# are listed as not reproducible in las-quantitative.expected.csv.
+#
+# Choices this seed makes, each logged (README.md):
+# - the root's refinement is Fig. 3's (with AmbIntervFailureRecovered), whose
+#   equations §4.3 gives in their final, independent form; Fig. 1's ideal
+#   one and §4.1's first equations are in comments;
+# - Table 3's systems differ in "call taking and ambulance allocation are
+#   automated" (S1) and "ambulance mobilization is automated as well" (S2):
+#   the first two are OR responsibility assignments (§2.1: "assigned to a
+#   human allocator agent, to a software agent"), the third is Fig. 1's OR
+#   refinement of AllocatedAmbulanceMobilized (radio, MDT);
+# - the agents' names are the roles §2.1 and §5.1 describe.
+
+declare goal [ ambulance_intervention ]
+  name "Achieve [AmbulanceIntervention]"
+  definition "For every urgent call reporting an incident, there should be an ambulance at the incident scene within 14 minutes after receiving the first call."
+  formalspec "∀inc: Incident Reported (inc) ⇒ ◊≤14min (∃ amb:Ambulance) Intervention (amb, inc)"
+  qualityvariable [ResponseTime] Time
+  samplespace [ResponseTime] "set of reported incidents"
+  qualitydefinition [ResponseTime] "time between first report of the incident and arrival of the first ambulance at the incident scene"
+  qualityvariable [IncidentDropped] Boolean
+  samplespace [IncidentDropped] "all reported incidents"
+  qualitydefinition [IncidentDropped] "true when no ambulance ever responds to the incident (§3.2, H1)"
+  objective ["8MinRespRate"] "ResponseTime <= 8 * 60"
+  modal ["8MinRespRate"] Max
+  target ["8MinRespRate"] 50%
+  current ["8MinRespRate"] 35%
+  objective ["14MinRespRate"] "ResponseTime <= 14 * 60"
+  objectivespec ["14MinRespRate"] "∀ inc: Incident Reported (inc) ⇒ Pr≥95% ◊≤14min (∃ amb:Ambulance) Intervention (amb, inc)"
+  modal ["14MinRespRate"] Max
+  target ["14MinRespRate"] 95%
+  current ["14MinRespRate"] 80%
+  # §4.3: AmbFailureRecovDelay = AmbFailureDetectionTime + MobilizationTime +
+  # DistMobilizedAmb + AmbDelay, eliminated from §4.1's ResponseTime (its
+  # variables are not independent), which gives the equation below. §4.1's
+  # ideal refinement (Fig. 1, without the mitigation): ResponseTime =
+  # MobilizationTime + DistMobilizedAmbulance + AmbDelay; IncidentDropped =
+  # NoAmbMobilized or WrongMobDest or AmbIntervFailure.
+  refinedby [milestone, ResponseTime = "if(AmbIntervFailure, 2 * (MobilizationTime + DistMobilizedAmbulance + AmbDelay) + AmbFailureDetectionTime, MobilizationTime + DistMobilizedAmbulance + AmbDelay)", IncidentDropped = "NoAmbMobilized | WrongMobDest | (AmbIntervFailure & AmbFailureNotRecovered)"] ambulance_mobilized, mobilized_ambulance_intervention, amb_interv_failure_recovered
+end
+
+declare goal [ ambulance_mobilized ]
+  name "Achieve [AmbulanceMobilized]"
+  definition "For every urgent call reporting an incident, an ambulance must be mobilized to the incident location within less than three minutes; the mobilized ambulance should be at less than 11 minutes from the incident location."
+  qualityvariable [NoAmbMobilized] Boolean
+  samplespace [NoAmbMobilized] "set of reported incidents"
+  qualitydefinition [NoAmbMobilized] "NoAmbMobilized is true if no ambulance is ever mobilized for the incident"
+  qualityvariable [MobilizationTime] Time
+  samplespace [MobilizationTime] "set of reported incidents"
+  qualitydefinition [MobilizationTime] "time between first report of the incident and mobilisation of the first ambulance"
+  qualityvariable [WrongMobDest] Boolean
+  samplespace [WrongMobDest] "set of reported incidents"
+  qualitydefinition [WrongMobDest] "WrongMobDest is true if the mobilized ambulance is mobilized to a wrong location"
+  qualityvariable [DistMobilizedAmbulance] Time
+  samplespace [DistMobilizedAmbulance] "set of reported incidents"
+  qualitydefinition [DistMobilizedAmbulance] "distance, measured in time to go from one location to the other, between the first mobilized ambulance and the incident location"
+  # not printed: the equations of MobilizationTime, DistMobilizedAmbulance,
+  # NoAmbMobilized and WrongMobDest over the sub-goals' variables
+  refinedby [milestone] incident_form_encoded, ambulance_mobilized_based_on_inc_form
+end
+
+declare goal [ mobilized_ambulance_intervention ]
+  name "Achieve [MobilizedAmbulanceIntervention]"
+  qualityvariable [AmbDelay] Time
+  qualitydefinition [AmbDelay] "the difference between the actual and expected times for a mobilized ambulance to reach the incident location"
+  qualityvariable [AmbIntervFailure] Boolean
+  qualitydefinition [AmbIntervFailure] "the mobilized ambulance fails to arrive at the incident scene"
+  # AmbDelay: §5.1's estimate is the paper-based system's (designs.json);
+  # not printed for S1 and S2. AmbIntervFailure: not printed (Table 3's
+  # P(MobFailureForAvAmb) and P(FalseAvailability) bear on it, by no printed
+  # equation)
+  obstructedby mobilized_amb_failure
+end
+
+declare obstacle [ mobilized_amb_failure ]
+  name "MobilizedAmbFailure"
+  resolvedby [mitigation] amb_interv_failure_recovered
+end
+
+declare goal [ amb_interv_failure_recovered ]
+  name "Achieve [AmbIntervFailureRecovered]"
+  qualityvariable [AmbFailureRecovDelay] Time
+  qualityvariable [AmbFailureNotRecovered] Boolean
+  qualityvariable [AmbFailureDetectionTime] Time
+  # AmbFailureDetectionTime is §4.3's; Table 3's "Mean MobFailureDetectionTime"
+  # (2, 2 and 4 min) is likely it, a mean without a distribution: not printed.
+  # AmbFailureNotRecovered: not printed
+end
+
+declare goal [ incident_form_encoded ]
+  name "IncidentFormEncoded"
+  qualityvariable [CallTakingTime] Time
+  # §5.1: on paper, "an exponential distribution with a mean of 60 seconds";
+  # on screen, Table 3's mean 50 s ("experts might estimate that on-screen
+  # call taking would lower the mean call taking time from 60 to 50
+  # seconds"), its distribution not printed
+  assignedto [sysref = "paper call taking", CallTakingTime = "exponential[60]"] call_taker
+  assignedto [sysref = "on-screen call taking"] call_taking_software
+end
+
+declare goal [ ambulance_mobilized_based_on_inc_form ]
+  name "AmbulanceMobilizedBasedOnIncForm"
+  refinedby [milestone] ambulance_allocated_based_on_inc_form, allocated_ambulance_mobilized
+end
+
+declare goal [ ambulance_allocated_based_on_inc_form ]
+  name "AmbulanceAllocatedBasedOnIncForm"
+  qualityvariable [DistAllocatedAmbInfo] Time
+  qualitydefinition [DistAllocatedAmbInfo] "the distance, measured in time units, between the incident location and the nearest available ambulance according the information known about ambulances"
+  # §4.1: P(DistAllocatedAmbInfo ≤ x) = 1 - (1-x²/L²)^NbAvAmb * (1-P(FalseUnavailability)),
+  # L the size of the city (a square town), NbAvAmb the number of
+  # ambulances truly available: neither is printed (Table 3 gives
+  # NbAmbulances 300), nor is how AllocationDistError (Table 3, 90/30/30 s)
+  # enters. A CDF, not an equation over values: written here, not read.
+  # Table 3's AllocationTime (60/30/30 s) is a mean, not printed as a
+  # distribution
+  assignedto [sysref = "human allocation"] allocator
+  assignedto [sysref = "automated allocation"] allocation_software
+end
+
+declare goal [ accurate_ambulance_info ]
+  name "AccurateAmbulanceInfo"
+  qualityvariable [FalseUnavailability] Boolean
+  qualitydefinition [FalseUnavailability] "an available ambulance is believed to be unavailable"
+  qualityvariable [FalseAvailability] Boolean
+  qualitydefinition [FalseAvailability] "an ambulance believed to be available is actually unavailable (§5.1)"
+  # §4.1 puts FalseUnavailability on this goal; §5.2 names it Achieve
+  # [AccurateAmbulanceAvailabilityInfo]. Fig. 1 doesn't draw it, so no
+  # refinement links it. Its probabilities are Table 3's (designs.json), but
+  # no printed equation takes them to DistAllocatedAmbInfo's L or to
+  # AmbIntervFailure
+  distribution [FalseAvailability] 1%
+  distribution [FalseUnavailability] 2%
+end
+
+declare goal [ allocated_ambulance_mobilized ]
+  name "AllocatedAmbulanceMobilized"
+  # Table 3's "Mean MobilizationTime" (80, 80, 50 s) is not §3.2's
+  # MobilizationTime (that one includes call taking and allocation, Table 3's
+  # other rows): it is this goal's, unnamed, without a distribution
+  refinedby [sysref = "radio mobilization"] amb_mobilization_communicated_on_radio, amb_mobilized_from_radio_mobilization
+  refinedby [sysref = "MDT mobilization"] amb_mobilization_communicated_on_mdt, amb_mobilized_from_mdt_mobilization
+end
+
+declare goal [ amb_mobilization_communicated_on_radio ]
+  name "AmbulanceMobilizationCommunicatedOnRadio"
+end
+
+declare goal [ amb_mobilized_from_radio_mobilization ]
+  name "AmbulanceMobilizedFromRadioMobilization"
+end
+
+declare goal [ amb_mobilization_communicated_on_mdt ]
+  name "AmbulanceMobilizationCommunicatedOnMDT"
+end
+
+declare goal [ amb_mobilized_from_mdt_mobilization ]
+  name "AmbulanceMobilizedFromMDTMobilization"
+end
+
+declare agent [ call_taker ]
+  name "Call taker (paper-based)"
+  type environment
+end
+
+declare agent [ call_taking_software ]
+  name "On-screen call-taking software"
+end
+
+declare agent [ allocator ]
+  name "Human allocator"
+  type environment
+end
+
+declare agent [ allocation_software ]
+  name "Allocation software"
+end
+
+declare design [ paper-based ]
+  name "The paper-based system (Table 3)"
+  option "paper call taking"
+  option "human allocation"
+  option "radio mobilization"
+  set [AmbDelay] "normal[10, 30]"
+  source "FSE'04 Table 3; AmbDelay from §5.1, the paper-based system's"
+end
+
+declare design [ s1 ]
+  name "Automated system S1 (Table 3)"
+  option "on-screen call taking"
+  option "automated allocation"
+  option "radio mobilization"
+  source "FSE'04 Table 3: call taking and ambulance allocation automated"
+end
+
+declare design [ s2 ]
+  name "Automated system S2 (Table 3)"
+  option "on-screen call taking"
+  option "automated allocation"
+  option "MDT mobilization"
+  source "FSE'04 Table 3: ambulance mobilization automated as well"
+end
+
+declare design [ s2-obstacles ]
+  name "S2 with more obstacles (§5.1's sensitivity)"
+  option "on-screen call taking"
+  option "automated allocation"
+  option "MDT mobilization"
+  set [FalseAvailability] "5%"
+  set [FalseUnavailability] "10%"
+  set [MobFailureForAvAmb] "10%"
+  source "FSE'04 §5.1: if the probabilities of these three variables increase to 5%, 10%, and 10%"
+end

@@ -225,6 +225,9 @@ describe('frameworks: the DSM3 seeds (#171)', () => {
       'examples/kaos/flood/flood.txt',
       'examples/kaos/kaos-welcome.txt',
       'examples/kaos/las/las.txt',
+      'examples/kaos/las-design-space/las-design-space.txt',
+      'examples/kaos/las-quantitative/las-quantitative.txt',
+      'examples/kaos/las-radar/las-radar.txt',
       'examples/kaos/mine-pump/mine-pump.txt',
       'examples/kaos/mooring/mooring.txt',
     ]);

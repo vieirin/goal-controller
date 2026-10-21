@@ -13,7 +13,10 @@
  * - over the reals only (goal-controller#193): `exponential[mean]`, its
  *   mean (> 0), as Heaven and Letier's `Exp(60)` (RE'11, Matlab's
  *   `exprnd(mu)`: "mean varies from 60 seconds to 30 seconds"), not a rate;
- *   `normal[μ, σ]` (σ ≥ 0), RE'11's `Normal(0, 120)`;
+ *   `normal[μ, σ]` (σ ≥ 0), RE'11's `Normal(0, 120)`; `normalci[a, b]`
+ *   (a ≤ b), a normal whose 90 % confidence interval is [a, b], as RADAR's
+ *   `normalCI(a, b)` (Busari and Letier, ICSE'17): mean (a + b)/2, σ (b −
+ *   a)/3.29, RADAR's constant;
  * - where the config allows one (`point`), a single value: the degenerate
  *   distribution.
  *
@@ -39,7 +42,8 @@ export type Distribution =
   | { kind: 'uniform'; min: number; max: number }
   | { kind: 'triangular' | 'pert'; min: number; mode: number; max: number }
   | { kind: 'exponential'; mean: number }
-  | { kind: 'normal'; mean: number; sd: number };
+  | { kind: 'normal'; mean: number; sd: number }
+  | { kind: 'normalci'; lower: number; upper: number };
 
 export type DistributionKind = Distribution['kind'];
 
@@ -52,6 +56,7 @@ export const DISTRIBUTION_KINDS: readonly DistributionKind[] = [
   'pert',
   'exponential',
   'normal',
+  'normalci',
 ];
 
 /** How many parameters each named form takes (none: any number, at least one). */
@@ -62,6 +67,7 @@ const ARITY: Readonly<Record<string, number | undefined>> = {
   pert: 3,
   exponential: 1,
   normal: 2,
+  normalci: 2,
   quantile: undefined,
   quantiles: undefined,
 };
@@ -101,14 +107,17 @@ export const readDistribution = (
   const tuple = /^\((.*)\)$/s.exec(written);
   if (!named && !tuple)
     return fail(
-      `A distribution (beta[α, β], uniform[min, max], triangular[min, mode, max], pert[min, mode, max], ${range === 'real' ? 'exponential[mean], normal[μ, σ], ' : ''}quantile[…] or (q1, …, qn)${point ? ', or a value' : ''}), not ${written}`,
+      `A distribution (beta[α, β], uniform[min, max], triangular[min, mode, max], pert[min, mode, max], ${range === 'real' ? 'exponential[mean], normal[μ, σ], normalci[a, b], ' : ''}quantile[…] or (q1, …, qn)${point ? ', or a value' : ''}), not ${written}`,
     );
   const name = named ? named[1]!.toLowerCase() : 'quantiles';
   if (named && !(name in ARITY))
     return fail(
-      `No distribution ${named[1]}: beta, uniform, triangular, pert${range === 'real' ? ', exponential, normal' : ''} or quantile`,
+      `No distribution ${named[1]}: beta, uniform, triangular, pert${range === 'real' ? ', exponential, normal, normalci' : ''} or quantile`,
     );
-  if ((name === 'exponential' || name === 'normal') && range !== 'real')
+  if (
+    (name === 'exponential' || name === 'normal' || name === 'normalci') &&
+    range !== 'real'
+  )
     return fail(`${name}[…] ranges over the reals, not over probabilities`);
   const parts = (named ? named[2]! : tuple![1]!).split(',');
   const numbers: number[] = [];
@@ -137,6 +146,12 @@ export const readDistribution = (
     return sd >= 0
       ? { distribution: { kind: 'normal', mean, sd } }
       : fail(`normal[μ, σ]: σ at least 0, not ${sd}`);
+  }
+  if (name === 'normalci') {
+    const [lower, upper] = numbers as [number, number];
+    return lower <= upper
+      ? { distribution: { kind: 'normalci', lower, upper } }
+      : fail(`normalci[a, b]: ${lower} is above ${upper}`);
   }
   const off = numbers.find((n) => !probability(n));
   if (off !== undefined) return fail(`${off} is not a probability${outside}`);
