@@ -13,14 +13,16 @@ import {
 import { IstarInspector, type IstarExtension } from '@istar-ts/react';
 import { nextFrameworkId } from '@/lib/workbench/frameworkOpen';
 import {
+  itemKeyedProperties,
   linkSchemaOf,
   schemaOf,
-  type KeyNames,
+  type ResourceEntries,
 } from '@/lib/workbench/frameworkProperties';
 import type { FrameworkMode } from '@/lib/workbench/frameworkModes';
 import WorkbenchCanvas from '../shared/WorkbenchCanvas';
 import { useWorkbench } from '../../WorkbenchContext';
 import { useProfiledDefinition } from './useProfiledDefinition';
+import { keyedElementInspector, keyedLinkInspector } from './KeyedInspector';
 
 /**
  * A framework's registry parts as the workbench's canvas takes them. The
@@ -44,11 +46,13 @@ const labelOf = (kind: string): string =>
  * (KAOS's two goals) share its numbering. Each kind's fill is istar-ts's
  * (its shape's `fill`, the dialect's too: KAOS_FILL, NFR_FILL). Properties a
  * kind's definition declares (nfrprop's `initialLabel`, goal-controller#327)
- * are typed here too, element kinds and link kinds alike.
+ * are typed here too, element kinds and link kinds alike; a kind with
+ * properties keyed by names an item has (kaossim's quality variables,
+ * goal-controller#376) gets the inspector that adds their fields.
  */
 export const dialectParts = (
   definition: AnyDialect,
-  names?: KeyNames,
+  entries?: ResourceEntries,
 ): IstarExtension =>
   ({
     name: `${definition.id}-dialect`,
@@ -60,8 +64,9 @@ export const dialectParts = (
         ]),
       ].flatMap((kind) => {
         const element = (definition.elements as AnyDialect['elements'])[kind];
-        const properties = schemaOf(definition, kind, names);
-        if (!element?.prefix && !properties) return [];
+        const properties = schemaOf(definition, kind, entries);
+        const keyed = itemKeyedProperties(definition.properties[kind]);
+        if (!element?.prefix && !properties && !keyed.length) return [];
         return [
           [
             kind,
@@ -71,6 +76,9 @@ export const dialectParts = (
                   `${nextFrameworkId(model, element.prefix!)}: ${labelOf(kind)}`,
               }),
               ...(properties && { properties }),
+              ...(keyed.length > 0 && {
+                inspector: keyedElementInspector(keyed),
+              }),
             },
           ],
         ];
@@ -79,7 +87,20 @@ export const dialectParts = (
     links: Object.fromEntries(
       Object.keys(definition.links ?? {}).flatMap((kind) => {
         const properties = linkSchemaOf(definition, kind);
-        return properties ? [[kind, { properties }]] : [];
+        const keyed = itemKeyedProperties(definition.links?.[kind]);
+        return properties || keyed.length
+          ? [
+              [
+                kind,
+                {
+                  ...(properties && { properties }),
+                  ...(keyed.length > 0 && {
+                    inspector: keyedLinkInspector(keyed),
+                  }),
+                },
+              ],
+            ]
+          : [];
       }),
     ),
   }) as IstarExtension;
@@ -149,27 +170,26 @@ const BASE_EXTENSIONS: Readonly<Record<FrameworkMode, IstarExtension>> = {
 export default function FrameworkDiagram({
   mode,
   definition: given,
-  names,
+  entries,
 }: {
   mode: FrameworkMode;
   definition: AnyDialect;
-  /** the project resources' names a keyed property has a field per (kaosexpert's experts, goal-controller#190) */
-  names?: KeyNames;
+  /** the project resources' entries a keyed property has a field per (kaosexpert's experts, goal-controller#190, #354) */
+  entries?: ResourceEntries;
 }) {
   const base = BASE_EXTENSIONS[mode];
   // with the vocabulary profile the model records (a CAIRIS model's, #192)
   const definition = useProfiledDefinition(given, useWorkbench().text);
   // by content: the resources are parsed again on every edit of theirs
-  const namesKey = JSON.stringify(names ?? {});
+  const entriesKey = JSON.stringify(entries ?? {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const stableEntries = useMemo(() => entries, [entriesKey]);
   const extensions = useMemo(
     () => [
       base,
-      withOwnProperties(
-        dialectParts(definition, JSON.parse(namesKey) as KeyNames),
-        base,
-      ),
+      withOwnProperties(dialectParts(definition, stableEntries), base),
     ],
-    [base, definition, namesKey],
+    [base, definition, stableEntries],
   );
   return (
     <WorkbenchCanvas

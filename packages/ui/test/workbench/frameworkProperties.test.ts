@@ -9,14 +9,26 @@
 import { defineProperties, prop } from '@istar-ts/core';
 import { kaosExtension } from '@istar-ts/dsm3-kaos';
 import { behavioralGoalProperties } from '@istar-ts/dsm3-kaos/metamodel';
-import { kaos, kaosexpert, nfrprop } from '@goal-controller/lib';
+import { targetId } from '@goal-controller/dialect';
+import { kaos, kaosexpert, kaossim, nfrprop } from '@goal-controller/lib';
 import type { IstarExtension } from '@istar-ts/react';
 import { describe, expect, it } from 'vitest';
 import {
   dialectParts,
   withOwnProperties,
 } from '@/components/workbench/engines/framework/FrameworkDiagram';
-import { linkSchemaOf, schemaOf } from '@/lib/workbench/frameworkProperties';
+import {
+  itemKeyedProperties,
+  itemKeyedShape,
+  linkSchemaOf,
+  schemaOf,
+} from '@/lib/workbench/frameworkProperties';
+
+/** An expert of kaosexpert's `expert` resource, as its reader lists it. */
+const expert = (id: string) => ({
+  id: targetId({ resource: 'expert' }, id),
+  name: id,
+});
 
 describe("a dialect's own properties, typed for istar-ts's inspector (#327)", () => {
   it('types enum, int/number, bool and text properties, and no other value type', () => {
@@ -44,7 +56,7 @@ describe("a dialect's own properties, typed for istar-ts's inspector (#327)", ()
     ]);
     expect(plain.shape.Probability!.type).toBe('string');
     const schema = schemaOf(kaosexpert, 'kaosObstacles.Obstacle', {
-      expert: ['e1', 'e2'],
+      expert: [expert('e1'), expert('e2')],
     })!;
     expect(Object.keys(schema.shape)).toEqual([
       'Description',
@@ -55,7 +67,7 @@ describe("a dialect's own properties, typed for istar-ts's inspector (#327)", ()
       'Beta',
     ]);
     // the parts take the names too
-    const parts = dialectParts(kaosexpert, { expert: ['e1'] });
+    const parts = dialectParts(kaosexpert, { expert: [expert('e1')] });
     expect(
       Object.keys(
         (parts.elements as Record<string, { properties?: { shape: object } }>)[
@@ -63,6 +75,50 @@ describe("a dialect's own properties, typed for istar-ts's inspector (#327)", ()
         ]!.properties!.shape,
       ),
     ).toContain('Probability[e1]');
+  });
+
+  it('types a property keyed by written names per item: a field per name it has (kaossim’s quality variables, #376)', () => {
+    const goal = kaossim.properties['kaos.BehavioralGoal'];
+    // its kind's schema has the properties' own keys, no name of any item's
+    expect(
+      Object.keys(schemaOf(kaossim, 'kaos.BehavioralGoal')!.shape),
+    ).not.toContain('QualityVariable[ResponseTime]');
+    const shape = itemKeyedShape(goal, {
+      'QualityVariable[ResponseTime]': 'Time',
+      'Objective[8MinRespRate]': 'ResponseTime <= 8 * 60',
+      'Target[8MinRespRate]': '50%',
+      'Modal[8MinRespRate]': 'Max',
+      'Unknown[x]': '1',
+      Description: 'a goal',
+    });
+    // a typed field each: an enum, a probability's text; the objective is an assertion (no field)
+    expect(Object.keys(shape)).toEqual([
+      'QualityVariable[ResponseTime]',
+      'Modal[8MinRespRate]',
+    ]);
+    expect(shape['QualityVariable[ResponseTime]']!.type).toBe('enum');
+    expect(itemKeyedProperties(goal).map((p) => p.key)).toEqual([
+      'QualityVariable',
+      'SampleSpace',
+      'QualityDefinition',
+      'Distribution',
+      'Modal',
+    ]);
+    // its kinds, its hubs and its assignments get the inspector that adds them
+    const parts = dialectParts(kaossim);
+    const elements = parts.elements as Record<string, { inspector?: unknown }>;
+    const links = parts.links as Record<string, { inspector?: unknown }>;
+    expect(elements['kaos.BehavioralGoal']!.inspector).toBeTypeOf('function');
+    expect(elements['kaos.RefinementLinkHub']!.inspector).toBeTypeOf(
+      'function',
+    );
+    expect(links['kaos.ResponsibilityAssignment']!.inspector).toBeTypeOf(
+      'function',
+    );
+    expect(dialectParts(kaosexpert).elements).not.toHaveProperty([
+      'kaos.BehavioralGoal',
+      'inspector',
+    ]);
   });
 
   it('has no schema for a kind with no properties, or none istar-ts has a field for', () => {

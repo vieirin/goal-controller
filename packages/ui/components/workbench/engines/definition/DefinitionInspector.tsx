@@ -3,7 +3,6 @@
 import type { GoalViewNode } from '@goal-controller/goal-tree';
 import {
   fillOf,
-  propertyOf,
   relationMismatch,
   valueOf,
   type Severity,
@@ -12,6 +11,7 @@ import {
   constructHint,
   elementLine,
   operatorsFor,
+  propertyOf,
 } from '@goal-controller/goal-language';
 import { useMemo } from 'react';
 import {
