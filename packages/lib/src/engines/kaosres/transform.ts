@@ -747,6 +747,31 @@ const obstructedGoal = (
   return goal;
 };
 
+/**
+ * A strong mitigation's anchor when it has none: the obstructed goal's
+ * parent, in the model as given (TSE'00 §6.3.2: "ensuring some parent goal
+ * G' of G whenever the obstacle condition OC becomes true, in spite of G
+ * being obstructed"); refused when that goal is a root or a sub-goal of
+ * several.
+ */
+const parentOfObstructed = (
+  work: Working,
+  origin: Working,
+  countermeasure: Countermeasure,
+) => {
+  const goal = obstructedGoal(origin, origin, countermeasure);
+  const parents = origin.parentsOf(goal.id);
+  if (parents.length !== 1)
+    throw new Refused(
+      `a strong mitigation ensures a parent goal of ${goal.id} (TSE'00 §6.3.2), and it has ${
+        parents.length ? `${parents.length} (${parents.join(', ')})` : 'none'
+      }: set its Anchor`,
+    );
+  const parent = work.element(parents[0]!);
+  if (!parent) throw new Refused(`${parents[0]} is no longer in the model`);
+  return parent;
+};
+
 const anchorOf = (work: Working, countermeasure: Countermeasure) => {
   if (countermeasure.anchor === null) return null;
   const anchor = work.goalNamed(countermeasure.anchor);
@@ -833,6 +858,15 @@ const apply = (
       const hub = hubs[0]!;
       const legs = work.legsOf(hub.id);
       const obstructed = legs.filter((leg) => work.affects(leg.source, o.id));
+      // CG already substituted there, for another obstacle it resolves
+      // (the flood model's Email, for Voice Network Overloaded and GSM
+      // Network Down): nothing left to do
+      if (!obstructed.length && legs.some((leg) => leg.source === cg.id))
+        return done(
+          [anchor.id],
+          [],
+          `${cgName} is already in ${anchor.name.trim()}'s refinement: ${oName} obstructs none of its sub-goals`,
+        );
       if (!obstructed.length)
         throw new Refused(
           `${oName} obstructs no sub-goal of ${anchor.name.trim()}`,
@@ -887,7 +921,9 @@ const apply = (
     case 'anchor': {
       const anchor =
         anchorOf(work, countermeasure) ??
-        obstructedGoal(work, origin, countermeasure);
+        (countermeasure.strategy === 'strong mitigation' && !countermeasure.form
+          ? parentOfObstructed(work, origin, countermeasure)
+          : obstructedGoal(work, origin, countermeasure));
       if (work.isAbove(cg.id, anchor.id))
         throw new Refused(`${cg.id} is ${anchor.id} or above it`);
       if (!origin.elements.has(anchor.id) || !origin.affects(anchor.id, o.id))
@@ -998,7 +1034,9 @@ export const applyCountermeasures = (
  * properties as written (kaosres's link keys too, which kaosprop's mapper
  * doesn't keep); what kaosprop propagates.
  */
-export const kaosresView = (model: KaosModel): AnalysisModel => ({
+export const kaosresView = <EK extends string, LK extends string>(
+  model: IstarModel<EK, LK>,
+): AnalysisModel => ({
   actors: [],
   elements: [...model.elements.values()].map((element) => ({
     id: element.id,
