@@ -15,7 +15,7 @@ export {
   type KaosdocGoalModel,
   type KaosdocNode,
   type KaosdocNodeProps,
-  type KaosdocProperties,
+  type KaosdocRefinementProperties,
 } from './mapper';
 export { kaosdocDocument, kaosdocOutput } from './template';
 export { kaosdocEngine } from './engine';

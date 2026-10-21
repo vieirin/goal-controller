@@ -18,7 +18,7 @@ import {
   readKaosModel,
   type KaosdocNode,
   type KaosdocNodeProps,
-  type KaosdocProperties,
+  type KaosdocRefinementProperties,
 } from '../../../src/engines/kaosdoc';
 
 const SEED = readFileSync('../../examples/kaos/kaos-welcome.txt', 'utf8');
@@ -480,7 +480,7 @@ describe('kaosdocEngineMapper: characterization (#187)', () => {
       assert.deepStrictEqual(elementEngine(text, HUB), {
         Tactic: 'case-driven',
         SysRef: 'S1',
-      } satisfies KaosdocProperties);
+      } satisfies KaosdocRefinementProperties);
       // as-written properties remain on the element
       assert.deepStrictEqual(elementProperties(text, HUB), {
         Tactic: ' case-driven ',

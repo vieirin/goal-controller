@@ -25,30 +25,45 @@ export const kaospropLinkKeys = linkPropertyKeys(kaosprop);
 
 const OBSTACLE_HUB = 'kaosObstacles.ObstacleRefinementLinkHub';
 
+/**
+ * A kind's keys, kept where the dialect reads them as set (its value isn't
+ * null or undefined: a key a dialect's checks say is wrong, or has none,
+ * stays out); distributive over a group of kinds (a link entry's covers
+ * several): each kind keeps its own keys, not the group's intersection.
+ */
+type StringProps<X extends { props: object }> = X extends unknown
+  ? { readonly [K in keyof X['props']]?: string }
+  : never;
+
 /** Strings the analyses read: set dialect values, as written. */
-const written = ({
+const written = <
+  X extends {
+    props: Record<string, unknown>;
+    raw: Record<string, string | undefined>;
+  },
+>({
   props,
   raw,
-}: {
-  props: Readonly<Record<string, unknown>>;
-  raw: Readonly<Record<string, string | undefined>>;
-}): Readonly<Record<string, string>> =>
+}: X): StringProps<X> =>
   Object.fromEntries(
     Object.entries(raw).flatMap(([key, text]) =>
       text !== undefined && props[key] != null ? [[key, text]] : [],
     ),
-  );
+  ) as StringProps<X>;
 
 /** A tree node's text, plus its quantities when the dialect reads them. */
-const elementEngine = ({
-  text,
-  props,
-  raw,
-}: {
-  text: string;
-  props: Readonly<Record<string, unknown>>;
-  raw: Readonly<Record<string, string | undefined>>;
-}) => ({ text, ...written({ props, raw }) });
+const elementEngine = <
+  X extends {
+    text: string;
+    props: Record<string, unknown>;
+    raw: Record<string, string | undefined>;
+  },
+>(
+  input: X,
+): { text: string } & StringProps<X> => ({
+  text: input.text,
+  ...written(input),
+});
 
 export const kaospropEngineMapper = createEngineMapper({
   dialect: kaosprop,
@@ -78,13 +93,13 @@ export const kaospropEngineMapper = createEngineMapper({
       kind: KAOS_REFINEMENT_HUB,
       as: 'refinement',
       tree: false,
-      mapProps: ({ props, raw }) => written({ props, raw }),
+      mapProps: written,
     }),
     entry({
       kind: OBSTACLE_HUB,
       as: 'obstacleRefinement',
       tree: false,
-      mapProps: ({ props, raw }) => written({ props, raw }),
+      mapProps: written,
     }),
   ],
   links: (entry) => [
@@ -95,7 +110,7 @@ export const kaospropEngineMapper = createEngineMapper({
         'kaos.RefinementLinkStart',
         'kaosObstacles.ObstructionLink',
       ],
-      mapProps: ({ props, raw }) => written({ props, raw }),
+      mapProps: written,
     }),
   ],
 });
