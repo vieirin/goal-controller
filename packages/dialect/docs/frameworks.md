@@ -446,7 +446,10 @@ dispatching corpus (ADS) bring obstacle analysis, a textual KAOS and
 RE'12's quantities. The work is split into three layers: istar-ts owns the
 structure (istar-ts#20), the `kaos` dialect owns the vocabularies, and an
 engine's dialect (`kaosprop`) owns its quantities. Results and the attempts
-log are in #182.
+log are in #182. Defects found along the way in the reference tools
+(CAIRIS, RADAR, KAOSTools) and in the published papers/models themselves
+are gathered in [`reference-defects.md`](reference-defects.md), rather
+than fixed or reported upstream.
 
 ### PR E: framework dialects extend their root; the typed `kaos` dialect
 

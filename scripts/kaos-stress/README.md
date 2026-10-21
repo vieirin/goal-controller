@@ -9,6 +9,11 @@ pnpm stress:kaos                            # builds lib, then runs everything
 node scripts/kaos-stress/run.cjs --strict   # fail on any seed's failure
 ```
 
+Defects found in the oracle tools these seeds run against (CAIRIS,
+RADAR, KAOSTools) and in the published papers/models themselves are
+documented, not fixed, in
+[`packages/dialect/docs/reference-defects.md`](../../packages/dialect/docs/reference-defects.md).
+
 ## Checks
 
 - **import**: the `.kaos` reads (`kaosNativeFile`), and:
