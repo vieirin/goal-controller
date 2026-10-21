@@ -1,0 +1,250 @@
+@title "London Ambulance design space (RADAR's LAS.rdr)"
+
+# RADAR's ambulance model (Busari and Letier, "RADAR: a lightweight tool for
+# requirements and architecture decision analysis", ICSE'17), re-keyed as a
+# kaossim model (goal-controller#193, #207): LAS.rdr in UCL-badass/radar,
+# docs/LAS.rdr at 53272ca (2017-07-20; the same bytes as
+# src/main/resources/uk.ac.ucl.cs.examples/LAS/LAS.rdr at e430316), used
+# with the owner's approval; the repository states no licence. Every number
+# is the file's.
+#
+# RADAR has no goals: its model is quality variables, each defined by an
+# equation (an AND refinement in RADAR's graph) or by a decision (an OR, one
+# estimate per option). This seed hangs each variable on a goal, each
+# equation on the refinement of the goal that declares the variable, and
+# each decision on a goal with one OR responsibility assignment per option
+# (RE'11's OR-assignment; the option's SysRef is "<decision>: <option>", as
+# RADAR names both, and its agent is named the same). Two variables of one
+# decision (IncidentCallTakingTime and CostOfIncidentFormEncoding) are one
+# decision point, as in RADAR.
+#
+# The one departure, D4 (#189): line 3 of LAS.rdr is
+#   Objective Min Risk = Pr (ResponseTime <= 14*60);
+# and the report (docs/LAS_report.html) prints
+#   Objective Min Risk = Pr(ResponseTime > 14*60);
+# This seed takes the report's sign. The report's numbers (Risk 0.12-0.13)
+# are the file's sign's, and the report's MobilisedAmbulanceDistanceFromLocation
+# is normalCI(10000,100000) where the file has triangular(10000, 50000,
+# 100000): the seed keeps the file's distribution (README.md).
+#
+# RADAR's forms: exponential(m) is exponential[m] (its mean); normal(m, s)
+# normal[m, s]; normalCI(a, b) normalci[a, b] (a 90 % interval, σ = (b −
+# a)/3.29, RADAR's constant); triangular(a, b, c) triangular[a, b, c];
+# deterministic(n) the value n. Times are in seconds; distances and speeds
+# as the file has them (it doesn't say).
+
+declare goal [ ambulance_service ]
+  name "Ambulance service (RADAR's AmbulanceServiceModel)"
+  qualityvariable [ResponseTime] Time
+  qualityvariable [Benefit] Number
+  qualityvariable [Revenue] Number
+  distribution [Revenue] normalci[100000, 200000]
+  qualityvariable [Cost] Number
+  qualityvariable [AmbulanceMobilisationCost] Number
+  qualityvariable [CostOfAmbulance] Number
+  objective [Risk] "ResponseTime > 14 * 60"
+  modal [Risk] Min
+  mean [ExpectedBenefit] "Benefit"
+  modal [ExpectedBenefit] Max
+  refinedby [ResponseTime = "AmbulanceMobilisationTime + MobilisedAmbulanceTravelTime + MobilisedAmbulanceDelay", Benefit = "Revenue - Cost", Cost = "AmbulanceMobilisationCost + CostOfAmbulance", AmbulanceMobilisationCost = "CostOfIncidentFormEncoding + CostOfLocatingAmbulance", CostOfAmbulance = "(NbrAmbulances - CurrentNbrOfAmbulance) * UnitCost + AnnualMaintenanceCost"] ambulance_mobilised, ambulance_travels, ambulances_deployed
+end
+
+declare goal [ ambulance_mobilised ]
+  name "Ambulance mobilised"
+  qualityvariable [AmbulanceMobilisationTime] Time
+  refinedby [AmbulanceMobilisationTime = "IncidentCallTakingTime + AmbulanceAllocationTime + MobilisationCommunicationTime"] incident_form_encoded, ambulance_allocated, mobilisation_communicated
+end
+
+declare goal [ incident_form_encoded ]
+  name "Incident form encoded"
+  qualityvariable [IncidentCallTakingTime] Time
+  qualityvariable [CostOfIncidentFormEncoding] Number
+  assignedto [sysref = "Incident Form Encoding Method: Current Paper-Based", IncidentCallTakingTime = "exponential[60]", CostOfIncidentFormEncoding = "triangular[150, 200, 250]"] encoding_paper
+  assignedto [sysref = "Incident Form Encoding Method: Computer Based", IncidentCallTakingTime = "exponential[40]", CostOfIncidentFormEncoding = "triangular[100, 150, 200]"] encoding_computer
+  assignedto [sysref = "Incident Form Encoding Method: Automated Call Location", IncidentCallTakingTime = "exponential[45]", CostOfIncidentFormEncoding = "triangular[50, 100, 120]"] encoding_call_location
+  assignedto [sysref = "Incident Form Encoding Method: Computer-Based and Automated Call Location", IncidentCallTakingTime = "exponential[30]", CostOfIncidentFormEncoding = "triangular[10, 50, 100]"] encoding_computer_call_location
+end
+
+declare goal [ ambulance_allocated ]
+  name "Ambulance allocated"
+  qualityvariable [AmbulanceAllocationTime] Time
+  assignedto [sysref = "Ambulance Allocation Method: Current Paper-Based", AmbulanceAllocationTime = "exponential[60]"] allocation_paper
+  assignedto [sysref = "Ambulance Allocation Method: Interactive Allocation", AmbulanceAllocationTime = "exponential[20]"] allocation_interactive
+  assignedto [sysref = "Ambulance Allocation Method: Fully Automated Allocation", AmbulanceAllocationTime = "exponential[5]"] allocation_automated
+end
+
+declare goal [ mobilisation_communicated ]
+  name "Mobilisation communicated"
+  qualityvariable [MobilisationCommunicationTime] Time
+  assignedto [sysref = "Mobilisation Communication Method: Current Radio-Based", MobilisationCommunicationTime = "triangular[45, 60, 90]"] communication_radio
+  assignedto [sysref = "Mobilisation Communication Method: MDT-System A", MobilisationCommunicationTime = "triangular[20, 30, 40]"] communication_mdt_a
+  assignedto [sysref = "Mobilisation Communication Method: MDT-System B", MobilisationCommunicationTime = "triangular[10, 15, 20]"] communication_mdt_b
+end
+
+declare goal [ ambulance_travels ]
+  name "Mobilised ambulance travels to the incident"
+  qualityvariable [MobilisedAmbulanceTravelTime] Time
+  qualityvariable [MobilisedAmbulanceDistance] Number
+  qualityvariable [MobilisedAmbulanceDistanceFromLocation] Number
+  distribution [MobilisedAmbulanceDistanceFromLocation] triangular[10000, 50000, 100000]
+  qualityvariable [MobilisedAmbulanceAverageSpreed] Number
+  distribution [MobilisedAmbulanceAverageSpreed] triangular[30, 50, 70]
+  qualityvariable [MobilisedAmbulanceDelay] Time
+  distribution [MobilisedAmbulanceDelay] normalci[0, 120]
+  refinedby [MobilisedAmbulanceTravelTime = "MobilisedAmbulanceDistance / MobilisedAmbulanceAverageSpreed", MobilisedAmbulanceDistance = "MobilisedAmbulanceDistanceFromLocation + MobilisedAmbulanceLocationErrorMargin"] ambulance_located
+end
+
+declare goal [ ambulance_located ]
+  name "Mobilised ambulance located"
+  qualityvariable [MobilisedAmbulanceLocationErrorMargin] Number
+  qualityvariable [CostOfLocatingAmbulance] Number
+  assignedto [sysref = "Ambulance Location Method: Current Radio and Paper-Based", MobilisedAmbulanceLocationErrorMargin = "normal[60, 120]", CostOfLocatingAmbulance = "triangular[400, 500, 600]"] location_radio_paper
+  assignedto [sysref = "Ambulance Location Method: Automated Vehicle Location A", MobilisedAmbulanceLocationErrorMargin = "normal[45, 60]", CostOfLocatingAmbulance = "triangular[300, 400, 500]"] location_avl_a
+  assignedto [sysref = "Ambulance Location Method: Automated Vehicle Location B", MobilisedAmbulanceLocationErrorMargin = "normal[20, 60]", CostOfLocatingAmbulance = "triangular[200, 300, 400]"] location_avl_b
+end
+
+declare goal [ ambulances_deployed ]
+  name "Ambulances deployed"
+  qualityvariable [NbrAmbulances] Number
+  qualityvariable [AnnualMaintenanceCost] Number
+  qualityvariable [CurrentNbrOfAmbulance] Number
+  distribution [CurrentNbrOfAmbulance] 100
+  qualityvariable [UnitCost] Number
+  distribution [UnitCost] triangular[5000, 7000, 10000]
+  assignedto [sysref = "Additional Ambulance: Current_100_Amb", NbrAmbulances = "100", AnnualMaintenanceCost = "triangular[5000, 7000, 10000]"] fleet_100
+  assignedto [sysref = "Additional Ambulance: 120_Amb", NbrAmbulances = "120", AnnualMaintenanceCost = "triangular[1000, 1500, 2000]"] fleet_120
+  assignedto [sysref = "Additional Ambulance: 140_Amb", NbrAmbulances = "140", AnnualMaintenanceCost = "triangular[1500, 2000, 2500]"] fleet_140
+  assignedto [sysref = "Additional Ambulance: 160_Amb", NbrAmbulances = "160", AnnualMaintenanceCost = "triangular[2000, 2500, 3000]"] fleet_160
+  assignedto [sysref = "Additional Ambulance: 180_Amb", NbrAmbulances = "180", AnnualMaintenanceCost = "triangular[2500, 3000, 3500]"] fleet_180
+  assignedto [sysref = "Additional Ambulance: 200_Amb", NbrAmbulances = "200", AnnualMaintenanceCost = "triangular[3000, 3500, 4000]"] fleet_200
+end
+
+declare agent [ encoding_paper ]
+  name "Incident Form Encoding Method: Current Paper-Based"
+end
+declare agent [ encoding_computer ]
+  name "Incident Form Encoding Method: Computer Based"
+end
+declare agent [ encoding_call_location ]
+  name "Incident Form Encoding Method: Automated Call Location"
+end
+declare agent [ encoding_computer_call_location ]
+  name "Incident Form Encoding Method: Computer-Based and Automated Call Location"
+end
+declare agent [ allocation_paper ]
+  name "Ambulance Allocation Method: Current Paper-Based"
+end
+declare agent [ allocation_interactive ]
+  name "Ambulance Allocation Method: Interactive Allocation"
+end
+declare agent [ allocation_automated ]
+  name "Ambulance Allocation Method: Fully Automated Allocation"
+end
+declare agent [ communication_radio ]
+  name "Mobilisation Communication Method: Current Radio-Based"
+end
+declare agent [ communication_mdt_a ]
+  name "Mobilisation Communication Method: MDT-System A"
+end
+declare agent [ communication_mdt_b ]
+  name "Mobilisation Communication Method: MDT-System B"
+end
+declare agent [ location_radio_paper ]
+  name "Ambulance Location Method: Current Radio and Paper-Based"
+end
+declare agent [ location_avl_a ]
+  name "Ambulance Location Method: Automated Vehicle Location A"
+end
+declare agent [ location_avl_b ]
+  name "Ambulance Location Method: Automated Vehicle Location B"
+end
+declare agent [ fleet_100 ]
+  name "Additional Ambulance: Current_100_Amb"
+end
+declare agent [ fleet_120 ]
+  name "Additional Ambulance: 120_Amb"
+end
+declare agent [ fleet_140 ]
+  name "Additional Ambulance: 140_Amb"
+end
+declare agent [ fleet_160 ]
+  name "Additional Ambulance: 160_Amb"
+end
+declare agent [ fleet_180 ]
+  name "Additional Ambulance: 180_Amb"
+end
+declare agent [ fleet_200 ]
+  name "Additional Ambulance: 200_Amb"
+end
+
+# The designs this seed's oracle names (designs.json; las-radar.expected.csv)
+
+declare design [ as-is ]
+  name "The current system (every decision’s current option)"
+  option "Incident Form Encoding Method: Current Paper-Based"
+  option "Ambulance Allocation Method: Current Paper-Based"
+  option "Mobilisation Communication Method: Current Radio-Based"
+  option "Ambulance Location Method: Current Radio and Paper-Based"
+  option "Additional Ambulance: Current_100_Amb"
+  source "LAS.rdr's current options"
+end
+
+declare design [ radar-optimal ]
+  name "RADAR's one Pareto-optimal design, with the report's sign"
+  option "Incident Form Encoding Method: Computer-Based and Automated Call Location"
+  option "Ambulance Allocation Method: Fully Automated Allocation"
+  option "Mobilisation Communication Method: MDT-System B"
+  option "Ambulance Location Method: Automated Vehicle Location B"
+  option "Additional Ambulance: Current_100_Amb"
+  source "RADAR e0a4503 on LAS.rdr with Pr(ResponseTime > 14*60), run 2026-10-21"
+end
+
+declare design [ report-1 ]
+  name "The report's Pareto design 1 (the file's sign)"
+  option "Incident Form Encoding Method: Automated Call Location"
+  option "Ambulance Allocation Method: Current Paper-Based"
+  option "Mobilisation Communication Method: Current Radio-Based"
+  option "Ambulance Location Method: Automated Vehicle Location B"
+  option "Additional Ambulance: Current_100_Amb"
+  source "LAS_report.html, its shortlist (ID 1)"
+end
+
+declare design [ report-2 ]
+  name "The report's Pareto design 2 (the file's sign)"
+  option "Incident Form Encoding Method: Computer-Based and Automated Call Location"
+  option "Ambulance Allocation Method: Current Paper-Based"
+  option "Mobilisation Communication Method: Current Radio-Based"
+  option "Ambulance Location Method: Automated Vehicle Location B"
+  option "Additional Ambulance: Current_100_Amb"
+  source "LAS_report.html, its shortlist (ID 2)"
+end
+
+declare design [ report-3 ]
+  name "The report's Pareto design 3 (the file's sign)"
+  option "Incident Form Encoding Method: Current Paper-Based"
+  option "Ambulance Allocation Method: Current Paper-Based"
+  option "Mobilisation Communication Method: Current Radio-Based"
+  option "Ambulance Location Method: Current Radio and Paper-Based"
+  option "Additional Ambulance: Current_100_Amb"
+  source "LAS_report.html, its shortlist (ID 3)"
+end
+
+declare design [ report-4 ]
+  name "The report's Pareto design 4 (the file's sign)"
+  option "Incident Form Encoding Method: Current Paper-Based"
+  option "Ambulance Allocation Method: Current Paper-Based"
+  option "Mobilisation Communication Method: Current Radio-Based"
+  option "Ambulance Location Method: Automated Vehicle Location A"
+  option "Additional Ambulance: Current_100_Amb"
+  source "LAS_report.html, its shortlist (ID 4)"
+end
+
+declare design [ report-5 ]
+  name "The report's Pareto design 5 (the file's sign)"
+  option "Incident Form Encoding Method: Current Paper-Based"
+  option "Ambulance Allocation Method: Current Paper-Based"
+  option "Mobilisation Communication Method: Current Radio-Based"
+  option "Ambulance Location Method: Automated Vehicle Location B"
+  option "Additional Ambulance: Current_100_Amb"
+  source "LAS_report.html, its shortlist (ID 5)"
+end

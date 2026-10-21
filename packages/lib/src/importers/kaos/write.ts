@@ -20,11 +20,21 @@
  *   as KAOSTools annotates a goal for an obstacle (`except [o] g` on the
  *   anchor; `provided`, `providednot`, `relaxedTo`, `replaces` on the
  *   countermeasure goal), and its `Cost` as `cost [o] n` on that goal.
+ * - kaossim's (goal-controller#193, D1), in our own attributes (KAOSTools
+ *   has none for them): a goal's keyed quantities as `qualityvariable [v]
+ *   Time`, `samplespace [v] "…"`, `qualitydefinition [v] "…"`,
+ *   `distribution [v] exponential[60]`, `objective [o] "…"`, `mean [o]
+ *   "…"`, `objectivespec [o] "…"`, `modal [o] Max`, `target [o] 50%`, `current [o] 35%`; a
+ *   refinement's `SysRef` and equations as its parameters (`refinedby
+ *   [sysref = "1.2", T = "A + B"] a, b`), an assignment's as its
+ *   (`assignedto [sysref = "4.3", A = "exponential[5]"] agent`).
+ * - kaossim's designs (`designs.json`) as `declare design [ id ] … end`,
+ *   after the evidence items.
  * - A conflict between two goals as KAOSTools' older `declare constraint
  *   [ c ] conflict a, b end` (goal-controller#191), after the elements.
  * - What the reader kept as written (`kaosUnsupported`) at the end, as it
  *   was.
- * - Not written, and said: a refinement's `SysRef` and `Status`, an
+ * - Not written, and said: a refinement's `Status`, an
  *   obstacle refinement's `Probability`, a conflict's `BoundaryCondition`
  *   or one with an end .kaos doesn't declare, a key no dialect declares;
  *   nor positions (`KAOS_LOSSY`).
@@ -44,6 +54,7 @@ import type {
   EvidenceFile,
   ExpertsFile,
 } from '../../engines/kaosexpert/resources';
+import type { DesignsFile } from '../../engines/kaossim/designs';
 import { kaosLanguage } from '@goal-controller/goal-language/formats';
 import type { CountermeasureForm } from '../../engines/kaosres/definition';
 import { identifierOf, KAOS_UNSUPPORTED_KEY } from './read';
@@ -143,6 +154,59 @@ const isEstimate = (text: string) => {
     !!inner &&
     (inner[1] ?? inner[2]!).split(',').every((part) => numberOf(part) !== null)
   );
+};
+
+/** kaossim's keyed goal keys (goal-controller#193) and their attributes, in the order written. */
+const SIM_ATTRIBUTES = {
+  QualityVariable: 'qualityvariable',
+  SampleSpace: 'samplespace',
+  QualityDefinition: 'qualitydefinition',
+  Distribution: 'distribution',
+  Objective: 'objective',
+  Mean: 'mean',
+  ObjectiveSpec: 'objectivespec',
+  Modal: 'modal',
+  Target: 'target',
+  Current: 'current',
+} as const;
+type SimKey = keyof typeof SIM_ATTRIBUTES;
+const isSimKey = (key: string): key is SimKey =>
+  Object.hasOwn(SIM_ATTRIBUTES, key);
+/** The keys a hub's or an assignment's parameters write (`v = "…"`), keyed by a variable. */
+const EQUATION_KEYS = new Set(['Equation', 'BooleanEquation', 'Distribution']);
+
+/** A name as a parameter: an identifier as it is, any other quoted. */
+const nameParam = (name: string) =>
+  /^[A-Za-z$][A-Za-z0-9_-]*$/.test(name) ? name : quoted(name);
+
+/** A value as .kaos reads it back: a word or a number as it is, a distribution (`exponential[60]`) too, any other quoted. */
+const valueText = (key: SimKey, text: string) => {
+  if (key === 'QualityVariable' || key === 'Modal')
+    return /^[A-Za-z][A-Za-z0-9_]*$/.test(text) ? text : quoted(text);
+  if (key === 'Target' || key === 'Current')
+    return isNumber(text) ? text : quoted(text);
+  if (key === 'Distribution')
+    return isNumber(text) || /^[A-Za-z]+\s*\[[^\]"]*\]$/.test(text)
+      ? text
+      : quoted(text);
+  return quoted(text);
+};
+
+/** A refinement's or an assignment's kaossim parameters: `sysref = "…"`, `v = "…"`. */
+// a hub's or a link's customProperties are open (piStar keeps every key as
+// read): narrowed here to SysRef's and the keyed equations' texts
+const simParams = (props: Record<string, unknown>): string[] => {
+  const params: string[] = [];
+  const sysRef = props.SysRef;
+  if (typeof sysRef === 'string' && sysRef.trim())
+    params.push(`sysref = ${quoted(sysRef.trim())}`);
+  for (const [key, value] of Object.entries(props)) {
+    const keyed = keyedKeyOf(key);
+    if (!keyed || !EQUATION_KEYS.has(keyed.key)) continue;
+    if (typeof value === 'string' && value.trim())
+      params.push(`${nameParam(keyed.name)} = ${quoted(value.trim())}`);
+  }
+  return params;
 };
 
 /** A project resource kind's JSON files' values, in path order. */
@@ -397,6 +461,18 @@ export const writeKaos = (
         body.push(`probability[${expert}] ${value.trim()}`);
       else say(`${name}: its ${key} ${value} is no estimate, not written`);
     }
+    // kaossim's (goal-controller#193): a goal's quantities, by name
+    const simKey = (key: string) =>
+      (type === KAOS_TYPES.goal || type === KAOS_TYPES.softgoal) &&
+      isSimKey(keyedKeyOf(key)?.key ?? '');
+    for (const [key, value] of Object.entries(props)) {
+      if (!simKey(key) || typeof value !== 'string' || !value.trim()) continue;
+      const { key: base, name: variable } = keyedKeyOf(key)!;
+      const sim = base as SimKey;
+      body.push(
+        `${SIM_ATTRIBUTES[sim]} [${nameParam(variable)}] ${valueText(sim, value.trim())}`,
+      );
+    }
     for (const key of CUSTOM_KEYS[type] ?? [])
       if (
         text(key) &&
@@ -411,6 +487,7 @@ export const writeKaos = (
       if (
         value !== '' &&
         !keyed(key) &&
+        !simKey(key) &&
         !(WRITTEN[type] ?? []).includes(key) &&
         !(CUSTOM_KEYS[type] ?? []).includes(key)
       )
@@ -421,8 +498,14 @@ export const writeKaos = (
       const hubProps = (hub.customProperties ?? {}) as Record<string, unknown>;
       const obstacle = hub.type === KAOS_TYPES.obstacleRefinementHub;
       let pattern = '';
+      const params = obstacle ? [] : simParams(hubProps);
       for (const [key, value] of Object.entries(hubProps)) {
         if (value === '' || value === undefined) continue;
+        if (
+          !obstacle &&
+          (key === 'SysRef' || EQUATION_KEYS.has(keyedKeyOf(key)?.key ?? ''))
+        )
+          continue;
         if (key === 'Tactic' && !obstacle) {
           const tactic = String(value);
           const written = TACTIC_PATTERNS[tactic] ?? tactic;
@@ -431,7 +514,7 @@ export const writeKaos = (
               `${name}: KAOSTools has no refinement pattern ${tactic}, written as it is`,
               'info',
             );
-          pattern = ` [${isKaosIdentifier(written) ? written : quoted(written)}]`;
+          pattern = isKaosIdentifier(written) ? written : quoted(written);
         } else
           say(
             `${name}: a refinement's ${key} has no .kaos attribute, not written`,
@@ -452,8 +535,17 @@ export const writeKaos = (
           );
         return [p && isNumber(p) ? `${child} [${p}]` : child];
       });
+      // the pattern first, kaossim's parameters after it
+      const all = [...(pattern ? [pattern] : []), ...params];
+      if (params.length)
+        say(
+          `${name}: a refinement's SysRef and equations written as parameters KAOSTools doesn't read (only goal-controller does)`,
+          'info',
+        );
       if (refinees.length)
-        body.push(`refinedby${pattern} ${refinees.join(', ')}`);
+        body.push(
+          `refinedby${all.length ? ` [${all.join(', ')}]` : ''} ${refinees.join(', ')}`,
+        );
     }
     for (const link of binary.get(id) ?? []) {
       const source = ref(link.source)!;
@@ -499,7 +591,17 @@ export const writeKaos = (
         body.push(
           `resolvedby${p ? ` [${p}${anchored ? `:${anchorName}` : ''}]` : ''} ${source}`,
         );
-      } else body.push(`assignedto ${source}`);
+      } else {
+        const params = simParams(linkProps);
+        if (params.length)
+          say(
+            `${name} assigned to ${source}: its SysRef and estimates written as parameters KAOSTools doesn't read (only goal-controller does)`,
+            'info',
+          );
+        body.push(
+          `assignedto${params.length ? ` [${params.join(', ')}]` : ''} ${source}`,
+        );
+      }
     }
     body.push(...(annotations.get(id) ?? []));
     lines.push(
@@ -567,6 +669,24 @@ export const writeKaos = (
         ...(item.name !== undefined ? [`  name ${quoted(item.name)}`] : []),
         ...(item.kind !== undefined ? [`  kind ${quoted(item.kind)}`] : []),
         ...(item.kept ?? []).map((line) => `  ${line}`),
+        'end',
+      );
+  // kaossim's designs (goal-controller#193): after the evidence items
+  const designFiles = resourceValues(projectResources.design) as DesignsFile[];
+  for (const file of designFiles)
+    for (const design of Array.isArray(file?.designs) ? file.designs : [])
+      lines.push(
+        '',
+        `declare design [ ${design.id} ]`,
+        ...(design.name !== undefined ? [`  name ${quoted(design.name)}`] : []),
+        ...(design.options ?? []).map((o) => `  option ${quoted(o)}`),
+        ...Object.entries(design.set ?? {}).map(
+          ([v, text]) => `  set [${nameParam(v)}] ${quoted(text)}`,
+        ),
+        ...(design.source !== undefined
+          ? [`  source ${quoted(design.source)}`]
+          : []),
+        ...(design.kept ?? []).map((line) => `  ${line}`),
         'end',
       );
   const kept = json.diagram?.customProperties?.[KAOS_UNSUPPORTED_KEY];

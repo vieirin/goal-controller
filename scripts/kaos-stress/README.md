@@ -13,16 +13,17 @@ node scripts/kaos-stress/run.cjs --strict   # fail on any seed's failure
 
 - **import**: the `.kaos` reads (`kaosNativeFile`), and:
   - its model is the committed `<seed>.txt`, byte for byte;
-  - its resources (kaosexpert's `experts.json` and `calibrations.json`)
-    are the committed files;
-  - it opens in the project's mode (`kaosprop` or `kaosexpert`).
+  - its resources (kaosexpert's `experts.json` and `calibrations.json`,
+    kaossim's `designs.json`) are the committed files;
+  - it opens in the project's mode (`kaosprop`, `kaosexpert`, `kaosres` or
+    `kaossim`).
 - **validate**: istar-ts validates the model (`validateModel`: none).
 - **roundtrip**: the model is written back with its resources
   (`writeKaos`), and the written file reads to the same model
   (`modelRoundTrip`) and the same resources.
-- **analyses**: kaosprop's two analyses, kaosres's three and kaosexpert's
-  two run without error. All three engines read every `.kaos`, and
-  kaosexpert runs 2000 samples here.
+- **analyses**: kaosprop's two analyses, kaosres's three, kaossim's two and
+  kaosexpert's two run without error. All four engines read every `.kaos`,
+  and kaosexpert and kaossim run 2000 and 200 samples here.
 - **oracle**: each row of the seed's `*.expected.csv`, by its header:
   - `id,element,probability,paper,derivation` (kaosprop's):
     - kaosprop's probability within 5e-7;
@@ -58,6 +59,20 @@ node scripts/kaos-stress/run.cjs --strict   # fail on any seed's failure
     - of the run (`selection` `-`): `minimal cost` (`none`: no safe
       selection), `chosen` (the chosen selections, ` | `), `candidates`,
       `evaluated`, `exact` (`yes`/`no`).
+  - `quantity,design,objective,expected,tolerance,paper,source,derivation`
+    (kaossim's quantitative goals, goal-controller#193; the las-quantitative,
+    las-design-space, las-radar and mine-pump seeds): `design` is a
+    `designs.json` id, or `model` for the model as it is, simulated at
+    100 000 samples, seed 1:
+    - `value`: the objective's value within `tolerance`;
+    - `unresolved`: the variables it lacks (any order);
+    - `target`, `current`: as the model reads them;
+    - of the design space (`design` `-`): `designs`, how many there are;
+      `pareto`, the exhaustive front (` | `, sorted); `pareto nsga2`,
+      seeded NSGA-II's.
+
+    `las-radar.expected.csv`'s values are RADAR's own, run in Docker
+    outside the repository (its README).
 - **degenerate** (`las`): RE'12's rows under kaosexpert with point
   estimates. Each sample is kaosprop's EPS.
 - **ADS corpus** (goal-controller#191, #201): ADS's `simple.kaos`,

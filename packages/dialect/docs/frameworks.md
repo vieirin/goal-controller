@@ -1822,6 +1822,150 @@ D-decisions on #189.
   written (`ModelEntry.native`, `nativeSlots`). A CAIRIS project's models
   and the seeds opt out of their mode's native files.
 
+### Step 6: quantitative goals, simulation and design-space search (goal-controller#193, #206, #207, #208)
+
+Letier and van Lamsweerde's partial goal satisfaction (FSE'04) simulated as
+Heaven and Letier simulate it (RE'11): the `kaossim` engine. Results and the
+attempts log are on #369. D1's encoding is logged on #189 ("#193 D1").
+
+- **D1: its own dialect, over kaosprop's** (`engines/kaossim/definition.ts`).
+  Every key is keyed by a name the model writes, `Key[name]` on disk, the
+  form kaosexpert's `Probability[e1]` already has. It needs one generic
+  schema change: `keyed: { names: 'written' }`, keyed by any name, with no
+  resource listing the names. The inspector has no field per such name
+  yet; the keys stay native-file and Notation lines.
+  - On a goal:
+    - `QualityVariable[v]`: its sort, `Time` (seconds), `Boolean` or
+      `Number`. FSE'04 §3.1 gives a variable a name, a sort and a
+      definition. RE'11's `Incident → Time` is sample space `Incident`,
+      sort `Time`;
+    - `SampleSpace[v]` and `QualityDefinition[v]`, both text;
+    - `Distribution[v]`: a leaf variable's estimate in every design;
+    - an objective function: `Objective[o]` (an assertion; the objective is
+      its probability) or `Mean[o]` (an expression; its expectation), with
+      `Modal[o]` (Max, Min), `Target[o]` / `Current[o]` (probabilities) and
+      `ObjectiveSpec[o]`, its PCTL definition (a `formula` tagged `pctl`,
+      §3.3, which nothing checks yet). A mean objective has no target this
+      round, because `number` reads no `%` or exponent.
+  - On a refinement's hub:
+    - `Equation[v]`: an expression over variables, with `if(c, a, b)`,
+      `min` and `max`. A Boolean is 0 or 1;
+    - `BooleanEquation[v]`: an assertion over variables;
+    - `Distribution[v]`: FSE'04 §4.1's equation "in terms of probability
+      distribution functions".
+
+    The equations are on the refinement, not the variable, because "in case
+    of alternative goal refinements different refinement equations must be
+    defined for each alternative" (FSE'04 §4.1). They are read by the goal
+    language's expression and assertion readers (#120); there is no second
+    parser.
+  - On a responsibility assignment: `SysRef` and `Distribution[v]`, the
+    responsible agent's estimate.
+- **D2: options and designs.** A goal with several refinements, or several
+  responsibility assignments, is a decision point. Its options are their
+  `SysRef`s (RE'11 §II: "Options correspond to the system reference
+  attribute attached to goal refinements, responsibility assignments"). A
+  design is a project resource (`designs.json`, kind `design`). It picks one
+  option per decision point it reaches, which is #152's selection shape, and
+  it may `set` leaf estimates (FSE'04 §5.1's what-if). With no designs
+  listed, the simulation runs every design, at most 256.
+- **D3: shared back-end.**
+  - The shared `distribution` type gains `exponential[mean]` and
+    `normal[μ, σ]`, over the reals only. `exponential` takes its **mean**:
+    RE'11's `Exp(60)` is "mean varies from 60 seconds to 30 seconds", as
+    Matlab's `exprnd(mu)` takes it.
+  - `numeric/special` gains Φ (through the incomplete gamma, from Q's side
+    in the lower tail) and Φ⁻¹ (Acklam's approximation with one Halley
+    step).
+  - `distributionOfSamples` moved from kaosexpert to `numeric/samples`;
+    kaosexpert re-exports it.
+- **The simulation** (`simulation.ts`) is RE'11 §III.A's procedure:
+  - a design keeps one alternative per decision point, from the roots
+    down;
+  - each variable has one definition in the design. With none it is
+    **unresolved**, and so is every objective depending on it: no number,
+    and the leaves it lacks are listed;
+  - N samples, each leaf drawn independently (FSE'04 §4.3's assumption)
+    and once per sample (§III.A's Gsim);
+  - equations are evaluated element-wise;
+  - objectives use the frequentist reading, with their standard error.
+
+  A Boolean leaf's estimate is its probability of being true: a value, or
+  a distribution of it (a draw, then a Bernoulli draw). Draws are seeded per
+  variable, from its name and the run's seed. Designs therefore share a
+  leaf's draws (common random numbers), and Pareto comparisons are not
+  noise.
+- **The search, D5** (`search.ts`): a design dominates another when it is
+  at least as good on every objective and better on one; a Min objective
+  counts negated (RE'11 §IV.A). There are two methods:
+  - **every design**, the oracle: an odometer over the decision points, at
+    most `limit` designs. Step 4's cost-ordered heap doesn't apply, because
+    designs carry no cost order;
+  - **NSGA-II** (Deb et al. 2002), seeded. A chromosome is one gene per
+    decision point (RE'11 §IV.C: crossovers between decision points, so
+    every child is a valid design). It uses binary tournaments on rank and
+    crowding, uniform crossover, a mutation of 1/M per gene, and one copy
+    per design in P ∪ Q. The result is the last population's first front.
+    On a synthetic 4 × 3 × 3 × 3 × 6 = 648-design space (RE'11's shape),
+    it reaches the exhaustive front at population 40 and 60 generations
+    (`test/engines/kaossim/kaossim.test.ts`).
+- **`.kaos`.** KAOSTools has no quantitative syntax, so these attributes are
+  ours:
+  - on a goal: `qualityvariable [v] Time`, `samplespace [v] "…"`,
+    `qualitydefinition [v] "…"`, `distribution [v] exponential[60]`,
+    `objective ["8MinRespRate"] "…"`, `mean [o] "…"`,
+    `objectivespec [o] "…"`, `modal [o] Max`,
+    `target [o] 50%`, `current [o] 35%`;
+  - on a refinement: `refinedby [milestone, sysref = "1.2", T = "A + B"] a, b`.
+    A `v = "…"` that reads as a distribution is `Distribution[v]`; any other
+    is `BooleanEquation[v]` when v is declared Boolean, and `Equation[v]`
+    otherwise;
+  - on an assignment: `assignedto [sysref = "4.3", A = "exponential[5]"] agent`.
+
+  A file with any of these opens in kaossim's mode (after kaosexpert's,
+  before kaosres's). The writer writes a refinement's `SysRef` now, for
+  every dialect, with an info diagnostic that KAOSTools doesn't read it.
+
+- **The seeds and their oracles (the owner's decision: A plus B, #189).**
+  - **A.** `examples/kaos/las-quantitative` (FSE'04, #206) and
+    `examples/kaos/las-design-space` (RE'11, #207) re-key only what the
+    papers print. Every unprinted input is marked in the `.kaos`.
+    - kaossim reports each objective unresolved, naming what it lacks.
+    - Their `expected.csv` list Table 3 (30 / 47 / 52 %, 84 / 93 / 95 %),
+      §5.1's sensitivity (45 / 90 %) and RE'11's 61 / 97 / 73 % as "not
+      reproducible: inputs not printed", each with its missing inputs.
+    - The engine's numeric oracle is `test/engines/kaossim` (closed forms).
+      On RE'11's structure with synthetic values, the exhaustive search over
+      its 648 designs and seeded NSGA-II reach the same 19-design front
+      (`designSpace.test.ts`).
+    - `examples/kaos/mine-pump` (#208) re-keys FSE'04's targets and PCTL
+      instances, and claims no value.
+    - FSE'04 and RE'11 are two seeds, not one: their variables, structure and
+      fifth decision point differ, and merging them would invent
+      correspondences.
+  - **B.** `examples/kaos/las-radar` re-keys RADAR's `LAS.rdr` (UCL-badass/radar
+    `docs/LAS.rdr` at 53272ca, used with the owner's approval, no licence).
+    RADAR (sbusari/RADAR e0a4503, run in Docker) is the design-by-design
+    oracle.
+    - RADAR has no goals. Each variable is a goal's quality variable, each
+      equation is on the declaring goal's refinement, and each decision is an
+      OR-assignment per option, with SysRef `<decision>: <option>`.
+    - `normalci[a, b]` joins the shared distribution type: RADAR's 90 %
+      interval, σ = (b − a)/3.29.
+- **D4, as run.**
+  - The seed takes the report's sign, `Pr(ResponseTime > 14*60)`.
+  - The report's numbers are the file's sign's. RADAR's CLI prints 0
+    decimals, so "Risk = 0" was rounding. With the file's sign, Risk is
+    0.12–0.14 and the shortlist is 6 or 4 (RADAR is unseeded and the
+    designs are within noise of each other); the report's 5 are a subset.
+  - The report's text also gives the distance from location as
+    `normalCI(10000,100000)` where the file, which produced its numbers, has
+    `triangular(10000, 50000, 100000)`.
+  - With the report's sign, RADAR and kaossim agree on all 648 designs
+    within 4σ (worst 1.2σ) and on the single Pareto-optimal design. With the
+    file's sign, they agree within 4σ (worst 1.1σ), and the exhaustive front
+    is RADAR's 6.
+
 ### Models typed by their framework (goal-controller#185)
 
 - **Framework-aware, option 1.** goal-tree's `Model<EK, LK>` (lib's

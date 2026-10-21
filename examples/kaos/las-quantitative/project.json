@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "dialect": "kaossim",
+  "framework": "kaos",
+  "models": [
+    {
+      "path": "las-quantitative.txt",
+      "native": {
+        "kaos": "las-quantitative.kaos"
+      }
+    }
+  ],
+  "projectResources": {
+    "design": "designs.json"
+  },
+  "outputs": []
+}

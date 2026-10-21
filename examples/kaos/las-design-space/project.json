@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "dialect": "kaossim",
+  "framework": "kaos",
+  "models": [
+    {
+      "path": "las-design-space.txt",
+      "native": {
+        "kaos": "las-design-space.kaos"
+      }
+    }
+  ],
+  "projectResources": {
+    "design": "designs.json"
+  },
+  "outputs": []
+}

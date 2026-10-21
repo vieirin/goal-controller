@@ -1,0 +1,88 @@
+{
+  "designs": [
+    {
+      "id": "as-is",
+      "name": "The current system (every decision’s current option)",
+      "options": [
+        "Incident Form Encoding Method: Current Paper-Based",
+        "Ambulance Allocation Method: Current Paper-Based",
+        "Mobilisation Communication Method: Current Radio-Based",
+        "Ambulance Location Method: Current Radio and Paper-Based",
+        "Additional Ambulance: Current_100_Amb"
+      ],
+      "source": "LAS.rdr's current options"
+    },
+    {
+      "id": "radar-optimal",
+      "name": "RADAR's one Pareto-optimal design, with the report's sign",
+      "options": [
+        "Incident Form Encoding Method: Computer-Based and Automated Call Location",
+        "Ambulance Allocation Method: Fully Automated Allocation",
+        "Mobilisation Communication Method: MDT-System B",
+        "Ambulance Location Method: Automated Vehicle Location B",
+        "Additional Ambulance: Current_100_Amb"
+      ],
+      "source": "RADAR e0a4503 on LAS.rdr with Pr(ResponseTime > 14*60), run 2026-10-21"
+    },
+    {
+      "id": "report-1",
+      "name": "The report's Pareto design 1 (the file's sign)",
+      "options": [
+        "Incident Form Encoding Method: Automated Call Location",
+        "Ambulance Allocation Method: Current Paper-Based",
+        "Mobilisation Communication Method: Current Radio-Based",
+        "Ambulance Location Method: Automated Vehicle Location B",
+        "Additional Ambulance: Current_100_Amb"
+      ],
+      "source": "LAS_report.html, its shortlist (ID 1)"
+    },
+    {
+      "id": "report-2",
+      "name": "The report's Pareto design 2 (the file's sign)",
+      "options": [
+        "Incident Form Encoding Method: Computer-Based and Automated Call Location",
+        "Ambulance Allocation Method: Current Paper-Based",
+        "Mobilisation Communication Method: Current Radio-Based",
+        "Ambulance Location Method: Automated Vehicle Location B",
+        "Additional Ambulance: Current_100_Amb"
+      ],
+      "source": "LAS_report.html, its shortlist (ID 2)"
+    },
+    {
+      "id": "report-3",
+      "name": "The report's Pareto design 3 (the file's sign)",
+      "options": [
+        "Incident Form Encoding Method: Current Paper-Based",
+        "Ambulance Allocation Method: Current Paper-Based",
+        "Mobilisation Communication Method: Current Radio-Based",
+        "Ambulance Location Method: Current Radio and Paper-Based",
+        "Additional Ambulance: Current_100_Amb"
+      ],
+      "source": "LAS_report.html, its shortlist (ID 3)"
+    },
+    {
+      "id": "report-4",
+      "name": "The report's Pareto design 4 (the file's sign)",
+      "options": [
+        "Incident Form Encoding Method: Current Paper-Based",
+        "Ambulance Allocation Method: Current Paper-Based",
+        "Mobilisation Communication Method: Current Radio-Based",
+        "Ambulance Location Method: Automated Vehicle Location A",
+        "Additional Ambulance: Current_100_Amb"
+      ],
+      "source": "LAS_report.html, its shortlist (ID 4)"
+    },
+    {
+      "id": "report-5",
+      "name": "The report's Pareto design 5 (the file's sign)",
+      "options": [
+        "Incident Form Encoding Method: Current Paper-Based",
+        "Ambulance Allocation Method: Current Paper-Based",
+        "Mobilisation Communication Method: Current Radio-Based",
+        "Ambulance Location Method: Automated Vehicle Location B",
+        "Additional Ambulance: Current_100_Amb"
+      ],
+      "source": "LAS_report.html, its shortlist (ID 5)"
+    }
+  ]
+}

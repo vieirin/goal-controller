@@ -206,6 +206,11 @@ const ENGINE_KEYS: Record<TransformEngine, EngineKeys> = {
     lists: {},
     mapper: 'packages/lib/src/engines/kaosres/mapper.ts',
   },
+  kaossim: {
+    file: 'packages/lib/src/engines/kaossim/definition.ts',
+    lists: {},
+    mapper: 'packages/lib/src/engines/kaossim/mapper.ts',
+  },
   nfrprop: {
     file: 'packages/lib/src/engines/nfrprop/definition.ts',
     lists: {},

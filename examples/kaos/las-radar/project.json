@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "dialect": "kaossim",
+  "framework": "kaos",
+  "models": [
+    {
+      "path": "las-radar.txt",
+      "native": {
+        "kaos": "las-radar.kaos"
+      }
+    }
+  ],
+  "projectResources": {
+    "design": "designs.json"
+  },
+  "outputs": []
+}

@@ -35,6 +35,12 @@
  *   it. `cost [x] n` for an x that is no obstacle (KAOSTools' cost variable,
  *   before 2017-03) is kept as written.
  *
+ * - kaossim's (goal-controller#193): a goal's quantities (`qualityvariable
+ *   [v] Time`, `objective [o] "…"`, …), a refinement's and an assignment's
+ *   parameters (`sysref = "…"`, `v = "…"`), and `declare design` the
+ *   project resource `designs.json`. A file with any of these opens in
+ *   kaossim's mode.
+ *
  * Nothing is dropped: what has no place (a per-expert or distribution
  * `esr` on a goal, an `entity`, a custom `$attribute`, an import not
  * given) is kept as written, in file order, in the diagram's
@@ -75,6 +81,11 @@ import {
 } from '@goal-controller/goal-language/formats';
 import type { CountermeasureForm } from '../../engines/kaosres/definition';
 import {
+  DESIGNS_PATH,
+  designsText,
+  type DesignEntry,
+} from '../../engines/kaossim/designs';
+import {
   CUSTOM_KEYS,
   KAOS_DECLARATIONS,
   KAOS_TYPES,
@@ -92,6 +103,9 @@ export const KAOS_ENGINE = 'kaosprop';
 
 /** The engine a `.kaos` model with experts, calibrations or distributions is for (goal-controller#190). */
 export const KAOS_EXPERT_ENGINE = 'kaosexpert';
+
+/** The engine a `.kaos` model with quality variables, objectives, equations or options (and no experts) is for (goal-controller#193). */
+export const KAOS_SIM_ENGINE = 'kaossim';
 
 /** The engine a `.kaos` model with resolutions (and no experts) is for: its countermeasures' (goal-controller#191). */
 export const KAOS_RESOLUTION_ENGINE = 'kaosres';
@@ -121,10 +135,13 @@ type Element = {
   refinements: {
     tactic: string | null;
     refinees: { ref: Ref; probability?: string }[];
+    /** kaossim's (goal-controller#193): its SysRef, its equations by variable, as written */
+    sysRef?: string;
+    equations: [string, string][];
   }[];
   obstructions: { ref: Ref; probability?: string }[];
   resolutions: { ref: Ref; type: string; anchor: string }[];
-  assignments: Ref[];
+  assignments: { ref: Ref; props: [string, string][] }[];
   /** a goal's annotations for an obstacle (goal-controller#191): a resolution's Form, payload or Cost */
   annotations: Annotation[];
   /** its attributes kept as written */
@@ -190,6 +207,20 @@ export const identifierOf = (text: string, fallback: string) => {
     .replace(/^_+|_+$/g, '');
   return !slug ? fallback : /^[a-z]/.test(slug) ? slug : `${fallback}_${slug}`;
 };
+
+/** kaossim's attributes (goal-controller#193) and the keys they are, keyed by a name. */
+const SIM_KEYS = {
+  qualityvariable: 'QualityVariable',
+  samplespace: 'SampleSpace',
+  qualitydefinition: 'QualityDefinition',
+  distribution: 'Distribution',
+  objective: 'Objective',
+  mean: 'Mean',
+  objectivespec: 'ObjectiveSpec',
+  modal: 'Modal',
+  target: 'Target',
+  current: 'Current',
+} as const;
 
 const isGoal = (word: KaosDeclarationKind) =>
   word === 'goal' || word === 'softgoal';
@@ -288,6 +319,9 @@ export const readKaos = (
   const evidence: EvidenceEntry[] = [];
   let quantiles: string | null = null;
   let expertForms = false;
+  // kaossim's quantities (goal-controller#193): a file with any opens in its mode
+  let simForms = false;
+  const designs: DesignEntry[] = [];
   /** `declare constraint … conflict a, b`: two goals that conflict (goal-controller#191) */
   const conflicts: { a: Ref; b: Ref }[] = [];
 
@@ -342,6 +376,10 @@ export const readKaos = (
     }
     if (word === 'evidence') {
       evidenceItem(declaration, where);
+      return null;
+    }
+    if (word === 'design') {
+      designItem(declaration, where);
       return null;
     }
     if (word === 'constraint') {
@@ -499,9 +537,50 @@ export const readKaos = (
         break;
       case 'assignedto':
         if (isGoal(word)) {
-          const agents = refs(attribute, false);
-          if (agents) {
-            element.assignments.push(...agents.map((a) => a.ref));
+          const agents = refs(attribute, false, true);
+          const quantities = quantitiesOf(attribute, false);
+          if (
+            agents &&
+            quantities &&
+            (!attribute.params.length || agents.length === 1)
+          ) {
+            const props: [string, string][] = [
+              ...(quantities.sysRef !== undefined
+                ? [['SysRef', quantities.sysRef] as [string, string]]
+                : []),
+              ...quantities.equations.map(([v, text]): [string, string] => [
+                `Distribution[${v}]`,
+                text,
+              ]),
+            ];
+            if (props.length) simForms = true;
+            element.assignments.push(
+              ...agents.map((a) => ({ ref: a.ref, props })),
+            );
+            return;
+          }
+        }
+        break;
+      // kaossim's (goal-controller#193, D1): a goal's quality variables,
+      // objective functions and estimates, each keyed by its name
+      case 'qualityvariable':
+      case 'samplespace':
+      case 'qualitydefinition':
+      case 'distribution':
+      case 'objective':
+      case 'mean':
+      case 'objectivespec':
+      case 'modal':
+      case 'target':
+      case 'current':
+        if (isGoal(word)) {
+          const quantity = quantityOf(attribute);
+          if (quantity) {
+            element.props.set(
+              `${SIM_KEYS[name]}[${quantity.name}]`,
+              quantity.text,
+            );
+            simForms = true;
             return;
           }
         }
@@ -604,6 +683,7 @@ export const readKaos = (
                 'eps',
                 'probability',
                 'beta',
+                ...Object.keys(SIM_KEYS),
               ].includes(name)
             ? `not in this form on a ${word}`
             : `no place in the model for ${name}`;
@@ -717,6 +797,77 @@ export const readKaos = (
   };
 
   /** `declare evidence`: an entry of kaosexpert's evidence resource (goal-controller#199). */
+  /**
+   * kaossim's design (goal-controller#193, D2): `declare design [ id ] name
+   * "…" option "SysRef", "SysRef" set [v] "estimate" source "…" end`, an
+   * entry of the project's `designs.json`
+   */
+  const designItem = (declaration: Declaration, where: Where) => {
+    simForms = true;
+    if (!declaration.id) {
+      raw.push(sourceOf(declaration));
+      say(
+        where,
+        'warning',
+        `${headOf(declaration)}: a design without an identifier, kept as written`,
+        headAt(declaration),
+      );
+      return;
+    }
+    const kept: string[] = [];
+    let name: string | undefined;
+    let source: string | undefined;
+    const options: string[] = [];
+    // by variable: the model's names, any it has (DesignEntry's `set`)
+    const set: Record<string, string> = {};
+    const text = (value: Value) =>
+      value.atom.$type === 'StringAtom' && !value.bracket.length && !value.op
+        ? unquote(sourceOf(value.atom))
+        : null;
+    for (const attribute of declaration.attributes) {
+      const single1 = single(attribute);
+      const lower = attribute.name.toLowerCase();
+      const written = single1 ? text(single1) : null;
+      if (lower === 'name' && written !== null) {
+        name = written;
+        continue;
+      }
+      if (lower === 'source' && written !== null) {
+        source = written;
+        continue;
+      }
+      if (lower === 'option' && !attribute.params.length) {
+        const picks = attribute.values.map(text);
+        if (picks.every((p): p is string => p !== null)) {
+          options.push(...picks);
+          continue;
+        }
+      }
+      if (lower === 'set') {
+        const quantity = quantityOf(attribute);
+        if (quantity) {
+          set[quantity.name] = quantity.text;
+          continue;
+        }
+      }
+      kept.push(oneLine(sourceOf(attribute)));
+      say(
+        where,
+        'warning',
+        `${attribute.name} of design ${declaration.id}: kept as written, not read`,
+        at(attribute),
+      );
+    }
+    designs.push({
+      id: declaration.id,
+      ...(name !== undefined && { name }),
+      options,
+      ...(Object.keys(set).length && { set }),
+      ...(source !== undefined && { source }),
+      ...(kept.length && { kept }),
+    });
+  };
+
   const evidenceItem = (declaration: Declaration, where: Where) => {
     expertForms = true;
     if (!declaration.id) {
@@ -760,8 +911,12 @@ export const readKaos = (
   };
 
   /** A list of references, each with a `[p]` when `decorated` allows one; null when it is another list. */
-  const refs = (attribute: Attribute, decorated: boolean) => {
-    if (attribute.params.length) return null;
+  const refs = (
+    attribute: Attribute,
+    decorated: boolean,
+    parameters = false,
+  ) => {
+    if (attribute.params.length && !parameters) return null;
     const found: { ref: Ref; probability?: string }[] = [];
     for (const value of attribute.values) {
       const ref = refOf(value.atom);
@@ -814,7 +969,9 @@ export const readKaos = (
     where: Where,
   ): boolean => {
     let tactic: string | null = null;
-    for (const param of attribute.params) {
+    const quantities = quantitiesOf(attribute, true);
+    if (!quantities) return false;
+    for (const param of quantities.rest) {
       // `[case]`, `[pattern=case]`; a context (`[context=c]`) has no place
       const atom =
         param.op === '=' &&
@@ -846,8 +1003,82 @@ export const readKaos = (
           : refOf(atom)!;
       return { ref, ...(probability && { probability }) };
     });
-    element.refinements.push({ tactic, refinees });
+    if (quantities.sysRef !== undefined || quantities.equations.length)
+      simForms = true;
+    element.refinements.push({
+      tactic,
+      refinees,
+      ...(quantities.sysRef !== undefined && { sysRef: quantities.sysRef }),
+      equations: quantities.equations,
+    });
     return true;
+  };
+
+  /**
+   * kaossim's parameters of a refinement or an assignment (goal-controller#193):
+   * `sysref = "1.2"` its option, `v = "text"` an equation (or an estimate)
+   * of a variable; the others (`pattern = …`, `[case]`) as they are, in
+   * `rest`. Null when one is `sysref` or a variable's in another form, or
+   * (an assignment, `others` false) any other parameter.
+   */
+  const quantitiesOf = (
+    attribute: Attribute,
+    others: boolean,
+  ): {
+    sysRef?: string;
+    equations: [string, string][];
+    rest: Value[];
+  } | null => {
+    let sysRef: string | undefined;
+    const equations: [string, string][] = [];
+    const rest: Value[] = [];
+    if (attribute.parenthesised && attribute.params.length) return null;
+    for (const param of attribute.params) {
+      const name =
+        param.op === '=' && param.atom.$type === 'NameAtom'
+          ? param.atom.value
+          : null;
+      if (name === null || name === 'pattern' || name === 'context') {
+        if (!others) return null;
+        rest.push(param);
+        continue;
+      }
+      const right = param.right;
+      const text =
+        right?.$type === 'StringAtom'
+          ? unquote(sourceOf(right))
+          : right?.$type === 'NumberAtom' || right?.$type === 'NameAtom'
+            ? right.value
+            : null;
+      if (text === null) return null;
+      if (name.toLowerCase() === 'sysref') sysRef = text;
+      else equations.push([name, text]);
+    }
+    return { ...(sysRef !== undefined && { sysRef }), equations, rest };
+  };
+
+  /** `qualityvariable [ResponseTime] Time`, `objective ["8MinRespRate"] "…"`: the name and the value as written. */
+  const quantityOf = (
+    attribute: Attribute,
+  ): { name: string; text: string } | null => {
+    if (attribute.params.length !== 1 || attribute.values.length !== 1)
+      return null;
+    const [param] = attribute.params;
+    if (param!.op || param!.bracket.length) return null;
+    const name =
+      param!.atom.$type === 'NameAtom'
+        ? param!.atom.value
+        : param!.atom.$type === 'StringAtom'
+          ? unquote(sourceOf(param!.atom))
+          : null;
+    if (!name || /[[\]\s]/.test(name)) return null;
+    const value = attribute.values[0]!;
+    if (value.op) return null;
+    const text =
+      value.atom.$type === 'StringAtom' && !value.bracket.length
+        ? unquote(sourceOf(value.atom))
+        : oneLine(sourceOf(value));
+    return text ? { name, text } : null;
   };
 
   /**
@@ -1027,6 +1258,8 @@ export const readKaos = (
       parent: Element;
       tactic: string | null;
       refinees: { element: Element; probability?: string }[];
+      sysRef?: string;
+      equations: [string, string][];
     }[];
     obstructions: {
       obstacle: Element;
@@ -1041,7 +1274,11 @@ export const readKaos = (
       /** kaosres's (goal-controller#191): from the goals' annotations */
       countermeasure: CountermeasureTexts;
     }[];
-    assignments: { agent: Element; goal: Element }[];
+    assignments: {
+      agent: Element;
+      goal: Element;
+      props: [string, string][];
+    }[];
     conflicts: { a: Element; b: Element }[];
   } = {
     refinements: [],
@@ -1055,6 +1292,8 @@ export const readKaos = (
       links.refinements.push({
         parent: element,
         tactic: r.tactic,
+        ...(r.sysRef !== undefined && { sysRef: r.sysRef }),
+        equations: r.equations,
         refinees: r.refinees.map(({ ref, probability }) => ({
           element: resolve(
             ref,
@@ -1077,8 +1316,12 @@ export const readKaos = (
         anchor,
         countermeasure: {},
       });
-    for (const ref of element.assignments)
-      links.assignments.push({ agent: resolve(ref, 'agent'), goal: element });
+    for (const { ref, props } of element.assignments)
+      links.assignments.push({
+        agent: resolve(ref, 'agent'),
+        goal: element,
+        props,
+      });
   }
   for (const { a, b } of conflicts)
     links.conflicts.push({ a: resolve(a, 'goal'), b: resolve(b, 'goal') });
@@ -1243,7 +1486,31 @@ export const readKaos = (
   }[] = [];
   const pistarLinks: Record<string, unknown>[] = [];
   const counts = new Map<string, number>();
-  for (const { parent, tactic, refinees } of links.refinements) {
+  // kaossim's (goal-controller#193): a refinement's `v = "…"` is v's
+  // distribution when it reads as one, else its equation, Boolean when the
+  // model declares v Boolean
+  const booleans = new Set(
+    [...elements.values()].flatMap((element) =>
+      [...element.props].flatMap(([key, value]) =>
+        key.startsWith('QualityVariable[') && value === 'Boolean'
+          ? [key.slice('QualityVariable['.length, -1)]
+          : [],
+      ),
+    ),
+  );
+  const equationKey = (variable: string, text: string) =>
+    'distribution' in readDistribution(text, { point: true, range: 'real' })
+      ? `Distribution[${variable}]`
+      : booleans.has(variable)
+        ? `BooleanEquation[${variable}]`
+        : `Equation[${variable}]`;
+  for (const {
+    parent,
+    tactic,
+    refinees,
+    sysRef,
+    equations,
+  } of links.refinements) {
     const obstacle = parent.word === 'obstacle';
     const n = (counts.get(parent.id!) ?? 0) + 1;
     counts.set(parent.id!, n);
@@ -1254,7 +1521,14 @@ export const readKaos = (
         ? KAOS_TYPES.obstacleRefinementHub
         : KAOS_TYPES.refinementHub,
       ...(!obstacle && {
-        customProperties: { SysRef: '', Status: '', Tactic: tactic ?? '' },
+        customProperties: {
+          SysRef: sysRef ?? '',
+          Status: '',
+          Tactic: tactic ?? '',
+          ...Object.fromEntries(
+            equations.map(([v, text]) => [equationKey(v, text), text]),
+          ),
+        },
       }),
     };
     hubs.push({
@@ -1282,6 +1556,11 @@ export const readKaos = (
         target: parent.id,
       },
     });
+    if (obstacle && (sysRef !== undefined || equations.length))
+      diagnostics.push({
+        severity: 'info',
+        message: `${parent.id}: an obstacle refinement's SysRef and equations have no place in the model, not read`,
+      });
     if (obstacle && tactic !== null)
       diagnostics.push({
         severity: 'info',
@@ -1320,12 +1599,13 @@ export const readKaos = (
         }),
       },
     });
-  for (const { agent, goal } of links.assignments)
+  for (const { agent, goal, props } of links.assignments)
     pistarLinks.push({
       id: linkId(`${agent.id}-assigned-${goal.id}`),
       type: KAOS_TYPES.assignment,
       source: agent.id,
       target: goal.id,
+      ...(props.length && { customProperties: Object.fromEntries(props) }),
     });
   for (const { a, b } of links.conflicts)
     pistarLinks.push({
@@ -1425,6 +1705,8 @@ export const readKaos = (
     projectResources.evidence = {
       [EVIDENCE_PATH]: evidenceText({ evidence }),
     };
+  if (designs.length)
+    projectResources.design = { [DESIGNS_PATH]: designsText({ designs }) };
   return {
     model,
     dialectRecord: {
@@ -1432,9 +1714,11 @@ export const readKaos = (
       // keys), its quantities are the file's
       engine: expertForms
         ? KAOS_EXPERT_ENGINE
-        : links.resolutions.length
-          ? KAOS_RESOLUTION_ENGINE
-          : KAOS_ENGINE,
+        : simForms
+          ? KAOS_SIM_ENGINE
+          : links.resolutions.length
+            ? KAOS_RESOLUTION_ENGINE
+            : KAOS_ENGINE,
       projectResources,
     },
     diagnostics,

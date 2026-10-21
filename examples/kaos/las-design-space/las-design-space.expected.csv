@@ -1,0 +1,13 @@
+# The oracle of RE'11's London Ambulance design space (Heaven and Letier, RE'11, Fig. 1-2, §II-§IV; goal-controller#207), checked by scripts/kaos-stress with kaossim.
+# RE'11 prints the structure (five decision points, 4 × 3 × 3 × 3 × 6 = 648 designs), CallTakingTime's four options and the current system's estimates, not DistanceAllocatedAmbulance's model, MobilisationTime's and MobilisationDistance's equations, the other options' estimates or their costs: kaossim reports each objective unresolved with what it lacks, and RE'11's percentages are listed as not reproducible. The search (exhaustive vs seeded NSGA-II) is checked on this structure with synthetic values in lib's tests; RADAR's model is examples/kaos/las-radar.
+quantity,design,objective,expected,tolerance,paper,source,derivation
+designs,-,-,648,0,648,RE'11 §IV.D,"5 decision points of 4, 3, 3, 3 and 6 options: RE'11's 4×3×3×3×6 = 648 alternative systems"
+target,as-is,14MinResponseRate,0.95,0,95%,RE'11 §II.B,the 1992 government standard
+target,as-is,8MinResponseRate,0.5,0,50%,RE'11 §II.B,the 1992 government standard
+unresolved,as-is,14MinResponseRate,MobilisationTime MobilisationDistance,,,RE'11 §II.B,"ResponseTime = MobilisationTime + MobilisationDistance + AmbulanceDelay is printed and AmbulanceDelay's Normal(0, 120); MobilisationTime's and MobilisationDistance's equations over Fig. 2's variables are not"
+unresolved,expensive,8MinResponseRate,MobilisationTime MobilisationDistance,,,RE'11 §II.B,the same in every design
+value,as-is,8MinResponseRate,-,,61%,RE'11 §III.B,"not reproducible: inputs not printed: DistanceAllocatedAmbulance's model (§III.B: 'depends on ... not shown in Figure 1'), MobilisationTime's and MobilisationDistance's equations"
+value,as-is,14MinResponseRate,-,,97%,RE'11 §III.B,not reproducible: inputs not printed: the same
+value,automated-allocation,8MinResponseRate,-,,73%,RE'11 §III.B,"not reproducible: inputs not printed: the same, and the automated allocation time's distribution (a mean of 5 s) and which option it is"
+value,mdt-a,14MinResponseRate,-,,98%,RE'11 §IV.D,"not reproducible: inputs not printed: the same, and option 2.2's MobilisationCommunicationTime"
+value,expensive,14MinResponseRate,-,,over 99%,RE'11 §IV.D,"not reproducible: inputs not printed: the same, and options 2.3's, 3.2's, 4.3's and 5.3's estimates"

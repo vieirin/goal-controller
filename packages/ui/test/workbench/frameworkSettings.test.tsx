@@ -101,6 +101,7 @@ describe('the mode lists by framework (#171)', () => {
       'kaosprop',
       'kaosexpert',
       'kaosres',
+      'kaossim',
       'kaos',
     ]);
     // no conformity for the empty iStar model the KAOS one replaces
@@ -124,6 +125,7 @@ describe('the mode lists by framework (#171)', () => {
       'kaosprop',
       'kaosexpert',
       'kaosres',
+      'kaossim',
       'kaos',
     ]);
     // not a choice: the model has elements

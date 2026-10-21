@@ -1,0 +1,9 @@
+# The oracle of the mine pump's probabilistic layer (Letier and van Lamsweerde, FSE'04 §3.2-3.3; goal-controller#208), checked by scripts/kaos-stress with kaossim.
+# FSE'04 prints the two objective functions' targets and their PCTL instances, and no estimate and no computed value for the mine pump: the targets are checked as read, each objective is unresolved (the variable it lacks named), and its value is listed as not reproducible.
+quantity,design,objective,expected,tolerance,paper,source,derivation
+target,model,AlarmFailureRate,0.0001,0,10-4,FSE'04 §3.2,"AlarmFailureRate P(WaterAlarmFailure) Min 10⁻⁴, as read; its PCTL instance, WaterLevel ≥ 'Overflow' ⇒ Pr≥1−10⁻⁴ ○ WaterAlarm = 'On', bounds the complement, 1 − 10⁻⁴"
+target,model,FalseAlarmRate,0.001,0,10-3,FSE'04 §3.2,"FalseAlarmRate P(FalseWaterAlarmInShift) Min 10⁻³, as read; its PCTL instance, Pr≥1−10⁻³ □≤8h (WaterAlarm = 'On' → WaterLevel ≥ 'Overflow')"
+unresolved,model,AlarmFailureRate,WaterAlarmFailure,,,FSE'04 §3.2,"FSE'04 gives WaterAlarmFailure no estimate (no distribution, no failure rate of the alarm, the sensor or the pump): the objective has no value, and kaossim says what it lacks"
+unresolved,model,FalseAlarmRate,FalseWaterAlarmInShift,,,FSE'04 §3.2,the same: FalseWaterAlarmInShift has no estimate
+value,model,AlarmFailureRate,-,,,FSE'04,"not reproducible: FSE'04 prints no value of the alarm failure rate for any design, only its target; §4.3 reports a design flaw (one water sensor for the pump and the alarm) without numbers"
+value,model,FalseAlarmRate,-,,,FSE'04,not reproducible: no value printed

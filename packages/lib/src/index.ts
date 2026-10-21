@@ -489,6 +489,37 @@ export {
   type SelectionSemantics,
 } from './engines/kaosres';
 export { kaosresEngine } from './engines/kaosres/engine';
+// quantitative goals (goal-controller#193): kaossim's dialect, its model,
+// designs, simulation and design-space search, and the engine
+export {
+  DEFAULT_SIM_OPTIONS,
+  enumerateDesigns,
+  exhaustiveSearch,
+  kaossim,
+  kaossimAnalyses,
+  kaossimAnalysisModel,
+  kaossimEngineMapper,
+  kaossimOptions,
+  nsga2Search,
+  paretoFront,
+  quantitativeModel,
+  readDesigns,
+  runDesignSpace,
+  runSimulation,
+  searchDesigns,
+  simOptionsOf,
+  simulateDesign,
+  type Design,
+  type DesignChoice,
+  type DesignRun,
+  type ObjectiveFunction,
+  type ObjectiveValue,
+  type QualityVariable,
+  type QuantitativeModel,
+  type SearchOptions,
+  type SearchResult,
+} from './engines/kaossim';
+export { kaossimEngine } from './engines/kaossim/engine';
 // the numeric back-end (goal-controller#190): distributions, BDDs, a seeded generator
 export { Bdd } from './numeric/bdd';
 export {
@@ -500,6 +531,7 @@ export {
   type Continuous,
 } from './numeric/distributions';
 export { seededRandom, type Random } from './numeric/random';
+export { normalCdf, normalQuantile } from './numeric/special';
 
 // Logger
 export type { LoggerReport } from './engines/edge/logger/logger';

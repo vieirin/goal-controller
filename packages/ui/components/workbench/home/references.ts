@@ -193,6 +193,22 @@ export const SECTION_REFERENCES: Readonly<
       url: 'https://doi.org/10.1109/HASE.2011.25',
       examples: ['kaos/mooring'],
     },
+    // quantitative goals (goal-controller#193)
+    {
+      text: "E. Letier, A. van Lamsweerde. Reasoning about partial goal satisfaction for requirements and design engineering. SIGSOFT'04/FSE-12 (the London Ambulance's Fig. 1, Fig. 3 and Table 3, and §3.2–3.3's mine pump, re-keyed as far as it prints; goal-controller#206, #208).",
+      url: 'https://doi.org/10.1145/1029894.1029905',
+      examples: ['kaos/las-quantitative', 'kaos/mine-pump'],
+    },
+    {
+      text: "W. Heaven, E. Letier. Simulating and optimising design decisions in quantitative goal models. RE'11 (Fig. 1–2 and its five decision points, re-keyed as far as it prints; goal-controller#207).",
+      url: 'https://doi.org/10.1109/RE.2011.6051653',
+      examples: ['kaos/las-design-space'],
+    },
+    {
+      text: "UCL-badass/radar: RADAR's London Ambulance model, docs/LAS.rdr at 53272ca (used with the owner's approval; the repository states no licence), with the report's sign of its risk objective (goal-controller#207).",
+      url: 'https://github.com/UCL-badass/radar/blob/53272ca8d45052b37344ac8f070252c8ac6994b8/docs/LAS.rdr',
+      examples: ['kaos/las-radar'],
+    },
     {
       text: 'ancailliau/KAOSTools: KAOSTools and its London Ambulance model, las.kaos (MIT).',
       url: 'https://github.com/ancailliau/KAOSTools',

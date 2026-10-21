@@ -1,0 +1,63 @@
+@title "Mine pump, FSE'04's probabilistic layer"
+
+# Letier and van Lamsweerde, "Reasoning about Partial Goal Satisfaction for
+# Requirements and Design Engineering", SIGSOFT'04/FSE-12, pp. 53-62
+# (goal-controller#208), re-keyed from its text: §3.2 (heuristics H1-H3) and
+# §3.3 (the PCTL patterns), the only places it prints the mine pump.
+#
+# The minimal seed: the five goals FSE'04 names, each with its words, and the
+# one goal it quantifies, Achieve [WaterAlarmIffCriticalWaterLevel], with its
+# two quality variables, its two objective functions (Min, targets 10^-4 and
+# 10^-3) and their PCTL instances. The structural mine pump (operations,
+# agents, interfaces) is #194's (step 7), which grows this file.
+#
+# What FSE'04 doesn't print, so this seed doesn't have:
+# - a refinement: the goals "contribute" to the Avoid goals (§3.2 H2, §4.3),
+#   without the refinement being drawn;
+# - an estimate of any quality variable, so no objective function has a
+#   value (the targets are no results): kaossim reports both unresolved;
+# - an objective function's name or target for the two Avoid goals (§3.2
+#   describes them in words, kept as their definitions).
+#
+# The PCTL symbols are FSE'04's Wingdings glyphs as read: 0xA1 (pdftotext's
+# "¡") is ○, next; 0xA8 ("¨") is □, globally ("the CTL symbols F (finally)
+# and G (globally) are noted ◊ and □", §3.3). 10-4 is 10⁻⁴.
+
+declare goal [ miner_in_overflowed_mine ]
+  name "Avoid [MinerInOverflowedMine]"
+  definition "The objective function for this goal is the conditional probability that a miner is in the mine when the mine is overflowed (FSE'04 §3.2, H2). §4.3 names it Avoid [MinerInsideOverflowedMine]: PumpOnWhenHighWater and AlarmWhenMineOverflowed contribute to it."
+end
+
+declare goal [ working_shift_lost ]
+  name "Avoid [WorkingShiftLost]"
+  definition "The objective function for this goal is to minimize the probability of losing an 8-hour working shift in order not to lose more than one shift in a thousand (FSE'04 §3.2, H2)."
+end
+
+declare goal [ water_alarm_iff_critical_water_level ]
+  name "Achieve [WaterAlarmIffCriticalWaterLevel]"
+  definition "The water alarm should be raised if, and only if, the water level exceeds the 'Overflow' limit."
+  qualityvariable [WaterAlarmFailure] Boolean
+  samplespace [WaterAlarmFailure] "set of all time points at which the water level becomes critical"
+  qualitydefinition [WaterAlarmFailure] "WaterAlarmFailure is true if the alarm is not raised when the water level becomes critical. Its probability is the conditional probability that the alarm is not raised when the water level becomes critical."
+  qualityvariable [FalseWaterAlarmInShift] Boolean
+  samplespace [FalseWaterAlarmInShift] "set of all possible working shifts"
+  qualitydefinition [FalseWaterAlarmInShift] "FalseWaterAlarmInShift is true if at some time during the working shift (8 hours) the water alarm is raised when the water level is not critical"
+  objective [AlarmFailureRate] "WaterAlarmFailure"
+  objectivespec [AlarmFailureRate] "WaterLevel ≥ 'Overflow' ⇒ Pr≥1−10⁻⁴ ○ WaterAlarm = 'On'"
+  modal [AlarmFailureRate] Min
+  target [AlarmFailureRate] 0.0001
+  objective [FalseAlarmRate] "FalseWaterAlarmInShift"
+  objectivespec [FalseAlarmRate] "Pr≥1−10⁻³ □≤8h (WaterAlarm = 'On' → WaterLevel ≥ 'Overflow')"
+  modal [FalseAlarmRate] Min
+  target [FalseAlarmRate] 0.001
+end
+
+declare goal [ pump_on_when_high_water ]
+  name "PumpOnWhenHighWater"
+  definition "FSE'04 §4.3: its quality variables and AlarmWhenMineOverflowed's are not independent, because the design used the same water sensor to detect high water levels, that would trigger the pump, and water levels that would raise the alarm in case of pump failure."
+end
+
+declare goal [ alarm_when_mine_overflowed ]
+  name "AlarmWhenMineOverflowed"
+  definition "FSE'04 §4.3: see PumpOnWhenHighWater."
+end

@@ -442,9 +442,11 @@ export type PropertyDefinition<C extends string = string> = {
    * its own value (`Probability`), one per name of that resource kind,
    * `Probability[e1]` on disk (`keyedKeyOf`), each of its value type; the
    * inspector shows a row per name. The kind is one of the dialect's
-   * `projectResources`.
+   * `projectResources`. `{ names: 'written' }` (goal-controller#193): keyed
+   * by any name the model writes (`QualityVariable[ResponseTime]`, a goal's
+   * own quality variables), which no resource lists.
    */
-  keyed?: string;
+  keyed?: string | KeyedByWritten;
   /**
    * `'engine'`: an engine-owned language server serves this property's value
    * (its sub-language): the shared goal-language server and the local
@@ -454,6 +456,9 @@ export type PropertyDefinition<C extends string = string> = {
    */
   servedBy?: 'engine';
 };
+
+/** A keyed property's names: any the model writes, none listed (goal-controller#193). */
+export type KeyedByWritten = { names: 'written' };
 
 /** The mismatches between a notation and the structure the views report. */
 export type ProblemKind =
@@ -1373,7 +1378,7 @@ export const defineDialect = <const D extends AnyDialect>(
       fail(`repeated ${owner} property key`);
     for (const property of list) {
       const value = property.value;
-      if (property.keyed !== undefined && !(property.keyed in resources))
+      if (typeof property.keyed === 'string' && !(property.keyed in resources))
         fail(
           `${owner}.${property.key} is keyed by unknown project resource ${property.keyed}`,
         );
