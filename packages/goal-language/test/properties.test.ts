@@ -32,7 +32,7 @@ const dialect = {
       property.assertion('assertion', { resolves: ['variable'], help: '' }),
       property.text('note', { help: '' }),
       property.probability('chance', { help: '' }),
-      property.reference('anchor', ['goal'], { help: '' }),
+      property.reference('anchor', { kinds: ['goal'] }, { help: '' }),
       property.conditional(
         'bound',
         {
@@ -208,7 +208,11 @@ describe('readProperties (#187)', () => {
         { actor: 'istar.Agent' },
         { importance: '2', role: 'r' },
       ),
-    ).to.deep.equal({ values: { importance: 2 }, text: { importance: '2' } });
+    ).to.deep.equal({
+      values: { importance: 2 },
+      text: { importance: '2' },
+      keyed: {},
+    });
     expect(
       readProperties(
         dialect,
@@ -225,7 +229,7 @@ describe('readProperties (#187)', () => {
     ).to.deep.equal({ weight: 50 });
     expect(
       readProperties(dialect, { link: 'istar.AndRefinementLink' }, { w: '1' }),
-    ).to.deep.equal({ values: {}, text: {} });
+    ).to.deep.equal({ values: {}, text: {}, keyed: {} });
   });
 
   it('reads a text across line breaks, as written', () => {
@@ -297,6 +301,7 @@ describe('readProperties (#187)', () => {
     expect(read({ closed: ' FALSE ', open: 'False' })).to.deep.equal({
       values: { closed: 'false', open: 'false' },
       text: { closed: ' FALSE ', open: 'False' },
+      keyed: {},
     });
     // an open one keeps a word that is no option as written
     expect(read({ closed: 'no', open: 'No' }).values).to.deep.equal({
@@ -503,7 +508,11 @@ describe('readProperties (#187)', () => {
     expect(read(' G1 ').values).to.deep.equal({ anchor: 'G1' });
     // no such element, a task where a goal is named: unset, kept as written
     expect(read('G9').values).to.deep.equal({});
-    expect(read('T1')).to.deep.equal({ values: {}, text: { anchor: 'T1' } });
+    expect(read('T1')).to.deep.equal({
+      values: {},
+      text: { anchor: 'T1' },
+      keyed: {},
+    });
     expect(read('').values).to.deep.equal({ anchor: null });
     // without a context, the id as written, as before
     expect(read('G9', false).values).to.deep.equal({ anchor: 'G9' });

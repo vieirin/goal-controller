@@ -11,7 +11,7 @@ import {
   linkPropertiesOf,
   probabilityOf,
   readDistribution,
-  propertyOf,
+  danglingName,
   valueOf,
   type AnyDialect,
   type DefinitionContext,
@@ -33,6 +33,7 @@ import {
   type ExpressionTree,
 } from '../parse.js';
 import { assertionVariables } from './goalNames.js';
+import { propertyIn, propertyOf, targetScopeOf } from './properties.js';
 
 const kindOf = (context: DefinitionContext | undefined, id: string) =>
   context?.elements[id]?.kind;
@@ -63,10 +64,12 @@ export const fieldPropertyOf = (
   if (!owner) return null;
   const property = element
     ? propertyOf(definition, owner.kind, key)
-    : (link
-        ? linkPropertiesOf(definition, owner.kind)
-        : actorPropertiesOf(definition, owner.kind)
-      ).find((p) => p.key === key);
+    : propertyIn(
+        link
+          ? linkPropertiesOf(definition, owner.kind)
+          : actorPropertiesOf(definition, owner.kind),
+        key,
+      );
   return property
     ? {
         on: element ? 'element' : link ? 'link' : 'actor',
@@ -312,8 +315,12 @@ export const valueProblem = (
   value: ValueConfig,
   text: string,
   context?: DefinitionContext,
-  /** its definition: whether a kind declares members (`members.from`) */
-  definition?: Pick<AnyDialect, 'properties'>,
+  /**
+   * its definition: whether a kind declares members (`members.from`), its
+   * project resources' labels
+   */
+  definition?: Pick<AnyDialect, 'properties'> &
+    Partial<Pick<AnyDialect, 'projectResources'>>,
 ): string | null => {
   if (!text.trim()) return null;
   // a list of conditions (goal-controller#232): the first part's problem
@@ -429,22 +436,21 @@ export const valueProblem = (
     case 'reference': {
       const id = text.trim();
       // an imported model names an element by its piStar id, which no
-      // grammar reads; any other reference is one id, as the grammar reads
+      // grammar reads; any other element's is one id, as the grammar reads
       // a refList's
-      let key = context?.iStarIds?.[id];
-      if (key === undefined) {
+      if ('kinds' in value.target && context?.iStarIds?.[id] === undefined) {
         const read = parseValue('refList', id);
         if (read.errors.length || read.value.length !== 1)
           return `An element's id (G1), not ${id}`;
-        key = read.value[0]!;
       }
-      if (!context) return null;
-      const kind =
-        kindOf(context, key) ?? kindOf(context, context.named?.[key] ?? '');
-      if (!kind) return `${id} is not an element of this model`;
-      return (value.kinds as readonly string[]).includes(kind)
-        ? null
-        : `${id} is a ${kind}, not a ${value.kinds.join(' or ')}`;
+      return context
+        ? danglingName(
+            value.target,
+            id,
+            targetScopeOf(context),
+            definition?.projectResources,
+          )
+        : null;
     }
     case 'probability':
       return probabilityOf(text) === null

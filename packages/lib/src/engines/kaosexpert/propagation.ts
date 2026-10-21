@@ -32,6 +32,7 @@
  * with an RSR (RE'15's violation diagram, Table III).
  */
 import type { Distribution } from '@goal-controller/dialect';
+import { readProperties } from '@goal-controller/goal-language';
 import { Bdd, FALSE, TRUE, type BddNode } from '../../numeric/bdd';
 import {
   complementOf,
@@ -57,7 +58,7 @@ import { kaosexpert } from './definition';
 import { readCalibrations, readExperts } from './resources';
 
 const GOAL_KINDS = new Set(['kaos.BehavioralGoal', 'kaos.Softgoal']);
-const OBSTACLE = 'kaosObstacles.Obstacle';
+const OBSTACLE = 'kaosObstacles.Obstacle' as const;
 const DOMAIN_PROPERTY = 'kaos.DomainProperty';
 const CASE_DRIVEN = new Set(['case-driven', 'case']);
 
@@ -163,14 +164,17 @@ export const expertAnalysis = (
   const leafIds = model.elements
     .filter((e) => e.kind === OBSTACLE && !(hubs.get(e.id)?.length ?? 0))
     .map((e) => e.id);
+  // each expert's estimate, by its id (`Probability[e1]`, goal-controller#354)
   const keyedOf = (id: string) => {
-    const values = valuesOf('element', elements.get(id)!);
+    const { values, keyed } = readProperties(
+      kaosexpert,
+      { element: OBSTACLE },
+      elements.get(id)!.properties,
+    );
     const own = new Map<string, Distribution>();
-    for (const [key, value] of Object.entries(values)) {
-      const keyed = /^Probability\[(.+)\]$/.exec(key);
-      if (keyed && value) own.set(keyed[1]!, value as Distribution);
-    }
-    return { own, plain: (values.Probability as Distribution | null) ?? null };
+    for (const [expert, value] of keyed.Probability ?? [])
+      if (value) own.set(expert, value);
+    return { own, plain: values.Probability ?? null };
   };
   const declared = experts.experts.map((e) => ({
     id: e.id,

@@ -2240,6 +2240,7 @@ function WorkbenchState({
         ...frameworkProblems(
           parsed.istar,
           dialectForModel(framework, parsed.istar),
+          projectResources,
         ),
       );
     // piStar mode: only whether the file parses; the engine checks do not apply

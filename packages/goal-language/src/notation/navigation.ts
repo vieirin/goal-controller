@@ -9,12 +9,12 @@ import {
   actorPropertiesOf,
   linkLinesOf,
   linkPropertiesOf,
-  propertyOf,
   valueOf,
   type AnyDialect,
   type DefinitionContext,
   type ValueConfig,
 } from '@goal-controller/dialect';
+import { propertyOf } from './properties.js';
 import { highlightValue } from './highlight.js';
 import { ACTOR_LINE_KEY, actorNames, readActorLine } from './actorLine.js';
 import { ownerOf } from './completion.js';

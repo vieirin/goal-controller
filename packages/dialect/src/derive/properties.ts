@@ -5,6 +5,7 @@ import {
   type AnyDialect,
   type Condition,
   type ConditionalValue,
+  type KeyedKey,
   type PropertyDefinition,
   type ValueConfig,
 } from '../schema';
@@ -73,37 +74,14 @@ export const fillTemplate = (
   );
 
 /**
- * A keyed property's key on disk, read (goal-controller#190, D2):
- * `Probability[e1]` is `Probability` keyed by `e1`; null for any other key.
+ * A keyed property's key on disk for one name of its target (goal-controller#190,
+ * #354): `Probability[e1]`. The goal language reads one back
+ * (`keyedKeyOf`, with its grammar).
  */
-export const keyedKeyOf = (
-  key: string,
-): { key: string; name: string } | null => {
-  const read = /^([A-Za-z][A-Za-z0-9_]*)\[\s*([^\]\s]+)\s*\]$/.exec(key);
-  return read ? { key: read[1]!, name: read[2]! } : null;
-};
-
-/** A keyed property's key on disk for a name: `Probability[e1]`. */
-export const keyedKey = (key: string, name: string): string =>
-  `${key}[${name}]`;
-
-/**
- * The property a kind's key is: its own, or (`Probability[e1]`) the keyed
- * property it is one name's value of.
- */
-export const propertyOf = (
-  definition: Pick<AnyDialect, 'properties'>,
-  kind: string,
-  key: string,
-): PropertyDefinition | undefined => {
-  const list = definition.properties[kind];
-  const own = list?.find((p) => p.key === key);
-  if (own || !list) return own;
-  const keyed = keyedKeyOf(key);
-  return keyed
-    ? list.find((p) => p.key === keyed.key && p.keyed !== undefined)
-    : undefined;
-};
+export const keyedKey = <const Key extends string, const Id extends string>(
+  key: Key,
+  name: Id,
+): KeyedKey<Key, Id> => `${key}[${name}]`;
 
 /** The keys a definition reads on actors (goal-controller#125), literal types kept. */
 export const actorPropertyKeys = <

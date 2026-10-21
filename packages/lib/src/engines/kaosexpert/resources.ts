@@ -43,11 +43,13 @@ import {
   jsonText,
   numberOf,
   readDistribution,
+  targetId,
   type Distribution,
 } from '@goal-controller/dialect';
 import {
   keyRange,
   readJson,
+  type EntryResourceParser,
   type ParsedResource,
   type ProjectResourceParser,
   type ResourceDiagnostic,
@@ -239,11 +241,14 @@ export const readCalibrations = (
   return { calibrations, diagnostics };
 };
 
-/** The experts as symbols (each by id, its name the detail) and as data. */
-export const parseExperts: ProjectResourceParser<{
-  experts: { id: string; name: string }[];
-  quantiles: string;
-}> = (files) => {
+/** The experts as symbols (each by id, its name the detail), as entries (goal-controller#354) and as data. */
+export const parseExperts: EntryResourceParser<
+  'expert',
+  {
+    experts: { id: string; name: string }[];
+    quantiles: string;
+  }
+> = (files) => {
   const { experts, quantiles, diagnostics } = readExperts(files);
   return {
     symbols: {
@@ -253,6 +258,10 @@ export const parseExperts: ProjectResourceParser<{
       experts: experts.map((e) => ({ id: e.id, name: e.name ?? e.id })),
       quantiles,
     },
+    entries: experts.map((e) => ({
+      id: targetId({ resource: 'expert' }, e.id),
+      name: e.name ?? e.id,
+    })),
     diagnostics,
   };
 };

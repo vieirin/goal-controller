@@ -17,7 +17,6 @@ import {
   type ExtensionElementDefinition,
   type ExtensionLinkDefinition,
   type FunctionDefinition,
-  type KeyedByWritten,
   type MemberSource,
   type ISTAR_LINK_KINDS,
   type ModifierDefinition,
@@ -25,7 +24,9 @@ import {
   type ProblemKind,
   type ProjectResourceDefinition,
   type PropertyDefinition,
+  type ReferenceTarget,
   type ResourceCandidates,
+  type Target,
   type Severity,
 } from './schema';
 import type { DistributionOptions } from './distribution';
@@ -43,11 +44,12 @@ export type PropertyOptions<C extends string = string> = {
   inspector?: boolean;
   servedBy?: 'engine';
   /**
-   * keyed by a project resource's names (`Probability[e1]`,
-   * goal-controller#190), or by any name the model writes (`{ names:
-   * 'written' }`, goal-controller#193)
+   * keyed by its target's names (`Probability[e1]`, goal-controller#190,
+   * #354): a project resource's entries (`{ resource: 'expert' }`), elements
+   * of some kinds, or any name the model writes (`{ written: true }`,
+   * goal-controller#193)
    */
-  keyed?: string | KeyedByWritten;
+  keyed?: Target;
   /** an actor property's actor kinds (`actors`) */
   kinds?: readonly string[];
 };
@@ -232,17 +234,21 @@ const builders = <C extends string>() => ({
       [],
       typeof kind === 'string' ? { kind } : { kinds: kind },
     ) as never,
-  /** one element's id, of one of these kinds (an anchor goal) */
+  /**
+   * one name of its target (goal-controller#354): an element's id, of one
+   * of its kinds (`{ kinds: ['kaos.BehavioralGoal'] }`, an anchor goal), or
+   * a project resource entry's (`{ resource: 'expert' }`)
+   */
   reference: <
     const K extends string,
-    const E extends readonly DialectKind[],
+    const T extends ReferenceTarget,
     const P extends PropertyOptions<C>,
   >(
     key: K,
-    kinds: E,
+    target: T,
     rest: Exact<P, PropertyOptions<C>>,
-  ): Built<K, 'reference', P, never, { kinds: E }> =>
-    build(key, 'reference', rest, [], { kinds }) as never,
+  ): Built<K, 'reference', P, never, { target: T }> =>
+    build(key, 'reference', rest, [], { target }) as never,
   /** a sentence of a formal language, tagged with it (`ltl`); nothing checks it yet */
   formula: <
     const K extends string,

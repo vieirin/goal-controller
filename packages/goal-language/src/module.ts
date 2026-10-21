@@ -85,6 +85,7 @@ export const START_RULE: Record<LexerStart, string> = {
   refList: 'RefListValue',
   pairList: 'PairListValue',
   nameList: 'NameListValue',
+  propertyKey: 'PropertyKey',
 };
 
 const START_OF_RULE = new Map(

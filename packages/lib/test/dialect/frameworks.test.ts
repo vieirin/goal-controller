@@ -610,7 +610,10 @@ describe('frameworks: the KAOS obstacle analysis (#181)', () => {
             key: 'Anchor',
             value: {
               when: { key: 'ResolutionType', equals: 'mitigation' },
-              matching: { type: 'reference', kinds: ['kaos.BehavioralGoal'] },
+              matching: {
+                type: 'reference',
+                target: { kinds: ['kaos.BehavioralGoal'] },
+              },
               otherwise: { type: 'text' },
             },
             help: '',

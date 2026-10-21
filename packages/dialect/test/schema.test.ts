@@ -4,11 +4,16 @@ import {
   defineDialect,
   defineExtension,
   hasIds,
+  danglingName,
   keyedKey,
-  keyedKeyOf,
   probabilityOf,
-  propertyOf,
+  targetId,
   type AnyDialect,
+  type ElementId,
+  type KeyedKey,
+  type ResourceId,
+  type TargetId,
+  type WrittenName,
   type CheckNameOf,
   type ConstructOf,
   type ExtensionDefinition,
@@ -298,8 +303,8 @@ describe('defineDialect', () => {
     );
   });
 
-  it('keys a property by a project resource it declares only (#190)', () => {
-    const keyed = (keyedBy: string) =>
+  it('keys a property by a project resource it declares with entries only (#190, #354)', () => {
+    const keyed = (resource: string, entries = true) =>
       bad(
         (d) =>
           ({
@@ -309,6 +314,7 @@ describe('defineDialect', () => {
                 label: 'Experts',
                 format: 'json',
                 path: 'experts.json',
+                ...(entries && { entries: true }),
               },
             },
             properties: {
@@ -317,7 +323,7 @@ describe('defineDialect', () => {
                 {
                   key: 'Probability',
                   value: { type: 'distribution', point: true },
-                  keyed: keyedBy,
+                  keyed: { resource },
                   help: '',
                 },
               ],
@@ -326,32 +332,196 @@ describe('defineDialect', () => {
       );
     expect(keyed('expert')).not.to.throw();
     expect(keyed('judge')).to.throw(
-      /quality.Probability is keyed by unknown project resource judge/,
+      /quality.Probability names unknown project resource judge/,
     );
-    const dialect = {
-      properties: {
-        quality: [
-          {
-            key: 'Probability',
-            value: { type: 'probability' },
-            keyed: 'expert',
-            help: '',
-          },
-          { key: 'Weight', value: { type: 'int' }, help: '' },
-        ],
+    expect(keyed('expert', false)).to.throw(
+      /quality.Probability names project resource expert, which declares no entries/,
+    );
+  });
+
+  it('keys a property by elements of its kinds, or by names the model writes (#354)', () => {
+    const keyed = (
+      keyedBy: AnyDialect['properties'][string][number]['keyed'],
+    ) =>
+      bad(
+        (d) =>
+          ({
+            ...d,
+            properties: {
+              ...d.properties,
+              quality: [
+                {
+                  key: 'Weight',
+                  value: { type: 'int' },
+                  keyed: keyedBy,
+                  help: '',
+                },
+              ],
+            },
+          }) as AnyDialect,
+      );
+    expect(keyed({ kinds: ['goal', 'task'] })).not.to.throw();
+    expect(keyed({ written: true })).not.to.throw();
+    expect(keyed({ kinds: ['goal', 'toy.Nothing'] })).to.throw(
+      /quality.Weight names unknown kind toy.Nothing/,
+    );
+  });
+
+  it('doesn’t compile a target naming a kind or a project resource it lacks (#354)', () => {
+    const experts = {
+      expert: {
+        label: 'Experts',
+        format: 'json',
+        path: 'experts.json',
+        entries: true,
       },
-    } as unknown as AnyDialect;
-    // its names' keys on disk are it; another property's aren't
-    expect(propertyOf(dialect, 'quality', 'Probability[e1]')?.key).to.equal(
+      // no entries: nothing to name
+      calibration: {
+        label: 'Calibration variables',
+        format: 'json',
+        path: 'calibrations.json',
+      },
+    } as const;
+    // built only by the types: the run-time checks are the tests above
+    const definitions = () => [
+      defineDialect({
+        ...toy,
+        projectResources: experts,
+        properties: {
+          ...toy.properties,
+          quality: [
+            {
+              key: 'Probability',
+              value: { type: 'probability' },
+              keyed: { resource: 'expert' },
+              help: '',
+            },
+            {
+              key: 'Owner',
+              value: { type: 'reference', target: { kinds: ['goal'] } },
+              keyed: { written: true },
+              help: '',
+            },
+          ],
+        },
+      }),
+      // @ts-expect-error judge is no project resource of it
+      defineDialect({
+        ...toy,
+        projectResources: experts,
+        properties: {
+          ...toy.properties,
+          quality: [
+            {
+              key: 'Probability',
+              value: { type: 'probability' },
+              keyed: { resource: 'judge' },
+              help: '',
+            },
+          ],
+        },
+      }),
+      // @ts-expect-error calibration holds no entries
+      defineDialect({
+        ...toy,
+        projectResources: experts,
+        properties: {
+          ...toy.properties,
+          quality: [
+            {
+              key: 'Probability',
+              value: { type: 'probability' },
+              keyed: { resource: 'calibration' },
+              help: '',
+            },
+          ],
+        },
+      }),
+      // @ts-expect-error toy.Nothing is no kind of it
+      defineDialect({
+        ...toy,
+        properties: {
+          ...toy.properties,
+          quality: [
+            {
+              key: 'Weight',
+              value: { type: 'int' },
+              keyed: { kinds: ['goal', 'toy.Nothing'] },
+              help: '',
+            },
+          ],
+        },
+      }),
+      // @ts-expect-error a reference to a resource it doesn't declare
+      defineDialect({
+        ...toy,
+        properties: {
+          ...toy.properties,
+          quality: [
+            {
+              key: 'Rater',
+              value: { type: 'reference', target: { resource: 'expert' } },
+              help: '',
+            },
+          ],
+        },
+      }),
+    ];
+    expect(definitions).to.be.a('function');
+  });
+
+  it('builds a keyed key typed by its key and its name’s brand (#354)', () => {
+    const expert = targetId({ resource: 'expert' }, 'e2');
+    const key = keyedKey('Probability', expert);
+    expect(key).to.equal('Probability[e2]');
+    const typed: Same<
+      typeof key,
+      KeyedKey<'Probability', ResourceId<'expert'>>
+    > = true;
+    expect(typed).to.equal(true);
+    // a name's brand: an element's by its kinds, an entry's by its resource, a written one's by its key
+    const element: Same<
+      TargetId<{ kinds: readonly ['goal', 'task'] }>,
+      ElementId<'goal' | 'task'>
+    > = true;
+    const written: Same<
+      TargetId<{ written: true }, 'QualityVariable'>,
+      WrittenName<'QualityVariable'>
+    > = true;
+    expect([element, written]).to.deep.equal([true, true]);
+    // @ts-expect-error a name written as text is no expert's id
+    const plain: KeyedKey<
       'Probability',
+      ResourceId<'expert'>
+    > = 'Probability[e1]';
+    // @ts-expect-error an expert's id is no other resource's
+    const other: ResourceId<'calibration'> = expert;
+    expect([plain, other]).to.have.length(2);
+  });
+
+  it('says why a name resolves to nothing of its target, one problem for references and keyed names (#354)', () => {
+    const scope = {
+      kindOf: (id: string) => ({ G1: 'goal', T1: 'task' })[id],
+      entriesOf: (resource: string) =>
+        resource === 'expert'
+          ? [{ id: targetId({ resource: 'expert' }, 'e1'), name: 'Expert 1' }]
+          : undefined,
+    };
+    const resources = { expert: { label: 'Experts' } };
+    expect(danglingName({ kinds: ['goal'] }, 'G1', scope)).to.equal(null);
+    expect(danglingName({ kinds: ['goal'] }, 'G9', scope)).to.equal(
+      'G9 is not an element of this model',
     );
-    expect(propertyOf(dialect, 'quality', 'Weight[e1]')).to.equal(undefined);
-    expect(keyedKeyOf('Probability[e1]')).to.deep.equal({
-      key: 'Probability',
-      name: 'e1',
-    });
-    expect(keyedKeyOf('Probability')).to.equal(null);
-    expect(keyedKey('Probability', 'e2')).to.equal('Probability[e2]');
+    expect(danglingName({ kinds: ['goal'] }, 'T1', scope)).to.equal(
+      'T1 is a task, not a goal',
+    );
+    expect(danglingName({ resource: 'expert' }, 'e1', scope)).to.equal(null);
+    expect(
+      danglingName({ resource: 'expert' }, 'e9', scope, resources),
+    ).to.equal("e9 is not one of the project's experts");
+    // a resource not read: nothing can be told
+    expect(danglingName({ resource: 'judge' }, 'e9', scope)).to.equal(null);
+    expect(danglingName({ written: true }, 'anything', scope)).to.equal(null);
   });
 
   it('declares properties on links by link kind, iStar’s or an extension’s (#107)', () => {
@@ -644,7 +814,7 @@ describe('defineDialect: a framework dialect’s extension, link and leg propert
       'kaos.BehavioralGoal': [
         {
           key: 'Anchor',
-          value: { type: 'reference', kinds: ['vote.Ballot'] },
+          value: { type: 'reference', target: { kinds: ['vote.Ballot'] } },
           help: 'its ballot',
         },
       ],
@@ -774,7 +944,7 @@ describe('defineDialect: a framework dialect’s extension, link and leg propert
           'kaos.BehavioralGoal': [
             {
               key: 'Anchor',
-              value: { type: 'reference', kinds: ['vote.Urn'] },
+              value: { type: 'reference', target: { kinds: ['vote.Urn'] } },
               help: '',
             },
           ],

@@ -298,7 +298,7 @@ const RESOLUTION_FIELDS = schemaProperties(
     ),
     Anchor: property.reference(
       'Anchor',
-      ['kaos.BehavioralGoal', 'kaos.Softgoal'],
+      { kinds: ['kaos.BehavioralGoal', 'kaos.Softgoal'] },
       {
         help: 'the goal the resolution restores or weakens, by its id (a mitigation’s anchor)',
       },

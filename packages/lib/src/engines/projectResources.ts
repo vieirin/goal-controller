@@ -6,7 +6,9 @@
  * the text, by position.
  */
 import type {
+  EntryResourceKindOf,
   ProjectResourceKindOf,
+  ResourceEntry,
   ResourceSymbol,
   ResourceSymbols,
 } from '@goal-controller/dialect';
@@ -29,6 +31,11 @@ export type ParsedResource<T = unknown> = {
   symbols: ResourceSymbols;
   /** the engine's own reading: JSON data (it crosses to the language server) */
   data: T;
+  /**
+   * its entries, a kind that declares them (`entries`, goal-controller#354):
+   * what a `{ resource }` target names
+   */
+  entries?: readonly ResourceEntry[];
   diagnostics: ResourceDiagnostic[];
 };
 
@@ -36,12 +43,20 @@ export type ProjectResourceParser<T = unknown> = (
   files: readonly ResourceFile[],
 ) => ParsedResource<T>;
 
+/** The parser of a kind that declares entries: they are listed, each id branded by the kind `R`. */
+export type EntryResourceParser<R extends string, T = unknown> = (
+  files: readonly ResourceFile[],
+) => ParsedResource<T> & { entries: readonly ResourceEntry<R>[] };
+
 /**
  * An engine's parsers, one per project-resource kind its definition
- * declares: a kind without one doesn't compile.
+ * declares: a kind without one doesn't compile, nor one that declares
+ * entries and doesn't list them.
  */
 export type ProjectResourceParsers<D> = {
-  readonly [K in ProjectResourceKindOf<D>]: ProjectResourceParser;
+  readonly [K in ProjectResourceKindOf<D>]: K extends EntryResourceKindOf<D>
+    ? EntryResourceParser<K>
+    : ProjectResourceParser;
 };
 
 /** Typed against the engine's definition: `projectResourceParsers(mutrose)({ world, … })`. */

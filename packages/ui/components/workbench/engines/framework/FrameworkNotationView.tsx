@@ -34,7 +34,7 @@ export default function FrameworkNotationView({
   definition?: AnyDialect;
 }) {
   const wb = useWorkbench();
-  const { text } = wb;
+  const { text, projectResources } = wb;
   // with the vocabulary profile the model records (a CAIRIS model's, #192)
   const definition = useProfiledDefinition(given, text);
   // the last view read stays while the model is being fixed
@@ -48,9 +48,15 @@ export default function FrameworkNotationView({
     return last.current;
   }, [text, definition]);
   const support = useContext(LanguageSupportContext)(mode, definition);
+  // with the project's resources: the entries a keyed key names
+  // (`Probability[e1]`, goal-controller#354), checked and completed
   useEffect(() => {
-    if (tree) support.setContext(contextFromView(definition, tree, []));
-  }, [tree, support, definition]);
+    if (tree)
+      support.setContext({
+        ...contextFromView(definition, tree, []),
+        ...(projectResources && { projectResources }),
+      });
+  }, [tree, support, definition, projectResources]);
   // DSM3's own files name no element with an id: one click gives them theirs
   const withIds = useMemo(
     () => withFrameworkIds(text, definition),

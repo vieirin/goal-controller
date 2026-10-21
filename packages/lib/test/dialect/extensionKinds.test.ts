@@ -14,10 +14,10 @@ import {
   inputOf,
   specsFromDefinition,
   valueOf,
-  propertyOf,
 } from '@goal-controller/dialect';
 import {
   checkContextOf,
+  propertyOf,
   contextFromView,
   notationDocument,
   valueProblem,

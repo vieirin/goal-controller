@@ -16,7 +16,7 @@ const dialect = {
   properties: {
     goal: [],
     task: [
-      property.reference('anchor', ['goal'], { help: '' }),
+      property.reference('anchor', { kinds: ['goal'] }, { help: '' }),
       property.refList('after', ['goal', 'task'], { help: '' }),
     ],
     resource: [],

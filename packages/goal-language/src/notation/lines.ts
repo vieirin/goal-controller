@@ -24,6 +24,7 @@ import {
   goalServices,
   parseElementLine,
   parseValue,
+  propertyKeyText,
   syntaxErrorsOf,
   toRtTree,
   withoutBracketSpaces,
@@ -82,8 +83,11 @@ export type ElementReading = {
 
 export type PropertyReading = {
   kind: 'property';
+  /** as stored: a property's own (`Probability`), or a keyed key (`Probability[e1]`) */
   key: string;
   keySpan: Span;
+  /** a keyed key's parts (goal-controller#354): the property's key, and the name in its brackets */
+  keyed?: { key: string; name: string; nameSpan: Span };
   value: string;
   valueSpan: Span;
   errors: GoalSyntaxError[];
@@ -441,10 +445,15 @@ export const readLine = (
       from: keySpan.to,
       to: keySpan.to,
     };
+    const nameSpan = line.key && propertySpan(line.key, 'name');
     return {
       kind: 'property',
-      key: line.key,
+      key: propertyKeyText(line.key),
       keySpan,
+      ...(line.key?.name !== undefined &&
+        nameSpan && {
+          keyed: { key: line.key.key, name: line.key.name, nameSpan },
+        }),
       value: line.value ?? '',
       valueSpan,
       errors,

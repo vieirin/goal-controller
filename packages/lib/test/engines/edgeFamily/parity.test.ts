@@ -9,9 +9,10 @@ import * as assert from 'assert';
 import { readFileSync } from 'fs';
 import { describe, it } from 'mocha';
 import { join } from 'path';
-import { propertyOf, valueOf } from '@goal-controller/dialect';
+import { valueOf } from '@goal-controller/dialect';
 import {
   assertionVariables,
+  propertyOf,
   goalNameParserFor,
   valueProblem,
 } from '@goal-controller/goal-language';

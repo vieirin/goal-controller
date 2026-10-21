@@ -12,13 +12,19 @@ import {
   linkPropertiesOf,
   probabilityOf,
   distributionOf,
-  keyedKeyOf,
+  targetId,
+  type AnyDialect,
   type Distribution,
   valueOf,
   type ConditionalValue,
+  type DefinitionContext,
   type PropertyDefinition,
+  type Target,
+  type TargetId,
+  type TargetScope,
   type ValueConfig,
 } from '@goal-controller/dialect';
+import { keyedKeyOf } from '../parse.js';
 import {
   asPairList,
   type Assertion,
@@ -26,6 +32,46 @@ import {
   type PairList,
 } from '../members.js';
 import { parseValue, type ValueData } from '../parse.js';
+
+/**
+ * The property a kind's key is: its own, or (`Probability[e1]`, read by
+ * the grammar's PropertyKey) the keyed property it is one name's value of.
+ */
+export const propertyOf = (
+  definition: Pick<AnyDialect, 'properties'>,
+  kind: string,
+  key: string,
+): PropertyDefinition | undefined =>
+  propertyIn(definition.properties[kind] ?? [], key);
+
+/** The property of a list (an element kind's, a link kind's, the actors') a key is: its own, or a keyed one's. */
+export const propertyIn = <P extends Pick<PropertyDefinition, 'key' | 'keyed'>>(
+  list: readonly P[],
+  key: string,
+): P | undefined => {
+  const own = list.find((p) => p.key === key);
+  if (own) return own;
+  const keyed = keyedKeyOf(key);
+  return keyed
+    ? list.find((p) => p.key === keyed.key && p.keyed !== undefined)
+    : undefined;
+};
+
+/**
+ * Where a target's names resolve in a context (goal-controller#354): its
+ * elements, by key, by piStar id (an imported model's references) or by the
+ * id a name starts with; its project resources' entries.
+ */
+export const targetScopeOf = (context: DefinitionContext): TargetScope => ({
+  kindOf: (id) => {
+    const key = context.iStarIds?.[id] ?? id;
+    return (
+      context.elements[key]?.kind ??
+      context.elements[context.named?.[key] ?? '']?.kind
+    );
+  },
+  entriesOf: (resource) => context.projectResources?.[resource]?.entries,
+});
 
 /**
  * What a value config reads into: `ValueData` for its type, an enum narrowed
@@ -44,15 +90,17 @@ export type ValueDataOf<C> = C extends { type: 'enum'; open: true }
       ? Assertion[]
       : C extends { type: 'pairList'; value: infer V }
         ? PairList<V extends 'text' ? string : number>
-        : C extends { type: 'reference' | 'formula' }
-          ? string | null
-          : C extends { type: 'probability' }
-            ? number | null
-            : C extends { type: 'distribution' }
-              ? Distribution | null
-              : C extends { type: infer T extends keyof ValueData }
-                ? ValueData[T]
-                : never;
+        : C extends { type: 'reference'; target: infer T }
+          ? TargetId<T> | null
+          : C extends { type: 'formula' }
+            ? string | null
+            : C extends { type: 'probability' }
+              ? number | null
+              : C extends { type: 'distribution' }
+                ? Distribution | null
+                : C extends { type: infer T extends keyof ValueData }
+                  ? ValueData[T]
+                  : never;
 
 /** What a property reads into: a conditional one's, either of its configs'. */
 export type PropertyDataOf<V> = V extends ConditionalValue
@@ -72,6 +120,25 @@ export type PropertyValues<L extends PropertyList> = {
     Extract<L[number], { key: K }>['value']
   >;
 };
+
+/**
+ * A record's keyed values (goal-controller#354), by its keyed properties'
+ * keys: each name's value, by the name (branded by what it names), in the
+ * order written. A name written with a parse error: absent.
+ */
+export type KeyedValues<L extends PropertyList> = {
+  [K in KeyedPropertyKey<L[number]>]?: ReadonlyMap<
+    TargetId<Extract<L[number], { key: K }>['keyed'], K>,
+    PropertyDataOf<Extract<L[number], { key: K }>['value']>
+  >;
+};
+
+/** The key of a keyed property (one whose `keyed` is a target, maybe optionally). */
+type KeyedPropertyKey<P> = P extends { key: infer K; keyed?: infer T }
+  ? Exclude<T, undefined> extends Target
+    ? K
+    : never
+  : never;
 
 /** A record's values as written, by its properties' keys. */
 export type PropertyTexts<L extends PropertyList> = {
@@ -133,6 +200,7 @@ export type PropertyDialect = {
 export type PropertyRecord<L extends PropertyList> = {
   values: PropertyValues<L>;
   text: PropertyTexts<L>;
+  keyed: KeyedValues<L>;
 };
 
 /** One value's data, or undefined when its text doesn't read as its config. */
@@ -151,13 +219,15 @@ const readValue = (
   switch (config.type) {
     case 'reference': {
       const id = text.trim();
-      if (!id || !context) return id || null;
+      if (!id) return null;
+      if (!context || !('kinds' in config.target))
+        return targetId(config.target, id);
       // an id of no element, or of a kind it doesn't name, isn't its type,
       // as valueProblem reports
       const kind = context.kindOf(id);
       return kind !== undefined &&
-        (config.kinds as readonly string[]).includes(kind)
-        ? id
+        (config.target.kinds as readonly string[]).includes(kind)
+        ? targetId(config.target, id)
         : undefined;
     }
     case 'formula':
@@ -267,24 +337,36 @@ export const readProperties = <
         : linkPropertiesOf({ links: definition.links as never }, owner.link);
   const values: Record<string, unknown> = {};
   const text: Record<string, string> = {};
+  const keyed: Record<string, ReadonlyMap<TargetId<Target>, unknown>> = {};
   for (const property of list) {
     // a keyed property's names' values too (`Probability[e1]`,
     // goal-controller#190), each by its key on disk
-    const keys = [
-      property.key,
-      ...(property.keyed === undefined
+    const names = new Map<string, string>(
+      property.keyed === undefined
         ? []
-        : Object.keys(stored).filter(
-            (key) => keyedKeyOf(key)?.key === property.key,
-          )),
-    ];
-    for (const key of keys) {
+        : Object.keys(stored).flatMap((key) => {
+            const read = keyedKeyOf(key);
+            return read?.key === property.key ? [[key, read.name]] : [];
+          }),
+    );
+    const byName = new Map<TargetId<Target>, unknown>();
+    if (property.keyed) keyed[property.key] = byName;
+    for (const key of [property.key, ...names.keys()]) {
       const written = stored[key];
       if (written === undefined || key in text) continue;
       text[key] = written;
       const value = readValue(valueOf(property, stored), written, context);
-      if (value !== undefined) values[key] = value;
+      if (value === undefined) continue;
+      values[key] = value;
+      const name = names.get(key);
+      if (property.keyed && name !== undefined)
+        byName.set(targetId(property.keyed, name), value);
     }
   }
-  return { values, text } as PropertyRecord<OwnerPropertiesOf<D, O>>;
+  type L = OwnerPropertiesOf<D, O>;
+  return {
+    values: values as PropertyValues<L>,
+    text: text as PropertyTexts<L>,
+    keyed: keyed as Readonly<Record<string, unknown>> as KeyedValues<L>,
+  };
 };

@@ -10,7 +10,6 @@ import {
   extensionKindsRead,
   isExtensionIdPrefix,
   propertyKeys,
-  propertyOf,
   specsFromDefinition,
   type AnyDialect,
   type CheckNameOf,
@@ -97,7 +96,6 @@ describe('properties on an extension’s kinds (#132)', () => {
 
   it('gives a kind without an entry none', () => {
     expect(sensed.properties).to.not.have.property('sensing.Display');
-    expect(propertyOf(sensed, 'sensing.Display', 'rate')).to.equal(undefined);
     const specs = specsFromDefinition(sensed, {
       'toy.goal.deadline': 'deadline',
       'toy.resource.bounds': 'bounds',

@@ -339,9 +339,15 @@ more (`{ ...nfr, id: 'nfrprop', properties: { …, initialLabel } }`).
 - the value types `reference`, `formula`, `probability` and
   `distribution` type a framework's keys (an anchor goal, a formal spec, an
   engine's quantities, an uncertain estimate);
-- a property may be `keyed` by a project resource's names (kaosexpert's
-  `Probability[e1]`, one per expert, goal-controller#190): the resource
-  kind is one the dialect declares;
+- a property may be `keyed` by the names of a target (goal-controller#190,
+  #354): a project resource's entries (`{ resource: 'expert' }`,
+  kaosexpert's `Probability[e1]`, one per expert; the resource declares
+  `entries: true` and its parser lists them as `{ id, name }`), elements of
+  some kinds (`{ kinds: [...] }`), or any name the model writes
+  (`{ written: true }`, kaossim's `QualityVariable[ResponseTime]`). A
+  `reference` value names one name of a target too (`{ kinds }` or
+  `{ resource }`). A kind or a resource the dialect doesn't have doesn't
+  compile; a name that resolves to nothing is a Problem (`danglingName`);
 - there is no `actors` or `notation`.
 
 ## 3. Step 2: write the engine library (`packages/lib`)

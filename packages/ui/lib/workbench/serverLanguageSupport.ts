@@ -6,11 +6,11 @@
  */
 import type { LSPClient } from '@codemirror/lsp-client';
 import {
-  propertyOf,
   valueOf,
   type AnyDialect,
   type DefinitionContext,
 } from '@goal-controller/dialect';
+import { propertyOf } from '@goal-controller/goal-language';
 import { documentLanguage, valueLanguage } from './definitionLanguage';
 import { goalFieldUri, sendGoalContext } from './goalLsp';
 import type { LanguageSupport, SavedLines } from './languageSupport';
