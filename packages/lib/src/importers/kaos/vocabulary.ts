@@ -13,7 +13,9 @@ export const KAOS_DECLARATIONS = {
   softgoal: 'kaos.Softgoal',
   obstacle: 'kaos.Obstacle',
   domainproperty: 'kaos.DomainProperty',
+  domprop: 'kaos.DomainProperty', // KAOSTools short name (#344)
   domainhypothesis: 'kaos.DomainProperty',
+  domhyp: 'kaos.DomainProperty', // KAOSTools short name (#344)
   agent: 'kaos.Agent',
 } as const;
 

@@ -4,7 +4,7 @@
  * the layering of #181 puts it:
  *
  * - structure (istar-ts): a declaration's kind (`goal`, `softgoal`,
- *   `obstacle`, `domainproperty`/`domainhypothesis` with its `Kind`,
+ *   `obstacle`, `domainproperty`/`domprop`/`domainhypothesis`/`domhyp` with its `Kind`,
  *   `agent` by its `type`), `name` its text, `definition` its
  *   `Description`, `formalspec` its `FormalSpec`, `refinedby` a refinement
  *   (a goal's or an obstacle's, one hub each), `obstructedby` an
@@ -191,7 +191,12 @@ export const identifierOf = (text: string, fallback: string) => {
 const isGoal = (word: KaosDeclarationKind) =>
   word === 'goal' || word === 'softgoal';
 const isDomain = (word: KaosDeclarationKind) =>
-  word === 'domainproperty' || word === 'domainhypothesis';
+  word === 'domainproperty' ||
+  word === 'domprop' ||
+  word === 'domainhypothesis' ||
+  word === 'domhyp';
+const isHypothesis = (word: KaosDeclarationKind) =>
+  word === 'domainhypothesis' || word === 'domhyp';
 
 /** What each kind's properties are, in the `kaos` dialect's order, `''` unset (as DSM3 creates them). */
 const defaultsOf = (type: string): [string, string][] => {
@@ -1157,7 +1162,7 @@ export const readKaos = (
     if (isDomain(element.word))
       props.set(
         'Kind',
-        element.word === 'domainhypothesis' ? 'hypothesis' : 'invariant',
+        isHypothesis(element.word) ? 'hypothesis' : 'invariant',
       );
     for (const [key, value] of element.props) props.set(key, value);
     return {

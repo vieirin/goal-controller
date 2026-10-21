@@ -259,6 +259,32 @@ declare agent [ m ] type malicious end`);
     );
   });
 
+  // goal-controller#344: KAOSTools' short declaration names
+  it('reads `domhyp` / `domprop` as domain hypothesis / property; leaves `object` / `relation` kept as written', () => {
+    const { model, diagnostics } =
+      readText(`declare domhyp [ h ] name "No Detection When Broken" end
+declare domprop [ d ] end
+declare object [ o ] end
+declare relation [ r ] end`);
+    assert.ok(model, JSON.stringify(diagnostics));
+    assert.strictEqual(nodeOf(model, 'h').type, 'kaos.DomainProperty');
+    assert.strictEqual(nodeOf(model, 'h').text, 'No Detection When Broken');
+    assert.strictEqual(nodeOf(model, 'h').customProperties.Kind, 'hypothesis');
+    assert.strictEqual(nodeOf(model, 'd').type, 'kaos.DomainProperty');
+    assert.strictEqual(nodeOf(model, 'd').customProperties.Kind, 'invariant');
+    const kept: string = model.diagram.customProperties[KAOS_UNSUPPORTED_KEY];
+    assert.deepStrictEqual(
+      kept.split('\n\n').map((entry) => entry.split('\n')[0]),
+      ['declare object [ o ] end', 'declare relation [ r ] end'],
+    );
+    assert.ok(
+      diagnostics.every(
+        (d) => !d.message.includes('domhyp') && !d.message.includes('domprop'),
+      ),
+      JSON.stringify(diagnostics),
+    );
+  });
+
   it('`refinedby [milestone|case]` is a hub with the canonical Tactic; a refinee’s [p] its leg’s Probability, as written', () => {
     const [milestone] = hubsOf(
       las,
