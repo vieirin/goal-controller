@@ -1,4 +1,4 @@
-# KAOS stress test (goal-controller#190)
+# KAOS stress test (goal-controller#190, #192)
 
 Checks every KAOS seed (`examples/kaos/<seed>/`, a project whose native file
 is a `.kaos`) through lib's built `out/` only, and compares each seed's
@@ -67,6 +67,34 @@ node scripts/kaos-stress/run.cjs --strict   # fail on any seed's failure
   The option `estimates=ambulance` puts each leaf obstacle at its experts'
   combined mean (kaosexpert over the ambulance seed's five experts): the
   field run, about 20 s (4096 selections).
+
+- **CAIRIS** (goal-controller#192): the `cairis-*` seeds have no native
+  file. Each is one environment of a CAIRIS exemplar (lib's fixtures,
+  `packages/lib/test/importers/fixtures/cairis`, Apache 2.0), as
+  `cairis-seeds.cjs` lists them and writes them. For these seeds:
+  - **import** reads the exemplar, and the seed's model is that
+    environment's, byte for byte;
+  - **roundtrip** is the model's JSON written back by istar-ts (D4: no
+    CAIRIS writer);
+  - **analyses** are kaosprop's;
+  - **oracle** reads a seed's `*.expected.csv`, as
+    `id,element,cairis,kaosprop,rule,derivation`. Each obstacle's CAIRIS
+    value must match `cairis-oracle.csv` (CAIRIS in Docker, by
+    `cairis-oracle.sh`) and lib's restatement of CAIRIS's rule
+    (`cairisObstacleProbabilities`), both within 1e-6. Its kaosprop value
+    must match within 5e-7. `rule` is `agree` exactly where the two values
+    are equal; otherwise it says why they differ (`and-from-0`, `or-sum`).
+
+  Only ACME Water/Day has probabilities in the source. The other seeds say
+  "no probabilities in the source: not an oracle" (a skip). The synthetic
+  cross-check (`synthetic.xml`, `synthetic.expected.csv`, in the fixtures)
+  runs beside them as `CAIRIS synthetic`. To make CAIRIS's numbers again
+  (Docker only):
+
+  ```sh
+  F=packages/lib/test/importers/fixtures/cairis
+  scripts/kaos-stress/cairis-oracle.sh $F/synthetic.xml $F/ACME_Water.xml > $F/cairis-oracle.csv
+  ```
 
 Results go to `.cache/kaos/results/`: `SUMMARY.md` (one row per seed, then
 every oracle row) and one JSON per seed.
