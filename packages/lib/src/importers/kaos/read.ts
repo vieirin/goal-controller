@@ -26,6 +26,14 @@
  *   `experts.json` and `calibrations.json` (engines/kaosexpert/resources).
  *   A file with any of these opens in kaosexpert's mode, any other in
  *   kaosprop's.
+ * - kaosres's (goal-controller#191): a goal's annotation for an obstacle
+ *   (`except [o] g` on the anchor, `provided [o] f`, `providednot [o] f`,
+ *   `relaxedTo [o] f`, `replaces [o] g` on the countermeasure goal) the
+ *   `Form`, `Condition`, `Replaces` and `Anchor` of the resolution it is
+ *   about, and `cost [o] n` (`cost n`: every obstacle the goal resolves) its
+ *   `Cost`; an annotation no `resolvedby` declares the resolution of makes
+ *   it. `cost [x] n` for an x that is no obstacle (KAOSTools' cost variable,
+ *   before 2017-03) is kept as written.
  *
  * Nothing is dropped: what has no place (a per-expert or distribution
  * `esr` on a goal, an `entity`, a custom `$attribute`, an import not
@@ -65,6 +73,7 @@ import {
   type KaosRange,
   type KaosValue as Value,
 } from '@goal-controller/goal-language/formats';
+import type { CountermeasureForm } from '../../engines/kaosres/definition';
 import {
   CUSTOM_KEYS,
   KAOS_DECLARATIONS,
@@ -113,9 +122,57 @@ type Element = {
   obstructions: { ref: Ref; probability?: string }[];
   resolutions: { ref: Ref; type: string; anchor: string }[];
   assignments: Ref[];
+  /** a goal's annotations for an obstacle (goal-controller#191): a resolution's Form, payload or Cost */
+  annotations: Annotation[];
   /** its attributes kept as written */
   raw: string[];
   declared: boolean;
+};
+
+/**
+ * A goal's annotation for an obstacle, as KAOSTools writes it since 2017-09
+ * (`except [o] g`, `provided [o] f`, `providednot [o] f`, `relaxedTo [o] f`,
+ * `replaces [o] g`), and its cost (`cost [o] n`, or `cost n` for every
+ * obstacle it resolves): what kaosres puts on the resolution link it is
+ * about (goal-controller#191, D1). `goal` is `except`'s countermeasure and
+ * `replaces`'s replaced goal.
+ */
+type Annotation = {
+  word:
+    | 'except'
+    | 'provided'
+    | 'providednot'
+    | 'relaxedto'
+    | 'replaces'
+    | 'cost';
+  obstacle: Ref | null;
+  goal?: Ref;
+  text?: string;
+  attribute: Attribute;
+  file: string | null;
+};
+
+/** An annotation's word and the resolution `Form` it is. */
+const FORMS = {
+  except: 'except',
+  provided: 'provided',
+  providednot: 'providedNot',
+  relaxedto: 'relaxedTo',
+  replaces: 'replaces',
+} as const satisfies Record<
+  Exclude<Annotation['word'], 'cost'>,
+  CountermeasureForm
+>;
+
+/**
+ * A resolution's kaosres keys as read (goal-controller#191), each as
+ * written; `Replaces` an element's key while reading.
+ */
+type CountermeasureTexts = {
+  Cost?: string;
+  Form?: CountermeasureForm;
+  Condition?: string;
+  Replaces?: string;
 };
 
 /** A string atom's text as written (`"…"`, `@"…"`) as its content: `""` is a quote. */
@@ -325,6 +382,7 @@ export const readKaos = (
         obstructions: [],
         resolutions: [],
         assignments: [],
+        annotations: [],
         raw: [],
         declared: false,
       };
@@ -405,6 +463,22 @@ export const readKaos = (
         break;
       case 'resolvedby':
         if (word === 'obstacle' && resolution(element, attribute)) return;
+        break;
+      // kaosres's (goal-controller#191): a goal's annotation for an
+      // obstacle, put on that resolution once every link is read
+      case 'except':
+      case 'provided':
+      case 'providednot':
+      case 'relaxedto':
+      case 'replaces':
+      case 'cost':
+        if (isGoal(word)) {
+          const annotation = annotationOf(name, attribute, where);
+          if (annotation) {
+            element.annotations.push(annotation);
+            return;
+          }
+        }
         break;
       case 'assignedto':
         if (isGoal(word)) {
@@ -725,6 +799,47 @@ export const readKaos = (
     return true;
   };
 
+  /**
+   * `except [o] g`, `replaces [o] g` (an identifier or a quoted name),
+   * `provided [o] f`, `providednot [o] f`, `relaxedTo [o] f` (a formula),
+   * `cost [o] n` and `cost n`, as KAOSTools' attribute parsers read them
+   * (one obstacle in brackets, one value); null in any other form.
+   */
+  const annotationOf = (
+    word: Annotation['word'],
+    attribute: Attribute,
+    where: Where,
+  ): Annotation | null => {
+    if (attribute.values.length !== 1 || attribute.params.length > 1)
+      return null;
+    const [param] = attribute.params;
+    const value = attribute.values[0]!;
+    const obstacle =
+      param && !param.op && !param.bracket.length ? refOf(param.atom) : null;
+    if (param && !obstacle) return null;
+    const base = { word, obstacle, attribute, file: where.file };
+    if (word === 'cost')
+      return value.atom.$type === 'NumberAtom' &&
+        !value.op &&
+        !value.bracket.length
+        ? { ...base, text: value.atom.value }
+        : null;
+    if (!obstacle || value.op || value.bracket.length) return null;
+    if (word === 'except' || word === 'replaces') {
+      const goal = refOf(value.atom);
+      return goal ? { ...base, goal } : null;
+    }
+    return {
+      ...base,
+      text:
+        value.atom.$type === 'FormulaAtom'
+          ? formulaText(value.atom)
+          : value.atom.$type === 'StringAtom'
+            ? unquote(sourceOf(value.atom))
+            : oneLine(sourceOf(value)),
+    };
+  };
+
   /** `resolvedby [pattern:anchor] g`, `resolvedby(pattern[anchor]) g`, `resolvedby g`. */
   const resolution = (element: Element, attribute: Attribute): boolean => {
     let type = '';
@@ -836,6 +951,7 @@ export const readKaos = (
       obstructions: [],
       resolutions: [],
       assignments: [],
+      annotations: [],
       raw: [],
       declared: false,
     };
@@ -871,6 +987,8 @@ export const readKaos = (
       obstacle: Element;
       type: string;
       anchor: string;
+      /** kaosres's (goal-controller#191): from the goals' annotations */
+      countermeasure: CountermeasureTexts;
     }[];
     assignments: { agent: Element; goal: Element }[];
   } = { refinements: [], obstructions: [], resolutions: [], assignments: [] };
@@ -899,10 +1017,113 @@ export const readKaos = (
         obstacle: element,
         type,
         anchor,
+        countermeasure: {},
       });
     for (const ref of element.assignments)
       links.assignments.push({ agent: resolve(ref, 'agent'), goal: element });
   }
+
+  // kaosres's (goal-controller#191): each goal's annotations on the
+  // resolution they are about, made when no `resolvedby` declares it
+  const annotationRaw = (
+    element: Element,
+    annotation: Annotation,
+    why: string,
+  ) => {
+    if (!element.raw.length) raw.push(element);
+    element.raw.push(sourceOf(annotation.attribute));
+    say(
+      { file: annotation.file },
+      'warning',
+      `${annotation.attribute.name} of ${element.id ?? element.name}: kept as written, not read (${why})`,
+      at(annotation.attribute),
+    );
+  };
+  for (const element of [...elements.values()])
+    for (const annotation of element.annotations) {
+      const label = element.id ?? element.name ?? 'a goal';
+      // `cost [x] n` whose x is no obstacle: KAOSTools' cost variable
+      // (before 2017-03), one of several costs SEAMS'17 leaves out
+      const named = annotation.obstacle?.id ?? annotation.obstacle?.name;
+      const declared =
+        annotation.obstacle &&
+        (annotation.obstacle.id !== undefined
+          ? byId.get(annotation.obstacle.id)
+          : byName.get(annotation.obstacle.name!));
+      if (
+        annotation.word === 'cost' &&
+        annotation.obstacle &&
+        declared?.word !== 'obstacle'
+      ) {
+        annotationRaw(
+          element,
+          annotation,
+          `${named} is no obstacle: a cost variable has no place in the model`,
+        );
+        continue;
+      }
+      const goal =
+        annotation.word === 'except'
+          ? resolve(annotation.goal!, 'goal')
+          : element;
+      const obstacles = annotation.obstacle
+        ? [resolve(annotation.obstacle, 'obstacle')]
+        : links.resolutions
+            .filter((r) => r.goal === goal)
+            .map((r) => r.obstacle);
+      if (!obstacles.length) {
+        annotationRaw(element, annotation, `${label} resolves no obstacle`);
+        continue;
+      }
+      for (const obstacle of obstacles) {
+        let resolution = links.resolutions.find(
+          (r) => r.goal === goal && r.obstacle === obstacle,
+        );
+        if (!resolution) {
+          resolution = {
+            goal,
+            obstacle,
+            type: '',
+            anchor: '',
+            countermeasure: {},
+          };
+          links.resolutions.push(resolution);
+          say(
+            { file: annotation.file },
+            'info',
+            `${annotation.attribute.name} of ${label}: no resolvedby says ${goal.id ?? goal.name} resolves ${obstacle.id ?? obstacle.name}, so it does`,
+            at(annotation.attribute),
+          );
+        }
+        const cm = resolution.countermeasure;
+        if (annotation.word === 'cost') {
+          cm.Cost = annotation.text!;
+          continue;
+        }
+        const form = FORMS[annotation.word];
+        if (cm.Form !== undefined && cm.Form !== form) {
+          annotationRaw(
+            element,
+            annotation,
+            `that resolution's form is ${cm.Form} already`,
+          );
+          continue;
+        }
+        cm.Form = form;
+        if (annotation.word === 'except') {
+          if (resolution.anchor && resolution.anchor !== element.key)
+            say(
+              { file: annotation.file },
+              'warning',
+              `${annotation.attribute.name} of ${label}: its resolution was anchored on ${resolution.anchor}, now on ${label}`,
+              at(annotation.attribute),
+            );
+          resolution.anchor = `\u0000${element.key}`;
+        } else if (annotation.word === 'replaces')
+          cm.Replaces = `\u0000${resolve(annotation.goal!, 'goal').key}`;
+        else cm.Condition = annotation.text!;
+      }
+    }
 
   // identifiers for the anonymous: their name's, unique
   const taken = new Set(
@@ -1007,13 +1228,29 @@ export const readKaos = (
       target: target.id,
       ...(probability && { customProperties: { Probability: probability } }),
     });
-  for (const { goal, obstacle, type, anchor } of links.resolutions)
+  // an annotation's goals by their element (the anonymous have ids now)
+  const idOf = (key: string) =>
+    key.startsWith('\u0000') ? elements.get(key.slice(1))!.id! : key;
+  for (const {
+    goal,
+    obstacle,
+    type,
+    anchor,
+    countermeasure,
+  } of links.resolutions)
     pistarLinks.push({
       id: linkId(`${goal.id}-resolves-${obstacle.id}`),
       type: KAOS_TYPES.resolution,
       source: goal.id,
       target: obstacle.id,
-      customProperties: { ResolutionType: type, Anchor: anchor },
+      customProperties: {
+        ResolutionType: type,
+        Anchor: idOf(anchor),
+        ...countermeasure,
+        ...(countermeasure.Replaces !== undefined && {
+          Replaces: idOf(countermeasure.Replaces),
+        }),
+      },
     });
   for (const { agent, goal } of links.assignments)
     pistarLinks.push({

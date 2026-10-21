@@ -136,9 +136,10 @@ export const KAOS_VOCABULARIES = {
     'Threat',
   ],
   /**
-   * a resolution's strategy: van Lamsweerde and Letier, TSE'00, §5's
-   * resolution strategies; KAOSTools' `prevention` and `mitigation` are
-   * obstacle prevention and obstacle mitigation
+   * a resolution's strategy: van Lamsweerde and Letier, TSE'00, §6's
+   * resolution strategies, with §6.3.2's two forms of mitigation, weak and
+   * strong (goal-controller#191); KAOSTools' `prevention` and `mitigation`
+   * are obstacle prevention and obstacle mitigation
    */
   ResolutionType: [
     'goal substitution',
@@ -149,6 +150,8 @@ export const KAOS_VOCABULARIES = {
     'obstacle reduction',
     'goal restoration',
     'obstacle mitigation',
+    'weak mitigation',
+    'strong mitigation',
     'do-nothing',
     ['prevention', 'prevention (KAOSTools: obstacle prevention)'],
     ['mitigation', 'mitigation (KAOSTools: obstacle mitigation)'],

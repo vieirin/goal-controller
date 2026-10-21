@@ -58,8 +58,8 @@ export const KAOSTOOLS_TACTICS: Readonly<Record<string, string>> = {
 /**
  * KAOSTools' resolution patterns (`resolvedby [mitigation:g]`,
  * `ResolvedByAttributeBuilder.cs`, `KAOSFileExporter.cs`) and the
- * `ResolutionType` each is (TSE'00 §5's strategies). Its `strong_mitigation`
- * and `weak_mitigation` have none: they are kept as written.
+ * `ResolutionType` each is (TSE'00 §6's strategies; its §6.3.2's weak and
+ * strong mitigation since goal-controller#191).
  */
 export const KAOSTOOLS_RESOLUTIONS: Readonly<Record<string, string>> = {
   prevention: 'obstacle prevention',
@@ -68,6 +68,8 @@ export const KAOSTOOLS_RESOLUTIONS: Readonly<Record<string, string>> = {
   restoration: 'goal restoration',
   weakening: 'goal deidealization',
   obstacle_reduction: 'obstacle reduction',
+  weak_mitigation: 'weak mitigation',
+  strong_mitigation: 'strong mitigation',
 };
 
 /** A table's inverse: a value's KAOSTools name. */
