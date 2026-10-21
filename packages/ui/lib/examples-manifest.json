@@ -376,6 +376,27 @@
     "outputs": []
   },
   {
+    "path": "edgeV2/deltaIoT",
+    "group": "edgeV2",
+    "name": "deltaIoT",
+    "form": "file",
+    "dialect": "edgev2",
+    "root": "edgeV2/deltaIoT",
+    "files": [
+      "README.md",
+      "deltaIoT.txt",
+      "project.json",
+      "props/deltaIoT.props",
+      "variables.json"
+    ],
+    "models": ["deltaIoT.txt"],
+    "projectResources": {
+      "variables": "variables.json",
+      "properties": ["props/deltaIoT.props"]
+    },
+    "outputs": []
+  },
+  {
     "path": "edgeV2/experiments/10-minimalMaintainResource",
     "group": "edgeV2",
     "name": "experiments/10-minimalMaintainResource",
