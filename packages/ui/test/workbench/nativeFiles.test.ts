@@ -27,6 +27,7 @@ const workbench = () => ({
   openArchive: vi.fn(async () => {}),
   openNativeFile: vi.fn(async () => {}),
   openModelFile: vi.fn(async () => {}),
+  openCairisFile: vi.fn(async () => {}),
 });
 
 describe('opening a native file', () => {
@@ -40,6 +41,21 @@ describe('opening a native file', () => {
     expect(wb.openModelFile).toHaveBeenCalledWith('Home.txt', '{}');
     expect(wb.openFile).not.toHaveBeenCalled();
     expect(wb.openNativeFile).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens a CAIRIS model file by its content, whatever its name (#192)', async () => {
+    const wb = workbench();
+    const cairis =
+      '<?xml version="1.0"?>\n<!DOCTYPE cairis_model PUBLIC "-//CAIRIS//DTD MODEL 1.0//EN" "https://cairis.org/dtd/cairis_model.dtd">\n<cairis_model/>';
+    await openUpload(wb, new File([cairis], 'NeuroGrid.xml'));
+    expect(wb.openCairisFile).toHaveBeenCalledWith('NeuroGrid.xml', cairis);
+    await openUpload(
+      wb,
+      new File(['<cairis_model>\n</cairis_model>'], 'm.txt'),
+    );
+    expect(wb.openCairisFile).toHaveBeenCalledTimes(2);
+    expect(wb.openModelFile).not.toHaveBeenCalled();
+    expect(OPEN_ACCEPT.split(',')).toContain('.xml');
   });
 
   it('takes the registered dialects’ native extensions, each a dialect’s own', () => {

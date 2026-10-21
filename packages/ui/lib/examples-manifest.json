@@ -908,6 +908,119 @@
     "outputs": []
   },
   {
+    "path": "kaos/cairis-acme-water-day",
+    "group": "kaos",
+    "name": "cairis-acme-water-day",
+    "form": "file",
+    "dialect": "kaosprop",
+    "root": "kaos/cairis-acme-water-day",
+    "files": [
+      "README.md",
+      "cairis-acme-water-day.expected.csv",
+      "cairis-acme-water-day.txt",
+      "project.json"
+    ],
+    "models": ["cairis-acme-water-day.txt"],
+    "projectResources": {},
+    "outputs": []
+  },
+  {
+    "path": "kaos/cairis-acme-water-night",
+    "group": "kaos",
+    "name": "cairis-acme-water-night",
+    "form": "file",
+    "dialect": "kaosprop",
+    "root": "kaos/cairis-acme-water-night",
+    "files": ["README.md", "cairis-acme-water-night.txt", "project.json"],
+    "models": ["cairis-acme-water-night.txt"],
+    "projectResources": {},
+    "outputs": []
+  },
+  {
+    "path": "kaos/cairis-balkan-rail-balkan-rail-corprate-hq",
+    "group": "kaos",
+    "name": "cairis-balkan-rail-balkan-rail-corprate-hq",
+    "form": "file",
+    "dialect": "kaosprop",
+    "root": "kaos/cairis-balkan-rail-balkan-rail-corprate-hq",
+    "files": [
+      "README.md",
+      "cairis-balkan-rail-balkan-rail-corprate-hq.txt",
+      "project.json"
+    ],
+    "models": ["cairis-balkan-rail-balkan-rail-corprate-hq.txt"],
+    "projectResources": {},
+    "outputs": []
+  },
+  {
+    "path": "kaos/cairis-balkan-rail-central-station",
+    "group": "kaos",
+    "name": "cairis-balkan-rail-central-station",
+    "form": "file",
+    "dialect": "kaosprop",
+    "root": "kaos/cairis-balkan-rail-central-station",
+    "files": [
+      "README.md",
+      "cairis-balkan-rail-central-station.txt",
+      "project.json"
+    ],
+    "models": ["cairis-balkan-rail-central-station.txt"],
+    "projectResources": {},
+    "outputs": []
+  },
+  {
+    "path": "kaos/cairis-balkan-rail-model",
+    "group": "kaos",
+    "name": "cairis-balkan-rail-model",
+    "form": "file",
+    "dialect": "kaosprop",
+    "root": "kaos/cairis-balkan-rail-model",
+    "files": ["README.md", "cairis-balkan-rail-model.txt", "project.json"],
+    "models": ["cairis-balkan-rail-model.txt"],
+    "projectResources": {},
+    "outputs": []
+  },
+  {
+    "path": "kaos/cairis-neurogrid-core-technology",
+    "group": "kaos",
+    "name": "cairis-neurogrid-core-technology",
+    "form": "file",
+    "dialect": "kaosprop",
+    "root": "kaos/cairis-neurogrid-core-technology",
+    "files": [
+      "README.md",
+      "cairis-neurogrid-core-technology.txt",
+      "project.json"
+    ],
+    "models": ["cairis-neurogrid-core-technology.txt"],
+    "projectResources": {},
+    "outputs": []
+  },
+  {
+    "path": "kaos/cairis-neurogrid-psychosis",
+    "group": "kaos",
+    "name": "cairis-neurogrid-psychosis",
+    "form": "file",
+    "dialect": "kaosprop",
+    "root": "kaos/cairis-neurogrid-psychosis",
+    "files": ["README.md", "cairis-neurogrid-psychosis.txt", "project.json"],
+    "models": ["cairis-neurogrid-psychosis.txt"],
+    "projectResources": {},
+    "outputs": []
+  },
+  {
+    "path": "kaos/cairis-neurogrid-stroke",
+    "group": "kaos",
+    "name": "cairis-neurogrid-stroke",
+    "form": "file",
+    "dialect": "kaosprop",
+    "root": "kaos/cairis-neurogrid-stroke",
+    "files": ["README.md", "cairis-neurogrid-stroke.txt", "project.json"],
+    "models": ["cairis-neurogrid-stroke.txt"],
+    "projectResources": {},
+    "outputs": []
+  },
+  {
     "path": "kaos/carpooling",
     "group": "kaos",
     "name": "carpooling",

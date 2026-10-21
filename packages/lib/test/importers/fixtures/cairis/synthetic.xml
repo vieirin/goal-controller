@@ -1,0 +1,280 @@
+<?xml version="1.0"?>
+<!DOCTYPE cairis_model PUBLIC "-//CAIRIS//DTD MODEL 1.0//EN" "https://cairis.org/dtd/cairis_model.dtd">
+<!--
+  A synthetic CAIRIS model, hand-written for goal-controller#192 (not from
+  CAIRIS): small obstacle trees with probabilities, to compare CAIRIS's
+  obstacleProbability (cairis/sql/procs.sql) with kaosprop's RE'12 rules.
+  Each tree is one case; README.md beside it says what each shows.
+-->
+<cairis_model>
+<cairis>
+<project_settings name="Synthetic cross-check" >
+  <background>Synthetic</background>
+  <strategic_goals>None</strategic_goals>
+  <rich_picture image="" />
+  <scope>None</scope>
+</project_settings>
+<environment name="Synthetic" short_code="SYN" >
+  <definition>The one environment of the synthetic cross-check.</definition>
+  <asset_values>
+    <none>None</none>
+    <low>Low</low>
+    <medium>Medium</medium>
+    <high>High</high>
+  </asset_values>
+</environment>
+</cairis>
+<goals>
+<goal name="Synthetic goal" originator="goal-controller">
+  <goal_environment name="Synthetic" category="Achieve" priority="High" >
+    <definition>The goal the synthetic obstacles obstruct.</definition>
+    <fit_criterion>None</fit_criterion>
+    <issue>None</issue>
+  </goal_environment>
+</goal>
+<obstacle name="S1 Top" originator="goal-controller" >
+  <obstacle_environment name="Synthetic" category="Threat" >
+    <definition>S1 Top</definition>
+    <probability value="0" >
+      <rationale>synthetic</rationale>
+    </probability>
+  </obstacle_environment>
+</obstacle>
+<obstacle name="S1 A" originator="goal-controller" >
+  <obstacle_environment name="Synthetic" category="Threat" >
+    <definition>S1 A</definition>
+    <probability value="0.5" >
+      <rationale>synthetic</rationale>
+    </probability>
+  </obstacle_environment>
+</obstacle>
+<obstacle name="S1 B" originator="goal-controller" >
+  <obstacle_environment name="Synthetic" category="Threat" >
+    <definition>S1 B</definition>
+    <probability value="0.4" >
+      <rationale>synthetic</rationale>
+    </probability>
+  </obstacle_environment>
+</obstacle>
+<obstacle name="S1b Top" originator="goal-controller" >
+  <obstacle_environment name="Synthetic" category="Threat" >
+    <definition>S1b Top</definition>
+    <probability value="0.1" >
+      <rationale>synthetic</rationale>
+    </probability>
+  </obstacle_environment>
+</obstacle>
+<obstacle name="S1b A" originator="goal-controller" >
+  <obstacle_environment name="Synthetic" category="Threat" >
+    <definition>S1b A</definition>
+    <probability value="0.5" >
+      <rationale>synthetic</rationale>
+    </probability>
+  </obstacle_environment>
+</obstacle>
+<obstacle name="S1b B" originator="goal-controller" >
+  <obstacle_environment name="Synthetic" category="Threat" >
+    <definition>S1b B</definition>
+    <probability value="0.4" >
+      <rationale>synthetic</rationale>
+    </probability>
+  </obstacle_environment>
+</obstacle>
+<obstacle name="S2 Top" originator="goal-controller" >
+  <obstacle_environment name="Synthetic" category="Threat" >
+    <definition>S2 Top</definition>
+    <probability value="0" >
+      <rationale>synthetic</rationale>
+    </probability>
+  </obstacle_environment>
+</obstacle>
+<obstacle name="S2 A" originator="goal-controller" >
+  <obstacle_environment name="Synthetic" category="Threat" >
+    <definition>S2 A</definition>
+    <probability value="0.5" >
+      <rationale>synthetic</rationale>
+    </probability>
+  </obstacle_environment>
+</obstacle>
+<obstacle name="S2 B" originator="goal-controller" >
+  <obstacle_environment name="Synthetic" category="Threat" >
+    <definition>S2 B</definition>
+    <probability value="0.4" >
+      <rationale>synthetic</rationale>
+    </probability>
+  </obstacle_environment>
+</obstacle>
+<obstacle name="S3 Top" originator="goal-controller" >
+  <obstacle_environment name="Synthetic" category="Threat" >
+    <definition>S3 Top</definition>
+    <probability value="0" >
+      <rationale>synthetic</rationale>
+    </probability>
+  </obstacle_environment>
+</obstacle>
+<obstacle name="S3 A" originator="goal-controller" >
+  <obstacle_environment name="Synthetic" category="Threat" >
+    <definition>S3 A</definition>
+    <probability value="0.7" >
+      <rationale>synthetic</rationale>
+    </probability>
+  </obstacle_environment>
+</obstacle>
+<obstacle name="S3 B" originator="goal-controller" >
+  <obstacle_environment name="Synthetic" category="Threat" >
+    <definition>S3 B</definition>
+    <probability value="0.6" >
+      <rationale>synthetic</rationale>
+    </probability>
+  </obstacle_environment>
+</obstacle>
+<obstacle name="S4 Top" originator="goal-controller" >
+  <obstacle_environment name="Synthetic" category="Threat" >
+    <definition>S4 Top</definition>
+    <probability value="0" >
+      <rationale>synthetic</rationale>
+    </probability>
+  </obstacle_environment>
+</obstacle>
+<obstacle name="S4 A" originator="goal-controller" >
+  <obstacle_environment name="Synthetic" category="Threat" >
+    <definition>S4 A</definition>
+    <probability value="0.5" >
+      <rationale>synthetic</rationale>
+    </probability>
+  </obstacle_environment>
+</obstacle>
+<obstacle name="S4 B" originator="goal-controller" >
+  <obstacle_environment name="Synthetic" category="Threat" >
+    <definition>S4 B</definition>
+    <probability value="0.4" >
+      <rationale>synthetic</rationale>
+    </probability>
+  </obstacle_environment>
+</obstacle>
+<obstacle name="S4 C" originator="goal-controller" >
+  <obstacle_environment name="Synthetic" category="Threat" >
+    <definition>S4 C</definition>
+    <probability value="0.3" >
+      <rationale>synthetic</rationale>
+    </probability>
+  </obstacle_environment>
+</obstacle>
+<obstacle name="S5 Top" originator="goal-controller" >
+  <obstacle_environment name="Synthetic" category="Threat" >
+    <definition>S5 Top</definition>
+    <probability value="0" >
+      <rationale>synthetic</rationale>
+    </probability>
+  </obstacle_environment>
+</obstacle>
+<obstacle name="S5 M" originator="goal-controller" >
+  <obstacle_environment name="Synthetic" category="Threat" >
+    <definition>S5 M</definition>
+    <probability value="0" >
+      <rationale>synthetic</rationale>
+    </probability>
+  </obstacle_environment>
+</obstacle>
+<obstacle name="S5 A" originator="goal-controller" >
+  <obstacle_environment name="Synthetic" category="Threat" >
+    <definition>S5 A</definition>
+    <probability value="0.1" >
+      <rationale>synthetic</rationale>
+    </probability>
+  </obstacle_environment>
+</obstacle>
+<obstacle name="S5 B" originator="goal-controller" >
+  <obstacle_environment name="Synthetic" category="Threat" >
+    <definition>S5 B</definition>
+    <probability value="0.3" >
+      <rationale>synthetic</rationale>
+    </probability>
+  </obstacle_environment>
+</obstacle>
+<obstacle name="S5 C" originator="goal-controller" >
+  <obstacle_environment name="Synthetic" category="Threat" >
+    <definition>S5 C</definition>
+    <probability value="0.2" >
+      <rationale>synthetic</rationale>
+    </probability>
+  </obstacle_environment>
+</obstacle>
+<obstacle name="S6 Leaf" originator="goal-controller" >
+  <obstacle_environment name="Synthetic" category="Threat" >
+    <definition>S6 Leaf</definition>
+    <probability value="0.25" >
+      <rationale>synthetic</rationale>
+    </probability>
+  </obstacle_environment>
+</obstacle>
+</goals>
+<associations>
+<goal_association environment="Synthetic" goal_name="Synthetic goal" goal_dim="goal" ref_type="obstruct" subgoal_name="S1 Top" subgoal_dim="obstacle" alternative_id="0" >
+  <rationale></rationale>
+</goal_association>
+<goal_association environment="Synthetic" goal_name="Synthetic goal" goal_dim="goal" ref_type="obstruct" subgoal_name="S1b Top" subgoal_dim="obstacle" alternative_id="0" >
+  <rationale></rationale>
+</goal_association>
+<goal_association environment="Synthetic" goal_name="Synthetic goal" goal_dim="goal" ref_type="obstruct" subgoal_name="S2 Top" subgoal_dim="obstacle" alternative_id="0" >
+  <rationale></rationale>
+</goal_association>
+<goal_association environment="Synthetic" goal_name="Synthetic goal" goal_dim="goal" ref_type="obstruct" subgoal_name="S3 Top" subgoal_dim="obstacle" alternative_id="0" >
+  <rationale></rationale>
+</goal_association>
+<goal_association environment="Synthetic" goal_name="Synthetic goal" goal_dim="goal" ref_type="obstruct" subgoal_name="S4 Top" subgoal_dim="obstacle" alternative_id="0" >
+  <rationale></rationale>
+</goal_association>
+<goal_association environment="Synthetic" goal_name="Synthetic goal" goal_dim="goal" ref_type="obstruct" subgoal_name="S5 Top" subgoal_dim="obstacle" alternative_id="0" >
+  <rationale></rationale>
+</goal_association>
+<goal_association environment="Synthetic" goal_name="Synthetic goal" goal_dim="goal" ref_type="obstruct" subgoal_name="S6 Leaf" subgoal_dim="obstacle" alternative_id="0" >
+  <rationale></rationale>
+</goal_association>
+<goal_association environment="Synthetic" goal_name="S1 Top" goal_dim="obstacle" ref_type="and" subgoal_name="S1 A" subgoal_dim="obstacle" alternative_id="0" >
+  <rationale></rationale>
+</goal_association>
+<goal_association environment="Synthetic" goal_name="S1 Top" goal_dim="obstacle" ref_type="and" subgoal_name="S1 B" subgoal_dim="obstacle" alternative_id="0" >
+  <rationale></rationale>
+</goal_association>
+<goal_association environment="Synthetic" goal_name="S1b Top" goal_dim="obstacle" ref_type="and" subgoal_name="S1b A" subgoal_dim="obstacle" alternative_id="0" >
+  <rationale></rationale>
+</goal_association>
+<goal_association environment="Synthetic" goal_name="S1b Top" goal_dim="obstacle" ref_type="and" subgoal_name="S1b B" subgoal_dim="obstacle" alternative_id="0" >
+  <rationale></rationale>
+</goal_association>
+<goal_association environment="Synthetic" goal_name="S2 Top" goal_dim="obstacle" ref_type="or" subgoal_name="S2 A" subgoal_dim="obstacle" alternative_id="0" >
+  <rationale></rationale>
+</goal_association>
+<goal_association environment="Synthetic" goal_name="S2 Top" goal_dim="obstacle" ref_type="or" subgoal_name="S2 B" subgoal_dim="obstacle" alternative_id="0" >
+  <rationale></rationale>
+</goal_association>
+<goal_association environment="Synthetic" goal_name="S3 Top" goal_dim="obstacle" ref_type="or" subgoal_name="S3 A" subgoal_dim="obstacle" alternative_id="0" >
+  <rationale></rationale>
+</goal_association>
+<goal_association environment="Synthetic" goal_name="S3 Top" goal_dim="obstacle" ref_type="or" subgoal_name="S3 B" subgoal_dim="obstacle" alternative_id="0" >
+  <rationale></rationale>
+</goal_association>
+<goal_association environment="Synthetic" goal_name="S4 Top" goal_dim="obstacle" ref_type="and" subgoal_name="S4 A" subgoal_dim="obstacle" alternative_id="0" >
+  <rationale></rationale>
+</goal_association>
+<goal_association environment="Synthetic" goal_name="S4 Top" goal_dim="obstacle" ref_type="and" subgoal_name="S4 B" subgoal_dim="obstacle" alternative_id="0" >
+  <rationale></rationale>
+</goal_association>
+<goal_association environment="Synthetic" goal_name="S4 Top" goal_dim="obstacle" ref_type="or" subgoal_name="S4 C" subgoal_dim="obstacle" alternative_id="0" >
+  <rationale></rationale>
+</goal_association>
+<goal_association environment="Synthetic" goal_name="S5 Top" goal_dim="obstacle" ref_type="or" subgoal_name="S5 M" subgoal_dim="obstacle" alternative_id="0" >
+  <rationale></rationale>
+</goal_association>
+<goal_association environment="Synthetic" goal_name="S5 Top" goal_dim="obstacle" ref_type="or" subgoal_name="S5 C" subgoal_dim="obstacle" alternative_id="0" >
+  <rationale></rationale>
+</goal_association>
+<goal_association environment="Synthetic" goal_name="S5 M" goal_dim="obstacle" ref_type="or" subgoal_name="S5 A" subgoal_dim="obstacle" alternative_id="0" >
+  <rationale></rationale>
+</goal_association>
+<goal_association environment="Synthetic" goal_name="S5 M" goal_dim="obstacle" ref_type="or" subgoal_name="S5 B" subgoal_dim="obstacle" alternative_id="0" >
+  <rationale></rationale>
+</goal_association>
+</associations>
+</cairis_model>

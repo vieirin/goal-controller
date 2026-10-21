@@ -43,7 +43,11 @@ import {
   outputExtensionOf,
 } from '@/lib/workbench/engineDialects';
 import { baseName, downloadText } from '@/lib/workbench/download';
-import { FILE_IMPORTERS, importerFor } from '@goal-controller/lib';
+import {
+  FILE_IMPORTERS,
+  importerFor,
+  isCairisModel,
+} from '@goal-controller/lib';
 import { nativeFileFor } from '@goal-controller/dialect';
 import {
   NATIVE_DIALECTS,
@@ -114,14 +118,20 @@ export const importedModel = (
 
 /**
  * A file opened or dropped: a project archive (.tar.gz, .zip, #99), a
- * dialect's native file (the project of it and its model, #143), another
- * tool's model (imported), else a model, in its framework (#171: KAOS's
- * or NFR's by its content, a switch of framework confirmed first).
+ * dialect's native file (the project of it and its model, #143), a CAIRIS
+ * model file by its content (the project of its environments' models,
+ * #192), another tool's model (imported), else a model, in its framework
+ * (#171: KAOS's or NFR's by its content, a switch of framework confirmed
+ * first).
  */
 export const openUpload = async (
   wb: Pick<
     ReturnType<typeof useWorkbench>,
-    'openFile' | 'openArchive' | 'openNativeFile' | 'openModelFile'
+    | 'openFile'
+    | 'openArchive'
+    | 'openNativeFile'
+    | 'openModelFile'
+    | 'openCairisFile'
   >,
   file: File,
   /** the dialects whose native files it opens (the registered engines') */
@@ -130,6 +140,9 @@ export const openUpload = async (
   if (isArchiveName(file.name))
     return wb.openArchive(file.name, new Uint8Array(await file.arrayBuffer()));
   const text = await readFile(file);
+  // a CAIRIS model file, by its content (its DOCTYPE or <cairis_model>,
+  // goal-controller#192): a project of its environments' KAOS models
+  if (isCairisModel(text)) return wb.openCairisFile(file.name, text);
   if (nativeFileFor(dialects, file.name))
     return wb.openNativeFile(file.name, text);
   const imported = importedModel(file.name, text);
@@ -153,6 +166,8 @@ export const addUpload = async (
   if (isArchiveName(file.name) || nativeFileFor(dialects, file.name))
     throw new Error(`${file.name} is a project of its own: Open it instead`);
   const text = await readFile(file);
+  if (isCairisModel(text))
+    throw new Error(`${file.name} is a project of its own: Open it instead`);
   const imported = importedModel(file.name, text);
   return imported
     ? wb.addModelFile(imported.fileName, imported.text)
@@ -163,8 +178,11 @@ const IMPORTER_EXTENSIONS = FILE_IMPORTERS.flatMap(
   (importer) => importer.extensions,
 );
 
-/** What the open dialog takes (piStar models, archives, the declared native files, the importers'). */
-export const OPEN_ACCEPT = openAccept(NATIVE_EXTENSIONS, IMPORTER_EXTENSIONS);
+/** What the open dialog takes (piStar models, archives, the declared native files, the importers', CAIRIS's `.xml`). */
+export const OPEN_ACCEPT = openAccept(NATIVE_EXTENSIONS, [
+  ...IMPORTER_EXTENSIONS,
+  '.xml',
+]);
 
 /** What the add dialog takes: models (piStar's, the importers'). */
 export const ADD_ACCEPT = [

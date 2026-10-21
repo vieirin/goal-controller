@@ -112,6 +112,14 @@ describe('Home: the KAOS and NFR seeds (#171)', () => {
         'kaos',
         [
           'ambulance',
+          'cairis-acme-water-day',
+          'cairis-acme-water-night',
+          'cairis-balkan-rail-balkan-rail-corprate-hq',
+          'cairis-balkan-rail-central-station',
+          'cairis-balkan-rail-model',
+          'cairis-neurogrid-core-technology',
+          'cairis-neurogrid-psychosis',
+          'cairis-neurogrid-stroke',
           'carpooling',
           'fire-alarm',
           'flood',
@@ -167,6 +175,16 @@ describe('Home: the KAOS and NFR seeds (#171)', () => {
         .map((button) => button.getAttribute('aria-label')),
     ).toEqual([
       expect.stringContaining('ambulance'),
+      ...[
+        'acme-water-day',
+        'acme-water-night',
+        'balkan-rail-balkan-rail-corprate-hq',
+        'balkan-rail-central-station',
+        'balkan-rail-model',
+        'neurogrid-core-technology',
+        'neurogrid-psychosis',
+        'neurogrid-stroke',
+      ].map((seed) => expect.stringContaining(`cairis-${seed}`)),
       expect.stringContaining('carpooling'),
       expect.stringContaining('fire-alarm'),
       expect.stringContaining('flood'),
@@ -193,8 +211,37 @@ describe('Home: the KAOS and NFR seeds (#171)', () => {
       // the flood detection model, its two sources (#200)
       'https://github.com/ancailliau/phd-thesis/blob/6a9f5fd81ac0be560d30803f04702d23d5622893/running-example-fds/model2.kaos',
       'https://github.com/ancailliau/FloodingSimulator/blob/ef6db9fd8ac0e0a038c2006f4633ace84c41b725/FloodingSimulator/Model.kaos',
+      // the CAIRIS corpus: Faily's book and the repository at its commit (#192)
+      'https://doi.org/10.1007/978-3-319-75493-2',
+      'https://github.com/cairis-platform/cairis/tree/44cc57ddd08fb41a8d028411ec712847eefc9be5/examples/exemplars',
     ])
       expect(links).toContain(url);
+  });
+
+  it('opens a CAIRIS seed in kaosprop’s mode, its values CAIRIS’s and no Problem of them (#192)', async () => {
+    const wb = home();
+    fireEvent.click(
+      await screen.findByRole('button', {
+        name: /Open the .*cairis-acme-water-day/,
+      }),
+    );
+    await waitFor(() =>
+      expect(wb().fileName).toBe('cairis-acme-water-day.txt'),
+    );
+    expect(wb().mode).toBe('kaosprop');
+    expect(modelSettingsOf(wb().text)).toMatchObject({
+      mode: 'kaosprop',
+      framework: 'kaos',
+    });
+    // read with the cairis profile: `High` and `Vulnerability` are no Problem;
+    // the one left is the source's obstruction of a refined goal
+    await waitFor(() =>
+      expect(
+        wb()
+          .problems.filter((p) => p.source === 'KAOS obstacle probabilities')
+          .map((p) => p.code),
+      ).toEqual(['not-a-leaf']),
+    );
   });
 
   it('opens a KAOS stress-test seed as its project, in kaosprop’s mode, its .kaos beside its model (#181)', async () => {

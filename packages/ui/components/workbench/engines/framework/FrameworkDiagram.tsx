@@ -19,6 +19,8 @@ import {
 } from '@/lib/workbench/frameworkProperties';
 import type { FrameworkMode } from '@/lib/workbench/frameworkModes';
 import WorkbenchCanvas from '../shared/WorkbenchCanvas';
+import { useWorkbench } from '../../WorkbenchContext';
+import { useProfiledDefinition } from './useProfiledDefinition';
 
 /**
  * A framework's registry parts as the workbench's canvas takes them. The
@@ -146,7 +148,7 @@ const BASE_EXTENSIONS: Readonly<Record<FrameworkMode, IstarExtension>> = {
  */
 export default function FrameworkDiagram({
   mode,
-  definition,
+  definition: given,
   names,
 }: {
   mode: FrameworkMode;
@@ -155,6 +157,8 @@ export default function FrameworkDiagram({
   names?: KeyNames;
 }) {
   const base = BASE_EXTENSIONS[mode];
+  // with the vocabulary profile the model records (a CAIRIS model's, #192)
+  const definition = useProfiledDefinition(given, useWorkbench().text);
   // by content: the resources are parsed again on every edit of theirs
   const namesKey = JSON.stringify(names ?? {});
   const extensions = useMemo(

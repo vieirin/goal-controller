@@ -14,6 +14,7 @@ import { useWorkbench } from '../../WorkbenchContext';
 import { Button } from '../../ui';
 import NotationEditor from '../definition/NotationEditor';
 import { LanguageSupportContext } from '../definition/useLanguageSupport';
+import { useProfiledDefinition } from './useProfiledDefinition';
 
 /**
  * A KAOS or NFR model as its framework's lines (goal-controller#171): each
@@ -26,7 +27,7 @@ import { LanguageSupportContext } from '../definition/useLanguageSupport';
  */
 export default function FrameworkNotationView({
   mode,
-  definition = FRAMEWORK_DIALECTS[mode],
+  definition: given = FRAMEWORK_DIALECTS[mode],
 }: {
   mode: FrameworkMode;
   /** the dialect its lines are read in: its framework's, or its engine's (nfrprop's labels) */
@@ -34,6 +35,8 @@ export default function FrameworkNotationView({
 }) {
   const wb = useWorkbench();
   const { text } = wb;
+  // with the vocabulary profile the model records (a CAIRIS model's, #192)
+  const definition = useProfiledDefinition(given, text);
   // the last view read stays while the model is being fixed
   const last = useRef<GoalView | null>(null);
   const tree = useMemo(() => {

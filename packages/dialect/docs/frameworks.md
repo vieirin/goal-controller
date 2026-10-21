@@ -1681,6 +1681,147 @@ engine, the flood seed, ADS's files. Results and the attempts log are on
     100 % says.
 - **D3 unchanged**: no runtime monitoring or activation.
 
+### Step 5: the CAIRIS corpus (goal-controller#192, #203, #204, #205)
+
+CAIRIS (S. Faily, *Designing Usable and Secure Software with IRIS and
+CAIRIS*, Springer 2018; `cairis-platform/cairis` at `44cc57d`, Apache 2.0)
+stores KAOS goal and obstacle models in XML (`<cairis_model>`, DTD
+`-//CAIRIS//DTD MODEL 1.0//EN`). It enforces enumerations, and a goal's or
+an obstacle's definition, category and priority are per environment. Its
+three exemplars are lib's fixtures (`test/importers/fixtures/cairis`, with
+CAIRIS's LICENSE) and eight seeds. Results and the attempts log are on #368;
+D-decisions on #189.
+
+- **The importer** (`importers/cairis`): `readCairis(text)` returns one KAOS
+  model per environment (D2), `<model>-<environment>`. The environment and
+  the project's name are on the diagram (`cairisEnvironment`,
+  `cairisProject`, typed as `CairisDiagramProperties`). The models are in
+  kaosprop's mode, with obstacle probabilities as `Probability`.
+
+  | CAIRIS | Model |
+  | --- | --- |
+  | `goal` with a `goal_environment` for E | `kaos.BehavioralGoal` with E's `definition` (`Description`), `category` (`Type`: the goal's pattern, Achieve … React), `priority` (`Priority`), `fit_criterion`, `issue`, concerns (`Concern`); `originator` its `Source` |
+  | `obstacle` with an `obstacle_environment` for E | `kaos.Obstacle` with E's `definition`, `category` (`Category`), `probability` (`Probability`, kaosprop's) and its `rationale` (`Rationale`) |
+  | `requirement` | a `kaos.BehavioralGoal` leaf (D3); `type`, `priority`, `label`, `reference`, `reference_type`, `rationale` as text keys (`RequirementType`, `RequirementPriority`, …) |
+  | `domainproperty`, `role` | `kaos.DomainProperty` (`Kind` its type), `kaos.Agent` (`RoleType`, `ShortCode`) |
+  | `and` | one refinement of the goal (or obstacle) by all its `and` children, in E |
+  | `or` | one refinement per child: alternatives |
+  | `obstruct`, `resolve`, `responsible`, `conflict` | an obstruction, a resolution (untyped: CAIRIS has no strategy), a responsibility assignment, a conflict |
+  | `manual_association` requirement → role | a responsibility assignment, wherever both are |
+  | a use case step's `exception` against a goal | the obstacle CAIRIS makes of it on import (`addUseCaseStepException`), obstructing that goal, with no probability (CAIRIS's default 0.0 isn't written) |
+
+  - A link's `rationale` is its `Rationale`, and `alternative_id = 1` is a
+    leg's `Alternative = Yes`. CAIRIS's propagation doesn't read
+    `alternative_id`.
+  - Every `ref_type` is mapped or reported. An association whose end is no
+    KAOS element (a task, a use case, a vulnerability, a threat), or whose
+    end the file doesn't declare, is kept as written in the diagram's
+    `cairisUnsupported`, with a warning. So are a role dependency and a
+    manual association to a response. Balkan Rail has one such association:
+    its subgoal name is cut at 50 characters ("…information confident").
+  - What else the file has (assets, threats, vulnerabilities, risks,
+    personas, use cases, countermeasures, data flows) is counted in an info
+    diagnostic. Nothing is dropped silently.
+- **Where the project's elements go.** Requirements, domain properties and
+  roles have no environment in CAIRIS. Each is in the environments whose
+  associations name it (a requirement also where its asset, by its
+  `security_property`s, or its environment is). An element nothing
+  situates is in every environment, and the import says which.
+- **D1, the vocabulary: the `cairis` profile** (`dialects/kaos/profiles.ts`).
+  Read verbatim against the `kaos` dialect, the seeds drown in Problems:
+  - every goal's `Priority` (`High`, not `high`);
+  - every obstacle's `Category` (`Vulnerability`, `Confidentiality_Threat`:
+    TSE'00 has five, CAIRIS sixteen);
+  - every domain property's `Kind` (`Hypothesis`);
+  - the security patterns' `Type` (`Prevent`, `Detect`).
+
+  In ACME Water/Day that is all 78 goals and all 21 obstacles; NeuroGrid's
+  seeds and Balkan Rail/Model are the same. Only Balkan Rail's two
+  requirement-only seeds have none. So, as D1 of #192 allows, a **vocabulary profile** gives
+  the same keys a second logged source: goals.dtd's enumerations, Type
+  (14), Priority (3), obstacle Category (16) and Kind (2). It also declares
+  the text keys the importer writes beyond `kaos`'s. A model records its
+  profile (`diagram.customProperties.vocabulary = cairis`), and the
+  importer writes it. Every KAOS mode reads such a model with it
+  (`dialectForModel`): the workbench's Problems, conformity, the Notation
+  view and the inspector. A value outside goals.dtd is still a Problem, and
+  a model without a profile reads exactly as before. The seeds' Problems
+  with the profile are only the source's five obstructions of refined
+  goals (ACME Water/Day 1, NeuroGrid Psychosis and Stroke 2 each), a
+  warning as KAOSTools' are. `kaos`'s own vocabularies are unchanged.
+- **D3, as implemented:** CAIRIS's requirement `type` and `priority` are
+  `RequirementType` and `RequirementPriority`, not `Type` and `Priority`.
+  Those keys are a goal's pattern and priority, with their own
+  vocabularies, so a requirement's `Functional` or `1` would be a Problem
+  under either source.
+- **D4:** there is no CAIRIS writer. A seed is its model's JSON, byte for
+  byte as the importer writes it, and istar-ts writes it back the same.
+- **The seeds** (`examples/kaos/cairis-<exemplar>-<environment>`, made by
+  `scripts/kaos-stress/cairis-seeds.cjs`, pinned by lib's tests and
+  `stress:kaos`):
+  - NeuroGrid: psychosis, stroke, core-technology;
+  - ACME Water: day, night;
+  - Balkan Rail: model, balkan-rail-corprate-hq, central-station.
+
+  Balkan Rail's goals are all in environment Model. Its other two
+  environments hold only requirements, situated by their assets.
+- **The oracle, reframed.** NeuroGrid and Balkan Rail give no obstacle a
+  probability, so CAIRIS's propagation over them is all 0: no oracle, and
+  their seeds' READMEs say so. ACME Water's environment Day does give one
+  to its 20 obstacles (10 of them non-zero, each with a rationale; the
+  scout had it as none). It is the field cross-check.
+  - `cairis-oracle.csv` holds CAIRIS's own `obstacleProbability`, run in
+    Docker by `scripts/kaos-stress/cairis-oracle.sh` (mysql:8.0 and
+    CAIRIS's image, pinned by digest).
+  - `cairisObstacleProbabilities` restates CAIRIS's rule and gives each of
+    the 43 numbers exactly. The rule is AND × and OR +, summed, raised to
+    the obstacle's own probability, and **the AND product starts from 0**
+    (`andProb float default 0`, never set to 1).
+  - Against kaosprop's RE'12 rules, each row is `agree` or attributed:
+    - **synthetic** (`synthetic.xml`, ours, tests only): an AND gives 0 (or
+      the obstacle's own 0.1) where RE'12 gives 0.2; an OR gives 0.9 where
+      RE'12 gives 0.7, and **1.3** (above 1, no clamp) where it gives 0.88;
+      AND and OR on one obstacle give 0.3 where RE'12 gives 0.44; nested
+      ORs give 0.4 → 0.6 where RE'12 gives 0.37 → 0.496.
+    - **ACME Water/Day**: 18 of 21 agree. Surplus equipment is 0 vs 0.48
+      (the AND). Unscanned media is 0.9 vs 0.82, and Undetected malicious
+      traffic 0.5 vs 0.46 (the OR). No sum exceeds 1 there.
+  - CAIRIS's AND defect is reported to the owner, not to CAIRIS's tracker.
+- **#205: one model per environment, for good** (logged on #189).
+  - The test (`cairis.test.ts`) shows that the union of a file's
+    environment models loses nothing: every goal's and obstacle's
+    per-environment values, every requirement, domain property and role,
+    and every association, as a link or kept as written.
+  - Per-context values on one model would serve almost nothing in the
+    corpus. Of NeuroGrid's 22 goals, all in two environments, 2 differ in
+    a value (a priority, an issue, a definition). None of its 10 shared
+    obstacles differs. ACME Water and Balkan Rail share no goal between
+    environments.
+  - What differs is structure: which elements and refinements an
+    environment has (20 of NeuroGrid's 77 associations are in one
+    environment only). A model per environment states that directly.
+  - `cgm`'s contexts are on links: a refinement holds or not in a context,
+    and variants are enumerated per context (#152). They would cover the
+    refinements but not the per-context values. They would also need every
+    KAOS engine to enumerate per environment, which no engine asks for.
+  - Hub contexts are not built. Revisit when a model shares most of its
+    elements across environments with diverging values, or when an
+    analysis across environments is asked.
+- **In the workbench.** The Open dialog takes `.xml`, and a file is
+  CAIRIS's by its content (the DOCTYPE or `<cairis_model>`), whatever its
+  name. Opening one makes the project of its environments' models, in
+  kaosprop's mode, and the first one opens. A CAIRIS file isn't a model to
+  add to a project. The seeds are on Home under KAOS, citing the book and
+  the repository at its commit.
+- **No `.kaos` for a CAIRIS model.** Every model of a kaosprop project would
+  get a `.kaos` slot, and a missing one is written from the model.
+  KAOSTools' syntax can't carry CAIRIS's keys, so the writer would report
+  hundreds of them. It isn't the source either: there is no CAIRIS writer
+  (D4). So a model entry may opt out of a native format: `"native": {
+  "kaos": null }` in project.json means no slot, and none is looked for or
+  written (`ModelEntry.native`, `nativeSlots`). A CAIRIS project's models
+  and the seeds opt out of their mode's native files.
+
 ### Models typed by their framework (goal-controller#185)
 
 - **Framework-aware, option 1.** goal-tree's `Model<EK, LK>` (lib's

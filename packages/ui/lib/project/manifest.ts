@@ -22,9 +22,11 @@ export type ModelEntry = {
   options?: EngineOptions;
   /**
    * its native files (goal-controller#143), by the dialect's native file id:
-   * the same model in the dialect's own format, kept 1:1 with it
+   * the same model in the dialect's own format, kept 1:1 with it; `null`:
+   * the model has none of that format (goal-controller#192: a CAIRIS model
+   * in kaosprop's mode has no `.kaos`), so none is looked for or written
    */
-  native?: Readonly<Record<string, string>>;
+  native?: Readonly<Record<string, string | null>>;
 };
 
 /** A file an engine produced from a model; a missing one means "not generated yet". */
@@ -126,11 +128,14 @@ const parseVersion = (value: unknown, at: string): 1 => {
 const parseNative = (
   value: unknown,
   at: string,
-): Record<string, string> | undefined => {
+): Record<string, string | null> | undefined => {
   if (value === undefined) return undefined;
   if (!isRecord(value)) throw new ManifestError(at, 'expected an object');
   return Object.fromEntries(
-    Object.entries(value).map(([id, path]) => [id, str(path, `${at}.${id}`)]),
+    Object.entries(value).map(([id, path]) => [
+      id,
+      path === null ? null : str(path, `${at}.${id}`),
+    ]),
   );
 };
 

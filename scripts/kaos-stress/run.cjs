@@ -65,6 +65,23 @@
  * option `estimates=ambulance` puts each leaf obstacle at its experts'
  * combined mean, kaosexpert's over the ambulance seed's five experts).
  *
+ * - `id,element,cairis,kaosprop,rule,derivation` (the CAIRIS cross-check,
+ *   goal-controller#192): an obstacle's probability under CAIRIS's
+ *   `obstacleProbability`, as `cairis-oracle.csv` has it (CAIRIS in Docker,
+ *   scripts/kaos-stress/cairis-oracle.sh) and as lib's restatement of its
+ *   rule gives it (`cairisObstacleProbabilities`), both within 1e-6, and
+ *   kaosprop's within 5e-7; `rule` is `agree` exactly where the two are
+ *   equal (else what makes them differ: `and-from-0`, `or-sum`).
+ *
+ * The CAIRIS seeds (`cairis-*`, goal-controller#192) have no native file:
+ * their source is a CAIRIS exemplar, lib's test fixture
+ * (cairis-seeds.cjs), read with lib's CAIRIS importer. For them **import**
+ * reads that file (the seed's environment), **roundtrip** is the model's
+ * JSON (written and read again by istar-ts, the same bytes: D4, no CAIRIS
+ * writer), and **analyses** are kaosprop's. The synthetic cross-check
+ * (`synthetic.xml`, hand-written, in lib's fixtures) is checked beside the
+ * seeds.
+ *
  * Writes SUMMARY.md and a JSON per seed to .cache/kaos/results/. Exits
  * non-zero only with `--strict`, on a failure.
  */
@@ -83,6 +100,12 @@ const ADS_FIXTURES = path.join(
   'packages/goal-language/test/fixtures/kaos/ads',
 );
 const ADS_ORACLE = path.join(__dirname, 'ads.expected.csv');
+const {
+  FIXTURES: CAIRIS_FIXTURES,
+  cairisSeeds,
+} = require('./cairis-seeds.cjs');
+const CAIRIS_ORACLE = path.join(CAIRIS_FIXTURES, 'cairis-oracle.csv');
+const CAIRIS_SYNTHETIC = path.join(CAIRIS_FIXTURES, 'synthetic.xml');
 const pkg = (name) => path.join(ROOT, 'packages', name);
 const lib = require(path.join(pkg('lib'), 'out/index.js'));
 const dialect = require(
@@ -475,6 +498,183 @@ const selectionOracle = (modelOf, rows) => {
   });
 };
 
+/** CAIRIS's numbers in Docker (cairis-oracle.csv), by file, environment and obstacle. */
+const cairisOracle = () => {
+  const values = new Map();
+  for (const row of readCsv(fs.readFileSync(CAIRIS_ORACLE, 'utf8')))
+    values.set(
+      `${row.file}\u0000${row.environment}\u0000${row.obstacle}`,
+      Number(row.cairis),
+    );
+  return values;
+};
+
+/**
+ * The CAIRIS cross-check's rows (goal-controller#192): each obstacle's
+ * probability under CAIRIS's rule (Docker's and lib's restatement of it)
+ * and kaosprop's, and whether they agree as `rule` says.
+ */
+const crossCheckOracle = (file, environment, modelText, rows) => {
+  const docker = cairisOracle();
+  const { document } = lib.readCairisDocument(
+    fs.readFileSync(path.join(CAIRIS_FIXTURES, file), 'utf8'),
+  );
+  const restated = lib.cairisObstacleProbabilities(document, environment);
+  const { probabilities } = lib.propagateProbabilities(
+    analysisModelOf(modelText),
+  );
+  return rows.map((row) => {
+    const problems = [];
+    const ran = docker.get(`${file}\u0000${environment}\u0000${row.element}`);
+    const rule = restated.get(row.element);
+    const got = probabilities.get(row.id);
+    const cairis = Number(row.cairis);
+    if (ran === undefined) problems.push('not in cairis-oracle.csv');
+    else if (Math.abs(ran - cairis) > 1e-6)
+      problems.push(`CAIRIS gave ${ran}, not ${row.cairis}`);
+    if (rule === undefined || Math.abs(rule - cairis) > 1e-6)
+      problems.push(`CAIRIS's rule restated gives ${rule}, not ${row.cairis}`);
+    if (got === undefined) problems.push('kaosprop computes none');
+    else if (Math.abs(got - Number(row.kaosprop)) > 5e-7)
+      problems.push(`kaosprop ${got.toFixed(6)}, not ${row.kaosprop}`);
+    const agree = Math.abs(cairis - Number(row.kaosprop)) < 1e-9;
+    if (agree !== (row.rule === 'agree'))
+      problems.push(
+        `they ${agree ? 'agree' : 'differ'}, the row says ${row.rule}`,
+      );
+    return {
+      quantity: `probability (${row.rule})`,
+      id: row.id,
+      expected: `${row.cairis} / ${row.kaosprop}`,
+      got: `${ran ?? '-'} / ${got === undefined ? '-' : Number(got.toFixed(6))}`,
+      data: `CAIRIS / kaosprop, ${environment}`,
+      status: problems.length ? 'fail' : 'pass',
+      ...(problems.length && { problems }),
+    };
+  });
+};
+
+/** The CAIRIS seeds, by name: their exemplar and environment (cairis-seeds.cjs). */
+let cairisSeedsByName = null;
+const cairisSeedOf = (name) => {
+  cairisSeedsByName ??= new Map(cairisSeeds(lib).map((s) => [s.seed, s]));
+  return cairisSeedsByName.get(name) ?? null;
+};
+
+/** A CAIRIS seed: read from its exemplar, its JSON round trip, kaosprop's analyses, its cross-check. */
+const checkCairisSeed = (name, manifest) => {
+  const dir = path.join(SEEDS_DIR, name);
+  const [entry] = manifest.models;
+  const modelText = fs.readFileSync(path.join(dir, entry.path), 'utf8');
+  const seed = cairisSeedOf(name);
+  const checks = {};
+  checks.import = check(() => {
+    if (!seed)
+      return { status: 'fail', detail: 'no CAIRIS exemplar has this seed' };
+    const { model, dialectRecord, diagnostics } = seed.result;
+    if (!model)
+      return {
+        status: 'fail',
+        detail: diagnostics.map((d) => d.message).join('; '),
+      };
+    const problems = [];
+    if (json(model) !== modelText)
+      problems.push(
+        `${entry.path} is not ${seed.exemplar.file} (${seed.environment}) read`,
+      );
+    if (dialectRecord.engine !== manifest.dialect)
+      problems.push(
+        `opens in ${dialectRecord.engine}, the project is ${manifest.dialect}'s`,
+      );
+    return problems.length
+      ? { status: 'fail', detail: problems.join('; ') }
+      : {
+          status: 'pass',
+          detail: `${seed.exemplar.file}, ${seed.environment}: ${diagnostics.length} diagnostic(s); mode ${manifest.dialect}`,
+        };
+  });
+  checks.validate = check(() => {
+    const issues = core.validateModel(kaosModelOf(modelText));
+    return issues.length
+      ? {
+          status: 'fail',
+          detail: issues.map((i) => i.message ?? String(i)).join('; '),
+        }
+      : { status: 'pass' };
+  });
+  checks.roundtrip = check(() => {
+    const again = json(core.toPistarObject(kaosModelOf(modelText)));
+    return again === modelText
+      ? { status: 'pass', detail: 'JSON, byte for byte (no CAIRIS writer)' }
+      : {
+          status: 'fail',
+          detail: 'istar-ts writes the model back differently',
+        };
+  });
+  checks.analyses = check(() => {
+    const ran = [];
+    for (const [id, analysis] of Object.entries(lib.kaospropAnalyses)) {
+      const out = lib.runAnalysis(analysis, analysisModelOf(modelText));
+      if ('error' in out)
+        return { status: 'fail', detail: `kaosprop ${id}: ${out.error}` };
+      ran.push(`kaosprop ${id}: ${out.result.cases.length} case(s)`);
+    }
+    return { status: 'pass', detail: ran.join('; ') };
+  });
+  const rows = [];
+  for (const file of fs
+    .readdirSync(dir)
+    .filter((f) => f.endsWith('.expected.csv')))
+    rows.push(
+      ...crossCheckOracle(
+        seed.exemplar.file,
+        seed.environment,
+        modelText,
+        readCsv(fs.readFileSync(path.join(dir, file), 'utf8')),
+      ).map((r) => ({ file, ...r })),
+    );
+  if (rows.length) {
+    const failing = rows.filter((r) => r.status === 'fail');
+    checks.oracle = {
+      status: failing.length ? 'fail' : 'pass',
+      detail: `${rows.length - failing.length}/${rows.length} rows`,
+    };
+  } else
+    checks.oracle = {
+      status: 'skip',
+      detail: 'no probabilities in the source: not an oracle',
+    };
+  return { seed: name, mode: manifest.dialect, checks, rows };
+};
+
+/** The synthetic cross-check (goal-controller#192): synthetic.xml under CAIRIS's rule and kaosprop's. */
+const checkCairisSynthetic = () => {
+  const environment = 'Synthetic';
+  const read = lib.importCairis(fs.readFileSync(CAIRIS_SYNTHETIC, 'utf8'), {
+    modelName: 'synthetic',
+    environment,
+  });
+  const file = 'synthetic.expected.csv';
+  const rows = crossCheckOracle(
+    'synthetic.xml',
+    environment,
+    json(read.model),
+    readCsv(fs.readFileSync(path.join(CAIRIS_FIXTURES, file), 'utf8')),
+  ).map((r) => ({ file, ...r }));
+  const failing = rows.filter((r) => r.status === 'fail');
+  return {
+    seed: 'CAIRIS synthetic',
+    mode: 'kaosprop',
+    checks: {
+      oracle: {
+        status: failing.length ? 'fail' : 'pass',
+        detail: `${rows.length - failing.length}/${rows.length} rows`,
+      },
+    },
+    rows,
+  };
+};
+
 const kaosModelOf = (json) =>
   core.parsePistar(json, { metamodel: KAOS_OBSTACLES });
 
@@ -580,6 +780,7 @@ const checkSeed = (name) => {
     fs.readFileSync(path.join(dir, 'project.json'), 'utf8'),
   );
   const [entry] = manifest.models;
+  if (!entry.native?.kaos) return checkCairisSeed(name, manifest);
   const kaosFile = entry.native?.kaos;
   const modelText = fs.readFileSync(path.join(dir, entry.path), 'utf8');
   const kaos = fs.readFileSync(path.join(dir, kaosFile), 'utf8');
@@ -783,7 +984,11 @@ const markdown = (results, exitCode) => {
 const main = () => {
   fs.rmSync(RESULTS, { recursive: true, force: true });
   fs.mkdirSync(RESULTS, { recursive: true });
-  const results = [...SEEDS.map(checkSeed), checkCorpus()];
+  const results = [
+    ...SEEDS.map(checkSeed),
+    checkCorpus(),
+    checkCairisSynthetic(),
+  ];
   for (const result of results) {
     fs.writeFileSync(path.join(RESULTS, `${result.seed}.json`), json(result));
     console.log(
