@@ -113,7 +113,9 @@ const DIMENSIONS: readonly Dimension[] = [
 ];
 const isDimension = (dim: string): dim is Dimension =>
   (DIMENSIONS as readonly string[]).includes(dim);
-const KIND: Readonly<Record<Dimension, string>> = {
+const KIND: Readonly<
+  Record<Dimension, (typeof KAOS_TYPES)[keyof typeof KAOS_TYPES]>
+> = {
   goal: KAOS_TYPES.goal,
   requirement: KAOS_TYPES.goal,
   obstacle: KAOS_TYPES.obstacle,
@@ -237,6 +239,7 @@ const everywhere = (
   ];
 };
 
+/** An element's or a link's custom properties, those set: piStar's open string map (each kind's keys are listed where it is made). */
 const props = (
   entries: readonly (readonly [string, string | null | undefined])[],
 ): Record<string, string> =>

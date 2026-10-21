@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import type { Framework } from '@goal-controller/dialect';
+import { dialectForModel } from '@goal-controller/lib';
 import { settingsInManifest, type Project } from '@/lib/project';
 import type { TransformEngine } from '@/lib/types';
 import {
@@ -68,8 +69,14 @@ export type Status = 'checking' | 'ready' | 'warnings' | 'blocked';
 const localProblems = (text: string, engine: TransformEngine): Problem[] => {
   try {
     const framework = frameworkEditorOf(engine);
-    if (framework)
-      return frameworkProblems(parseModel(text), framework.definition);
+    if (framework) {
+      // with the vocabulary profile the model records (a CAIRIS model's, #192)
+      const model = parseModel(text);
+      return frameworkProblems(
+        model,
+        dialectForModel(framework.definition, model),
+      );
+    }
     const tree = treeView(text, engine);
     return [
       ...treeProblems(tree, engine),

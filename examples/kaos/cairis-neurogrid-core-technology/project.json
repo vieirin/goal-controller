@@ -4,7 +4,10 @@
   "framework": "kaos",
   "models": [
     {
-      "path": "cairis-neurogrid-core-technology.txt"
+      "path": "cairis-neurogrid-core-technology.txt",
+      "native": {
+        "kaos": null
+      }
     }
   ],
   "projectResources": {},

@@ -39,12 +39,23 @@ const cairisSeeds = (lib) =>
     });
   });
 
-/** A seed's project manifest: its one model, in kaosprop's mode. */
-const manifestOf = (seed, engine) => ({
+/**
+ * A seed's project manifest: its one model, in kaosprop's mode, with none of
+ * its dialect's native files (`null`: kaosprop's `.kaos` is not the source,
+ * which has no writer, D4 of #192).
+ */
+const manifestOf = (seed, engine, nativeIds) => ({
   version: 1,
   dialect: engine,
   framework: 'kaos',
-  models: [{ path: `${seed}.txt` }],
+  models: [
+    {
+      path: `${seed}.txt`,
+      ...(nativeIds.length && {
+        native: Object.fromEntries(nativeIds.map((id) => [id, null])),
+      }),
+    },
+  ],
   projectResources: {},
   outputs: [],
 });
@@ -57,7 +68,13 @@ const main = () => {
     fs.writeFileSync(path.join(dir, `${seed}.txt`), json(result.model));
     fs.writeFileSync(
       path.join(dir, 'project.json'),
-      json(manifestOf(seed, result.dialectRecord.engine)),
+      json(
+        manifestOf(
+          seed,
+          result.dialectRecord.engine,
+          Object.keys(lib[result.dialectRecord.engine]?.nativeFiles ?? {}),
+        ),
+      ),
     );
     console.log(`${seed}: ${result.model.orphans.length} elements`);
   }

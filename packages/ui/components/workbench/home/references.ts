@@ -220,6 +220,35 @@ export const SECTION_REFERENCES: Readonly<
       url: 'https://github.com/ancailliau/FloodingSimulator/blob/ef6db9fd8ac0e0a038c2006f4633ace84c41b725/FloodingSimulator/Model.kaos',
       examples: ['kaos/flood'],
     },
+    // the CAIRIS corpus (goal-controller#192): its exemplars, one model per environment
+    {
+      text: 'S. Faily. Designing Usable and Secure Software with IRIS and CAIRIS. Springer, 2018.',
+      url: 'https://doi.org/10.1007/978-3-319-75493-2',
+      examples: [
+        'kaos/cairis-acme-water-day',
+        'kaos/cairis-acme-water-night',
+        'kaos/cairis-balkan-rail-balkan-rail-corprate-hq',
+        'kaos/cairis-balkan-rail-central-station',
+        'kaos/cairis-balkan-rail-model',
+        'kaos/cairis-neurogrid-core-technology',
+        'kaos/cairis-neurogrid-psychosis',
+        'kaos/cairis-neurogrid-stroke',
+      ],
+    },
+    {
+      text: 'cairis-platform/cairis: CAIRIS and its exemplars NeuroGrid, ACME Water and Balkan Rail, examples/exemplars at 44cc57d (Apache 2.0).',
+      url: 'https://github.com/cairis-platform/cairis/tree/44cc57ddd08fb41a8d028411ec712847eefc9be5/examples/exemplars',
+      examples: [
+        'kaos/cairis-acme-water-day',
+        'kaos/cairis-acme-water-night',
+        'kaos/cairis-balkan-rail-balkan-rail-corprate-hq',
+        'kaos/cairis-balkan-rail-central-station',
+        'kaos/cairis-balkan-rail-model',
+        'kaos/cairis-neurogrid-core-technology',
+        'kaos/cairis-neurogrid-psychosis',
+        'kaos/cairis-neurogrid-stroke',
+      ],
+    },
   ],
   nfr: [
     {

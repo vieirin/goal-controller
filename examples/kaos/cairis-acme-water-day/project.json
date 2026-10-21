@@ -4,7 +4,10 @@
   "framework": "kaos",
   "models": [
     {
-      "path": "cairis-acme-water-day.txt"
+      "path": "cairis-acme-water-day.txt",
+      "native": {
+        "kaos": null
+      }
     }
   ],
   "projectResources": {},

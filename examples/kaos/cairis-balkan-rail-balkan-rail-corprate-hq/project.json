@@ -4,7 +4,10 @@
   "framework": "kaos",
   "models": [
     {
-      "path": "cairis-balkan-rail-balkan-rail-corprate-hq.txt"
+      "path": "cairis-balkan-rail-balkan-rail-corprate-hq.txt",
+      "native": {
+        "kaos": null
+      }
     }
   ],
   "projectResources": {},

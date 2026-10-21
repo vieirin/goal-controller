@@ -4,7 +4,10 @@
   "framework": "kaos",
   "models": [
     {
-      "path": "cairis-neurogrid-stroke.txt"
+      "path": "cairis-neurogrid-stroke.txt",
+      "native": {
+        "kaos": null
+      }
     }
   ],
   "projectResources": {},

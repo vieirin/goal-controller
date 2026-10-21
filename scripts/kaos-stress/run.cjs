@@ -780,7 +780,7 @@ const checkSeed = (name) => {
     fs.readFileSync(path.join(dir, 'project.json'), 'utf8'),
   );
   const [entry] = manifest.models;
-  if (!entry.native) return checkCairisSeed(name, manifest);
+  if (!entry.native?.kaos) return checkCairisSeed(name, manifest);
   const kaosFile = entry.native?.kaos;
   const modelText = fs.readFileSync(path.join(dir, entry.path), 'utf8');
   const kaos = fs.readFileSync(path.join(dir, kaosFile), 'utf8');

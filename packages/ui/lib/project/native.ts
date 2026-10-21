@@ -64,8 +64,10 @@ export const nativeSlots = (
 ): NativeSlot[] =>
   models.flatMap((model) => {
     const entry = manifest.models.find((m) => m.path === model);
-    return Object.entries(declarations).map(([id, definition]) => {
+    return Object.entries(declarations).flatMap(([id, definition]) => {
       const listed = entry?.native?.[id];
+      // the model has none of this format: no slot (goal-controller#192)
+      if (listed === null) return [];
       if (listed !== undefined)
         return {
           model,
@@ -180,6 +182,51 @@ export const writeNative = (
 /** A model as its piStar file's text. */
 export const modelText = (model: Record<string, unknown>): string =>
   jsonText(model);
+
+/**
+ * Another tool's file opened as several models (goal-controller#192: a
+ * CAIRIS model file, one KAOS model per environment): the project they
+ * make, as files (path → text). Each model at its path, in the order given
+ * (the first opens), and the project.json listing them in their dialect
+ * (the first's) and framework. No native file: the source has no writer, so
+ * the models are the project (D4 of #192), and each opts out of the
+ * dialect's native files (`noNative`, their ids: `null` in its entry), so
+ * none is written from it.
+ */
+export const importedProjectFiles = (
+  models: readonly {
+    path: string;
+    model: Extract<NativeReadResult, { model: Record<string, unknown> }>;
+  }[],
+  framework?: Manifest['framework'],
+  noNative: readonly string[] = [],
+): { files: Record<string, string>; manifest: Manifest; first: string } => {
+  const [first] = models;
+  if (!first) throw new Error('No model to open');
+  const manifest: Manifest = {
+    version: MANIFEST_VERSION,
+    dialect: first.model.dialectRecord.engine,
+    ...(framework !== undefined && { framework }),
+    models: models.map(({ path }) => ({
+      path,
+      ...(noNative.length && {
+        native: Object.fromEntries(noNative.map((id) => [id, null])),
+      }),
+    })),
+    projectResources: {},
+    outputs: [],
+  };
+  return {
+    first: first.path,
+    manifest,
+    files: {
+      ...Object.fromEntries(
+        models.map(({ path, model }) => [path, modelText(model.model)]),
+      ),
+      [PROJECT_FILE]: serializeManifest(manifest),
+    },
+  };
+};
 
 /**
  * A native file opened: the project it makes, as files (path → text). Its

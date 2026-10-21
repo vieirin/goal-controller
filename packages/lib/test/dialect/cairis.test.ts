@@ -56,7 +56,7 @@ describe('CAIRIS seeds: Problems with and without the cairis profile (#192, D1)'
     const plain = Object.fromEntries(
       SEEDS.map(({ file, model }) => [
         file.split('/').pop(),
-        byKey(kaosprop as unknown as AnyDialect, model),
+        byKey(kaosprop, model),
       ]),
     );
     const value = 'unknown-property-value';
@@ -129,20 +129,14 @@ describe('CAIRIS seeds: Problems with and without the cairis profile (#192, D1)'
     ).customProperties.Priority = 'high';
     const text = JSON.stringify(json, null, 2);
     expect(
-      frameworkProblems(
-        read(text),
-        dialectForModel(kaosprop as unknown as AnyDialect, json),
-      )
+      frameworkProblems(read(text), dialectForModel(kaosprop, json))
         .filter((p) => p.code === 'unknown-property-value')
         .map((p) => p.message),
     ).to.deep.equal(['Priority is one of Low, Medium, High, not "high"']);
   });
 
   it('declares the keys the importer writes beyond kaos’s, as text', () => {
-    const profiled = withVocabularyProfile(
-      kaosprop as unknown as AnyDialect,
-      'cairis',
-    );
+    const profiled = withVocabularyProfile(kaosprop, 'cairis');
     const keys = (kind: string) => profiled.properties[kind]!.map((p) => p.key);
     expect(keys('kaos.BehavioralGoal')).to.include.members([
       'RequirementType',
@@ -167,7 +161,7 @@ describe('CAIRIS seeds: Problems with and without the cairis profile (#192, D1)'
 
   it('changes nothing for a model without the profile', () => {
     const las = models('examples/kaos/las', read)[0]!.model;
-    const definition = kaosprop as unknown as AnyDialect;
+    const definition = kaosprop;
     expect(dialectForModel(definition, JSON.parse(las))).to.equal(definition);
   });
 
@@ -188,10 +182,7 @@ describe('CAIRIS seeds: Problems with and without the cairis profile (#192, D1)'
       node.text = `${p}${n[p]}: ${node.text}`;
     }
     const text = JSON.stringify(json, null, 2);
-    const definition = dialectForModel(
-      kaosprop as unknown as AnyDialect,
-      JSON.parse(text),
-    );
+    const definition = dialectForModel(kaosprop, JSON.parse(text));
     const view = goalView(read(text) as never, definition);
     const doc = notationDocument(definition, view).text;
     const errors = (of: AnyDialect) =>
@@ -199,6 +190,6 @@ describe('CAIRIS seeds: Problems with and without the cairis profile (#192, D1)'
         d.message.startsWith('One of'),
       ).length;
     expect(errors(definition)).to.equal(0);
-    expect(errors(kaosprop as unknown as AnyDialect)).to.be.greaterThan(30);
+    expect(errors(kaosprop)).to.be.greaterThan(30);
   });
 });
