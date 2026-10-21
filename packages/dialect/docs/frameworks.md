@@ -1366,7 +1366,10 @@ log are on #353.
 - **Anchors.**
   - An `Anchor` resolves by id, then by a goal's name.
   - Without one, the keep schema anchors on the goal the obstacle's tree
-    obstructs, and substitution anchors on that goal's parent. The goal is
+    obstructs, and substitution anchors on that goal's parent. Since part
+    B, a strong mitigation anchors on that goal's parent too (TSE'00
+    §6.3.2's "some parent goal G' of G"), and is refused when the goal is a
+    root or has several parents. The goal is
     found in the model as given, so a second countermeasure for the same
     obstacle finds the anchor the first one found. When it is not one goal,
     the countermeasure is refused: "set its Anchor".
@@ -1422,6 +1425,252 @@ log are on #353.
 - **D3 unchanged.** Runtime monitoring and activation, SEAMS'17 §IV–V and
   §VII, are out of scope. That is the KAOS version of the SA-BSN loop
   (Vein 6's runtime with GODA formulas, #93, #97).
+
+### Step 4 part B: countermeasure selection (goal-controller#191, #200, #201)
+
+SEAMS'17 §VI.B–C's selection, over part A's transformations: the `kaosres`
+engine, the flood seed, ADS's files. Results and the attempts log are on
+#353; changes to D1–D4 on #189.
+
+- **The definitions, as SEAMS'17 gives them** (§VI.B–C, p. 6–7; D4):
+  - "A *safe* selection of countermeasures is a set of countermeasures
+    that, once integrated, guarantees that the monitored satisfaction rate
+    of the high-level goals is greater than their respective RDS."
+  - "A selection of countermeasures must be *consistent*; conflicting
+    countermeasures shall not be selected together: {CMi, CMj, Dom} ⊭
+    false for i≠j."
+  - "The resolution cost of a selection is the sum of the costs associated
+    with the selected countermeasures."
+  - "A selection is *cost-optimal* if no other selection increases the
+    probability of satisfaction of the high-level goal without increasing
+    the resolution cost."
+  - "The selection of most appropriate countermeasures is defined as the
+    one having the lowest resolution cost such that the satisfaction rate
+    for the high-level goals is maximized while being safe, consistent, and
+    cost-optimal."
+  - §VI.C: the selection "amounts to solving two optimization problems,
+    namely, finding the minimal cost for guaranteeing the RDS of the
+    high-level goals; finding the selection that maximizes the
+    satisfaction rate of the high-level goals given this cost". Both by
+    the "naive approach … O(2ⁿ) where n is the number of countermeasures".
+  - §V: "Multiple ones are handled by use of a weighted sum combining goal
+    satisfaction rates, where the weights capture goal priorities."
+  - The thesis, ch. 7: "If no selection guarantees the goal's required
+    satisfaction rate, the selection that maximizes the satisfaction rate
+    of the high-level goals is picked."
+- **Decisions, implementing those as written** (`engines/kaosres/selection.ts`):
+  - **A countermeasure is a countermeasure goal**, with every resolution
+    link it is the source of. Table I selects goals, and its costs count
+    Achieve [LocalsWarnedBy…Email…], which resolves two obstacles, once.
+    KAOSTools' optimiser does the same (`ResolvingGoalIdentifier`).
+  - **Cost:** a countermeasure's `Cost` when the model sets any (the
+    largest of its links': one goal is deployed once), unset 0; when the
+    model sets none, 1 each, so a selection costs the number of its
+    countermeasures, as ADS's and KAOSTools' optimisers take it and as
+    Table I's costs are (below).
+  - **The high-level goals are the goals with an RSR.** Safe: each one's
+    ESR is greater than its RSR (strictly, "greater than"). With none, the
+    roots (no countermeasure goal) are maximised and nothing is required.
+    With several, their ESRs' mean is maximised: §V's weighted sum with
+    equal weights, since the `kaos` dialect's `Priority` is free text.
+  - **Consistent, on our IR: a Conflict link is KAOS's conflict,
+    `{G1, G2, Dom} ⊨ false`.** A selection is inconsistent when a Conflict
+    joins two of its goals (the paper's pairs), or one of its goals and a
+    goal its variant still has in use (reachable from the model's roots or
+    from the selection). The second half reads `Dom` as what the
+    integrated model keeps. It is what the flood files need: their
+    conflicts pair a countermeasure with an original goal (Camera with
+    UltrasoundSpeedAccurate). Table I's fifth column agrees: it selects
+    Camera together with CameraSpeedAccurate. A conflict among more than
+    two goals is no link (below).
+  - **Cost-optimal is among the consistent selections**, those the
+    definition can compare.
+  - **The chosen selection** is §VI.C's two problems in order: the minimal
+    cost of a safe and consistent selection, then the largest satisfaction
+    at that cost. Ties are all chosen; the first, in the model's order,
+    is drawn. When none is safe, the most satisfying consistent one at
+    the lowest cost, labelled "Best, none safe".
+  - **The search is §VI.C's naive one, bounded.** Selections are evaluated
+    in the order of their cost (a heap over the countermeasures sorted by
+    cost: every subset once, in non-decreasing cost), the empty one first,
+    at most `limit` of them (an engine option, default 4096 = 2¹²).
+    - With 2ⁿ within the limit, every selection is evaluated: the safe,
+      consistent and cost-optimal ones are complete.
+    - Past it, the search stops once the cost level of the first safe
+      selection is complete. The chosen one is then exact (§VI.C's two
+      problems need nothing costlier), and the result says so.
+    - At the limit before that, the result says the chosen one is the best
+      of those evaluated, not §VI.C's.
+  - **KAOSTools' rules, as an option** (`semantics: 'kaostools'`, the
+    owner's call): its `NaiveCountermeasureSelectionOptimizer` at 05a5125
+    differs from the paper three ways, all reproduced:
+    - no consistency check: conflicts are not read;
+    - only non-empty selections are candidates, the empty one counting
+      only for the minimal cost (`GetMinimalCost` returns 0 when the model
+      as it is meets the RDS);
+    - with the minimal cost 0 or none safe, the most satisfying over every
+      non-empty selection, every tie kept (`GetOptimalSelections` filters
+      by cost only when the minimal cost is positive).
+  - **Scope stays `anchor`**: Table I can't decide it (below). On the flood
+    files every countermeasure is a substitution, which the scope doesn't
+    touch; `model` is an engine option.
+- **Part A, amended.**
+  - **Strong mitigation's default anchor** (#355's review): with no Anchor,
+    a strong mitigation anchors on the obstructed goal's parent, TSE'00
+    §6.3.2's "some parent goal G' of G". It is refused, "set its Anchor",
+    when the goal is a root or has several parents. Before, it anchored on
+    the goal itself, as a weak mitigation does.
+  - **A goal that substitutes for two obstacles** (the flood's Email, for
+    Voice Network Overloaded and GSM Network Down): its second resolution
+    finds itself already in the anchor's refinement, and is applied as
+    such, with nothing left to do. It used to be refused ("obstructs no
+    sub-goal").
+- **`.kaos`.**
+  - **`declare constraint [ c ] conflict a, b end`** (KAOSTools' older
+    syntax, the flood model's) is read as a Conflict link between the two
+    goals, and written back so. A constraint's name has no place on a
+    link (an info says so). A conflict among three or more goals means
+    `{a, b, c, Dom} ⊨ false`, which no pair of links says: it is kept as
+    written, with a warning. Any other constraint is kept as before.
+  - **A file with resolutions opens in kaosres's mode** (kaosres has
+    kaosprop's two analyses and the selection); one with experts still in
+    kaosexpert's. KAOSTools' `las.kaos` (one resolution) now opens in
+    kaosres's mode: its seed's project says so.
+- **The engine.** `kaosres` is registered under KAOS beside kaosprop and
+  kaosexpert. Its analyses: *Countermeasure selection*, then kaosprop's
+  *Obstacle and goal probabilities* and *Critical obstacle combinations*
+  on the same view (the model's properties as written: the resolution
+  keys reach the selection). The selection's cases:
+  - one per selection evaluated, at most 256: the chosen first, then the
+    safe and cost-optimal ones, the other safe ones, the other
+    cost-optimal ones, the rest;
+  - each case's values are its variant's EPS and probabilities on the
+    model's elements. Its selection is what the variant keeps in use: the
+    goals the roots and the countermeasures reach, the obstacle trees
+    below them, their agents, the resolutions selected. The canvas dims
+    the rest (the goals substituted, the countermeasures not selected);
+  - its summary: the cost, each high-level goal's ESR against its RSR,
+    safe, consistent (or the conflicts it breaks), cost-optimal, and any
+    resolution not applied. The first case's says how far the search went.
+
+  Options: `scope` (anchor, model), `semantics` (seams17, kaostools),
+  `limit`.
+- **The flood model, found (#200).** SEAMS'17's Table I is not ADS's: its
+  goals are the paper's running example, a flood detection system. Two
+  versions of that model are published:
+  - **`ancailliau/FloodingSimulator`** (MIT, © 2016 Antoine Cailliau),
+    `FloodingSimulator/Model.kaos` at ef6db9f (2016-08-24), deleted in
+    3744438: the goals, obstacles and `resolvedby (substitution[…])`, and
+    three `declare constraint … conflict`. No probability.
+  - **`ancailliau/phd-thesis`** (no licence; used with the owner's
+    approval), `running-example-fds/model2.kaos` at 6a9f5fd (2017-09-22),
+    the thesis's ch. 7 running example: the same model in the bracket
+    syntax, with leaf `probability`s (Dusty Environment .1, False Echo .08,
+    Radar Sensor Broken .2, Ultrasound Sensor Broken .4, Noisy Image .05,
+    Voice Network Overloaded .15; Distortion and GSM Network Down none),
+    the root's `rsr .65`, and the conflicts commented out.
+
+  The seed `examples/kaos/flood` is model2.kaos as written, with
+  FloodingSimulator's three constraints (the owner's call, option (a)).
+  Nothing is added: the Email goal's blank name stays blank,
+  SpeedAcquiredEvery10SecondsByUltrasound stays a goal that resolves
+  nothing, and the emergency countermeasure stays commented out.
+- **Table I is not reproducible** (#200's oracle):
+
+  | Table I column | 1 | 2 | 3 | 4 | 5 |
+  | --- | --- | --- | --- | --- | --- |
+  | selection | — | SMS, Ultrasound 10 s | Email, Ultrasound 10 s | Email, Emergency | Email, Camera, Emergency, CameraSpeedAccurate |
+  | ESR printed | .52 | .68 | .72 | .81 | .77 |
+  | cost printed | 0 | 2 | 2 | 2 | 4 |
+
+  - Its leaf rates were monitored at runtime at an unstated moment, and
+    are printed nowhere. With the thesis's estimates the root is .8 × .6 ×
+    .85 = .408, not .523; the paper's RDS is 80 %, the files' .65.
+  - Two of its six countermeasures resolve nothing in either file:
+    LocalsWarnedWhenRiskImminentAndEmergencySituation's obstacle
+    (`LowAcquisitionRateInEmergency`, `eps .1`) is commented out, and
+    SpeedAcquiredEvery10SecondsByUltrasound has no `resolvedby`.
+  - Its figures fit no one set of leaf rates under the files' structure
+    (the root an AND of four leaf goals):
+    - column 4 (Email + Emergency) = .81 gives (1−a)(1−b) = .81, a and b
+      the radar's and the ultrasound's obstacles;
+    - §VI.A's "SMS at 1 → 61.6 %" then gives (1−e) = .616 / .81 = .76;
+    - §VI.A's "Emergency: 52.3 → 65.4 %" gives (1−e) = .523 / .654 = .80,
+      and predicts .81 × .523 / .616 = .688, not .654.
+  - Two things Table I does fix: **cost is the number of countermeasure
+    goals** (columns 2–4 cost 2 with two goals each, Email's two
+    resolutions counting once), and **the sixth row (CameraSpeedAccurate),
+    lost in the OCR, is 0 0 0 0 1**, the only way column 5 costs 4.
+
+  What the seed gives instead, its oracle (`flood.expected.csv`, every
+  number derived by hand, "no published oracle"):
+
+  | Selection | Cost | ESR | Flags |
+  | --- | --- | --- | --- |
+  | none | 0 | .408 | consistent, cost-optimal |
+  | Camera | 1 | .646 | inconsistent (cst11: UltrasoundSpeedAccurate still in use) |
+  | SMS, or Email | 1 | .48 | consistent, cost-optimal |
+  | Camera + CameraSpeedAccurate | 2 | .646 | consistent, cost-optimal |
+  | Camera + SMS, or + Email | 2 | .76 | safe, inconsistent (cst11) |
+  | **Camera + CameraSpeedAccurate + SMS**, or + Email | 3 | .76 | **safe, consistent, cost-optimal: chosen** |
+
+  The minimal cost is 3, all 16 selections evaluated. GSM Network Down has
+  no estimate, so SMS and Email tie.
+- **KAOSTools as second oracle.** CMSelector at 05a5125 built with `mcs`
+  under Mono 6.12 in Docker (amd64), in /tmp, nothing committed.
+  - **Flood** (the thesis's model2.kaos): "Satisfaction Rate without
+    countermeasures: 0.408", "Minimal cost to guarantee RSR: 2", optimal
+    {Camera, SMS} and {Camera, Email} at 0.76, 6 safe of 15. kaosres
+    under `semantics: 'kaostools'` gives exactly these (the CSV's rows);
+    under SEAMS'17's rules the minimal cost is 3, because Camera alone
+    breaks cst11.
+  - **ADS:** 05a5125 can't parse ADS's files (anonymous nested obstacles;
+    #343's finding). ADS's three files written by our writer, with each
+    leaf at its experts' combined mean and 10 of the countermeasure goals
+    (the leaf weakening left out: KAOSTools refuses it,
+    ANCHOR_NO_REFINEMENT), and the anchors our default gives
+    (05a5125 requires one on every `resolvedby`, #366). Both find no
+    selection safe. KAOSTools' root is 0.403 % unresolved and 1.388 % at
+    best; ours 0.117 % and 1.386 %. The difference is the propagation, not
+    the selection: kaosexpert's BDD with the same point estimates gives
+    KAOSTools' 0.0040271564838259 exactly. kaosprop's RE'12 rules treat
+    a leaf obstacle shared by several trees as independent on each path;
+    the BDD counts it once (#365).
+- **#201: neither `simple.kaos` nor `validation-model.kaos` is Table I's
+  file**: Table I is the flood example's. Both propagate under kaosprop
+  and select under kaosres (`scripts/kaos-stress/ads.expected.csv`):
+
+  | File | Goals, obstacles | Countermeasures | Selections | Chosen |
+  | --- | --- | --- | --- | --- |
+  | `simple.kaos` | 19, 183 | 3 (3 more commented out) | 8, all evaluated | none: no leaf has an estimate, every goal is at 100 %, over every RSR (0, .8) |
+  | `validation-model.kaos` | 44, 15 | 0 | 1 | none: no RSR |
+
+  Neither file has a point estimate, so neither result says anything about
+  the system.
+- **Where the search stops scaling.** Its size is 2ⁿ in the number of
+  countermeasure goals, not of obstacles: simple.kaos's 183 obstacles are
+  3 countermeasures, 8 selections, 40 ms. One evaluation (a copy of the
+  model, the integration, the propagation) takes about 5 ms on ADS's
+  155-element model (node, host). So 4096 selections take about 20 s.
+  ADS's 29 countermeasure goals (2²⁹ selections) would take about 85
+  years, and so would KAOSTools' naive optimiser: under Mono it evaluated
+  ADS's 10-countermeasure cut's 1023 selections in 4.5 s. Past the limit
+  only the cost order makes the answer exact, and only when a safe
+  selection is cheap.
+- **ADS's field run** (resolutions.kaos's 33 resolutions, 29 countermeasure
+  goals, with the ambulance model). It is in the corpus CSV, not in the
+  ambulance seed's: that seed is RE'15's model, without resolutions.kaos
+  (RE'15: no countermeasure), and opens in kaosexpert's mode.
+  - As the files are, every leaf is 0 (their estimates are per expert,
+    which kaosprop doesn't read): 100 %, the empty selection is safe.
+  - With each leaf at its experts' combined mean (kaosexpert over the
+    ambulance seed's five experts), the root is 0.117 %. The 4096
+    cheapest selections (every one of cost 3 or less) find none safe; the
+    best is the weakening of Achieve [Mobilized Ambulance Intervention]
+    with Obesity Ambulance When Required and Assign Destination Hospital,
+    2.78 %. All 29 together give 9.24 %, far under 95 %, as RE'15's VU
+    100 % says.
+- **D3 unchanged**: no runtime monitoring or activation.
 
 ### Models typed by their framework (goal-controller#185)
 
