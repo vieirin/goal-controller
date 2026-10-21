@@ -1,7 +1,8 @@
 /**
  * The generic value types a framework's dialect types its keys with
  * (goal-controller#181): a `reference` names one element of its kinds, a
- * `formula` is text in a tagged language that nothing checks yet, a
+ * `formula` is text in a tagged language — `ltl` is RT-LTL, parsed and
+ * checked (goal-controller#211); any other tag is unchecked text — a
  * `probability` is a decimal or a percentage in [0, 1]. A bad value is a
  * problem; the value stays as written.
  */
@@ -55,10 +56,23 @@ describe('value types: reference, formula, probability (#181)', () => {
     expect(valueProblem(anchor, '')).to.equal(null);
   });
 
-  it('a formula is text in its language, which nothing checks yet', () => {
+  it('a formula tagged `ltl` is RT-LTL, either surface (goal-controller#211); other languages are unchecked text', () => {
     const spec: ValueConfig = { type: 'formula', language: 'ltl' };
-    expect(valueProblem(spec, 'G (Incident -> F<=11 Resolved)')).to.equal(null);
-    expect(highlightValue(spec, 'G (x)')).to.have.length(1);
+    expect(
+      valueProblem(
+        spec,
+        'when incidentReported() then sooner-or-later ambulanceOnScene()',
+      ),
+    ).to.equal(null);
+    expect(valueProblem(spec, 'Incident ⇒ ◇ Resolved')).to.equal(null);
+    expect(valueProblem(spec, 'when incidentReported() then')).to.not.equal(
+      null,
+    );
+    const other: ValueConfig = { type: 'formula', language: 'prism' };
+    expect(valueProblem(other, 'G (Incident -> F<=11 Resolved)')).to.equal(
+      null,
+    );
+    expect(highlightValue(other, 'G (x)')).to.have.length(1);
   });
 
   it('a probability is a decimal or a percentage in [0, 1]', () => {
