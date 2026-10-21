@@ -1039,92 +1039,99 @@ export const readKaos = (
       at(annotation.attribute),
     );
   };
-  // an element made while resolving has no annotations: the live map is fine
-  for (const element of elements.values())
-    for (const annotation of element.annotations) {
-      const label = element.id ?? element.name ?? 'a goal';
-      // `cost [x] n` whose x is no obstacle: KAOSTools' cost variable
-      // (before 2017-03), one of several costs SEAMS'17 leaves out
-      const named = annotation.obstacle?.id ?? annotation.obstacle?.name;
-      const declared =
-        annotation.obstacle &&
-        (annotation.obstacle.id !== undefined
-          ? byId.get(annotation.obstacle.id)
-          : byName.get(annotation.obstacle.name!));
-      if (
-        annotation.word === 'cost' &&
-        annotation.obstacle &&
-        declared?.word !== 'obstacle'
-      ) {
+  // `cost n` (every obstacle the goal resolves) last, once every other
+  // annotation has made its resolution; an element made while resolving
+  // has no annotations
+  const everyObstacle = (annotation: Annotation) =>
+    annotation.word === 'cost' && !annotation.obstacle;
+  const annotated = [...elements.values()].flatMap((element) =>
+    element.annotations.map((annotation) => ({ element, annotation })),
+  );
+  for (const { element, annotation } of [
+    ...annotated.filter(({ annotation }) => !everyObstacle(annotation)),
+    ...annotated.filter(({ annotation }) => everyObstacle(annotation)),
+  ]) {
+    const label = element.id ?? element.name ?? 'a goal';
+    // `cost [x] n` whose x is no obstacle: KAOSTools' cost variable
+    // (before 2017-03), one of several costs SEAMS'17 leaves out
+    const named = annotation.obstacle?.id ?? annotation.obstacle?.name;
+    const declared =
+      annotation.obstacle &&
+      (annotation.obstacle.id !== undefined
+        ? byId.get(annotation.obstacle.id)
+        : byName.get(annotation.obstacle.name!));
+    if (
+      annotation.word === 'cost' &&
+      annotation.obstacle &&
+      declared?.word !== 'obstacle'
+    ) {
+      annotationRaw(
+        element,
+        annotation,
+        `${named} is no obstacle: a cost variable has no place in the model`,
+      );
+      continue;
+    }
+    const goal =
+      annotation.word === 'except'
+        ? resolve(annotation.goal!, 'goal')
+        : element;
+    const obstacles = annotation.obstacle
+      ? [resolve(annotation.obstacle, 'obstacle')]
+      : links.resolutions.filter((r) => r.goal === goal).map((r) => r.obstacle);
+    if (!obstacles.length) {
+      annotationRaw(element, annotation, `${label} resolves no obstacle`);
+      continue;
+    }
+    for (const obstacle of obstacles) {
+      let resolution = links.resolutions.find(
+        (r) => r.goal === goal && r.obstacle === obstacle,
+      );
+      if (!resolution) {
+        resolution = {
+          goal,
+          obstacle,
+          type: '',
+          anchor: '',
+          countermeasure: {},
+        };
+        links.resolutions.push(resolution);
+        say(
+          { file: annotation.file },
+          'info',
+          `${annotation.attribute.name} of ${label}: no resolvedby says ${goal.id ?? goal.name} resolves ${obstacle.id ?? obstacle.name}, so it does`,
+          at(annotation.attribute),
+        );
+      }
+      const cm = resolution.countermeasure;
+      if (annotation.word === 'cost') {
+        cm.Cost = annotation.text!;
+        continue;
+      }
+      const form = FORMS[annotation.word];
+      if (cm.Form !== undefined && cm.Form !== form) {
         annotationRaw(
           element,
           annotation,
-          `${named} is no obstacle: a cost variable has no place in the model`,
+          `that resolution's form is ${cm.Form} already`,
         );
         continue;
       }
-      const goal =
-        annotation.word === 'except'
-          ? resolve(annotation.goal!, 'goal')
-          : element;
-      const obstacles = annotation.obstacle
-        ? [resolve(annotation.obstacle, 'obstacle')]
-        : links.resolutions
-            .filter((r) => r.goal === goal)
-            .map((r) => r.obstacle);
-      if (!obstacles.length) {
-        annotationRaw(element, annotation, `${label} resolves no obstacle`);
-        continue;
-      }
-      for (const obstacle of obstacles) {
-        let resolution = links.resolutions.find(
-          (r) => r.goal === goal && r.obstacle === obstacle,
-        );
-        if (!resolution) {
-          resolution = {
-            goal,
-            obstacle,
-            type: '',
-            anchor: '',
-            countermeasure: {},
-          };
-          links.resolutions.push(resolution);
+      cm.Form = form;
+      if (annotation.word === 'except') {
+        if (resolution.anchor && resolution.anchor !== element.key)
           say(
             { file: annotation.file },
-            'info',
-            `${annotation.attribute.name} of ${label}: no resolvedby says ${goal.id ?? goal.name} resolves ${obstacle.id ?? obstacle.name}, so it does`,
+            'warning',
+            `${annotation.attribute.name} of ${label}: its resolution was anchored on ${resolution.anchor}, now on ${label}`,
             at(annotation.attribute),
           );
-        }
-        const cm = resolution.countermeasure;
-        if (annotation.word === 'cost') {
-          cm.Cost = annotation.text!;
-          continue;
-        }
-        const form = FORMS[annotation.word];
-        if (cm.Form !== undefined && cm.Form !== form) {
-          annotationRaw(
-            element,
-            annotation,
-            `that resolution's form is ${cm.Form} already`,
-          );
-          continue;
-        }
-        cm.Form = form;
-        if (annotation.word === 'except') {
-          if (resolution.anchor && resolution.anchor !== element.key)
-            say(
-              { file: annotation.file },
-              'warning',
-              `${annotation.attribute.name} of ${label}: its resolution was anchored on ${resolution.anchor}, now on ${label}`,
-              at(annotation.attribute),
-            );
-          resolution.anchor = `\u0000${element.key}`;
-        } else if (annotation.word === 'replaces')
-          cm.Replaces = `\u0000${resolve(annotation.goal!, 'goal').key}`;
-        else cm.Condition = annotation.text!;
-      }
+        resolution.anchor = `\u0000${element.key}`;
+      } else if (annotation.word === 'replaces')
+        cm.Replaces = `\u0000${resolve(annotation.goal!, 'goal').key}`;
+      else cm.Condition = annotation.text!;
     }
+  }
 
   // identifiers for the anonymous: their name's, unique
   const taken = new Set(

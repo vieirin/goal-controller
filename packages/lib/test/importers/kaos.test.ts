@@ -682,7 +682,7 @@ declare goal [ test2 ]
   relaxedTo [obst2] mycondition() and otherCondition()
   cost 1.5
 end
-declare goal [ test3 ] provided [obst3] mycondition() end
+declare goal [ test3 ] cost 1 provided [obst3] mycondition() end
 declare goal [ test4 ] cost [budget] 4 end
 declare obstacle [ obst ] resolvedby [mitigation:test] goal2 end
 declare obstacle [ obst2 ] end
@@ -734,6 +734,7 @@ declare obstacle [ obst3 ] end`;
           Cost: '1.5',
         },
       ],
+      // `cost n` before the annotation that makes its resolution still reaches it
       [
         'test3',
         'obst3',
@@ -742,6 +743,7 @@ declare obstacle [ obst3 ] end`;
           Anchor: '',
           Form: 'provided',
           Condition: 'mycondition()',
+          Cost: '1',
         },
       ],
     ]);
