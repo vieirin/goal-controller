@@ -928,6 +928,24 @@
     "outputs": []
   },
   {
+    "path": "kaos/flood",
+    "group": "kaos",
+    "name": "flood",
+    "form": "file",
+    "dialect": "kaosres",
+    "root": "kaos/flood",
+    "files": [
+      "README.md",
+      "flood.expected.csv",
+      "flood.kaos",
+      "flood.txt",
+      "project.json"
+    ],
+    "models": ["flood.txt"],
+    "projectResources": {},
+    "outputs": []
+  },
+  {
     "path": "kaos/kaos-welcome.txt",
     "group": "kaos",
     "name": "kaos-welcome.txt",
@@ -943,7 +961,7 @@
     "group": "kaos",
     "name": "las",
     "form": "file",
-    "dialect": "kaosprop",
+    "dialect": "kaosres",
     "root": "kaos/las",
     "files": [
       "README.md",

@@ -62,6 +62,10 @@ describe('engine options', () => {
       samples: 10000,
       seed: 1,
       weighting: 're15',
+      // kaosres's (#191)
+      scope: 'anchor',
+      semantics: 'seams17',
+      limit: 4096,
     });
   });
 

@@ -214,6 +214,7 @@ describe('frameworks: the DSM3 seeds (#171)', () => {
       'examples/kaos/ambulance/ambulance.txt',
       'examples/kaos/carpooling/carpooling.txt',
       'examples/kaos/fire-alarm/fire-alarm.txt',
+      'examples/kaos/flood/flood.txt',
       'examples/kaos/kaos-welcome.txt',
       'examples/kaos/las/las.txt',
       'examples/kaos/mooring/mooring.txt',

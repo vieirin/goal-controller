@@ -83,5 +83,6 @@ export const KNOWN_PROPERTIES: Record<
   kaosdoc: frameworkKeys(FRAMEWORK_ENGINE_DIALECTS.kaosdoc),
   kaosprop: frameworkKeys(FRAMEWORK_ENGINE_DIALECTS.kaosprop),
   kaosexpert: frameworkKeys(FRAMEWORK_ENGINE_DIALECTS.kaosexpert),
+  kaosres: frameworkKeys(FRAMEWORK_ENGINE_DIALECTS.kaosres),
   nfrprop: frameworkKeys(FRAMEWORK_ENGINE_DIALECTS.nfrprop),
 };

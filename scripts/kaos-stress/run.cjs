@@ -16,8 +16,8 @@
  * - **validate**: istar-ts validates the model (`validateModel`: none);
  * - **roundtrip**: written back (`writeKaos`, with its resources) and read
  *   again, the same model and the same resources;
- * - **analyses**: kaosprop's analyses, and kaosexpert's (both read every
- *   `.kaos`), run without error;
+ * - **analyses**: kaosprop's analyses, kaosres's and kaosexpert's (all
+ *   read every `.kaos`), run without error;
  * - **oracle**: the seed's `*.expected.csv`, each row against what the
  *   engine computes (below).
  *
@@ -48,6 +48,22 @@
  *   `paper` is the printed value, `data` where the inputs come from; a
  *   mismatch with the paper is the derivation's to explain, the row checks
  *   what the seed gives.
+ * - `quantity,selection,goal,expected,tolerance,options,derivation`
+ *   (kaosres's countermeasure selection, goal-controller#191): a selection
+ *   (its countermeasure goals joined by `+`, `none` for the empty one), run
+ *   with `options` (`semantics=kaostools;scope=model;limit=n`):
+ *   - `ESR` of `goal` within `tolerance`, `cost`, and `flags` (`safe` or
+ *     `not safe`, `consistent` or `inconsistent`, `cost-optimal`);
+ *   - of the run (`selection` `-`): `minimal cost` (`none`: no safe
+ *     selection), `chosen` (the chosen selections, ` | `), `candidates`,
+ *     `evaluated`, `exact` (`yes`/`no`).
+ *
+ * The corpus (goal-controller#191, #201): ADS's simple.kaos and
+ * validation-model.kaos, and las.kaos with obstacles.kaos and
+ * resolutions.kaos (goal-language's test fixtures, MIT), selected as
+ * `scripts/kaos-stress/ads.expected.csv` says (its `model` column; the
+ * option `estimates=ambulance` puts each leaf obstacle at its experts'
+ * combined mean, kaosexpert's over the ambulance seed's five experts).
  *
  * Writes SUMMARY.md and a JSON per seed to .cache/kaos/results/. Exits
  * non-zero only with `--strict`, on a failure.
@@ -62,6 +78,11 @@ const LAS_FIXTURE = path.join(
   ROOT,
   'packages/lib/test/engines/kaosprop/fixtures/re12-las.txt',
 );
+const ADS_FIXTURES = path.join(
+  ROOT,
+  'packages/goal-language/test/fixtures/kaos/ads',
+);
+const ADS_ORACLE = path.join(__dirname, 'ads.expected.csv');
 const pkg = (name) => path.join(ROOT, 'packages', name);
 const lib = require(path.join(pkg('lib'), 'out/index.js'));
 const dialect = require(
@@ -360,6 +381,177 @@ const expertOracle = (modelText, resources, rows) => {
   });
 };
 
+/** A selection's key: its countermeasure goals joined by `+`, `none` for the empty one. */
+const selectionKey = (selection) => selection.goals.join('+') || 'none';
+const flagsOf = (s) =>
+  [
+    s.safe ? 'safe' : 'not safe',
+    s.consistent ? 'consistent' : 'inconsistent',
+    ...(s.costOptimal ? ['cost-optimal'] : []),
+  ].join(', ');
+/** `semantics=kaostools;scope=model;limit=8`: the selection's options (the others are the caller's). */
+const optionsOf = (text) => {
+  const options = {};
+  for (const pair of (text ?? '').split(';').filter((p) => p.trim())) {
+    const [key, value] = pair.split('=').map((t) => t.trim());
+    options[key] = key === 'limit' ? Number(value) : value;
+  }
+  return options;
+};
+
+/** kaosres's rows: each a quantity of a selection, or of the run, on `model` (a KaosModel). */
+const selectionOracle = (modelOf, rows) => {
+  const runs = new Map();
+  const runOf = (options) => {
+    if (!runs.has(options)) {
+      const { estimates, ...given } = optionsOf(options);
+      runs.set(options, lib.selectCountermeasures(modelOf(estimates), given));
+    }
+    return runs.get(options);
+  };
+  return rows.map((row) => {
+    const result = runOf(row.options);
+    const selection = result.selections.find(
+      (s) => selectionKey(s) === row.selection,
+    );
+    let got;
+    let ok;
+    switch (row.quantity) {
+      case 'ESR':
+        got = selection?.esr.get(row.goal);
+        ok =
+          got !== undefined &&
+          Math.abs(got - Number(row.expected)) <=
+            Number(row.tolerance || 0) + 1e-12;
+        break;
+      case 'cost':
+        got = selection?.cost;
+        ok = got !== undefined && Math.abs(got - Number(row.expected)) < 1e-9;
+        break;
+      case 'flags':
+        got = selection && flagsOf(selection);
+        ok = got === row.expected;
+        break;
+      case 'minimal cost':
+        got = result.minimalCost ?? 'none';
+        ok = String(got) === row.expected;
+        break;
+      case 'chosen':
+        got = result.chosen.map(selectionKey).join(' | ');
+        ok = got === row.expected;
+        break;
+      case 'candidates':
+      case 'evaluated':
+        got =
+          row.quantity === 'candidates'
+            ? result.candidates
+            : result.selections.length;
+        ok = String(got) === row.expected;
+        break;
+      case 'exact':
+        got = result.exact ? 'yes' : 'no';
+        ok = got === row.expected;
+        break;
+      default:
+        got = undefined;
+        ok = false;
+    }
+    return {
+      quantity: `${row.quantity}${row.goal ? ` ${row.goal}` : ''}`,
+      id: row.selection,
+      expected: row.expected,
+      got: typeof got === 'number' ? Number(got.toFixed(9)) : (got ?? null),
+      tolerance: row.tolerance,
+      data: row.options,
+      status: ok ? 'pass' : 'fail',
+      ...(!ok && {
+        problems: [
+          selection === undefined && row.selection !== '-'
+            ? `no selection ${row.selection} evaluated`
+            : `${got} is not ${row.expected}`,
+        ],
+      }),
+    };
+  });
+};
+
+const kaosModelOf = (json) =>
+  core.parsePistar(json, { metamodel: KAOS_OBSTACLES });
+
+/**
+ * Each leaf obstacle's experts' combined mean, kaosexpert's over the
+ * ambulance seed's five experts (RE'15's weighting): ADS's own point
+ * estimates are per expert, which kaosprop doesn't read.
+ */
+const ambulanceMeans = () => {
+  const dir = path.join(SEEDS_DIR, 'ambulance');
+  const text = (f) => fs.readFileSync(path.join(dir, f), 'utf8');
+  const analysis = lib.expertAnalysis(
+    lib.kaosexpertAnalysisModel(
+      lib.readKaosObstacleModel(text('ambulance.txt')),
+    ),
+    {
+      resources: {
+        expert: { 'experts.json': text('experts.json') },
+        calibration: { 'calibrations.json': text('calibrations.json') },
+      },
+      options: { samples: 1, seed: 1 },
+    },
+  );
+  return new Map(
+    [...analysis.leaves].map(([id, event]) => {
+      const value = analysis.events[event].value;
+      return [id, typeof value === 'number' ? value : value.mean];
+    }),
+  );
+};
+
+/** The corpus's selections (ADS's files, goal-controller#201 and the field run). */
+const checkCorpus = () => {
+  const rows = readCsv(fs.readFileSync(ADS_ORACLE, 'utf8'));
+  const fixture = (f) => fs.readFileSync(path.join(ADS_FIXTURES, f), 'utf8');
+  const out = [];
+  let means = null;
+  for (const model of new Set(rows.map((r) => r.model))) {
+    const [main, ...imports] = model.split('+');
+    const read = lib.readKaos(fixture(main), {
+      modelName: path.basename(main, '.kaos'),
+      files: Object.fromEntries(imports.map((f) => [f, fixture(f)])),
+    });
+    const modelOf = (estimates) => {
+      const json = JSON.parse(JSON.stringify(read.model));
+      if (estimates === 'ambulance') {
+        means ??= ambulanceMeans();
+        for (const node of json.orphans)
+          if (means.has(node.id))
+            node.customProperties = {
+              ...node.customProperties,
+              Probability: String(means.get(node.id)),
+            };
+      }
+      return kaosModelOf(json);
+    };
+    out.push(
+      ...selectionOracle(
+        modelOf,
+        rows.filter((r) => r.model === model),
+      ).map((r) => ({ file: model, ...r })),
+    );
+  }
+  const failing = out.filter((r) => r.status === 'fail');
+  return {
+    seed: 'ADS corpus',
+    mode: 'kaosres',
+    checks: {
+      oracle: {
+        status: failing.length ? 'fail' : 'pass',
+        detail: `${out.length - failing.length}/${out.length} rows`,
+      },
+    },
+    rows: out,
+  };
+};
+
 /** Two sets of resources, the same files by kind and path, whatever their order. */
 const sameResources = (a, b) => {
   const flat = (r) =>
@@ -471,6 +663,15 @@ const checkSeed = (name) => {
         return { status: 'fail', detail: `kaosprop ${id}: ${out.error}` };
       ran.push(`kaosprop ${id}: ${out.result.cases.length} case(s)`);
     }
+    for (const [id, analysis] of Object.entries(lib.kaosresAnalyses)) {
+      const out = lib.runAnalysis(
+        analysis,
+        lib.kaosresAnalysisModel(lib.readKaosObstacleModel(modelText)),
+      );
+      if ('error' in out)
+        return { status: 'fail', detail: `kaosres ${id}: ${out.error}` };
+      ran.push(`kaosres ${id}: ${out.result.cases.length} case(s)`);
+    }
     for (const [id, analysis] of Object.entries(lib.kaosexpertAnalyses)) {
       const out = lib.runAnalysis(
         analysis,
@@ -494,7 +695,13 @@ const checkSeed = (name) => {
   for (const file of oracleFiles) {
     const csv = readCsv(fs.readFileSync(path.join(dir, file), 'utf8'));
     if (!csv.length) continue;
-    if ('probability' in csv[0]) {
+    if ('selection' in csv[0])
+      rows.push(
+        ...selectionOracle(() => kaosModelOf(JSON.parse(modelText)), csv).map(
+          (r) => ({ file, ...r }),
+        ),
+      );
+    else if ('probability' in csv[0]) {
       // las.expected.csv is RE'12's hand-drawn model's (its header says so)
       const text =
         name === 'las' ? fs.readFileSync(LAS_FIXTURE, 'utf8') : modelText;
@@ -576,7 +783,7 @@ const markdown = (results, exitCode) => {
 const main = () => {
   fs.rmSync(RESULTS, { recursive: true, force: true });
   fs.mkdirSync(RESULTS, { recursive: true });
-  const results = SEEDS.map(checkSeed);
+  const results = [...SEEDS.map(checkSeed), checkCorpus()];
   for (const result of results) {
     fs.writeFileSync(path.join(RESULTS, `${result.seed}.json`), json(result));
     console.log(

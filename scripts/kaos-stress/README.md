@@ -20,9 +20,9 @@ node scripts/kaos-stress/run.cjs --strict   # fail on any seed's failure
 - **roundtrip**: the model is written back with its resources
   (`writeKaos`), and the written file reads to the same model
   (`modelRoundTrip`) and the same resources.
-- **analyses**: kaosprop's two analyses and kaosexpert's two run without
-  error. Both engines read every `.kaos`, and kaosexpert runs 2000
-  samples here.
+- **analyses**: kaosprop's two analyses, kaosres's three and kaosexpert's
+  two run without error. All three engines read every `.kaos`, and
+  kaosexpert runs 2000 samples here.
 - **oracle**: each row of the seed's `*.expected.csv`, by its header:
   - `id,element,probability,paper,derivation` (kaosprop's):
     - kaosprop's probability within 5e-7;
@@ -48,8 +48,25 @@ node scripts/kaos-stress/run.cjs --strict   # fail on any seed's failure
     Each is checked within its tolerance, the run being 100 000 samples
     with seed 1. A row whose `expected` is `-` is a number the paper prints
     and the seed can't reproduce: reported, never a failure.
+  - `quantity,selection,goal,expected,tolerance,options,derivation`
+    (kaosres's countermeasure selection, goal-controller#191; the flood
+    seed's): a selection, its countermeasure goals joined by `+` (`none`
+    for the empty one), run with `options` (`semantics=kaostools`,
+    `scope=model`, `limit=n`; SEAMS'17's rules by default):
+    - `ESR` of `goal` within `tolerance`, `cost`, and `flags` (`safe` or
+      `not safe`, `consistent` or `inconsistent`, `cost-optimal`);
+    - of the run (`selection` `-`): `minimal cost` (`none`: no safe
+      selection), `chosen` (the chosen selections, ` | `), `candidates`,
+      `evaluated`, `exact` (`yes`/`no`).
 - **degenerate** (`las`): RE'12's rows under kaosexpert with point
   estimates. Each sample is kaosprop's EPS.
+- **ADS corpus** (goal-controller#191, #201): ADS's `simple.kaos`,
+  `validation-model.kaos`, and `las.kaos` with `obstacles.kaos` and
+  `resolutions.kaos` (goal-language's test fixtures, MIT), selected as
+  `ads.expected.csv` says, in the selection format with a `model` column.
+  The option `estimates=ambulance` puts each leaf obstacle at its experts'
+  combined mean (kaosexpert over the ambulance seed's five experts): the
+  field run, about 20 s (4096 selections).
 
 Results go to `.cache/kaos/results/`: `SUMMARY.md` (one row per seed, then
 every oracle row) and one JSON per seed.

@@ -37,6 +37,7 @@ export default function ModelInspector() {
     case 'kaosdoc':
     case 'kaosprop':
     case 'kaosexpert':
+    case 'kaosres':
     case 'nfrprop':
       return null;
     case 'edge':

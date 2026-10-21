@@ -1,0 +1,980 @@
+{
+  "actors": [],
+  "orphans": [
+    {
+      "id": "locals_warned_when_risk_imminent",
+      "text": "Achieve [LocalsWarnedWhenRiskImminent]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": "",
+        "RSR": ".65"
+      },
+      "x": 1000,
+      "y": 80
+    },
+    {
+      "id": "avoid_false_warning",
+      "text": "Avoid [FalseWarning]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 2280,
+      "y": 80
+    },
+    {
+      "id": "radar_depth_acquired_every_5_seconds",
+      "text": "Achieve [DepthAcquiredEvery5SecondsByRadar]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "when not radarDepthAcquired() then sooner-or-later, before 5 seconds, radarDepthAcquired()",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 40,
+      "y": 180
+    },
+    {
+      "id": "acquired_radar_depth_accurate",
+      "text": "Maintain [AcquiredRadarDepthAccurate]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "when radarDepthAcquired() and acquiredDepthCritical() then sooner-or-later, before 3 seconds, depthAccurate()",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 2120,
+      "y": 180
+    },
+    {
+      "id": "speed_acquired_every_5_seconds",
+      "text": "Achieve [SpeedAcquiredEvery5SecondsByUltrasound]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "when not speedAcquiredByUltrasound() then sooner-or-later, before 5 seconds, speedAcquiredByUltrasound()",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 360,
+      "y": 180
+    },
+    {
+      "id": "acquired_ultrasound_speed_accurate",
+      "text": "Maintain [UltrasoundSpeedAccurate]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "when speedAcquiredByUltrasound() and acquiredSpeedCritical() then sooner-or-later, before 3 seconds, speedAccurate()",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 2440,
+      "y": 180
+    },
+    {
+      "id": "locals_warned",
+      "text": "Achieve [LocalsWarnedByPhoneWhenLevelsCritical]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "when acquiredDepthCritical() and acquiredSpeedCritical() then sooner-or-later, before 5 seconds, localsWarnedByPhone()",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 1480,
+      "y": 180
+    },
+    {
+      "id": "critical_detected",
+      "text": "Achieve [LevelsCriticalDetectedWhenDataAcquired]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 1000,
+      "y": 180
+    },
+    {
+      "id": "depth_not_acquired",
+      "text": "Depth Not Acquired",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 40,
+      "y": 280
+    },
+    {
+      "id": "acquired_depth_not_accurate",
+      "text": "Acquired Depth Not Accurate",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 2120,
+      "y": 280
+    },
+    {
+      "id": "speed_not_acquired",
+      "text": "Speed Not Acquired",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 520,
+      "y": 280
+    },
+    {
+      "id": "acquired_speed_not_accurate",
+      "text": "Acquired Speed Not Accurate",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 2440,
+      "y": 280
+    },
+    {
+      "id": "locals_not_warned",
+      "text": "Locals Not Warned In Time",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 1640,
+      "y": 280
+    },
+    {
+      "id": "dusty_environment",
+      "text": "Dusty Environment",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "sooner-or-later (always, for more than 4 seconds, dustyEnvironment())",
+        "Category": "",
+        "Probability": ".1"
+      },
+      "x": 2120,
+      "y": 380
+    },
+    {
+      "id": "echo",
+      "text": "False Echo",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "sooner-or-later (always, for more than 4 seconds, falseEcho())",
+        "Category": "",
+        "Probability": ".08"
+      },
+      "x": 2280,
+      "y": 380
+    },
+    {
+      "id": "depth_broken",
+      "text": "Radar Sensor Broken",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "sooner-or-later (always, for more than 6 seconds, radarDepthSensorBroken())",
+        "Category": "",
+        "Probability": ".2"
+      },
+      "x": 40,
+      "y": 380
+    },
+    {
+      "id": "ultrasound_broken",
+      "text": "Ultrasound Sensor Broken",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "sooner-or-later (always, for more than 6 seconds, ultrasoundSensorBroken())",
+        "Category": "",
+        "Probability": ".4"
+      },
+      "x": 520,
+      "y": 380
+    },
+    {
+      "id": "ultrasound_distortion",
+      "text": "Distortion in Ultrasound Measure",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "sooner-or-later (always, for more than 6 seconds, ultrasoundDistortion())",
+        "Category": ""
+      },
+      "x": 2440,
+      "y": 380
+    },
+    {
+      "id": "noisy_image",
+      "text": "Noisy Image",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "sooner-or-later (always, for more than 6 seconds, noisyImage())",
+        "Category": "",
+        "Probability": ".05"
+      },
+      "x": 680,
+      "y": 680
+    },
+    {
+      "id": "voice_down",
+      "text": "Voice Network Overloaded",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "sooner-or-later (acquiredDepthCritical() and acquiredSpeedCritical() and always, for more than 5 seconds, voiceNetworkOverloaded())",
+        "Category": "",
+        "Probability": ".15"
+      },
+      "x": 1480,
+      "y": 380
+    },
+    {
+      "id": "gsm_down",
+      "text": "GSM Network Down",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "sooner-or-later (acquiredDepthCritical() and acquiredSpeedCritical() and always, for more than 5 seconds, gsmNetworkDown())",
+        "Category": ""
+      },
+      "x": 1960,
+      "y": 380
+    },
+    {
+      "id": "speed_acquired_every_10_seconds",
+      "text": "Achieve [SpeedAcquiredEvery10SecondsByUltrasound]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "when not speedAcquiredByUltrasound() then sooner-or-later, before 10 seconds, speedAcquiredByUltrasound()",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 680,
+      "y": 180
+    },
+    {
+      "id": "speed_acquired_by_camera",
+      "text": "Achieve [SpeedAcquiredEvery5SecondsByCamera]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 520,
+      "y": 480
+    },
+    {
+      "id": "images_acquired",
+      "text": "Achieve [ImagesAcquiredEvery5Seconds]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 360,
+      "y": 580
+    },
+    {
+      "id": "speed_acquired_from_images",
+      "text": "Achieve [SpeedAcquiredFromImages]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 680,
+      "y": 580
+    },
+    {
+      "id": "acquired_camera_speed_accurate",
+      "text": "Maintain [CameraSpeedAccurate]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 2440,
+      "y": 480
+    },
+    {
+      "id": "locals_warned_by_sms",
+      "text": "Achieve [LocalsWarnedBySMSWhenLevelsCritical]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "when acquiredDepthCritical() and acquiredSpeedCritical() then sooner-or-later, before 5 seconds, localsWarnedBySMS()",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 1320,
+      "y": 480
+    },
+    {
+      "id": "locals_warned_by_email",
+      "text": "  ",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "when acquiredDepthCritical() and acquiredSpeedCritical() then sooner-or-later, before 5 seconds, localsWarnedByEmail()",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 1640,
+      "y": 480
+    },
+    {
+      "id": "radarDepthSensor",
+      "text": "Depth Sensor",
+      "type": "kaos.Agent",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 200,
+      "y": 180
+    },
+    {
+      "id": "ultrasoundSensor",
+      "text": "Ultrasound Sensor",
+      "type": "kaos.Agent",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 520,
+      "y": 180
+    },
+    {
+      "id": "voiceWarner",
+      "text": "VoiceWarner",
+      "type": "kaos.Agent",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 1640,
+      "y": 180
+    },
+    {
+      "id": "fds",
+      "text": "Flooding Detection System",
+      "type": "kaos.Agent",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 1160,
+      "y": 180
+    },
+    {
+      "id": "camera",
+      "text": "camera",
+      "type": "kaos.Agent",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 520,
+      "y": 580
+    },
+    {
+      "id": "cameraSpeedModule",
+      "text": "cameraSpeedModule",
+      "type": "kaos.Agent",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 840,
+      "y": 580
+    },
+    {
+      "id": "SMSWarner",
+      "text": "SMSWarner",
+      "type": "kaos.Agent",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 1480,
+      "y": 480
+    },
+    {
+      "id": "EmailWarner",
+      "text": "EmailWarner",
+      "type": "kaos.Agent",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 1800,
+      "y": 480
+    }
+  ],
+  "dependencies": [],
+  "links": [
+    {
+      "hub": {
+        "id": "locals_warned_when_risk_imminent-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        },
+        "x": 918,
+        "y": 138
+      },
+      "starts": [
+        {
+          "id": "locals_warned_when_risk_imminent-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "radar_depth_acquired_every_5_seconds",
+          "target": "locals_warned_when_risk_imminent-refinement-1"
+        },
+        {
+          "id": "locals_warned_when_risk_imminent-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "speed_acquired_every_5_seconds",
+          "target": "locals_warned_when_risk_imminent-refinement-1"
+        },
+        {
+          "id": "locals_warned_when_risk_imminent-refinement-1-3",
+          "type": "kaos.RefinementLinkStart",
+          "source": "critical_detected",
+          "target": "locals_warned_when_risk_imminent-refinement-1"
+        },
+        {
+          "id": "locals_warned_when_risk_imminent-refinement-1-4",
+          "type": "kaos.RefinementLinkStart",
+          "source": "locals_warned",
+          "target": "locals_warned_when_risk_imminent-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "locals_warned_when_risk_imminent-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "locals_warned_when_risk_imminent-refinement-1",
+        "target": "locals_warned_when_risk_imminent"
+      }
+    },
+    {
+      "hub": {
+        "id": "avoid_false_warning-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        },
+        "x": 2338,
+        "y": 138
+      },
+      "starts": [
+        {
+          "id": "avoid_false_warning-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "acquired_radar_depth_accurate",
+          "target": "avoid_false_warning-refinement-1"
+        },
+        {
+          "id": "avoid_false_warning-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "acquired_ultrasound_speed_accurate",
+          "target": "avoid_false_warning-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "avoid_false_warning-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "avoid_false_warning-refinement-1",
+        "target": "avoid_false_warning"
+      }
+    },
+    {
+      "hub": {
+        "id": "depth_not_acquired-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 98,
+        "y": 338
+      },
+      "starts": [
+        {
+          "id": "depth_not_acquired-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "depth_broken",
+          "target": "depth_not_acquired-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "depth_not_acquired-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "depth_not_acquired-refinement-1",
+        "target": "depth_not_acquired"
+      }
+    },
+    {
+      "hub": {
+        "id": "acquired_depth_not_accurate-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 2178,
+        "y": 338
+      },
+      "starts": [
+        {
+          "id": "acquired_depth_not_accurate-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "dusty_environment",
+          "target": "acquired_depth_not_accurate-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "acquired_depth_not_accurate-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "acquired_depth_not_accurate-refinement-1",
+        "target": "acquired_depth_not_accurate"
+      }
+    },
+    {
+      "hub": {
+        "id": "acquired_depth_not_accurate-refinement-2",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 2258,
+        "y": 338
+      },
+      "starts": [
+        {
+          "id": "acquired_depth_not_accurate-refinement-2-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "echo",
+          "target": "acquired_depth_not_accurate-refinement-2"
+        }
+      ],
+      "end": {
+        "id": "acquired_depth_not_accurate-refinement-2-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "acquired_depth_not_accurate-refinement-2",
+        "target": "acquired_depth_not_accurate"
+      }
+    },
+    {
+      "hub": {
+        "id": "speed_not_acquired-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 578,
+        "y": 338
+      },
+      "starts": [
+        {
+          "id": "speed_not_acquired-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "ultrasound_broken",
+          "target": "speed_not_acquired-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "speed_not_acquired-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "speed_not_acquired-refinement-1",
+        "target": "speed_not_acquired"
+      }
+    },
+    {
+      "hub": {
+        "id": "acquired_speed_not_accurate-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 2498,
+        "y": 338
+      },
+      "starts": [
+        {
+          "id": "acquired_speed_not_accurate-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "ultrasound_distortion",
+          "target": "acquired_speed_not_accurate-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "acquired_speed_not_accurate-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "acquired_speed_not_accurate-refinement-1",
+        "target": "acquired_speed_not_accurate"
+      }
+    },
+    {
+      "hub": {
+        "id": "locals_not_warned-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 1618,
+        "y": 338
+      },
+      "starts": [
+        {
+          "id": "locals_not_warned-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "voice_down",
+          "target": "locals_not_warned-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "locals_not_warned-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "locals_not_warned-refinement-1",
+        "target": "locals_not_warned"
+      }
+    },
+    {
+      "hub": {
+        "id": "locals_not_warned-refinement-2",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 1858,
+        "y": 338
+      },
+      "starts": [
+        {
+          "id": "locals_not_warned-refinement-2-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "gsm_down",
+          "target": "locals_not_warned-refinement-2"
+        }
+      ],
+      "end": {
+        "id": "locals_not_warned-refinement-2-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "locals_not_warned-refinement-2",
+        "target": "locals_not_warned"
+      }
+    },
+    {
+      "hub": {
+        "id": "speed_acquired_by_camera-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        },
+        "x": 578,
+        "y": 538
+      },
+      "starts": [
+        {
+          "id": "speed_acquired_by_camera-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "images_acquired",
+          "target": "speed_acquired_by_camera-refinement-1"
+        },
+        {
+          "id": "speed_acquired_by_camera-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "speed_acquired_from_images",
+          "target": "speed_acquired_by_camera-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "speed_acquired_by_camera-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "speed_acquired_by_camera-refinement-1",
+        "target": "speed_acquired_by_camera"
+      }
+    },
+    {
+      "id": "depth_not_acquired-obstructs-radar_depth_acquired_every_5_seconds",
+      "type": "kaos.ObstructionLink",
+      "source": "depth_not_acquired",
+      "target": "radar_depth_acquired_every_5_seconds"
+    },
+    {
+      "id": "acquired_depth_not_accurate-obstructs-acquired_radar_depth_accurate",
+      "type": "kaos.ObstructionLink",
+      "source": "acquired_depth_not_accurate",
+      "target": "acquired_radar_depth_accurate"
+    },
+    {
+      "id": "speed_not_acquired-obstructs-speed_acquired_every_5_seconds",
+      "type": "kaos.ObstructionLink",
+      "source": "speed_not_acquired",
+      "target": "speed_acquired_every_5_seconds"
+    },
+    {
+      "id": "acquired_speed_not_accurate-obstructs-acquired_ultrasound_speed_accurate",
+      "type": "kaos.ObstructionLink",
+      "source": "acquired_speed_not_accurate",
+      "target": "acquired_ultrasound_speed_accurate"
+    },
+    {
+      "id": "locals_not_warned-obstructs-locals_warned",
+      "type": "kaos.ObstructionLink",
+      "source": "locals_not_warned",
+      "target": "locals_warned"
+    },
+    {
+      "id": "noisy_image-obstructs-speed_acquired_from_images",
+      "type": "kaos.ObstructionLink",
+      "source": "noisy_image",
+      "target": "speed_acquired_from_images"
+    },
+    {
+      "id": "noisy_image-obstructs-acquired_camera_speed_accurate",
+      "type": "kaos.ObstructionLink",
+      "source": "noisy_image",
+      "target": "acquired_camera_speed_accurate"
+    },
+    {
+      "id": "gsm_down-obstructs-locals_warned_by_sms",
+      "type": "kaos.ObstructionLink",
+      "source": "gsm_down",
+      "target": "locals_warned_by_sms"
+    },
+    {
+      "id": "speed_acquired_by_camera-resolves-ultrasound_broken",
+      "type": "kaos.ResolutionLink",
+      "source": "speed_acquired_by_camera",
+      "target": "ultrasound_broken",
+      "customProperties": {
+        "ResolutionType": "goal substitution",
+        "Anchor": "locals_warned_when_risk_imminent"
+      }
+    },
+    {
+      "id": "acquired_camera_speed_accurate-resolves-ultrasound_distortion",
+      "type": "kaos.ResolutionLink",
+      "source": "acquired_camera_speed_accurate",
+      "target": "ultrasound_distortion",
+      "customProperties": {
+        "ResolutionType": "goal substitution",
+        "Anchor": "avoid_false_warning"
+      }
+    },
+    {
+      "id": "locals_warned_by_sms-resolves-voice_down",
+      "type": "kaos.ResolutionLink",
+      "source": "locals_warned_by_sms",
+      "target": "voice_down",
+      "customProperties": {
+        "ResolutionType": "goal substitution",
+        "Anchor": "locals_warned_when_risk_imminent"
+      }
+    },
+    {
+      "id": "locals_warned_by_email-resolves-voice_down",
+      "type": "kaos.ResolutionLink",
+      "source": "locals_warned_by_email",
+      "target": "voice_down",
+      "customProperties": {
+        "ResolutionType": "goal substitution",
+        "Anchor": "locals_warned_when_risk_imminent"
+      }
+    },
+    {
+      "id": "locals_warned_by_email-resolves-gsm_down",
+      "type": "kaos.ResolutionLink",
+      "source": "locals_warned_by_email",
+      "target": "gsm_down",
+      "customProperties": {
+        "ResolutionType": "goal substitution",
+        "Anchor": "locals_warned_when_risk_imminent"
+      }
+    },
+    {
+      "id": "radarDepthSensor-assigned-radar_depth_acquired_every_5_seconds",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "radarDepthSensor",
+      "target": "radar_depth_acquired_every_5_seconds"
+    },
+    {
+      "id": "radarDepthSensor-assigned-acquired_radar_depth_accurate",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "radarDepthSensor",
+      "target": "acquired_radar_depth_accurate"
+    },
+    {
+      "id": "ultrasoundSensor-assigned-speed_acquired_every_5_seconds",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "ultrasoundSensor",
+      "target": "speed_acquired_every_5_seconds"
+    },
+    {
+      "id": "ultrasoundSensor-assigned-acquired_ultrasound_speed_accurate",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "ultrasoundSensor",
+      "target": "acquired_ultrasound_speed_accurate"
+    },
+    {
+      "id": "voiceWarner-assigned-locals_warned",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "voiceWarner",
+      "target": "locals_warned"
+    },
+    {
+      "id": "fds-assigned-critical_detected",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "fds",
+      "target": "critical_detected"
+    },
+    {
+      "id": "ultrasoundSensor-assigned-speed_acquired_every_10_seconds",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "ultrasoundSensor",
+      "target": "speed_acquired_every_10_seconds"
+    },
+    {
+      "id": "camera-assigned-images_acquired",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "camera",
+      "target": "images_acquired"
+    },
+    {
+      "id": "cameraSpeedModule-assigned-speed_acquired_from_images",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "cameraSpeedModule",
+      "target": "speed_acquired_from_images"
+    },
+    {
+      "id": "cameraSpeedModule-assigned-acquired_camera_speed_accurate",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "cameraSpeedModule",
+      "target": "acquired_camera_speed_accurate"
+    },
+    {
+      "id": "SMSWarner-assigned-locals_warned_by_sms",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "SMSWarner",
+      "target": "locals_warned_by_sms"
+    },
+    {
+      "id": "EmailWarner-assigned-locals_warned_by_email",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "EmailWarner",
+      "target": "locals_warned_by_email"
+    },
+    {
+      "id": "speed_acquired_by_camera-conflicts-acquired_ultrasound_speed_accurate",
+      "type": "kaos.Conflict",
+      "source": "speed_acquired_by_camera",
+      "target": "acquired_ultrasound_speed_accurate"
+    },
+    {
+      "id": "speed_acquired_every_5_seconds-conflicts-acquired_camera_speed_accurate",
+      "type": "kaos.Conflict",
+      "source": "speed_acquired_every_5_seconds",
+      "target": "acquired_camera_speed_accurate"
+    }
+  ],
+  "display": {},
+  "tool": "dsm3-goals",
+  "metamodelVersion": "1.0",
+  "diagram": {
+    "width": 2735,
+    "height": 816,
+    "name": "flood",
+    "customProperties": {
+      "Description": "",
+      "kaosUnsupported": "override obstacle [ dusty_environment ]\n  $monitored \"true\"\nend\n\noverride obstacle [ echo ]\n  $monitored \"true\"\nend\n\noverride obstacle [ depth_broken ]\n  $monitored \"true\"\nend\n\noverride obstacle [ ultrasound_broken ]\n  $monitored \"true\"\nend\n\noverride obstacle [ noisy_image ]\n  $monitored \"true\"\nend\n\noverride obstacle [ voice_down ]\n  $monitored \"true\"\nend\n\noverride goal [ speed_acquired_by_camera ]\n  $ondeploy \"DeployCamera\"\n  $onwithold \"DeployUltrasound\"\nend\n\noverride goal [ acquired_camera_speed_accurate ]\n  $ondeploy \"DeployCamera\"\n  $onwithold \"DeployUltrasound\"\nend\n\noverride goal [ locals_warned_by_sms ]\n  $ondeploy \"DeploySMS\"\n  $onwithold \"DeployPhone\"\nend\n\noverride goal [ locals_warned_by_email ]\n  $ondeploy \"DeployEmail\"\n  $onwithold \"DeployPhone\"\nend\n\ndeclare predicate [ radarDepthAcquired ]\n\tname \"RadarDepthAcquired\"\nend\n\ndeclare predicate [ depthAccurate ]\n  name \"DepthAccurate\"\nend\n\ndeclare predicate [ speedAcquiredByUltrasound ]\n\tname \"SpeedAcquiredByUltraSound\"\nend\n\ndeclare predicate [ speedAcquiredByCamera ]\n\tname \"SpeedAcquiredByCamera\"\nend\n\ndeclare predicate [ speedAccurate ]\n  name \"SpeedAccurate\"\nend\n\ndeclare predicate [ acquiredDepthCritical ]\n  name \"AcquiredDepthCritical\"\nend\n\ndeclare predicate [ acquiredSpeedCritical ]\n  name \"AcquiredSpeedCritical\"\nend\n\ndeclare predicate [ localsWarnedByPhone ]\n  name \"LocalsWarnedByPhone\"\nend\n\ndeclare predicate [ localsWarnedBySMS ]\n  name \"LocalsWarnedBySMS\"\nend\n\ndeclare predicate [ localsWarnedByEmail ]\n  name \"LocalsWarnedByEmail\"\nend\n\ndeclare predicate [ DustyEnvironment ]\n  name \"DustyEnvironment\"\nend\n\ndeclare predicate [ falseEcho ]\n  name \"FalseEcho\"\nend\n\ndeclare predicate [ radarDepthSensorBroken ]\n  name \"DepthSensorBroken\"\nend\n\ndeclare predicate [ ultrasoundSensorBroken ]\n  name \"UltrasoundSensorBroken\"\nend\n\ndeclare predicate [ ultrasoundDistortion ]\n  name \"UltrasoundDistortion\"\nend\n\ndeclare predicate [ noisyImage ]\n  name \"NoisyImage\"\nend\n\ndeclare predicate [ gsmNetworkDown ]\n  name \"GSMNetworkDown\"\nend\n\ndeclare predicate [ voiceNetworkOverloaded ]\n  name \"VoiceNetworkOveloaded\"\nend\n\ndeclare constraint\n  id cst13\n  conflict locals_warned_by_sms, locals_warned_by_email, locals_warned\nend"
+    }
+  }
+}
