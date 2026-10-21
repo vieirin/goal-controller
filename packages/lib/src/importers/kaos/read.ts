@@ -209,7 +209,7 @@ export const identifierOf = (text: string, fallback: string) => {
 };
 
 /** kaossim's attributes (goal-controller#193) and the keys they are, keyed by a name. */
-const SIM_KEYS: Readonly<Record<string, string>> = {
+const SIM_KEYS = {
   qualityvariable: 'QualityVariable',
   samplespace: 'SampleSpace',
   qualitydefinition: 'QualityDefinition',
@@ -220,7 +220,7 @@ const SIM_KEYS: Readonly<Record<string, string>> = {
   modal: 'Modal',
   target: 'Target',
   current: 'Current',
-};
+} as const;
 
 const isGoal = (word: KaosDeclarationKind) =>
   word === 'goal' || word === 'softgoal';
@@ -818,6 +818,7 @@ export const readKaos = (
     let name: string | undefined;
     let source: string | undefined;
     const options: string[] = [];
+    // by variable: the model's names, any it has (DesignEntry's `set`)
     const set: Record<string, string> = {};
     const text = (value: Value) =>
       value.atom.$type === 'StringAtom' && !value.bracket.length && !value.op

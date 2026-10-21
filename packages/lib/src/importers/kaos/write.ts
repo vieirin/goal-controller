@@ -193,6 +193,8 @@ const valueText = (key: SimKey, text: string) => {
 };
 
 /** A refinement's or an assignment's kaossim parameters: `sysref = "…"`, `v = "…"`. */
+// a hub's or a link's customProperties are open (piStar keeps every key as
+// read): narrowed here to SysRef's and the keyed equations' texts
 const simParams = (props: Record<string, unknown>): string[] => {
   const params: string[] = [];
   const sysRef = props.SysRef;

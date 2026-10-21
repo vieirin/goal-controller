@@ -50,6 +50,16 @@ declare agent [ call_taker ] end
 declare agent [ computer ] type software end
 `;
 
+/** The model's JSON as the test reads it: its nodes and links, their properties' texts. */
+type Props = Readonly<Record<string, string>>;
+type Node = { id: string; x?: number; y?: number; customProperties: Props };
+type Link = {
+  type?: string;
+  customProperties?: Props;
+  hub?: { customProperties: Props };
+};
+type Model = { orphans: Node[]; links: Link[] };
+
 describe('kaossim: .kaos (#193 D1)', () => {
   const read = readKaos(TEXT, { modelName: 'm' });
 
@@ -60,8 +70,8 @@ describe('kaossim: .kaos (#193 D1)', () => {
       [],
     );
     assert.strictEqual(read.dialectRecord!.engine, 'kaossim');
-    const model = read.model as Record<string, any>;
-    const goal = model.orphans.find((n: any) => n.id === 'intervention');
+    const model = read.model as Model;
+    const goal = model.orphans.find((n) => n.id === 'intervention')!;
     assert.strictEqual(
       goal.customProperties['QualityVariable[ResponseTime]'],
       'Time',
@@ -71,7 +81,7 @@ describe('kaossim: .kaos (#193 D1)', () => {
       'ResponseTime <= 14 * 60',
     );
     assert.strictEqual(goal.customProperties['Target[14MinRespRate]'], '95%');
-    const hub = model.links.find((l: any) => l.hub)!.hub;
+    const hub = model.links.find((l) => l.hub)!.hub!;
     assert.strictEqual(hub.customProperties.Tactic, 'milestone-driven');
     assert.strictEqual(
       hub.customProperties['Equation[ResponseTime]'],
@@ -82,10 +92,10 @@ describe('kaossim: .kaos (#193 D1)', () => {
       'Lost | Broken',
     );
     const assignments = model.links.filter(
-      (l: any) => l.type === 'kaos.ResponsibilityAssignment',
+      (l) => l.type === 'kaos.ResponsibilityAssignment',
     );
     assert.deepStrictEqual(
-      assignments.map((l: any) => l.customProperties),
+      assignments.map((l) => l.customProperties),
       [
         { SysRef: '1.1', 'Distribution[CallTaking]': 'exponential[60]' },
         { SysRef: '1.2', 'Distribution[CallTaking]': 'exponential[40]' },
@@ -133,12 +143,11 @@ describe('kaossim: .kaos (#193 D1)', () => {
       /assignedto \[sysref = "1.2", CallTaking = "exponential\[40\]"\] computer/,
     );
     const again = readKaos(written.text!, { modelName: 'm' });
-    const strip = (m: any) =>
+    const strip = (m: Model) =>
       JSON.stringify({
         ...m,
-        orphans: m.orphans.map(({ x: _x, y: _y, ...n }: any) => n),
-        links: m.links,
+        orphans: m.orphans.map(({ x: _x, y: _y, ...n }) => n),
       });
-    assert.strictEqual(strip(again.model), strip(read.model));
+    assert.strictEqual(strip(again.model as Model), strip(read.model as Model));
   });
 });
