@@ -46,6 +46,7 @@
     "oxfmt": "^0.71.0",
     "oxlint": "^1.86.0",
     "typescript": "^5.8.3",
+    "typescript-language-server": "^6.0.2",
     "vercel": "^50.4.11"
   },
   "engines": {

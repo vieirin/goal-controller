@@ -5,12 +5,12 @@
 # Non-interactive: every subcommand is meant to be called by the orchestrator
 # from its Bash tool.
 #
-#   agent-factory up    [DIR] [-n NAME] [-m fable|opus] [-e EFFORT] [-W]   orchestrator tab (-W: own workspace)
-#   agent-factory spawn NAME [-m MODEL] [-e EFFORT] [-r ROLE] [-t TASKFILE|-T TEXT] [-1]
+#   agent-factory up    [DIR] [-n NAME] [-m fable|opus] [-e EFFORT] [-W] [-c]   orchestrator tab (-W: own workspace)
+#   agent-factory spawn NAME [-m MODEL] [-e EFFORT] [-r ROLE] [-t TASKFILE|-T TEXT] [-1] [-c]
 #                       [-w] [-b BRANCH] [-B BASE] [-d DIR] [-p MODE] [-P|-W]
 #   agent-factory result NAME                                         a one-shot (-1) worker's answer
 #   agent-factory send   NAME (-t TASKFILE | -T TEXT)                 paste a follow-up into a worker
-#   agent-factory list                                                workers, models, branches, alive?
+#   agent-factory list                                                workers, models, branches, context, alive?
 #   agent-factory peek   NAME [-l LINES]                              last lines of a worker's screen
 #   agent-factory kill   NAME [-W]                                    close its tab (-W: remove worktree too)
 #   agent-factory down   [-W]                                         kill every worker of this project
@@ -26,6 +26,9 @@
 #   -w      the worker gets .claude/worktrees/NAME on branch BRANCH from BASE (default
 #           origin/main); without -w it shares the project checkout (scouts, reviewers).
 #   -P      a split pane next to the orchestrator; -W a separate workspace (sidebar entry).
+#   lean    sessions start without MCP servers, Claude in Chrome, or user plugins (hooks-only
+#           plugins stay); -c gives one the browser back; AGENT_FACTORY_LEAN=0 turns this off.
+#   context `list` shows each session's prompt size (CTX) from its transcript.
 set -euo pipefail
 export CMUX_QUIET=1
 
@@ -48,7 +51,7 @@ die() { echo "agent-factory: $*" >&2; exit 1; }
 die_usage() { # SUB MSG... -> stderr message + that subcommand's usage line, exit 1
   local sub=$1; shift
   echo "agent-factory: $*" >&2
-  sed -n '2,27p' "$0" | grep -m1 "agent-factory $sub " >&2 || true
+  sed -n '2,31p' "$0" | grep -m1 "agent-factory $sub " >&2 || true
   exit 1
 }
 valid_name() { [[ "$1" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]]; }
@@ -75,16 +78,66 @@ target_args() { # NAME -> --surface ref | --workspace ref
   echo "--workspace $w"
 }
 
+CLAUDE_HOME="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
+new_session_id() { uuidgen 2>/dev/null | tr 'A-Z' 'a-z' || cat /proc/sys/kernel/random/uuid; }
+ctx_of() { # NAME -> prompt tokens of the session's latest turn ("152k"), or "-"
+  local id f line n=0 k v
+  id=$(recall "$1" session); [ -n "$id" ] || { echo -; return; }
+  f=$(ls "$CLAUDE_HOME"/projects/*/"$id".jsonl 2>/dev/null | head -1 || true)
+  [ -n "$f" ] || { echo -; return; }
+  line=$(tail -n 300 "$f" | grep '"type":"assistant"' | grep '"input_tokens"' | grep -v '"model":"<synthetic>"' | tail -1 || true)
+  [ -n "$line" ] || { echo -; return; }
+  for k in input_tokens cache_creation_input_tokens cache_read_input_tokens; do
+    v=$(grep -o "\"$k\":[0-9]*" <<<"$line" | head -1 | cut -d: -f2); n=$((n + ${v:-0}))
+  done
+  echo "$((n / 1000))k"
+}
+
+prompt_free() { # PLUGIN@MARKETPLACE PLUGIN_DIR -> true if the plugin ships only hooks and/or LSP servers
+  local key=$1 d=$2 j keep=0
+  [ -n "$d" ] && [ -d "$d" ] || return 1
+  [ -d "$d/skills" ] || [ -d "$d/commands" ] || [ -d "$d/agents" ] || [ -f "$d/SKILL.md" ] || [ -f "$d/.mcp.json" ] && return 1
+  [ -d "$d/hooks" ] || [ -f "$d/.lsp.json" ] && keep=1
+  # a non-strict plugin declares its components in the marketplace entry, not in its own directory
+  local entry; entry=$(jq -c --arg n "${key%@*}" '.plugins[]? | select(.name == $n)' \
+    "$CLAUDE_HOME/plugins/marketplaces/${key#*@}/.claude-plugin/marketplace.json" 2>/dev/null || true)
+  local verdict='if has("mcpServers") or has("skills") or has("commands") or has("agents") or has("outputStyles") then "prompt"
+                 elif has("hooks") or has("lspServers") then "free" else "" end'
+  for j in "$d/.claude-plugin/plugin.json" "$d/plugin.json" -; do
+    [ "$j" = - ] || [ -f "$j" ] || continue
+    case $(printf '%s' "${entry:-{\}}" | jq -r "$verdict" "$j" 2>/dev/null) in
+      prompt) return 1;; free) keep=1;;
+    esac
+  done
+  [ $keep -eq 1 ]
+}
+lean_settings() { # -> a settings file turning off the user's plugins except hooks/LSP-only ones, or nothing
+  local out="$AF_HOME/worker-settings.json" key dir off=""
+  command -v jq >/dev/null 2>&1 && [ -f "$CLAUDE_HOME/settings.json" ] && [ -f "$CLAUDE_HOME/plugins/installed_plugins.json" ] || return 0
+  while IFS=$'\t' read -r key dir; do
+    [ -n "$key" ] && ! prompt_free "$key" "$dir" && off+="$key"$'\n'
+  done < <(jq -r --slurpfile inst "$CLAUDE_HOME/plugins/installed_plugins.json" \
+    '(.enabledPlugins // {}) | to_entries[] | select(.value) | [.key, ($inst[0].plugins[.key][0].installPath // "")] | @tsv' \
+    "$CLAUDE_HOME/settings.json")
+  [ -n "$off" ] || return 0
+  printf '%s' "$off" | jq -Rn '{enabledPlugins: ([inputs | {(.): false}] | add)}' > "$out" && echo "$out"
+}
+
 # the worker's launcher: one file, so the cmux command stays short and the brief is never shell-quoted
-write_runner() { # NAME MODEL EFFORT ROLE PERM BRIEF ONESHOT
-  local name=$1 model=$2 effort=$3 role=$4 perm=$5 brief=$6 oneshot=$7 run="$STATE/$1/run.sh"
+write_runner() { # NAME MODEL EFFORT ROLE PERM BRIEF ONESHOT CHROME
+  local name=$1 model=$2 effort=$3 role=$4 perm=$5 brief=$6 oneshot=$7 chrome=${8:-} run="$STATE/$1/run.sh"
+  local sid; sid=$(new_session_id); record "$name" session "$sid"
   {
     echo '#!/usr/bin/env bash'
     echo "cd $(printf %q "$(recall "$name" dir)")"
     echo "AF_PLACE=$(printf %q "$(recall "$name" place)")"
-    local args="--model $model --effort $effort"
+    local args="--model $model --effort $effort --session-id $sid"
     case "$perm" in "") ;; skip) args+=" --dangerously-skip-permissions";; *) args+=" --permission-mode $perm";; esac
     [ -f "$ROLES/$role.md" ] && args+=" --append-system-prompt-file $(printf %q "$ROLES/$role.md")"
+    if [ "${AGENT_FACTORY_LEAN:-1}" != 0 ]; then
+      local s; s=$(lean_settings); [ -n "$s" ] && args+=" --settings $(printf %q "$s")"
+      if [ -n "$chrome" ]; then args+=" --chrome"; else args+=" --strict-mcp-config --no-chrome"; fi
+    fi
     if [ -n "$oneshot" ]; then
       echo "claude -p $args \"\$(cat $(printf %q "$brief"))\" > $(printf %q "$STATE/$name/result.md") 2>&1"
       echo "echo done >> $(printf %q "$STATE/$name/result.md")"
@@ -99,10 +152,10 @@ write_runner() { # NAME MODEL EFFORT ROLE PERM BRIEF ONESHOT
 
 # --- up ----------------------------------------------------------------------
 cmd_up() {
-  local dir="." name="" model="fable" effort="medium" perm="skip" own=0 opt
+  local dir="." name="" model="fable" effort="medium" perm="skip" own=0 chrome="" opt
   [ $# -gt 0 ] && [ "${1#-}" = "$1" ] && { dir=$1; shift; }
-  while getopts ":n:m:e:p:W" opt; do case $opt in
-    n) name=$OPTARG;; m) model=$OPTARG;; e) effort=$OPTARG;; p) perm=$OPTARG;; W) own=1;;
+  while getopts ":n:m:e:p:Wc" opt; do case $opt in
+    n) name=$OPTARG;; m) model=$OPTARG;; e) effort=$OPTARG;; p) perm=$OPTARG;; W) own=1;; c) chrome=1;;
     \?) die_usage up "illegal option -$OPTARG";; :) die_usage up "option -$OPTARG requires an argument";;
   esac; done; shift $((OPTIND-1)); OPTIND=1
   [ $# -gt 0 ] && dir=$1
@@ -113,7 +166,7 @@ cmd_up() {
   fi
   record "$name" dir "$dir"; record "$name" project "$dir"; record "$name" model "$model"; record "$name" role orchestrator
   : > "$STATE/$name/brief.md"
-  local run; run=$(write_runner "$name" "$model" "$effort" orchestrator "$perm" "$STATE/$name/brief.md" "")
+  local run; run=$(write_runner "$name" "$model" "$effort" orchestrator "$perm" "$STATE/$name/brief.md" "" "$chrome")
   local out ws
   if [ $own -eq 1 ]; then
     out=$(cmux workspace create --name "$proj: orchestrator" --cwd "$dir" --focus true --command "bash $(printf %q "$run")")
@@ -134,10 +187,10 @@ cmd_spawn() {
   [ $# -ge 1 ] || die "spawn needs NAME"
   local name=$1; shift
   valid_name "$name" || die_usage spawn "invalid worker name '$name'"
-  local model="" effort="" role="builder" task="" text="" wt=0 branch="" base="origin/main" dir="" perm="" place=tab oneshot="" opt
-  while getopts ":m:e:r:t:T:wb:B:d:p:PW1" opt; do case $opt in
+  local model="" effort="" role="builder" task="" text="" wt=0 branch="" base="origin/main" dir="" perm="" place=tab oneshot="" chrome="" opt
+  while getopts ":m:e:r:t:T:wb:B:d:p:PW1c" opt; do case $opt in
     m) model=$OPTARG;; e) effort=$OPTARG;; r) role=$OPTARG;; t) task=$OPTARG;; T) text=$OPTARG;;
-    w) wt=1;; b) branch=$OPTARG;; B) base=$OPTARG;; d) dir=$OPTARG;; p) perm=$OPTARG;; P) place=split;; W) place=workspace;; 1) oneshot=1;;
+    w) wt=1;; b) branch=$OPTARG;; B) base=$OPTARG;; d) dir=$OPTARG;; p) perm=$OPTARG;; P) place=split;; W) place=workspace;; 1) oneshot=1;; c) chrome=1;;
     \?) die_usage spawn "illegal option -$OPTARG";; :) die_usage spawn "option -$OPTARG requires an argument";;
   esac; done; shift $((OPTIND-1)); OPTIND=1
   [ -z "$task" ] || [ -f "$task" ] || die "task file $task not found"
@@ -188,7 +241,7 @@ cmd_spawn() {
     if [ -n "$oneshot" ]; then echo "You run headless: your final message is the answer; under 300 words, pointers over prose."
     else echo "Report to the orchestrator session named \"$(orchestrator_of "$root")\" with SendMessage when done or blocked."; fi
   } >> "$brief"
-  local run; run=$(write_runner "$name" "$model" "$effort" "$role" "$perm" "$brief" "$oneshot")
+  local run; run=$(write_runner "$name" "$model" "$effort" "$role" "$perm" "$brief" "$oneshot" "$chrome")
 
   # where it appears: a tab in the orchestrator's workspace (or the caller's), a split beside it, or its own workspace
   local out ref ows
@@ -258,13 +311,13 @@ cmd_peek() {
 
 cmd_list() {
   local root; root=$(project_root .)
-  printf '%-14s %-12s %-7s %-6s %-20s %-22s %-28s %s\n' NAME ROLE MODEL ALIVE TAB WORKSPACE BRANCH DIR
+  printf '%-14s %-12s %-7s %-6s %-6s %-20s %-22s %-28s %s\n' NAME ROLE MODEL ALIVE CTX TAB WORKSPACE BRANCH DIR
   local n; for n in "$STATE"/*/; do n=$(basename "$n")
     [ "$(recall "$n" project)" = "$root" ] || continue
     local d; d=$(recall "$n" dir); local b; b=$(git -C "$d" branch --show-current 2>/dev/null || echo -)
     local a=no; alive "$n" && a=yes
     [ "$(recall "$n" oneshot)" = 1 ] && [ -f "$STATE/$n/result.md" ] && tail -1 "$STATE/$n/result.md" | grep -qx done && a=done
-    printf '%-14s %-12s %-7s %-6s %-20s %-22s %-28s %s\n' "$n" "$(recall "$n" role)" "$(recall "$n" model)" "$a" "$(recall "$n" surface || echo -)" "$(recall "$n" workspace)" "$b" "$d"
+    printf '%-14s %-12s %-7s %-6s %-6s %-20s %-22s %-28s %s\n' "$n" "$(recall "$n" role)" "$(recall "$n" model)" "$a" "$(ctx_of "$n")" "$(recall "$n" surface || echo -)" "$(recall "$n" workspace)" "$b" "$d"
   done
 }
 
@@ -306,10 +359,10 @@ cmd_roles() { ls "$ROLES"/*.md; }
 
 sub=${1:-}; shift || true
 case "$sub" in
-  ""|-h|--help) sed -n '2,27p' "$0"; exit 0;;
+  ""|-h|--help) sed -n '2,31p' "$0"; exit 0;;
   roles) cmd_roles; exit 0;;
 esac
-{ [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; } && { sed -n '2,27p' "$0"; exit 0; }
+{ [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; } && { sed -n '2,31p' "$0"; exit 0; }
 need cmux "install cmux.app"; need claude
 case "$sub" in
   up) cmd_up "$@";; spawn) cmd_spawn "$@";; result) cmd_result "$@";; send) cmd_send "$@";; peek) cmd_peek "$@";;

@@ -51,6 +51,7 @@ packages/dialect/tsconfig.tsbuildinfo
 packages/ui/tsconfig.tsbuildinfo
 
 .plan/
+.claude/worktrees/
 
 # public/ copy of the manifest (lib/examples-manifest.json is committed)
 packages/ui/public/examples.json
