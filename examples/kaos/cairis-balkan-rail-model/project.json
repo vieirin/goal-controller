@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "dialect": "kaosprop",
+  "framework": "kaos",
+  "models": [
+    {
+      "path": "cairis-balkan-rail-model.txt"
+    }
+  ],
+  "projectResources": {},
+  "outputs": []
+}

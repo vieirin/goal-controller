@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "dialect": "kaosprop",
+  "framework": "kaos",
+  "models": [
+    {
+      "path": "cairis-neurogrid-core-technology.txt"
+    }
+  ],
+  "projectResources": {},
+  "outputs": []
+}

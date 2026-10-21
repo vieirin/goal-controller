@@ -1,0 +1,4449 @@
+{
+  "actors": [],
+  "orphans": [
+    {
+      "id": "active_directory_network_services",
+      "text": "Active Directory Network Services",
+      "type": "kaos.BehavioralGoal",
+      "x": 3560,
+      "y": 380,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.2(q)",
+        "FormalSpec": "",
+        "FitCriterion": "Network connectivity to any SCADA, Telemetry, and Control System application workstation can be cut using Active Directory.",
+        "Stability": "",
+        "Description": "Network services shall be controlled using Active Directory",
+        "Concern": "Corporate Network, Telemetry Network, Enterprise SCADA Network"
+      }
+    },
+    {
+      "id": "acme_change_control",
+      "text": "ACME Change Control",
+      "type": "kaos.BehavioralGoal",
+      "x": 3720,
+      "y": 280,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.1(n)",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "Existing ACME Change Control procedures to co-ordinate RFCs shall be followed"
+      }
+    },
+    {
+      "id": "product_security_accreditation",
+      "text": "Product security accreditation",
+      "type": "kaos.BehavioralGoal",
+      "x": 9000,
+      "y": 180,
+      "customProperties": {
+        "Type": "Achieve",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.1(p)",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "SCADA, Telemetry, and Control System products shall be accredited prior to their installation to the Enterprise SCADA environment."
+      }
+    },
+    {
+      "id": "intrusion_prevention_system",
+      "text": "Intrusion Prevention System",
+      "type": "kaos.BehavioralGoal",
+      "x": 360,
+      "y": 280,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.2(v)",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "An Intrusion Prevention System shall be deployed to monitor and respond to malicious traffic."
+      }
+    },
+    {
+      "id": "firewall_and_dmz",
+      "text": "Firewall and DMZ",
+      "type": "kaos.BehavioralGoal",
+      "x": 1320,
+      "y": 280,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.2(u)\nStandard 7.3(x)",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "All connections between SCADA, Telemetry and Control Systems shall be protected between internal boundaries and private/public domains by the application of a Firewall and DMZ"
+      }
+    },
+    {
+      "id": "firewall_rule_attributes",
+      "text": "Firewall rule attributes",
+      "type": "kaos.BehavioralGoal",
+      "x": 840,
+      "y": 380,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.3(aa)",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "Firewall rules shall contain the following attributes: device address, path (source to target system), port, protocol, user, device name",
+        "Concern": "Firewall"
+      }
+    },
+    {
+      "id": "firewall_trafffic_monitoring",
+      "text": "Firewall trafffic monitoring",
+      "type": "kaos.BehavioralGoal",
+      "x": 1160,
+      "y": 380,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.3(bb)\nStandard 7.3(ee)",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "Firewall traffic shall be monitored by the existing Firewall administration software.",
+        "Concern": "Firewall"
+      }
+    },
+    {
+      "id": "secure_routers",
+      "text": "Secure Routers",
+      "type": "kaos.BehavioralGoal",
+      "x": 40,
+      "y": 280,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "None",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "Routers shall be installed and maintained in compliance with the TCP/IP addressing standard, the ACME firewall build, and the ACME VPN configuration standard."
+      }
+    },
+    {
+      "id": "identifiable_connections",
+      "text": "Identifiable connections",
+      "type": "kaos.BehavioralGoal",
+      "x": 3560,
+      "y": 280,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.2(s)",
+        "FormalSpec": "",
+        "FitCriterion": "All network traffic can be tracked to registered, authorised, network point.",
+        "Stability": "",
+        "Description": "All connections to SCADA, Telemetry, and Control Systems shall be identified",
+        "Concern": "SCADA Workstation, Works Network, Enterprise SCADA Network"
+      }
+    },
+    {
+      "id": "warranted_connection",
+      "text": "Warranted connection",
+      "type": "kaos.BehavioralGoal",
+      "x": 4520,
+      "y": 280,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.2(t)",
+        "FormalSpec": "",
+        "FitCriterion": "The warrant for each SCADA, Telemetry, and Control System connection is recorded in the BMS.",
+        "Stability": "",
+        "Description": "Each SCADA, Telemetry, and Control System network connection shall be warranted."
+      }
+    },
+    {
+      "id": "secure_operating_environment",
+      "text": "Secure operating environment",
+      "type": "kaos.BehavioralGoal",
+      "x": 6760,
+      "y": 80,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "None",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "The operating environment for SCADA, Telemetry and Control Systems associated with assets owned and operated by ACME shall be secure."
+      }
+    },
+    {
+      "id": "secure_network_infrastructure",
+      "text": "Secure network infrastructure",
+      "type": "kaos.BehavioralGoal",
+      "x": 1800,
+      "y": 180,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "None",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "Safeguard network infrastructure"
+      }
+    },
+    {
+      "id": "secure_changes",
+      "text": "Secure changes",
+      "type": "kaos.BehavioralGoal",
+      "x": 4360,
+      "y": 180,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "Changes or additions to SCADA, Telemetry and Control Systems shall be secure."
+      }
+    },
+    {
+      "id": "secure_sla",
+      "text": "Secure SLA",
+      "type": "kaos.BehavioralGoal",
+      "x": 8520,
+      "y": 180,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "Medium",
+        "Issue": "Standard 7.1(o)",
+        "FormalSpec": "",
+        "FitCriterion": "TBC",
+        "Stability": "",
+        "Description": "ICT Service Level Agreements for sites with SCADA, Telemetry, and Control Systems shall be commensurate with the criticality of the site."
+      }
+    },
+    {
+      "id": "router_installation",
+      "text": "Router Installation",
+      "type": "kaos.BehavioralGoal",
+      "x": 40,
+      "y": 380,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.4(ff)",
+        "FormalSpec": "",
+        "FitCriterion": "TBC",
+        "Stability": "",
+        "Description": "Routers shall be installed in compliance with the TCP/IP addressing standard, the ACME firewall build, and the ACME VPN configuration standard.",
+        "Concern": "Router"
+      }
+    },
+    {
+      "id": "router_maintenance",
+      "text": "Router maintenance",
+      "type": "kaos.BehavioralGoal",
+      "x": 200,
+      "y": 380,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.4(ff)",
+        "FormalSpec": "",
+        "FitCriterion": "TBC",
+        "Stability": "",
+        "Description": "Routers shall be maintained in compliance with the TCP/IP addressing standard, the ACME firewall build, and the ACME VPN configuration standard.",
+        "Concern": "Router"
+      }
+    },
+    {
+      "id": "secure_remote_access",
+      "text": "Secure Remote Access",
+      "type": "kaos.BehavioralGoal",
+      "x": 3080,
+      "y": 280,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.6",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "Secure Remote access"
+      }
+    },
+    {
+      "id": "remote_access_inventory",
+      "text": "Remote access inventory",
+      "type": "kaos.BehavioralGoal",
+      "x": 2920,
+      "y": 380,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.6(nn)",
+        "FormalSpec": "",
+        "FitCriterion": "TBC",
+        "Stability": "",
+        "Description": "An inventory of all authorised remote access connections shall be maintained."
+      }
+    },
+    {
+      "id": "internet_access",
+      "text": "Internet access",
+      "type": "kaos.BehavioralGoal",
+      "x": 520,
+      "y": 380,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.7(uu)",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "Internet access from SCADA, Telemetry and Control Systems shall be disabled."
+      }
+    },
+    {
+      "id": "access_control",
+      "text": "Access Control",
+      "type": "kaos.BehavioralGoal",
+      "x": 5960,
+      "y": 180,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "None",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "Secure access control."
+      }
+    },
+    {
+      "id": "warranted_access",
+      "text": "Warranted Access",
+      "type": "kaos.BehavioralGoal",
+      "x": 4840,
+      "y": 280,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.8(ww)",
+        "FormalSpec": "",
+        "FitCriterion": "TBC",
+        "Stability": "",
+        "Description": "Credentials to SCADA, Telemetry, and Control Systems shall be authorised based on current operational need."
+      }
+    },
+    {
+      "id": "id_level_access_control",
+      "text": "Id level access control",
+      "type": "kaos.BehavioralGoal",
+      "x": 5480,
+      "y": 280,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.8(xx)\nStandard 7.8(zz)",
+        "FormalSpec": "",
+        "FitCriterion": "TBC",
+        "Stability": "",
+        "Description": "User id level access control shall be enabled by Active Directory for all administrative activities on all servers and workstations.",
+        "Concern": "SCADA Workstation, ICT PC, EnterpriseSCADA Server"
+      }
+    },
+    {
+      "id": "user_id_least_privilege",
+      "text": "User Id Least privilege",
+      "type": "kaos.BehavioralGoal",
+      "x": 5160,
+      "y": 280,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.8(aaa)",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "User id access shall be based on least privilege."
+      }
+    },
+    {
+      "id": "enterprisescada_access_control",
+      "text": "EnterpriseSCADA access control",
+      "type": "kaos.BehavioralGoal",
+      "x": 5640,
+      "y": 280,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.8(ccc)",
+        "FormalSpec": "",
+        "FitCriterion": "TBC",
+        "Stability": "",
+        "Description": "EnterpriseSCADA access control credentials shall meet ACME security policy requirements.",
+        "Concern": "STCS credentials"
+      }
+    },
+    {
+      "id": "tms_access_control",
+      "text": "TMS access control",
+      "type": "kaos.BehavioralGoal",
+      "x": 6600,
+      "y": 280,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.8(ddd)",
+        "FormalSpec": "",
+        "FitCriterion": "TBC",
+        "Stability": "",
+        "Description": "TMS access control credentials shall meet ACME security policy requirements.",
+        "Concern": "STCS credentials"
+      }
+    },
+    {
+      "id": "secure_operating_systems",
+      "text": "Secure Operating Systems",
+      "type": "kaos.BehavioralGoal",
+      "x": 7560,
+      "y": 180,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "Secure OS"
+      }
+    },
+    {
+      "id": "os_hardening",
+      "text": "OS hardening",
+      "type": "kaos.BehavioralGoal",
+      "x": 7080,
+      "y": 380,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "Medium",
+        "Issue": "Standard 7.10(kkk)\nStandard 7.10(mmm)",
+        "FormalSpec": "",
+        "FitCriterion": "TBC",
+        "Stability": "",
+        "Description": "SCADA, Telemetry, and Control System operating systems shall run only those services necessary for running of installed SCADA, Telemetry, and Control System applications."
+      }
+    },
+    {
+      "id": "authorised_removable_media",
+      "text": "Authorised removable media",
+      "type": "kaos.BehavioralGoal",
+      "x": 7880,
+      "y": 280,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.10(ooo)",
+        "FormalSpec": "",
+        "FitCriterion": "TBC",
+        "Stability": "",
+        "Description": "Use of removable media shall be authorised prior to use with SCADA, Telemetry, and Control System workstations."
+      }
+    },
+    {
+      "id": "standard_build",
+      "text": "Standard build",
+      "type": "kaos.BehavioralGoal",
+      "x": 7080,
+      "y": 280,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "Medium",
+        "Issue": "Standard 7.1 (l)",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "All SCADA, Telemetry, and Control Systems operating systems shall be installed from a standard ACME build image."
+      }
+    },
+    {
+      "id": "active_directory_software_deployment",
+      "text": "Active Directory software deployment",
+      "type": "kaos.BehavioralGoal",
+      "x": 4680,
+      "y": 280,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "Medium",
+        "Issue": "Standard 7.2(r).  Relying on Active Directory to disallow installations over logged installation.",
+        "FormalSpec": "",
+        "FitCriterion": "Automated alerts fire from the Active Directory domain controller when the software has been installed.",
+        "Stability": "",
+        "Description": "SCADA, Telemetry and Control System software shall be deployed via Active Directory."
+      }
+    },
+    {
+      "id": "least_privilege_connections",
+      "text": "Least privilege connections",
+      "type": "kaos.BehavioralGoal",
+      "x": 1480,
+      "y": 380,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.2(v)",
+        "FormalSpec": "",
+        "FitCriterion": "TBC",
+        "Stability": "",
+        "Description": "Firewalls shall block all network traffic unless it has been explicitly allowed.",
+        "Concern": "Firewall"
+      }
+    },
+    {
+      "id": "secure_roles",
+      "text": "Secure Roles",
+      "type": "kaos.BehavioralGoal",
+      "x": 8680,
+      "y": 180,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 5(a)",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "The security responsibilities of ACME employees, partners, and contractors responsible for installing, configuring, implementing, and operating ICT infrastructure supporting SCADA, Telemetry, and Control Systems shall be specified and be specified and communicated to all relevant parties."
+      }
+    },
+    {
+      "id": "secure_wifi",
+      "text": "Secure wifi",
+      "type": "kaos.BehavioralGoal",
+      "x": 2440,
+      "y": 280,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.5",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "Wireless systems shall be securely deployed."
+      }
+    },
+    {
+      "id": "access_revocation",
+      "text": "Access revocation",
+      "type": "kaos.BehavioralGoal",
+      "x": 2760,
+      "y": 380,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.6(qq)",
+        "FormalSpec": "",
+        "FitCriterion": "TBC",
+        "Stability": "",
+        "Description": "Procedures and assurance mechanisms for enabling and disabling remote access connections shall be implemented.",
+        "Concern": "Corporate Network, Telemetry Network, Works Network, Enterprise SCADA Network"
+      }
+    },
+    {
+      "id": "password_policy",
+      "text": "Password policy",
+      "type": "kaos.BehavioralGoal",
+      "x": 6120,
+      "y": 280,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "None",
+        "FormalSpec": "",
+        "FitCriterion": "TBC",
+        "Stability": "",
+        "Description": "Pasword policy",
+        "Concern": "ICT credentials, STCS credentials"
+      }
+    },
+    {
+      "id": "password_length",
+      "text": "Password length",
+      "type": "kaos.BehavioralGoal",
+      "x": 6120,
+      "y": 380,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "Medium",
+        "Issue": "Standard 7.9(eee)",
+        "FormalSpec": "",
+        "FitCriterion": "TBC",
+        "Stability": "",
+        "Description": "Passwords shall be set to a minimum of 12 characters."
+      }
+    },
+    {
+      "id": "password_expiration",
+      "text": "Password expiration",
+      "type": "kaos.BehavioralGoal",
+      "x": 5800,
+      "y": 380,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.9(fff)",
+        "FormalSpec": "",
+        "FitCriterion": "TBC",
+        "Stability": "",
+        "Description": "Passwords shall be set to expire in line with ACME policy."
+      }
+    },
+    {
+      "id": "password_mixed_characters",
+      "text": "Password mixed characters",
+      "type": "kaos.BehavioralGoal",
+      "x": 5960,
+      "y": 380,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "Medium",
+        "Issue": "Standard 7.9(ggg)",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "Passwords shall contain a mixture of upper, lower, and alphanumeric characters."
+      }
+    },
+    {
+      "id": "vendor_passwords",
+      "text": "Vendor passwords",
+      "type": "kaos.BehavioralGoal",
+      "x": 6440,
+      "y": 380,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "Medium",
+        "Issue": "Standard 7.9(hhh)",
+        "FormalSpec": "",
+        "FitCriterion": "TBC",
+        "Stability": "",
+        "Description": "Default vendor passwords shall be changed prior to deployment of system.",
+        "Concern": "STCS credentials"
+      }
+    },
+    {
+      "id": "password_storage",
+      "text": "Password storage",
+      "type": "kaos.BehavioralGoal",
+      "x": 6280,
+      "y": 380,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.9 (jjj)",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "Passwords shall not be written down."
+      }
+    },
+    {
+      "id": "critical_vendor_patches",
+      "text": "Critical Vendor patches",
+      "type": "kaos.BehavioralGoal",
+      "x": 3880,
+      "y": 280,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "Medium",
+        "Issue": "Standard 7.11(ppp)",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "Critical Vendor Patches shall be installed within their recommended timescales."
+      }
+    },
+    {
+      "id": "patch_risk_management",
+      "text": "Patch Risk Management",
+      "type": "kaos.BehavioralGoal",
+      "x": 5000,
+      "y": 280,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.11(qqq)",
+        "FormalSpec": "",
+        "FitCriterion": "Risk and impact assessment fields fields filled in for each approved patch.",
+        "Stability": "",
+        "Description": "Where patching adversely impacts the availability, integrity, or stability of operational systems, a risk assessment shall be conducted and recommendations approved by the information security manager, the Standards Committee and system owner."
+      }
+    },
+    {
+      "id": "important_vendor_patches",
+      "text": "Important Vendor patches",
+      "type": "kaos.BehavioralGoal",
+      "x": 4360,
+      "y": 280,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.11(rrr)",
+        "FormalSpec": "",
+        "FitCriterion": "TBC",
+        "Stability": "",
+        "Description": "Important Vendor patches shall be installed where applicable.",
+        "Concern": "STCS Application"
+      }
+    },
+    {
+      "id": "control_testing",
+      "text": "Control testing",
+      "type": "kaos.BehavioralGoal",
+      "x": 3880,
+      "y": 380,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.11(sss)",
+        "FormalSpec": "",
+        "FitCriterion": "When a patch is released, the written process log notes the testing carried out and the outcome.",
+        "Stability": "",
+        "Description": "Patches and compensating controls shall be tested prior to release."
+      }
+    },
+    {
+      "id": "compensating_controls",
+      "text": "Compensating controls",
+      "type": "kaos.BehavioralGoal",
+      "x": 4040,
+      "y": 280,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.11(ttt)\nStandard 7.11(vvv)",
+        "FormalSpec": "",
+        "FitCriterion": "TBC",
+        "Stability": "",
+        "Description": "Where patches cannot be deployed, compensating controls shall be applied to mitigate vulnerabilities remedied by undeployable patches."
+      }
+    },
+    {
+      "id": "anti_virus",
+      "text": "Anti-virus",
+      "type": "kaos.BehavioralGoal",
+      "x": 8200,
+      "y": 280,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "Medium",
+        "Issue": "Standard 7.11(uuu)",
+        "FormalSpec": "",
+        "FitCriterion": "TBC",
+        "Stability": "",
+        "Description": "Malware (Anti-Virus) software shall be deployed on workstations, mobile devices, and servers.",
+        "Concern": "SCADA Workstation, ICT PC, EnterpriseSCADA Server"
+      }
+    },
+    {
+      "id": "scanned_media",
+      "text": "Scanned media",
+      "type": "kaos.BehavioralGoal",
+      "x": 7880,
+      "y": 380,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "Medium",
+        "Issue": "Standard 7.11(www)",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "All removeable media shall be scanned prior to insertion into target systems."
+      }
+    },
+    {
+      "id": "malware_data_scanning",
+      "text": "Malware data scanning",
+      "type": "kaos.BehavioralGoal",
+      "x": 8200,
+      "y": 380,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "Low",
+        "Issue": "Standard 7.11(xxx)",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "All data shall be scanned for Malware"
+      }
+    },
+    {
+      "id": "operating_system_logs",
+      "text": "Operating system logs",
+      "type": "kaos.BehavioralGoal",
+      "x": 7400,
+      "y": 280,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "Low",
+        "Issue": "Standard 7.12(zzz)",
+        "FormalSpec": "",
+        "FitCriterion": "Logging for future analysis.",
+        "Stability": "",
+        "Description": "Operating system activity shall be logged."
+      }
+    },
+    {
+      "id": "critical_area_logging",
+      "text": "Critical area logging",
+      "type": "kaos.BehavioralGoal",
+      "x": 5320,
+      "y": 280,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.12(aaaa)",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "Access to secure critical areas and systems shall be logged."
+      }
+    },
+    {
+      "id": "log_file_size",
+      "text": "Log file size",
+      "type": "kaos.BehavioralGoal",
+      "x": 7560,
+      "y": 380,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "Medium",
+        "Issue": "Standard 7.12(bbbb)",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "Log file sizes shall be set to a minimum of 500 MB."
+      }
+    },
+    {
+      "id": "log_file_overwrite",
+      "text": "Log file overwrite",
+      "type": "kaos.BehavioralGoal",
+      "x": 7400,
+      "y": 380,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "Medium",
+        "Issue": "Standard 7.12(cccc)",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "Log files shall be set to overwrite."
+      }
+    },
+    {
+      "id": "secure_backup",
+      "text": "Secure backup",
+      "type": "kaos.BehavioralGoal",
+      "x": 9640,
+      "y": 180,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.13(dddd)",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "SCADA, Telemetry, and Control System software and configuration data shall be backed-up to ensure swift recovery."
+      }
+    },
+    {
+      "id": "backup_media",
+      "text": "Backup media",
+      "type": "kaos.BehavioralGoal",
+      "x": 9160,
+      "y": 280,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.13(eeee)",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "SCADA, Telemetry, and Control System software shall be copied to removable media."
+      }
+    },
+    {
+      "id": "backup_testing",
+      "text": "Backup testing",
+      "type": "kaos.BehavioralGoal",
+      "x": 9320,
+      "y": 280,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.13(ffff)",
+        "FormalSpec": "",
+        "FitCriterion": "Regular backup test to check integrity",
+        "Stability": "",
+        "Description": "Backups shall be regularly tested."
+      }
+    },
+    {
+      "id": "offsite_backup",
+      "text": "Offsite backup",
+      "type": "kaos.BehavioralGoal",
+      "x": 9480,
+      "y": 280,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.14(gggg)",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "Backups shall be stored offsite to ensure their availability in the event of a localised disaster."
+      }
+    },
+    {
+      "id": "backup_hardware",
+      "text": "Backup hardware",
+      "type": "kaos.BehavioralGoal",
+      "x": 9640,
+      "y": 280,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.13(iiii)",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "Hardware used to restore backups shall be retained to ensure the availability of data."
+      }
+    },
+    {
+      "id": "backup_transmission",
+      "text": "Backup transmission",
+      "type": "kaos.BehavioralGoal",
+      "x": 9800,
+      "y": 280,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.13(hhhh)",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "Backups shall be transported / transmitted securely."
+      }
+    },
+    {
+      "id": "backup_storage",
+      "text": "Backup storage",
+      "type": "kaos.BehavioralGoal",
+      "x": 9480,
+      "y": 380,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.13(hhhh)",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "Backups shall be stored in a fireproof safe."
+      }
+    },
+    {
+      "id": "backup_logs",
+      "text": "Backup logs",
+      "type": "kaos.BehavioralGoal",
+      "x": 9960,
+      "y": 280,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.13(jjjj)",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "Security, System, and Application event logs shall be included in the backup activity."
+      }
+    },
+    {
+      "id": "compliance_audit",
+      "text": "Compliance audit",
+      "type": "kaos.BehavioralGoal",
+      "x": 10600,
+      "y": 180,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.14",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "Regular audits shall be carried out to ensure the ACME Information Security Policy is being followed."
+      }
+    },
+    {
+      "id": "remote_connection_audit",
+      "text": "Remote connection audit",
+      "type": "kaos.BehavioralGoal",
+      "x": 10280,
+      "y": 280,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.14(nnnn)",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "Regular audits shall be carried out ensuring that no unauthorised remote access connections exist."
+      }
+    },
+    {
+      "id": "asset_inventory",
+      "text": "Asset Inventory",
+      "type": "kaos.BehavioralGoal",
+      "x": 10440,
+      "y": 280,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.14(oooo)",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "All systems and components shall be documented to ensure an up-to-date Asset Inventory is maintained."
+      }
+    },
+    {
+      "id": "build_data",
+      "text": "Build data",
+      "type": "kaos.BehavioralGoal",
+      "x": 10440,
+      "y": 380,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.14(pppp)",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "All build and configuration details shall be documented."
+      }
+    },
+    {
+      "id": "third_party_compliance",
+      "text": "Third party compliance",
+      "type": "kaos.BehavioralGoal",
+      "x": 10760,
+      "y": 280,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.14(rrrr)",
+        "FormalSpec": "",
+        "FitCriterion": "TBC",
+        "Stability": "",
+        "Description": "Security responsibility shall be written into 3rd party agreements."
+      }
+    },
+    {
+      "id": "versioned_plc_changes",
+      "text": "Versioned PLC changes",
+      "type": "kaos.BehavioralGoal",
+      "x": 4200,
+      "y": 280,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.14(ssss)",
+        "FormalSpec": "",
+        "FitCriterion": "This can be achieved by using a centralised software repository.",
+        "Stability": "",
+        "Description": "PLC software changes shall be versioned."
+      }
+    },
+    {
+      "id": "secure_site",
+      "text": "Secure site",
+      "type": "kaos.BehavioralGoal",
+      "x": 12040,
+      "y": 180,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.15(tttt)",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "SCADA, Telemetry, and Control Systems shall be physically protected from malicious attack, unauthorised access, and theft."
+      }
+    },
+    {
+      "id": "computer_rooms",
+      "text": "Computer Rooms",
+      "type": "kaos.BehavioralGoal",
+      "x": 12680,
+      "y": 280,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.15(uuuu)",
+        "FormalSpec": "",
+        "FitCriterion": "TBC",
+        "Stability": "",
+        "Description": "Server / Master level SCADA, Telemetry, and Control Systems shall be secured in restricted access computer rooms.",
+        "Concern": "EnterpriseSCADA Server"
+      }
+    },
+    {
+      "id": "locked_cabinets",
+      "text": "Locked cabinets",
+      "type": "kaos.BehavioralGoal",
+      "x": 12360,
+      "y": 280,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.15(vvvv)",
+        "FormalSpec": "",
+        "FitCriterion": "TBC",
+        "Stability": "",
+        "Description": "Server / Master level SCADA, Telemetry, and Control Systems shall be installed in locked cabinets.",
+        "Concern": "EnterpriseSCADA Server"
+      }
+    },
+    {
+      "id": "industrialised_secure_cabinets",
+      "text": "Industrialised secure cabinets",
+      "type": "kaos.BehavioralGoal",
+      "x": 13000,
+      "y": 280,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.15(wwww)",
+        "FormalSpec": "",
+        "FitCriterion": "Local operators periodically check security of cabinets.",
+        "Stability": "",
+        "Description": "PLC, SCADA, and Control Systems in operational environments shall be situated in industrialised secure cabinets."
+      }
+    },
+    {
+      "id": "locked_doors",
+      "text": "Locked doors",
+      "type": "kaos.BehavioralGoal",
+      "x": 12520,
+      "y": 280,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.15(xxxx)",
+        "FormalSpec": "",
+        "FitCriterion": "TBC",
+        "Stability": "",
+        "Description": "Physical security measures at sites shall include the use of locked doors."
+      }
+    },
+    {
+      "id": "environmental_controls",
+      "text": "Environmental controls",
+      "type": "kaos.BehavioralGoal",
+      "x": 12200,
+      "y": 280,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.15(yyyy)",
+        "FormalSpec": "",
+        "FitCriterion": "TBC",
+        "Stability": "",
+        "Description": "Environmental controls shall be installed to ensure vendor operating parameters are met."
+      }
+    },
+    {
+      "id": "fire_detection",
+      "text": "Fire detection",
+      "type": "kaos.BehavioralGoal",
+      "x": 12040,
+      "y": 280,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.15(zzzz)",
+        "FormalSpec": "",
+        "FitCriterion": "TBC",
+        "Stability": "",
+        "Description": "Fire detection mechanisms shall be installed."
+      }
+    },
+    {
+      "id": "fire_suppression",
+      "text": "Fire suppression",
+      "type": "kaos.BehavioralGoal",
+      "x": 11720,
+      "y": 280,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "Medium",
+        "Issue": "Standard 7.15(aaaaa)",
+        "FormalSpec": "",
+        "FitCriterion": "TBC",
+        "Stability": "",
+        "Description": "Fire suppression systems shall be installed."
+      }
+    },
+    {
+      "id": "power_provision",
+      "text": "Power provision",
+      "type": "kaos.BehavioralGoal",
+      "x": 12840,
+      "y": 280,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Standard 7.15(bbbbb)",
+        "FormalSpec": "",
+        "FitCriterion": "TBC",
+        "Stability": "",
+        "Description": "Appropriate power provision shall be in situ to meet operational requirements."
+      }
+    },
+    {
+      "id": "key_ict_security",
+      "text": "Key ICT security",
+      "type": "kaos.BehavioralGoal",
+      "x": 11560,
+      "y": 280,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Organisational InfoSec Policy 2.9 para 2.",
+        "FormalSpec": "",
+        "FitCriterion": "TBC",
+        "Stability": "",
+        "Description": "The area used to host key onsite ICT equipment shall be physically secured to prevent unauthorised physical access to any equipment used to process, store, or transmit ACME information.",
+        "Concern": "Router, ICT cabinet"
+      }
+    },
+    {
+      "id": "ict_awareness",
+      "text": "ICT awareness",
+      "type": "kaos.BehavioralGoal",
+      "x": 11240,
+      "y": 280,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "High",
+        "Issue": "Organisational InfoSec Policy 2.9 para 4.",
+        "FormalSpec": "",
+        "FitCriterion": "TBC",
+        "Stability": "",
+        "Description": "All ICT partner personnel shall be made aware of the requirements for the proper handling and maintenance of the equipment hosted in the secure areas.",
+        "Concern": "InfoPortal"
+      }
+    },
+    {
+      "id": "business_activity_asset",
+      "text": "Business activity asset",
+      "type": "kaos.BehavioralGoal",
+      "x": 13320,
+      "y": 180,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "Medium",
+        "Issue": "Organisational InfoSec Policy 2.5 para 1.",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "Users shall only use information assets and the ICT infrastructure for the purpose of ACME business activities."
+      }
+    },
+    {
+      "id": "active_directory_wifi_control",
+      "text": "Active Directory wifi control",
+      "type": "kaos.BehavioralGoal",
+      "x": 3560,
+      "y": 480,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Standard 7.5(mm)",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "A wifi device is added to the corporate network but not to Active Directory.  Access to a resource in Active Directory fails.",
+        "Stability": "",
+        "Description": "Access control to wifi devices shall be managed through Active Directory.",
+        "RequirementType": "Functional",
+        "RequirementPriority": "1",
+        "Label": "1",
+        "Reference": "Corporate Network",
+        "ReferenceType": "asset",
+        "Rationale": "Active Directory enforces access control for ACME corporate devices."
+      }
+    },
+    {
+      "id": "communication_device_backdoors",
+      "text": "Communication device backdoors",
+      "type": "kaos.BehavioralGoal",
+      "x": 9000,
+      "y": 280,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Standard 7.6(tt)",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "Network scans find no backdoor access.",
+        "Stability": "",
+        "Description": "Where vendor installed communication devices exist, backdoor access shall not be configured.",
+        "RequirementType": "Security",
+        "RequirementPriority": "1",
+        "Label": "2",
+        "Reference": "Corporate Network",
+        "ReferenceType": "asset",
+        "Rationale": "Backdoors are vulnerabilities"
+      }
+    },
+    {
+      "id": "email_routing",
+      "text": "Email routing",
+      "type": "kaos.BehavioralGoal",
+      "x": 6920,
+      "y": 480,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Standard 7.7 (vv)",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": "Email from SCADA, Telemetry and Control Systems shall be routed through the corporate e-mail System.",
+        "RequirementType": "Functional",
+        "RequirementPriority": "1",
+        "Label": "3",
+        "Reference": "Corporate Network",
+        "ReferenceType": "asset",
+        "Rationale": "Email services are managed by corporate IT."
+      }
+    },
+    {
+      "id": "port_scan",
+      "text": "Port scan",
+      "type": "kaos.BehavioralGoal",
+      "x": 7240,
+      "y": 480,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Standard 7.10(lll)",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "Connecting PLCs and RTUs shall be port-scanned to determine their requisite ports, services, and protocols.",
+        "RequirementType": "Security",
+        "RequirementPriority": "1",
+        "Label": "4",
+        "Reference": "Corporate Network",
+        "ReferenceType": "asset",
+        "Rationale": "None"
+      }
+    },
+    {
+      "id": "ssid_broadcast",
+      "text": "SSID broadcast",
+      "type": "kaos.BehavioralGoal",
+      "x": 2440,
+      "y": 380,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Standard 7.5(kk)",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "The SSID of a wireless network shall not be broadcast.",
+        "RequirementType": "Security",
+        "RequirementPriority": "1",
+        "Label": "5",
+        "Reference": "Corporate Network",
+        "ReferenceType": "asset",
+        "Rationale": "None"
+      }
+    },
+    {
+      "id": "third_party_remote_access",
+      "text": "Third party remote access",
+      "type": "kaos.BehavioralGoal",
+      "x": 3240,
+      "y": 380,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Standard 7.6(ss)",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "Third party systems remotely accessing SCADA, Telemetry, and Control Systems shall conform to the ACME Information Security policy hardware guidelines.",
+        "RequirementType": "Security",
+        "RequirementPriority": "1",
+        "Label": "6",
+        "Reference": "Corporate Network",
+        "ReferenceType": "asset",
+        "Rationale": "None"
+      }
+    },
+    {
+      "id": "two_factor_remote_access",
+      "text": "Two-Factor Remote Access",
+      "type": "kaos.BehavioralGoal",
+      "x": 3400,
+      "y": 380,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Standard 7.6(pp)",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "Remote access shall be controlled by two-factor authentication controls.",
+        "RequirementType": "Security",
+        "RequirementPriority": "1",
+        "Label": "7",
+        "Reference": "Corporate Network",
+        "ReferenceType": "asset",
+        "Rationale": "None"
+      }
+    },
+    {
+      "id": "wifi_encryption",
+      "text": "Wifi encryption",
+      "type": "kaos.BehavioralGoal",
+      "x": 2280,
+      "y": 380,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Standard 7.5(jj)",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "Wireless networking traffic shall be encrypted encompassing WPA or WPA2 level security.",
+        "RequirementType": "Security",
+        "RequirementPriority": "1",
+        "Label": "8",
+        "Reference": "Corporate Network",
+        "ReferenceType": "asset",
+        "Rationale": "None"
+      }
+    },
+    {
+      "id": "acceptable_use_policy",
+      "text": "Acceptable Use Policy",
+      "type": "kaos.BehavioralGoal",
+      "x": 10920,
+      "y": 280,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Standard 7.14(mmmm)",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "All users shall have read and signed the Acceptable Use Policy (AUP) and Code of Conduct (CoCo) forms.",
+        "RequirementType": "Functional",
+        "RequirementPriority": "1",
+        "Label": "1",
+        "Reference": "ICT Application",
+        "ReferenceType": "asset",
+        "Rationale": "None"
+      }
+    },
+    {
+      "id": "inbuilt_security",
+      "text": "Inbuilt security",
+      "type": "kaos.BehavioralGoal",
+      "x": 7080,
+      "y": 480,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Standard 7.10(nnn)",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "All inbuilt security features shall be reviewed and, where appropriate, enabled.",
+        "RequirementType": "Security",
+        "RequirementPriority": "1",
+        "Label": "2",
+        "Reference": "ICT Application",
+        "ReferenceType": "asset",
+        "Rationale": "None"
+      }
+    },
+    {
+      "id": "product_security_configuration",
+      "text": "Product security configuration",
+      "type": "kaos.BehavioralGoal",
+      "x": 8360,
+      "y": 280,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Standard 7.14(qqqq)",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "Product meta-data necessary to configure ACME security controls shall be provided before a product is installed in the Enterprise SCADA environment.",
+        "RequirementType": "Security",
+        "RequirementPriority": "1",
+        "Label": "3",
+        "Reference": "ICT Application",
+        "ReferenceType": "asset",
+        "Rationale": "None"
+      }
+    },
+    {
+      "id": "administration_access_warrant",
+      "text": "Administration access warrant",
+      "type": "kaos.BehavioralGoal",
+      "x": 4840,
+      "y": 380,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Standard 7.8(bbb)",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "Group access for administrators is monitored manually, and each instance of access is logged.",
+        "Stability": "",
+        "Description": "Administration level privileges shall be approved using the Code of Conduct (CoCo) forms on InfoPortal.",
+        "RequirementType": "Functional",
+        "RequirementPriority": "1",
+        "Label": "1",
+        "Reference": "ICT Credentials",
+        "ReferenceType": "asset",
+        "Rationale": "None"
+      }
+    },
+    {
+      "id": "pay_number_sharing",
+      "text": "Pay number sharing",
+      "type": "kaos.BehavioralGoal",
+      "x": 13640,
+      "y": 80,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "Pay numbers shall not be shared with unauthorised personnel.",
+        "RequirementType": "Security",
+        "RequirementPriority": "1",
+        "Label": "2",
+        "Reference": "ICT Credentials",
+        "ReferenceType": "asset",
+        "Rationale": "None"
+      }
+    },
+    {
+      "id": "credentials_non_disclosure",
+      "text": "Credentials non-disclosure",
+      "type": "kaos.BehavioralGoal",
+      "x": 6760,
+      "y": 280,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Standard 7.8(yy), Standard 7.9(iii)",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "TBC",
+        "Stability": "",
+        "Description": "Access credentials to SCADA, Telemetry, and Control Systems shall not be disclosed.",
+        "RequirementType": "Security",
+        "RequirementPriority": "1",
+        "Label": "3",
+        "Reference": "ICT Credentials",
+        "ReferenceType": "asset",
+        "Rationale": "None"
+      }
+    },
+    {
+      "id": "third_party_requests",
+      "text": "Third party requests",
+      "type": "kaos.BehavioralGoal",
+      "x": 3080,
+      "y": 380,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Standard 7.6(rr)",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "All third party requests for remote access to SCADA, Telemetry, and Control Systems may be reviewed using appropriate processes.",
+        "RequirementType": "Functional",
+        "RequirementPriority": "1",
+        "Label": "1",
+        "Reference": "STCS Application",
+        "ReferenceType": "asset",
+        "Rationale": "None"
+      }
+    },
+    {
+      "id": "application_program_backup",
+      "text": "Application program backup",
+      "type": "kaos.BehavioralGoal",
+      "x": 10120,
+      "y": 280,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Standard 7.14(kkkk)",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "Create new PC image. Download app",
+        "Stability": "",
+        "Description": "PLC and SCADA application programs shall be stored in the central software repository.",
+        "RequirementType": "Functional",
+        "RequirementPriority": "1",
+        "Label": "2",
+        "Reference": "STCS Application",
+        "ReferenceType": "asset",
+        "Rationale": "All software stored in  repository."
+      }
+    },
+    {
+      "id": "responsibility_clarification",
+      "text": "Responsibility clarification",
+      "type": "kaos.BehavioralGoal",
+      "x": 8680,
+      "y": 280,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Standard 5(b)",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "When staff responsibilities and applicability is unclear, the Information Security manager shall be consulted for advice.",
+        "RequirementType": "Functional",
+        "RequirementPriority": "1",
+        "Label": "1",
+        "Reference": "InfoPortal",
+        "ReferenceType": "asset",
+        "Rationale": "None"
+      }
+    },
+    {
+      "id": "router_misuse_prevention",
+      "text": "Router misuse prevention",
+      "type": "kaos.BehavioralGoal",
+      "x": 8840,
+      "y": 280,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Standard 7.4(hh)",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "Generic users and passwords are not present on any router devices.  For any given router under a particular contract, the contract states how service availability is maintained and what the partner's security policy expectations are, including explicit definitions of security requirements.",
+        "Stability": "",
+        "Description": "All ACME employees responsible for maintaining information security measures within their area of responsibility shall ensure routing devices are not compromised through misuse of other information processing facilities.",
+        "RequirementType": "Functional",
+        "RequirementPriority": "1",
+        "Label": "1",
+        "Reference": "Router",
+        "ReferenceType": "asset",
+        "Rationale": "None"
+      }
+    },
+    {
+      "id": "malicious_traffic_alert",
+      "text": "Malicious traffic alert",
+      "type": "kaos.BehavioralGoal",
+      "x": 1160,
+      "y": 480,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Standard 7.3(dd), Standard 7.12(yyy)",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "ACME and ICT partner InfoSec teams shall be alerted to malicious firewall traffic.",
+        "RequirementType": "Security",
+        "RequirementPriority": "1",
+        "Label": "1",
+        "Reference": "Intrusion Detection System",
+        "ReferenceType": "asset",
+        "Rationale": "None"
+      }
+    },
+    {
+      "id": "malicious_traffic_blocking",
+      "text": "Malicious traffic blocking",
+      "type": "kaos.BehavioralGoal",
+      "x": 1000,
+      "y": 480,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Standard 7.3(cc)",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "Malicious firewall traffic shall be actively blocked",
+        "RequirementType": "Security",
+        "RequirementPriority": "1",
+        "Label": "1",
+        "Reference": "Firewall",
+        "ReferenceType": "asset",
+        "Rationale": "None"
+      }
+    },
+    {
+      "id": "mac_address_filtering",
+      "text": "MAC address filtering",
+      "type": "kaos.BehavioralGoal",
+      "x": 2600,
+      "y": 380,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Standard 7.5(ll)",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "MAC address filtering shall be applied to authorised wireless access points to disallow unauthorised network connections.",
+        "RequirementType": "Security",
+        "RequirementPriority": "1",
+        "Label": "2",
+        "Reference": "Firewall",
+        "ReferenceType": "asset",
+        "Rationale": "None"
+      }
+    },
+    {
+      "id": "authorised_smb_or_webdav_connections",
+      "text": "Authorised SMB or WebDAV connections",
+      "type": "kaos.BehavioralGoal",
+      "x": 2120,
+      "y": 380,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "An unknown application attempts to open an SMB and WebDAV connection to an address that requires routing through the firewall and fails.",
+        "Stability": "",
+        "Description": "The firewall shall disallow outbound SMB or WebDAV connections unless explicitly authorised.",
+        "RequirementType": "Security",
+        "RequirementPriority": "1",
+        "Label": "3",
+        "Reference": "Firewall",
+        "ReferenceType": "asset",
+        "Rationale": "Several past Windows Zero Day threats impact SCADA systems rely on outbound WebDav connections."
+      }
+    },
+    {
+      "id": "firewall_administration_monitoring",
+      "text": "Firewall administration monitoring",
+      "type": "kaos.BehavioralGoal",
+      "x": 1800,
+      "y": 380,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "Logs are changed when the firewall is updated, and the log indicates who made what change.",
+        "Stability": "",
+        "Description": "Firewall administration activities shall be monitored.",
+        "RequirementType": "Security",
+        "RequirementPriority": "3",
+        "Label": "4",
+        "Reference": "Firewall",
+        "ReferenceType": "asset",
+        "Rationale": "Firewall is considered critical infrastructure."
+      }
+    },
+    {
+      "id": "hardware_firewall",
+      "text": "Hardware Firewall",
+      "type": "kaos.BehavioralGoal",
+      "x": 1960,
+      "y": 380,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Standard 7.3(y)",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "Firewall software fails to run if any STCS or corporate applications are running on the same device.",
+        "Stability": "",
+        "Description": "Firewalls shall be implemented using dedicated hardware.",
+        "RequirementType": "Functional",
+        "RequirementPriority": "1",
+        "Label": "5",
+        "Reference": "Firewall",
+        "ReferenceType": "asset",
+        "Rationale": "Separate firewall appliances remove the risk of less critical hardware affecting network availability if this hardware hosts the firewall."
+      }
+    },
+    {
+      "id": "pc_infrastructure",
+      "text": "PC infrastructure",
+      "type": "kaos.DomainProperty",
+      "x": 13800,
+      "y": 80,
+      "customProperties": {
+        "Kind": "Invariant",
+        "Description": "Works diary GT concept",
+        "Source": "Anon"
+      }
+    },
+    {
+      "id": "ubiquitous_identity_data",
+      "text": "Ubiquitous identity data",
+      "type": "kaos.Obstacle",
+      "x": 6760,
+      "y": 380,
+      "customProperties": {
+        "Description": "Ubiquitous identity data",
+        "FormalSpec": "",
+        "Category": "Vulnerability",
+        "Probability": "0.5",
+        "Rationale": "We assume telemetry technicians know the areas and patterns well enough to spot anomalies arising from spoofed telemetry.",
+        "Source": "Anon"
+      }
+    },
+    {
+      "id": "exposed_ict_cabinets",
+      "text": "Exposed ICT cabinets",
+      "type": "kaos.Obstacle",
+      "x": 11080,
+      "y": 380,
+      "customProperties": {
+        "Description": "Exposed ICT cabinets",
+        "FormalSpec": "",
+        "Category": "Vulnerability",
+        "Probability": "0.5",
+        "Rationale": "ICT cabinets are commonly exposed to allow quick access to technicians.",
+        "Source": "Anon"
+      }
+    },
+    {
+      "id": "surplus_equipment",
+      "text": "Surplus equipment",
+      "type": "kaos.Obstacle",
+      "x": 11240,
+      "y": 380,
+      "customProperties": {
+        "Description": "Surplus equipment",
+        "FormalSpec": "",
+        "Category": "Vulnerability",
+        "Probability": "0",
+        "Rationale": "",
+        "Source": "Anon"
+      }
+    },
+    {
+      "id": "unsanitised_equipment",
+      "text": "Unsanitised equipment",
+      "type": "kaos.Obstacle",
+      "x": 11400,
+      "y": 480,
+      "customProperties": {
+        "Description": "Unsanitised equipment",
+        "FormalSpec": "",
+        "Category": "Vulnerability",
+        "Probability": "0.6",
+        "Rationale": "Old equipment is often left unsanitised around plants.",
+        "Source": "Anon"
+      }
+    },
+    {
+      "id": "accessible_equipment",
+      "text": "Accessible equipment",
+      "type": "kaos.Obstacle",
+      "x": 11240,
+      "y": 480,
+      "customProperties": {
+        "Description": "Accessible equipment",
+        "FormalSpec": "",
+        "Category": "Vulnerability",
+        "Probability": "0.8",
+        "Rationale": "Equipment is available to most people with access to the site.",
+        "Source": "Anon"
+      }
+    },
+    {
+      "id": "unused_pc_application",
+      "text": "Unused PC application",
+      "type": "kaos.Obstacle",
+      "x": 13320,
+      "y": 280,
+      "customProperties": {
+        "Description": "Unused PC application",
+        "FormalSpec": "",
+        "Category": "Vulnerability",
+        "Probability": "0",
+        "Rationale": "",
+        "Source": "Anon"
+      }
+    },
+    {
+      "id": "redundant_application",
+      "text": "Redundant application",
+      "type": "kaos.Obstacle",
+      "x": 13480,
+      "y": 380,
+      "customProperties": {
+        "Description": "Redundant application",
+        "FormalSpec": "",
+        "Category": "Confidentiality_Threat",
+        "Probability": "0",
+        "Rationale": "",
+        "Source": "Anon"
+      }
+    },
+    {
+      "id": "malware_application",
+      "text": "Malware application",
+      "type": "kaos.Obstacle",
+      "x": 13160,
+      "y": 380,
+      "customProperties": {
+        "Description": "Malware application",
+        "FormalSpec": "",
+        "Category": "Integrity_Threat",
+        "Probability": "0",
+        "Rationale": "",
+        "Source": "Anon"
+      }
+    },
+    {
+      "id": "malicious_remote_installation",
+      "text": "Malicious remote installation",
+      "type": "kaos.Obstacle",
+      "x": 13160,
+      "y": 480,
+      "customProperties": {
+        "Description": "Malicious remote installation",
+        "FormalSpec": "",
+        "Category": "Accountability_Threat",
+        "Probability": "0",
+        "Rationale": "",
+        "Source": "Anon"
+      }
+    },
+    {
+      "id": "desktop_installation",
+      "text": "Desktop installation",
+      "type": "kaos.Obstacle",
+      "x": 7720,
+      "y": 380,
+      "customProperties": {
+        "Description": "Desktop installation",
+        "FormalSpec": "",
+        "Category": "Confidentiality_Threat",
+        "Probability": "0",
+        "Rationale": "",
+        "Source": "Anon"
+      }
+    },
+    {
+      "id": "dll_preloading",
+      "text": "DLL preloading",
+      "type": "kaos.Obstacle",
+      "x": 13320,
+      "y": 480,
+      "customProperties": {
+        "Description": "DLL preloading",
+        "FormalSpec": "",
+        "Category": "Integrity_Threat",
+        "Probability": "0",
+        "Rationale": "",
+        "Source": "Anon"
+      }
+    },
+    {
+      "id": "zero_day_threat_exploit",
+      "text": "Zero-day threat exploit",
+      "type": "kaos.Obstacle",
+      "x": 8200,
+      "y": 480,
+      "customProperties": {
+        "Description": "Zero-day threat exploit",
+        "FormalSpec": "",
+        "Category": "Vulnerability",
+        "Probability": "0.1",
+        "Rationale": "Unlikely given the comparative significance of this part of the CNI.",
+        "Source": "Anon"
+      }
+    },
+    {
+      "id": "unscanned_media",
+      "text": "Unscanned media",
+      "type": "kaos.Obstacle",
+      "x": 7880,
+      "y": 480,
+      "customProperties": {
+        "Description": "Unscanned media",
+        "FormalSpec": "",
+        "Category": "Vulnerability",
+        "Probability": "0",
+        "Rationale": "",
+        "Source": "Anon"
+      }
+    },
+    {
+      "id": "scanning_software_disabled",
+      "text": "Scanning software disabled",
+      "type": "kaos.Obstacle",
+      "x": 7880,
+      "y": 580,
+      "customProperties": {
+        "Description": "Scanning software disabled",
+        "FormalSpec": "",
+        "Category": "Vulnerability",
+        "Probability": "0.8",
+        "Rationale": "Scanning software is usually disabled as scans can cause an adverse reaction given the stability of some STCS applications.",
+        "Source": "Anon"
+      }
+    },
+    {
+      "id": "scanning_software_not_installed",
+      "text": "Scanning software not installed",
+      "type": "kaos.Obstacle",
+      "x": 8040,
+      "y": 580,
+      "customProperties": {
+        "Description": "Scanning software not installed",
+        "FormalSpec": "",
+        "Category": "Vulnerability",
+        "Probability": "0",
+        "Rationale": "",
+        "Source": "Anon"
+      }
+    },
+    {
+      "id": "software_incompatibility",
+      "text": "Software incompatibility",
+      "type": "kaos.Obstacle",
+      "x": 8040,
+      "y": 680,
+      "customProperties": {
+        "Description": "Software incompatibility",
+        "FormalSpec": "",
+        "Category": "Vulnerability",
+        "Probability": "0.1",
+        "Rationale": "Software is usually tested before deployment.",
+        "Source": "Anon"
+      }
+    },
+    {
+      "id": "vendor_passwords_unchanged",
+      "text": "Vendor passwords unchanged",
+      "type": "kaos.Obstacle",
+      "x": 6440,
+      "y": 480,
+      "customProperties": {
+        "Description": "Vendor passwords unchanged",
+        "FormalSpec": "",
+        "Category": "Integrity_Threat",
+        "Probability": "0.7",
+        "Rationale": "Default passwords are often left unchanged.",
+        "Source": "Anon"
+      }
+    },
+    {
+      "id": "undetected_malicious_traffic",
+      "text": "Undetected malicious traffic",
+      "type": "kaos.Obstacle",
+      "x": 1160,
+      "y": 580,
+      "customProperties": {
+        "Description": "Undetected malicious traffic",
+        "FormalSpec": "",
+        "Category": "Vulnerability",
+        "Probability": "0",
+        "Rationale": "",
+        "Source": "Anon"
+      }
+    },
+    {
+      "id": "crafted_packets",
+      "text": "Crafted packets",
+      "type": "kaos.Obstacle",
+      "x": 1160,
+      "y": 680,
+      "customProperties": {
+        "Description": "Crafted packets",
+        "FormalSpec": "",
+        "Category": "Integrity_Threat",
+        "Probability": "0.1",
+        "Rationale": "Requires significant motivation and capability on the part of the likely attacks, which seems unlikely.",
+        "Source": "Anon"
+      }
+    },
+    {
+      "id": "incomplete_firewall_rule_set",
+      "text": "Incomplete firewall rule-set",
+      "type": "kaos.Obstacle",
+      "x": 1320,
+      "y": 680,
+      "customProperties": {
+        "Description": "Incomplete firewall rule-set",
+        "FormalSpec": "",
+        "Category": "Vulnerability",
+        "Probability": "0.4",
+        "Rationale": "May arise if applications are removed, modified, or added to the network, but occurs infrequently.",
+        "Source": "Anon"
+      }
+    },
+    {
+      "id": "unavailable_software_repository",
+      "text": "Unavailable software repository",
+      "type": "kaos.Obstacle",
+      "x": 4680,
+      "y": 380,
+      "customProperties": {
+        "Description": "Active Directory is unavailable.",
+        "FormalSpec": "",
+        "Category": "Availability_Threat",
+        "Source": "CAIRIS"
+      }
+    },
+    {
+      "id": "plant_operator",
+      "text": "Plant Operator",
+      "type": "kaos.Agent",
+      "x": 8040,
+      "y": 380,
+      "customProperties": {
+        "Description": "Plant operators monitor the water treatment process at a clean or waste water treatment plant.",
+        "RoleType": "Stakeholder",
+        "ShortCode": "POP"
+      }
+    },
+    {
+      "id": "information_security_manager",
+      "text": "Information Security Manager",
+      "type": "kaos.Agent",
+      "x": 1640,
+      "y": 380,
+      "customProperties": {
+        "Description": "ACME Information Security Manager",
+        "RoleType": "Stakeholder",
+        "ShortCode": "ISM"
+      }
+    },
+    {
+      "id": "vendor",
+      "text": "Vendor",
+      "type": "kaos.Agent",
+      "x": 13960,
+      "y": 80,
+      "customProperties": {
+        "Description": "Vendor of SCADA, Telemetry, and Control System software",
+        "RoleType": "Stakeholder",
+        "ShortCode": "VENDOR"
+      }
+    },
+    {
+      "id": "cracker",
+      "text": "Cracker",
+      "type": "kaos.Agent",
+      "x": 14120,
+      "y": 80,
+      "customProperties": {
+        "Description": "Cracker",
+        "RoleType": "Attacker",
+        "ShortCode": "CRACK"
+      }
+    },
+    {
+      "id": "ict_partner",
+      "text": "ICT Partner",
+      "type": "kaos.Agent",
+      "x": 10600,
+      "y": 380,
+      "customProperties": {
+        "Description": "ICT partner contractually responsible for delivering ICT services to ACME.",
+        "RoleType": "Stakeholder",
+        "ShortCode": "ICT_P"
+      }
+    },
+    {
+      "id": "instrument_technician",
+      "text": "Instrument Technician",
+      "type": "kaos.Agent",
+      "x": 680,
+      "y": 380,
+      "customProperties": {
+        "Description": "Instrument Technicians are responsible for maintaining operational SCADA, Telemetry, and Control System software.",
+        "RoleType": "Stakeholder",
+        "ShortCode": "TECH"
+      }
+    },
+    {
+      "id": "petty_criminal",
+      "text": "Petty Criminal",
+      "type": "kaos.Agent",
+      "x": 14280,
+      "y": 80,
+      "customProperties": {
+        "Description": "Engages in acts of petty crime",
+        "RoleType": "Attacker",
+        "ShortCode": "PETTY_CRIM"
+      }
+    },
+    {
+      "id": "integrator",
+      "text": "Integrator",
+      "type": "kaos.Agent",
+      "x": 14440,
+      "y": 80,
+      "customProperties": {
+        "Description": "Work with process partners to implement the control philosophy associated with a capital project",
+        "RoleType": "Stakeholder",
+        "ShortCode": "INTGR"
+      }
+    },
+    {
+      "id": "facilities_management",
+      "text": "Facilities Management",
+      "type": "kaos.Agent",
+      "x": 11880,
+      "y": 280,
+      "customProperties": {
+        "Description": "ACME facilities management contractor",
+        "RoleType": "Stakeholder",
+        "ShortCode": "FM"
+      }
+    },
+    {
+      "id": "machine",
+      "text": "Machine",
+      "type": "kaos.Agent",
+      "x": 14600,
+      "y": 80,
+      "customProperties": {
+        "Description": "System hardware",
+        "RoleType": "Stakeholder",
+        "ShortCode": "MACH"
+      }
+    }
+  ],
+  "dependencies": [],
+  "links": [
+    {
+      "id": "desktop_installation-obstructs-authorised_removable_media",
+      "type": "kaos.ObstructionLink",
+      "source": "desktop_installation",
+      "target": "authorised_removable_media",
+      "customProperties": {
+        "Rationale": "None"
+      }
+    },
+    {
+      "id": "unused_pc_application-obstructs-business_activity_asset",
+      "type": "kaos.ObstructionLink",
+      "source": "unused_pc_application",
+      "target": "business_activity_asset",
+      "customProperties": {
+        "Rationale": "None"
+      }
+    },
+    {
+      "id": "exposed_ict_cabinets-obstructs-ict_awareness",
+      "type": "kaos.ObstructionLink",
+      "source": "exposed_ict_cabinets",
+      "target": "ict_awareness",
+      "customProperties": {
+        "Rationale": "None"
+      }
+    },
+    {
+      "id": "surplus_equipment-obstructs-ict_awareness",
+      "type": "kaos.ObstructionLink",
+      "source": "surplus_equipment",
+      "target": "ict_awareness",
+      "customProperties": {
+        "Rationale": "None"
+      }
+    },
+    {
+      "id": "exposed_ict_cabinets-obstructs-key_ict_security",
+      "type": "kaos.ObstructionLink",
+      "source": "exposed_ict_cabinets",
+      "target": "key_ict_security",
+      "customProperties": {
+        "Rationale": "None"
+      }
+    },
+    {
+      "id": "zero_day_threat_exploit-obstructs-malware_data_scanning",
+      "type": "kaos.ObstructionLink",
+      "source": "zero_day_threat_exploit",
+      "target": "malware_data_scanning",
+      "customProperties": {
+        "Rationale": "None"
+      }
+    },
+    {
+      "id": "unscanned_media-obstructs-scanned_media",
+      "type": "kaos.ObstructionLink",
+      "source": "unscanned_media",
+      "target": "scanned_media",
+      "customProperties": {
+        "Rationale": "None"
+      }
+    },
+    {
+      "id": "vendor_passwords_unchanged-obstructs-vendor_passwords",
+      "type": "kaos.ObstructionLink",
+      "source": "vendor_passwords_unchanged",
+      "target": "vendor_passwords",
+      "customProperties": {
+        "Rationale": "None"
+      }
+    },
+    {
+      "id": "ubiquitous_identity_data-obstructs-credentials_non_disclosure",
+      "type": "kaos.ObstructionLink",
+      "source": "ubiquitous_identity_data",
+      "target": "credentials_non_disclosure",
+      "customProperties": {
+        "Rationale": "None"
+      }
+    },
+    {
+      "id": "undetected_malicious_traffic-obstructs-malicious_traffic_alert",
+      "type": "kaos.ObstructionLink",
+      "source": "undetected_malicious_traffic",
+      "target": "malicious_traffic_alert",
+      "customProperties": {
+        "Rationale": "None"
+      }
+    },
+    {
+      "id": "unavailable_software_repository-obstructs-active_directory_software_deployment",
+      "type": "kaos.ObstructionLink",
+      "source": "unavailable_software_repository",
+      "target": "active_directory_software_deployment",
+      "customProperties": {
+        "Rationale": "Obstructs use case Modify Telemetry Software"
+      }
+    },
+    {
+      "hub": {
+        "id": "firewall_and_dmz-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "x": 1423,
+        "y": 338,
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        }
+      },
+      "starts": [
+        {
+          "id": "firewall_and_dmz-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "internet_access",
+          "target": "firewall_and_dmz-refinement-1"
+        },
+        {
+          "id": "firewall_and_dmz-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "firewall_rule_attributes",
+          "target": "firewall_and_dmz-refinement-1"
+        },
+        {
+          "id": "firewall_and_dmz-refinement-1-3",
+          "type": "kaos.RefinementLinkStart",
+          "source": "firewall_trafffic_monitoring",
+          "target": "firewall_and_dmz-refinement-1",
+          "customProperties": {
+            "Rationale": "None"
+          }
+        },
+        {
+          "id": "firewall_and_dmz-refinement-1-4",
+          "type": "kaos.RefinementLinkStart",
+          "source": "least_privilege_connections",
+          "target": "firewall_and_dmz-refinement-1"
+        },
+        {
+          "id": "firewall_and_dmz-refinement-1-5",
+          "type": "kaos.RefinementLinkStart",
+          "source": "firewall_administration_monitoring",
+          "target": "firewall_and_dmz-refinement-1"
+        },
+        {
+          "id": "firewall_and_dmz-refinement-1-6",
+          "type": "kaos.RefinementLinkStart",
+          "source": "hardware_firewall",
+          "target": "firewall_and_dmz-refinement-1",
+          "customProperties": {
+            "Rationale": "None"
+          }
+        },
+        {
+          "id": "firewall_and_dmz-refinement-1-7",
+          "type": "kaos.RefinementLinkStart",
+          "source": "authorised_smb_or_webdav_connections",
+          "target": "firewall_and_dmz-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "firewall_and_dmz-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "firewall_and_dmz-refinement-1",
+        "target": "firewall_and_dmz"
+      }
+    },
+    {
+      "hub": {
+        "id": "secure_routers-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "x": 138,
+        "y": 338,
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        }
+      },
+      "starts": [
+        {
+          "id": "secure_routers-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "router_installation",
+          "target": "secure_routers-refinement-1"
+        },
+        {
+          "id": "secure_routers-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "router_maintenance",
+          "target": "secure_routers-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "secure_routers-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "secure_routers-refinement-1",
+        "target": "secure_routers"
+      }
+    },
+    {
+      "hub": {
+        "id": "identifiable_connections-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "x": 3618,
+        "y": 338,
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        }
+      },
+      "starts": [
+        {
+          "id": "identifiable_connections-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "active_directory_network_services",
+          "target": "identifiable_connections-refinement-1",
+          "customProperties": {
+            "Rationale": "None"
+          }
+        }
+      ],
+      "end": {
+        "id": "identifiable_connections-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "identifiable_connections-refinement-1",
+        "target": "identifiable_connections"
+      }
+    },
+    {
+      "hub": {
+        "id": "secure_operating_environment-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "x": 7596,
+        "y": 138,
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        }
+      },
+      "starts": [
+        {
+          "id": "secure_operating_environment-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "secure_network_infrastructure",
+          "target": "secure_operating_environment-refinement-1"
+        },
+        {
+          "id": "secure_operating_environment-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "secure_changes",
+          "target": "secure_operating_environment-refinement-1"
+        },
+        {
+          "id": "secure_operating_environment-refinement-1-3",
+          "type": "kaos.RefinementLinkStart",
+          "source": "access_control",
+          "target": "secure_operating_environment-refinement-1"
+        },
+        {
+          "id": "secure_operating_environment-refinement-1-4",
+          "type": "kaos.RefinementLinkStart",
+          "source": "secure_operating_systems",
+          "target": "secure_operating_environment-refinement-1"
+        },
+        {
+          "id": "secure_operating_environment-refinement-1-5",
+          "type": "kaos.RefinementLinkStart",
+          "source": "secure_sla",
+          "target": "secure_operating_environment-refinement-1"
+        },
+        {
+          "id": "secure_operating_environment-refinement-1-6",
+          "type": "kaos.RefinementLinkStart",
+          "source": "secure_roles",
+          "target": "secure_operating_environment-refinement-1"
+        },
+        {
+          "id": "secure_operating_environment-refinement-1-7",
+          "type": "kaos.RefinementLinkStart",
+          "source": "product_security_accreditation",
+          "target": "secure_operating_environment-refinement-1"
+        },
+        {
+          "id": "secure_operating_environment-refinement-1-8",
+          "type": "kaos.RefinementLinkStart",
+          "source": "secure_backup",
+          "target": "secure_operating_environment-refinement-1"
+        },
+        {
+          "id": "secure_operating_environment-refinement-1-9",
+          "type": "kaos.RefinementLinkStart",
+          "source": "compliance_audit",
+          "target": "secure_operating_environment-refinement-1"
+        },
+        {
+          "id": "secure_operating_environment-refinement-1-10",
+          "type": "kaos.RefinementLinkStart",
+          "source": "secure_site",
+          "target": "secure_operating_environment-refinement-1"
+        },
+        {
+          "id": "secure_operating_environment-refinement-1-11",
+          "type": "kaos.RefinementLinkStart",
+          "source": "business_activity_asset",
+          "target": "secure_operating_environment-refinement-1",
+          "customProperties": {
+            "Rationale": "None"
+          }
+        }
+      ],
+      "end": {
+        "id": "secure_operating_environment-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "secure_operating_environment-refinement-1",
+        "target": "secure_operating_environment"
+      }
+    },
+    {
+      "hub": {
+        "id": "secure_network_infrastructure-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "x": 1858,
+        "y": 238,
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        }
+      },
+      "starts": [
+        {
+          "id": "secure_network_infrastructure-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "secure_routers",
+          "target": "secure_network_infrastructure-refinement-1"
+        },
+        {
+          "id": "secure_network_infrastructure-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "intrusion_prevention_system",
+          "target": "secure_network_infrastructure-refinement-1"
+        },
+        {
+          "id": "secure_network_infrastructure-refinement-1-3",
+          "type": "kaos.RefinementLinkStart",
+          "source": "firewall_and_dmz",
+          "target": "secure_network_infrastructure-refinement-1"
+        },
+        {
+          "id": "secure_network_infrastructure-refinement-1-4",
+          "type": "kaos.RefinementLinkStart",
+          "source": "secure_wifi",
+          "target": "secure_network_infrastructure-refinement-1"
+        },
+        {
+          "id": "secure_network_infrastructure-refinement-1-5",
+          "type": "kaos.RefinementLinkStart",
+          "source": "secure_remote_access",
+          "target": "secure_network_infrastructure-refinement-1"
+        },
+        {
+          "id": "secure_network_infrastructure-refinement-1-6",
+          "type": "kaos.RefinementLinkStart",
+          "source": "identifiable_connections",
+          "target": "secure_network_infrastructure-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "secure_network_infrastructure-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "secure_network_infrastructure-refinement-1",
+        "target": "secure_network_infrastructure"
+      }
+    },
+    {
+      "hub": {
+        "id": "secure_changes-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "x": 4418,
+        "y": 238,
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        }
+      },
+      "starts": [
+        {
+          "id": "secure_changes-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "acme_change_control",
+          "target": "secure_changes-refinement-1"
+        },
+        {
+          "id": "secure_changes-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "critical_vendor_patches",
+          "target": "secure_changes-refinement-1"
+        },
+        {
+          "id": "secure_changes-refinement-1-3",
+          "type": "kaos.RefinementLinkStart",
+          "source": "compensating_controls",
+          "target": "secure_changes-refinement-1"
+        },
+        {
+          "id": "secure_changes-refinement-1-4",
+          "type": "kaos.RefinementLinkStart",
+          "source": "versioned_plc_changes",
+          "target": "secure_changes-refinement-1"
+        },
+        {
+          "id": "secure_changes-refinement-1-5",
+          "type": "kaos.RefinementLinkStart",
+          "source": "important_vendor_patches",
+          "target": "secure_changes-refinement-1"
+        },
+        {
+          "id": "secure_changes-refinement-1-6",
+          "type": "kaos.RefinementLinkStart",
+          "source": "warranted_connection",
+          "target": "secure_changes-refinement-1"
+        },
+        {
+          "id": "secure_changes-refinement-1-7",
+          "type": "kaos.RefinementLinkStart",
+          "source": "active_directory_software_deployment",
+          "target": "secure_changes-refinement-1",
+          "customProperties": {
+            "Rationale": "None"
+          }
+        },
+        {
+          "id": "secure_changes-refinement-1-8",
+          "type": "kaos.RefinementLinkStart",
+          "source": "warranted_access",
+          "target": "secure_changes-refinement-1",
+          "customProperties": {
+            "Rationale": "None"
+          }
+        },
+        {
+          "id": "secure_changes-refinement-1-9",
+          "type": "kaos.RefinementLinkStart",
+          "source": "patch_risk_management",
+          "target": "secure_changes-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "secure_changes-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "secure_changes-refinement-1",
+        "target": "secure_changes"
+      }
+    },
+    {
+      "hub": {
+        "id": "secure_remote_access-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "x": 3138,
+        "y": 338,
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        }
+      },
+      "starts": [
+        {
+          "id": "secure_remote_access-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "access_revocation",
+          "target": "secure_remote_access-refinement-1"
+        },
+        {
+          "id": "secure_remote_access-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "remote_access_inventory",
+          "target": "secure_remote_access-refinement-1"
+        },
+        {
+          "id": "secure_remote_access-refinement-1-3",
+          "type": "kaos.RefinementLinkStart",
+          "source": "third_party_requests",
+          "target": "secure_remote_access-refinement-1"
+        },
+        {
+          "id": "secure_remote_access-refinement-1-4",
+          "type": "kaos.RefinementLinkStart",
+          "source": "third_party_remote_access",
+          "target": "secure_remote_access-refinement-1"
+        },
+        {
+          "id": "secure_remote_access-refinement-1-5",
+          "type": "kaos.RefinementLinkStart",
+          "source": "two_factor_remote_access",
+          "target": "secure_remote_access-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "secure_remote_access-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "secure_remote_access-refinement-1",
+        "target": "secure_remote_access"
+      }
+    },
+    {
+      "hub": {
+        "id": "access_control-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "x": 5972,
+        "y": 238,
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        }
+      },
+      "starts": [
+        {
+          "id": "access_control-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "user_id_least_privilege",
+          "target": "access_control-refinement-1"
+        },
+        {
+          "id": "access_control-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "critical_area_logging",
+          "target": "access_control-refinement-1"
+        },
+        {
+          "id": "access_control-refinement-1-3",
+          "type": "kaos.RefinementLinkStart",
+          "source": "id_level_access_control",
+          "target": "access_control-refinement-1"
+        },
+        {
+          "id": "access_control-refinement-1-4",
+          "type": "kaos.RefinementLinkStart",
+          "source": "enterprisescada_access_control",
+          "target": "access_control-refinement-1"
+        },
+        {
+          "id": "access_control-refinement-1-5",
+          "type": "kaos.RefinementLinkStart",
+          "source": "password_policy",
+          "target": "access_control-refinement-1"
+        },
+        {
+          "id": "access_control-refinement-1-6",
+          "type": "kaos.RefinementLinkStart",
+          "source": "tms_access_control",
+          "target": "access_control-refinement-1"
+        },
+        {
+          "id": "access_control-refinement-1-7",
+          "type": "kaos.RefinementLinkStart",
+          "source": "credentials_non_disclosure",
+          "target": "access_control-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "access_control-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "access_control-refinement-1",
+        "target": "access_control"
+      }
+    },
+    {
+      "hub": {
+        "id": "secure_operating_systems-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "x": 7730,
+        "y": 238,
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        }
+      },
+      "starts": [
+        {
+          "id": "secure_operating_systems-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "standard_build",
+          "target": "secure_operating_systems-refinement-1"
+        },
+        {
+          "id": "secure_operating_systems-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "operating_system_logs",
+          "target": "secure_operating_systems-refinement-1"
+        },
+        {
+          "id": "secure_operating_systems-refinement-1-3",
+          "type": "kaos.RefinementLinkStart",
+          "source": "authorised_removable_media",
+          "target": "secure_operating_systems-refinement-1"
+        },
+        {
+          "id": "secure_operating_systems-refinement-1-4",
+          "type": "kaos.RefinementLinkStart",
+          "source": "anti_virus",
+          "target": "secure_operating_systems-refinement-1"
+        },
+        {
+          "id": "secure_operating_systems-refinement-1-5",
+          "type": "kaos.RefinementLinkStart",
+          "source": "product_security_configuration",
+          "target": "secure_operating_systems-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "secure_operating_systems-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "secure_operating_systems-refinement-1",
+        "target": "secure_operating_systems"
+      }
+    },
+    {
+      "hub": {
+        "id": "authorised_removable_media-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "x": 7938,
+        "y": 338,
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        }
+      },
+      "starts": [
+        {
+          "id": "authorised_removable_media-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "scanned_media",
+          "target": "authorised_removable_media-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "authorised_removable_media-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "authorised_removable_media-refinement-1",
+        "target": "authorised_removable_media"
+      }
+    },
+    {
+      "hub": {
+        "id": "standard_build-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "x": 7138,
+        "y": 338,
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        }
+      },
+      "starts": [
+        {
+          "id": "standard_build-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "os_hardening",
+          "target": "standard_build-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "standard_build-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "standard_build-refinement-1",
+        "target": "standard_build"
+      }
+    },
+    {
+      "hub": {
+        "id": "password_policy-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "x": 6178,
+        "y": 338,
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        }
+      },
+      "starts": [
+        {
+          "id": "password_policy-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "password_expiration",
+          "target": "password_policy-refinement-1"
+        },
+        {
+          "id": "password_policy-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "password_mixed_characters",
+          "target": "password_policy-refinement-1"
+        },
+        {
+          "id": "password_policy-refinement-1-3",
+          "type": "kaos.RefinementLinkStart",
+          "source": "password_length",
+          "target": "password_policy-refinement-1"
+        },
+        {
+          "id": "password_policy-refinement-1-4",
+          "type": "kaos.RefinementLinkStart",
+          "source": "password_storage",
+          "target": "password_policy-refinement-1"
+        },
+        {
+          "id": "password_policy-refinement-1-5",
+          "type": "kaos.RefinementLinkStart",
+          "source": "vendor_passwords",
+          "target": "password_policy-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "password_policy-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "password_policy-refinement-1",
+        "target": "password_policy"
+      }
+    },
+    {
+      "hub": {
+        "id": "critical_vendor_patches-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "x": 3938,
+        "y": 338,
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        }
+      },
+      "starts": [
+        {
+          "id": "critical_vendor_patches-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "control_testing",
+          "target": "critical_vendor_patches-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "critical_vendor_patches-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "critical_vendor_patches-refinement-1",
+        "target": "critical_vendor_patches"
+      }
+    },
+    {
+      "hub": {
+        "id": "important_vendor_patches-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "x": 4178,
+        "y": 338,
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        }
+      },
+      "starts": [
+        {
+          "id": "important_vendor_patches-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "control_testing",
+          "target": "important_vendor_patches-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "important_vendor_patches-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "important_vendor_patches-refinement-1",
+        "target": "important_vendor_patches"
+      }
+    },
+    {
+      "hub": {
+        "id": "compensating_controls-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "x": 4018,
+        "y": 338,
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        }
+      },
+      "starts": [
+        {
+          "id": "compensating_controls-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "control_testing",
+          "target": "compensating_controls-refinement-1",
+          "customProperties": {
+            "Rationale": "None"
+          }
+        }
+      ],
+      "end": {
+        "id": "compensating_controls-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "compensating_controls-refinement-1",
+        "target": "compensating_controls"
+      }
+    },
+    {
+      "hub": {
+        "id": "anti_virus-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "x": 6178,
+        "y": 288,
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        }
+      },
+      "starts": [
+        {
+          "id": "anti_virus-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "compensating_controls",
+          "target": "anti_virus-refinement-1",
+          "customProperties": {
+            "Rationale": "None"
+          }
+        }
+      ],
+      "end": {
+        "id": "anti_virus-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "anti_virus-refinement-1",
+        "target": "anti_virus"
+      }
+    },
+    {
+      "hub": {
+        "id": "anti_virus-refinement-2",
+        "type": "kaos.RefinementLinkHub",
+        "x": 8258,
+        "y": 338,
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        }
+      },
+      "starts": [
+        {
+          "id": "anti_virus-refinement-2-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "malware_data_scanning",
+          "target": "anti_virus-refinement-2"
+        }
+      ],
+      "end": {
+        "id": "anti_virus-refinement-2-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "anti_virus-refinement-2",
+        "target": "anti_virus"
+      }
+    },
+    {
+      "hub": {
+        "id": "operating_system_logs-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "x": 7498,
+        "y": 338,
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        }
+      },
+      "starts": [
+        {
+          "id": "operating_system_logs-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "log_file_overwrite",
+          "target": "operating_system_logs-refinement-1"
+        },
+        {
+          "id": "operating_system_logs-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "log_file_size",
+          "target": "operating_system_logs-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "operating_system_logs-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "operating_system_logs-refinement-1",
+        "target": "operating_system_logs"
+      }
+    },
+    {
+      "hub": {
+        "id": "critical_area_logging-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "x": 6458,
+        "y": 338,
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        }
+      },
+      "starts": [
+        {
+          "id": "critical_area_logging-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "log_file_size",
+          "target": "critical_area_logging-refinement-1"
+        },
+        {
+          "id": "critical_area_logging-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "log_file_overwrite",
+          "target": "critical_area_logging-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "critical_area_logging-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "critical_area_logging-refinement-1",
+        "target": "critical_area_logging"
+      }
+    },
+    {
+      "hub": {
+        "id": "secure_backup-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "x": 9698,
+        "y": 238,
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        }
+      },
+      "starts": [
+        {
+          "id": "secure_backup-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "backup_media",
+          "target": "secure_backup-refinement-1"
+        },
+        {
+          "id": "secure_backup-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "backup_testing",
+          "target": "secure_backup-refinement-1"
+        },
+        {
+          "id": "secure_backup-refinement-1-3",
+          "type": "kaos.RefinementLinkStart",
+          "source": "offsite_backup",
+          "target": "secure_backup-refinement-1"
+        },
+        {
+          "id": "secure_backup-refinement-1-4",
+          "type": "kaos.RefinementLinkStart",
+          "source": "backup_hardware",
+          "target": "secure_backup-refinement-1"
+        },
+        {
+          "id": "secure_backup-refinement-1-5",
+          "type": "kaos.RefinementLinkStart",
+          "source": "backup_transmission",
+          "target": "secure_backup-refinement-1"
+        },
+        {
+          "id": "secure_backup-refinement-1-6",
+          "type": "kaos.RefinementLinkStart",
+          "source": "backup_logs",
+          "target": "secure_backup-refinement-1"
+        },
+        {
+          "id": "secure_backup-refinement-1-7",
+          "type": "kaos.RefinementLinkStart",
+          "source": "application_program_backup",
+          "target": "secure_backup-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "secure_backup-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "secure_backup-refinement-1",
+        "target": "secure_backup"
+      }
+    },
+    {
+      "hub": {
+        "id": "offsite_backup-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "x": 9538,
+        "y": 338,
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        }
+      },
+      "starts": [
+        {
+          "id": "offsite_backup-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "backup_storage",
+          "target": "offsite_backup-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "offsite_backup-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "offsite_backup-refinement-1",
+        "target": "offsite_backup"
+      }
+    },
+    {
+      "hub": {
+        "id": "compliance_audit-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "x": 10658,
+        "y": 238,
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        }
+      },
+      "starts": [
+        {
+          "id": "compliance_audit-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "remote_connection_audit",
+          "target": "compliance_audit-refinement-1"
+        },
+        {
+          "id": "compliance_audit-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "asset_inventory",
+          "target": "compliance_audit-refinement-1"
+        },
+        {
+          "id": "compliance_audit-refinement-1-3",
+          "type": "kaos.RefinementLinkStart",
+          "source": "third_party_compliance",
+          "target": "compliance_audit-refinement-1",
+          "customProperties": {
+            "Rationale": "None"
+          }
+        },
+        {
+          "id": "compliance_audit-refinement-1-4",
+          "type": "kaos.RefinementLinkStart",
+          "source": "acceptable_use_policy",
+          "target": "compliance_audit-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "compliance_audit-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "compliance_audit-refinement-1",
+        "target": "compliance_audit"
+      }
+    },
+    {
+      "hub": {
+        "id": "asset_inventory-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "x": 9978,
+        "y": 288,
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        }
+      },
+      "starts": [
+        {
+          "id": "asset_inventory-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "build_data",
+          "target": "asset_inventory-refinement-1"
+        },
+        {
+          "id": "asset_inventory-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "product_security_configuration",
+          "target": "asset_inventory-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "asset_inventory-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "asset_inventory-refinement-1",
+        "target": "asset_inventory"
+      }
+    },
+    {
+      "hub": {
+        "id": "secure_site-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "x": 12186,
+        "y": 238,
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        }
+      },
+      "starts": [
+        {
+          "id": "secure_site-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "ict_awareness",
+          "target": "secure_site-refinement-1"
+        },
+        {
+          "id": "secure_site-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "key_ict_security",
+          "target": "secure_site-refinement-1"
+        },
+        {
+          "id": "secure_site-refinement-1-3",
+          "type": "kaos.RefinementLinkStart",
+          "source": "fire_suppression",
+          "target": "secure_site-refinement-1"
+        },
+        {
+          "id": "secure_site-refinement-1-4",
+          "type": "kaos.RefinementLinkStart",
+          "source": "fire_detection",
+          "target": "secure_site-refinement-1"
+        },
+        {
+          "id": "secure_site-refinement-1-5",
+          "type": "kaos.RefinementLinkStart",
+          "source": "environmental_controls",
+          "target": "secure_site-refinement-1"
+        },
+        {
+          "id": "secure_site-refinement-1-6",
+          "type": "kaos.RefinementLinkStart",
+          "source": "locked_cabinets",
+          "target": "secure_site-refinement-1"
+        },
+        {
+          "id": "secure_site-refinement-1-7",
+          "type": "kaos.RefinementLinkStart",
+          "source": "locked_doors",
+          "target": "secure_site-refinement-1"
+        },
+        {
+          "id": "secure_site-refinement-1-8",
+          "type": "kaos.RefinementLinkStart",
+          "source": "computer_rooms",
+          "target": "secure_site-refinement-1"
+        },
+        {
+          "id": "secure_site-refinement-1-9",
+          "type": "kaos.RefinementLinkStart",
+          "source": "power_provision",
+          "target": "secure_site-refinement-1"
+        },
+        {
+          "id": "secure_site-refinement-1-10",
+          "type": "kaos.RefinementLinkStart",
+          "source": "industrialised_secure_cabinets",
+          "target": "secure_site-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "secure_site-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "secure_site-refinement-1",
+        "target": "secure_site"
+      }
+    },
+    {
+      "hub": {
+        "id": "active_directory_network_services-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "x": 3618,
+        "y": 438,
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        }
+      },
+      "starts": [
+        {
+          "id": "active_directory_network_services-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "active_directory_wifi_control",
+          "target": "active_directory_network_services-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "active_directory_network_services-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "active_directory_network_services-refinement-1",
+        "target": "active_directory_network_services"
+      }
+    },
+    {
+      "hub": {
+        "id": "product_security_accreditation-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "x": 9058,
+        "y": 238,
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        }
+      },
+      "starts": [
+        {
+          "id": "product_security_accreditation-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "communication_device_backdoors",
+          "target": "product_security_accreditation-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "product_security_accreditation-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "product_security_accreditation-refinement-1",
+        "target": "product_security_accreditation"
+      }
+    },
+    {
+      "hub": {
+        "id": "firewall_trafffic_monitoring-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "x": 1178,
+        "y": 438,
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        }
+      },
+      "starts": [
+        {
+          "id": "firewall_trafffic_monitoring-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "malicious_traffic_blocking",
+          "target": "firewall_trafffic_monitoring-refinement-1",
+          "customProperties": {
+            "Rationale": "None"
+          }
+        },
+        {
+          "id": "firewall_trafffic_monitoring-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "malicious_traffic_alert",
+          "target": "firewall_trafffic_monitoring-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "firewall_trafffic_monitoring-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "firewall_trafffic_monitoring-refinement-1",
+        "target": "firewall_trafffic_monitoring"
+      }
+    },
+    {
+      "hub": {
+        "id": "warranted_access-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "x": 4898,
+        "y": 338,
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        }
+      },
+      "starts": [
+        {
+          "id": "warranted_access-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "administration_access_warrant",
+          "target": "warranted_access-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "warranted_access-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "warranted_access-refinement-1",
+        "target": "warranted_access"
+      }
+    },
+    {
+      "hub": {
+        "id": "os_hardening-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "x": 7138,
+        "y": 438,
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        }
+      },
+      "starts": [
+        {
+          "id": "os_hardening-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "email_routing",
+          "target": "os_hardening-refinement-1"
+        },
+        {
+          "id": "os_hardening-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "inbuilt_security",
+          "target": "os_hardening-refinement-1"
+        },
+        {
+          "id": "os_hardening-refinement-1-3",
+          "type": "kaos.RefinementLinkStart",
+          "source": "port_scan",
+          "target": "os_hardening-refinement-1",
+          "customProperties": {
+            "Rationale": "None"
+          }
+        }
+      ],
+      "end": {
+        "id": "os_hardening-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "os_hardening-refinement-1",
+        "target": "os_hardening"
+      }
+    },
+    {
+      "hub": {
+        "id": "secure_roles-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "x": 8778,
+        "y": 238,
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        }
+      },
+      "starts": [
+        {
+          "id": "secure_roles-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "responsibility_clarification",
+          "target": "secure_roles-refinement-1"
+        },
+        {
+          "id": "secure_roles-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "router_misuse_prevention",
+          "target": "secure_roles-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "secure_roles-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "secure_roles-refinement-1",
+        "target": "secure_roles"
+      }
+    },
+    {
+      "hub": {
+        "id": "secure_wifi-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "x": 2638,
+        "y": 338,
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        }
+      },
+      "starts": [
+        {
+          "id": "secure_wifi-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "wifi_encryption",
+          "target": "secure_wifi-refinement-1"
+        },
+        {
+          "id": "secure_wifi-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "ssid_broadcast",
+          "target": "secure_wifi-refinement-1"
+        },
+        {
+          "id": "secure_wifi-refinement-1-3",
+          "type": "kaos.RefinementLinkStart",
+          "source": "active_directory_wifi_control",
+          "target": "secure_wifi-refinement-1"
+        },
+        {
+          "id": "secure_wifi-refinement-1-4",
+          "type": "kaos.RefinementLinkStart",
+          "source": "mac_address_filtering",
+          "target": "secure_wifi-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "secure_wifi-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "secure_wifi-refinement-1",
+        "target": "secure_wifi"
+      }
+    },
+    {
+      "hub": {
+        "id": "third_party_compliance-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "x": 7058,
+        "y": 338,
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        }
+      },
+      "starts": [
+        {
+          "id": "third_party_compliance-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "third_party_remote_access",
+          "target": "third_party_compliance-refinement-1",
+          "customProperties": {
+            "Rationale": "None"
+          }
+        }
+      ],
+      "end": {
+        "id": "third_party_compliance-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "third_party_compliance-refinement-1",
+        "target": "third_party_compliance"
+      }
+    },
+    {
+      "hub": {
+        "id": "surplus_equipment-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 11338,
+        "y": 438
+      },
+      "starts": [
+        {
+          "id": "surplus_equipment-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "accessible_equipment",
+          "target": "surplus_equipment-refinement-1"
+        },
+        {
+          "id": "surplus_equipment-refinement-1-2",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "unsanitised_equipment",
+          "target": "surplus_equipment-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "surplus_equipment-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "surplus_equipment-refinement-1",
+        "target": "surplus_equipment"
+      }
+    },
+    {
+      "hub": {
+        "id": "malware_application-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 13218,
+        "y": 438
+      },
+      "starts": [
+        {
+          "id": "malware_application-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "malicious_remote_installation",
+          "target": "malware_application-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "malware_application-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "malware_application-refinement-1",
+        "target": "malware_application"
+      }
+    },
+    {
+      "hub": {
+        "id": "malware_application-refinement-2",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 10498,
+        "y": 388
+      },
+      "starts": [
+        {
+          "id": "malware_application-refinement-2-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "desktop_installation",
+          "target": "malware_application-refinement-2"
+        }
+      ],
+      "end": {
+        "id": "malware_application-refinement-2-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "malware_application-refinement-2",
+        "target": "malware_application"
+      }
+    },
+    {
+      "hub": {
+        "id": "unused_pc_application-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 13298,
+        "y": 338
+      },
+      "starts": [
+        {
+          "id": "unused_pc_application-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "malware_application",
+          "target": "unused_pc_application-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "unused_pc_application-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "unused_pc_application-refinement-1",
+        "target": "unused_pc_application"
+      }
+    },
+    {
+      "hub": {
+        "id": "unused_pc_application-refinement-2",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 13458,
+        "y": 338
+      },
+      "starts": [
+        {
+          "id": "unused_pc_application-refinement-2-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "redundant_application",
+          "target": "unused_pc_application-refinement-2"
+        }
+      ],
+      "end": {
+        "id": "unused_pc_application-refinement-2-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "unused_pc_application-refinement-2",
+        "target": "unused_pc_application"
+      }
+    },
+    {
+      "hub": {
+        "id": "unscanned_media-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 7938,
+        "y": 538
+      },
+      "starts": [
+        {
+          "id": "unscanned_media-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "scanning_software_disabled",
+          "target": "unscanned_media-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "unscanned_media-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "unscanned_media-refinement-1",
+        "target": "unscanned_media"
+      }
+    },
+    {
+      "hub": {
+        "id": "unscanned_media-refinement-2",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 8018,
+        "y": 538
+      },
+      "starts": [
+        {
+          "id": "unscanned_media-refinement-2-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "scanning_software_not_installed",
+          "target": "unscanned_media-refinement-2",
+          "customProperties": {
+            "Rationale": "None"
+          }
+        }
+      ],
+      "end": {
+        "id": "unscanned_media-refinement-2-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "unscanned_media-refinement-2",
+        "target": "unscanned_media"
+      }
+    },
+    {
+      "hub": {
+        "id": "scanning_software_not_installed-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 8098,
+        "y": 638
+      },
+      "starts": [
+        {
+          "id": "scanning_software_not_installed-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "software_incompatibility",
+          "target": "scanning_software_not_installed-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "scanning_software_not_installed-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "scanning_software_not_installed-refinement-1",
+        "target": "scanning_software_not_installed"
+      }
+    },
+    {
+      "hub": {
+        "id": "undetected_malicious_traffic-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 1218,
+        "y": 638
+      },
+      "starts": [
+        {
+          "id": "undetected_malicious_traffic-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "crafted_packets",
+          "target": "undetected_malicious_traffic-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "undetected_malicious_traffic-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "undetected_malicious_traffic-refinement-1",
+        "target": "undetected_malicious_traffic"
+      }
+    },
+    {
+      "hub": {
+        "id": "undetected_malicious_traffic-refinement-2",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 1298,
+        "y": 638
+      },
+      "starts": [
+        {
+          "id": "undetected_malicious_traffic-refinement-2-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "incomplete_firewall_rule_set",
+          "target": "undetected_malicious_traffic-refinement-2"
+        }
+      ],
+      "end": {
+        "id": "undetected_malicious_traffic-refinement-2-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "undetected_malicious_traffic-refinement-2",
+        "target": "undetected_malicious_traffic"
+      }
+    },
+    {
+      "hub": {
+        "id": "malware_application-refinement-3",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 13298,
+        "y": 438
+      },
+      "starts": [
+        {
+          "id": "malware_application-refinement-3-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "dll_preloading",
+          "target": "malware_application-refinement-3",
+          "customProperties": {
+            "Rationale": "None"
+          }
+        }
+      ],
+      "end": {
+        "id": "malware_application-refinement-3-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "malware_application-refinement-3",
+        "target": "malware_application"
+      }
+    },
+    {
+      "id": "plant_operator-assigned-scanned_media",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "plant_operator",
+      "target": "scanned_media"
+    },
+    {
+      "id": "plant_operator-assigned-password_storage",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "plant_operator",
+      "target": "password_storage"
+    },
+    {
+      "id": "plant_operator-assigned-password_mixed_characters",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "plant_operator",
+      "target": "password_mixed_characters"
+    },
+    {
+      "id": "information_security_manager-assigned-least_privilege_connections",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "information_security_manager",
+      "target": "least_privilege_connections"
+    },
+    {
+      "id": "information_security_manager-assigned-firewall_rule_attributes",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "information_security_manager",
+      "target": "firewall_rule_attributes"
+    },
+    {
+      "id": "information_security_manager-assigned-access_revocation",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "information_security_manager",
+      "target": "access_revocation"
+    },
+    {
+      "id": "information_security_manager-assigned-remote_access_inventory",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "information_security_manager",
+      "target": "remote_access_inventory"
+    },
+    {
+      "id": "information_security_manager-assigned-intrusion_prevention_system",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "information_security_manager",
+      "target": "intrusion_prevention_system"
+    },
+    {
+      "id": "information_security_manager-assigned-tms_access_control",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "information_security_manager",
+      "target": "tms_access_control"
+    },
+    {
+      "id": "information_security_manager-assigned-enterprisescada_access_control",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "information_security_manager",
+      "target": "enterprisescada_access_control"
+    },
+    {
+      "id": "information_security_manager-assigned-secure_sla",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "information_security_manager",
+      "target": "secure_sla"
+    },
+    {
+      "id": "information_security_manager-assigned-patch_risk_management",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "information_security_manager",
+      "target": "patch_risk_management"
+    },
+    {
+      "id": "information_security_manager-assigned-industrialised_secure_cabinets",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "information_security_manager",
+      "target": "industrialised_secure_cabinets",
+      "customProperties": {
+        "Rationale": "None"
+      }
+    },
+    {
+      "id": "ict_partner-assigned-build_data",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "ict_partner",
+      "target": "build_data"
+    },
+    {
+      "id": "ict_partner-assigned-router_maintenance",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "ict_partner",
+      "target": "router_maintenance"
+    },
+    {
+      "id": "ict_partner-assigned-router_installation",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "ict_partner",
+      "target": "router_installation"
+    },
+    {
+      "id": "ict_partner-assigned-remote_connection_audit",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "ict_partner",
+      "target": "remote_connection_audit"
+    },
+    {
+      "id": "ict_partner-assigned-acme_change_control",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "ict_partner",
+      "target": "acme_change_control"
+    },
+    {
+      "id": "ict_partner-assigned-log_file_overwrite",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "ict_partner",
+      "target": "log_file_overwrite"
+    },
+    {
+      "id": "ict_partner-assigned-log_file_size",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "ict_partner",
+      "target": "log_file_size"
+    },
+    {
+      "id": "ict_partner-assigned-password_expiration",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "ict_partner",
+      "target": "password_expiration"
+    },
+    {
+      "id": "ict_partner-assigned-password_length",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "ict_partner",
+      "target": "password_length"
+    },
+    {
+      "id": "ict_partner-assigned-id_level_access_control",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "ict_partner",
+      "target": "id_level_access_control"
+    },
+    {
+      "id": "ict_partner-assigned-user_id_least_privilege",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "ict_partner",
+      "target": "user_id_least_privilege"
+    },
+    {
+      "id": "ict_partner-assigned-backup_media",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "ict_partner",
+      "target": "backup_media"
+    },
+    {
+      "id": "ict_partner-assigned-backup_testing",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "ict_partner",
+      "target": "backup_testing"
+    },
+    {
+      "id": "ict_partner-assigned-backup_hardware",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "ict_partner",
+      "target": "backup_hardware"
+    },
+    {
+      "id": "ict_partner-assigned-backup_transmission",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "ict_partner",
+      "target": "backup_transmission"
+    },
+    {
+      "id": "ict_partner-assigned-backup_logs",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "ict_partner",
+      "target": "backup_logs"
+    },
+    {
+      "id": "ict_partner-assigned-backup_storage",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "ict_partner",
+      "target": "backup_storage"
+    },
+    {
+      "id": "ict_partner-assigned-active_directory_software_deployment",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "ict_partner",
+      "target": "active_directory_software_deployment"
+    },
+    {
+      "id": "ict_partner-assigned-control_testing",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "ict_partner",
+      "target": "control_testing",
+      "customProperties": {
+        "Rationale": "None"
+      }
+    },
+    {
+      "id": "instrument_technician-assigned-internet_access",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "instrument_technician",
+      "target": "internet_access"
+    },
+    {
+      "id": "instrument_technician-assigned-versioned_plc_changes",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "instrument_technician",
+      "target": "versioned_plc_changes"
+    },
+    {
+      "id": "facilities_management-assigned-fire_suppression",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "facilities_management",
+      "target": "fire_suppression",
+      "customProperties": {
+        "Rationale": "None"
+      }
+    },
+    {
+      "id": "facilities_management-assigned-fire_detection",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "facilities_management",
+      "target": "fire_detection",
+      "customProperties": {
+        "Rationale": "None"
+      }
+    },
+    {
+      "id": "facilities_management-assigned-environmental_controls",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "facilities_management",
+      "target": "environmental_controls",
+      "customProperties": {
+        "Rationale": "None"
+      }
+    },
+    {
+      "id": "facilities_management-assigned-locked_cabinets",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "facilities_management",
+      "target": "locked_cabinets",
+      "customProperties": {
+        "Rationale": "None"
+      }
+    },
+    {
+      "id": "facilities_management-assigned-locked_doors",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "facilities_management",
+      "target": "locked_doors",
+      "customProperties": {
+        "Rationale": "None"
+      }
+    },
+    {
+      "id": "facilities_management-assigned-computer_rooms",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "facilities_management",
+      "target": "computer_rooms",
+      "customProperties": {
+        "Rationale": "None"
+      }
+    },
+    {
+      "id": "facilities_management-assigned-power_provision",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "facilities_management",
+      "target": "power_provision",
+      "customProperties": {
+        "Rationale": "None"
+      }
+    }
+  ],
+  "display": {},
+  "tool": "dsm3-goals",
+  "metamodelVersion": "1.0",
+  "diagram": {
+    "width": 14895,
+    "height": 816,
+    "name": "ACME_Water-Day",
+    "customProperties": {
+      "Description": "Day-time plant operations",
+      "vocabulary": "cairis",
+      "cairisProject": "ACME Water",
+      "cairisEnvironment": "Day",
+      "cairisUnsupported": "<goal_association environment=\"Day\"  goal_name=\"Active Directory software deployment\" goal_dim=\"goal\" ref_type=\"and\" subgoal_name=\"Modify Telemetry Software\" subgoal_dim=\"usecase\" alternative_id=\"0\" >\n  <rationale>None</rationale>\n</goal_association>\n\n<goal_association environment=\"Day\"  goal_name=\"Exposed ICT cabinets\" goal_dim=\"obstacle\" ref_type=\"and\" subgoal_name=\"Exposed cabinets\" subgoal_dim=\"vulnerability\" alternative_id=\"0\" >\n  <rationale>None</rationale>\n</goal_association>\n\n<goal_association environment=\"Day\"  goal_name=\"Surplus equipment\" goal_dim=\"obstacle\" ref_type=\"and\" subgoal_name=\"Redundant hardware\" subgoal_dim=\"vulnerability\" alternative_id=\"0\" >\n  <rationale>None</rationale>\n</goal_association>\n\n<goal_association environment=\"Day\"  goal_name=\"Unused PC application\" goal_dim=\"obstacle\" ref_type=\"and\" subgoal_name=\"Unknown applications\" subgoal_dim=\"vulnerability\" alternative_id=\"0\" >\n  <rationale>None</rationale>\n</goal_association>\n\n<goal_association environment=\"Day\"  goal_name=\"Incomplete firewall rule-set\" goal_dim=\"obstacle\" ref_type=\"and\" subgoal_name=\"Incomplete firewall rules\" subgoal_dim=\"vulnerability\" alternative_id=\"0\" >\n  <rationale>None</rationale>\n</goal_association>\n\n<goal_association environment=\"Day\"  goal_name=\"Ubiquitous identity data\" goal_dim=\"obstacle\" ref_type=\"and\" subgoal_name=\"Ubiquitous identity and knowledge\" subgoal_dim=\"vulnerability\" alternative_id=\"0\" >\n  <rationale>None</rationale>\n</goal_association>\n\n<manual_association from_name=\"Detect War-dialing attack\" from_dim=\"response\" to_name=\"DetectWar-dialing attack\" to_dim=\"goal\" />\n\n<dependency depender=\"Information Security Manager\" dependee=\"Vendor\" dependency_type=\"goal\" dependency=\"Product security accreditation\" environment=\"Day\" >\n  <rationale>ACME rely on vendors to provide proof of a product's level of security.</rationale>\n</dependency>\n\n<dependency depender=\"Information Security Manager\" dependee=\"ICT Partner\" dependency_type=\"goal\" dependency=\"Active Directory software deployment\" environment=\"Day\" >\n  <rationale>Standard 6(f)</rationale>\n</dependency>\n\n<dependency depender=\"Information Security Manager\" dependee=\"ICT Partner\" dependency_type=\"goal\" dependency=\"Router Installation\" environment=\"Day\" >\n  <rationale>Standard 6(h)</rationale>\n</dependency>\n\n<dependency depender=\"Information Security Manager\" dependee=\"ICT Partner\" dependency_type=\"goal\" dependency=\"Router maintenance\" environment=\"Day\" >\n  <rationale>Standard 6(h)</rationale>\n</dependency>\n\n<dependency depender=\"Information Security Manager\" dependee=\"Plant Operator\" dependency_type=\"goal\" dependency=\"Industrialised secure cabinets\" environment=\"Day\" >\n  <rationale>Limited security team</rationale>\n</dependency>"
+    }
+  }
+}

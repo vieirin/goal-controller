@@ -212,6 +212,14 @@ describe('frameworks: the DSM3 seeds (#171)', () => {
   it('read with their frameworks’ roots, and write back byte for byte, as every KAOS and NFR example does (#181’s too)', () => {
     expect(MODELS.kaos.map((s) => s.file)).to.deep.equal([
       'examples/kaos/ambulance/ambulance.txt',
+      'examples/kaos/cairis-acme-water-day/cairis-acme-water-day.txt',
+      'examples/kaos/cairis-acme-water-night/cairis-acme-water-night.txt',
+      'examples/kaos/cairis-balkan-rail-balkan-rail-corprate-hq/cairis-balkan-rail-balkan-rail-corprate-hq.txt',
+      'examples/kaos/cairis-balkan-rail-central-station/cairis-balkan-rail-central-station.txt',
+      'examples/kaos/cairis-balkan-rail-model/cairis-balkan-rail-model.txt',
+      'examples/kaos/cairis-neurogrid-core-technology/cairis-neurogrid-core-technology.txt',
+      'examples/kaos/cairis-neurogrid-psychosis/cairis-neurogrid-psychosis.txt',
+      'examples/kaos/cairis-neurogrid-stroke/cairis-neurogrid-stroke.txt',
       'examples/kaos/carpooling/carpooling.txt',
       'examples/kaos/fire-alarm/fire-alarm.txt',
       'examples/kaos/flood/flood.txt',
