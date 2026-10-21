@@ -1,0 +1,27 @@
+// =====================================================================
+// DeltaIoT (ActivFORMS, arXiv 1908.11179): PCTL properties
+//   R1 packet loss below 10%  -> G1, maintain packetLossBelow10
+//   R2 minimise energy        -> "cost" rewards on T1..T7
+//   R3 latency bound          -> G2, maintain latencyWithinBound
+//   R4 failsafe               -> G1 degradation [G3@2->G4]
+// =====================================================================
+
+// Requirements satisfied (G0) and each requirement on its own
+P=? [ F g0_achieved ];
+P=? [ F g1_achieved ];
+P=? [ F g2_achieved ];
+
+// R2: expected energy cost of reaching G0 (the planner picks the
+// decision_* constants that minimise it while R1 holds)
+R{"cost"}=? [ F g0_achieved ];
+
+// Sequence G0 [G1;G2]: data is relayed only once packet loss is under control
+P>=1 [ G (g2_state=1 => g1_achieved) ];
+
+// Degradation G1 [G3@2->G4]: the failsafe only after two failed attempts
+// at the energy-efficient configuration
+P>=1 [ G (g4_state=1 => g3_failed=2) ];
+
+// Alternatives G5 [G7|G8], G6 [G9|G10]: one power and one routing option at a time
+P>=1 [ G !(g7_state=1 & g8_state=1) ];
+P>=1 [ G !(g9_state=1 & g10_state=1) ];
