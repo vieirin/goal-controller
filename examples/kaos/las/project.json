@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "dialect": "kaosprop",
+  "dialect": "kaosres",
   "framework": "kaos",
   "models": [
     {

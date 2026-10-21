@@ -20,11 +20,14 @@
  *   as KAOSTools annotates a goal for an obstacle (`except [o] g` on the
  *   anchor; `provided`, `providednot`, `relaxedTo`, `replaces` on the
  *   countermeasure goal), and its `Cost` as `cost [o] n` on that goal.
+ * - A conflict between two goals as KAOSTools' older `declare constraint
+ *   [ c ] conflict a, b end` (goal-controller#191), after the elements.
  * - What the reader kept as written (`kaosUnsupported`) at the end, as it
  *   was.
  * - Not written, and said: a refinement's `SysRef` and `Status`, an
- *   obstacle refinement's `Probability`, a conflict, a key no dialect
- *   declares; nor positions (`KAOS_LOSSY`).
+ *   obstacle refinement's `Probability`, a conflict's `BoundaryCondition`
+ *   or one with an end .kaos doesn't declare, a key no dialect declares;
+ *   nor positions (`KAOS_LOSSY`).
  */
 import {
   keyedKeyOf,
@@ -276,6 +279,7 @@ export const writeKaos = (
   // what each element is the target of, in the model's order
   const refinements = new Map<string, Json[]>();
   const binary = new Map<string, Json[]>();
+  const conflicts: Json[] = [];
   const push = (map: Map<string, Json[]>, key: string, link: Json) =>
     map.set(key, [...(map.get(key) ?? []), link]);
   for (const link of (json.links ?? []) as Json[]) {
@@ -296,6 +300,12 @@ export const writeKaos = (
           `${link.type} ${link.source} → ${link.target}: an end .kaos doesn't declare, not written`,
         );
       else push(binary, String(link.target), link);
+    } else if (link.type === KAOS_TYPES.conflict) {
+      if (ref(link.source) === undefined || ref(link.target) === undefined)
+        say(
+          `${link.type} ${link.source} → ${link.target}: an end .kaos doesn't declare, not written`,
+        );
+      else conflicts.push(link);
     } else
       say(
         `${link.type} ${link.source} → ${link.target}: no .kaos attribute for it, not written`,
@@ -496,6 +506,26 @@ export const writeKaos = (
       '',
       `declare ${word} [ ${name} ]`,
       ...body.map((l) => `  ${l}`),
+      'end',
+    );
+  }
+  for (const link of conflicts) {
+    const [a, b] = [ref(link.source)!, ref(link.target)!];
+    const base = identifierOf(`${a} conflicts ${b}`, 'goal');
+    let id = base;
+    for (let n = 2; taken.has(id); n++) id = `${base}_${n}`;
+    taken.add(id);
+    // open, as a resolution's: DSM3's one key on a Conflict, narrowed here
+    const condition: unknown = link.customProperties?.BoundaryCondition;
+    const boundary = typeof condition === 'string' ? condition.trim() : '';
+    if (boundary)
+      say(
+        `the conflict between ${a} and ${b}: KAOSTools has no attribute for its BoundaryCondition, not written`,
+      );
+    lines.push(
+      '',
+      `declare constraint [ ${id} ]`,
+      `  conflict ${a}, ${b}`,
       'end',
     );
   }

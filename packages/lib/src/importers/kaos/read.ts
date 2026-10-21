@@ -93,6 +93,9 @@ export const KAOS_ENGINE = 'kaosprop';
 /** The engine a `.kaos` model with experts, calibrations or distributions is for (goal-controller#190). */
 export const KAOS_EXPERT_ENGINE = 'kaosexpert';
 
+/** The engine a `.kaos` model with resolutions (and no experts) is for: its countermeasures' (goal-controller#191). */
+export const KAOS_RESOLUTION_ENGINE = 'kaosres';
+
 /** A value's text as written, on one line: `(2.4%, 2.7%, 3%)`. */
 const oneLine = (text: string) => text.replace(/\s+/g, ' ').trim();
 
@@ -285,6 +288,8 @@ export const readKaos = (
   const evidence: EvidenceEntry[] = [];
   let quantiles: string | null = null;
   let expertForms = false;
+  /** `declare constraint … conflict a, b`: two goals that conflict (goal-controller#191) */
+  const conflicts: { a: Ref; b: Ref }[] = [];
 
   // diagnostics: where in the file read first; an imported file's are named by it
   type Where = { file: string | null };
@@ -337,6 +342,18 @@ export const readKaos = (
     }
     if (word === 'evidence') {
       evidenceItem(declaration, where);
+      return null;
+    }
+    if (word === 'constraint') {
+      const why = conflictOf(declaration, where);
+      if (why === null) return null;
+      raw.push(sourceOf(declaration));
+      say(
+        where,
+        'warning',
+        `${headOf(declaration)}: kept as written, not read (${why})`,
+        headAt(declaration),
+      );
       return null;
     }
     if (!isKaosDeclaration(word)) {
@@ -756,6 +773,40 @@ export const readKaos = (
     return found;
   };
 
+  /**
+   * `declare constraint [ c ] conflict a, b end`: a Conflict link between two
+   * goals (KAOS's conflict, `{a, b, Dom} ⊨ false`; KAOSTools' older syntax,
+   * the flood model's, goal-controller#191); null when read, else why it is
+   * kept as written (a conflict among more than two goals, which no link
+   * joins; any other attribute).
+   */
+  const conflictOf = (
+    declaration: Declaration,
+    where: Where,
+  ): string | null => {
+    const conflict = declaration.attributes.filter(
+      (a) => a.name.toLowerCase() === 'conflict',
+    );
+    const other = declaration.attributes.filter(
+      (a) => !['conflict', 'id', 'name'].includes(a.name.toLowerCase()),
+    );
+    if (conflict.length !== 1 || other.length)
+      return "KAOS's constraints have no place in the model, but a conflict between two goals";
+    const pair = refs(conflict[0]!, false);
+    if (!pair) return 'its conflict names no goals';
+    if (pair.length !== 2)
+      return `a conflict among ${pair.length} goals: a Conflict link joins two`;
+    conflicts.push({ a: pair[0]!.ref, b: pair[1]!.ref });
+    if (declaration.attributes.some((a) => a.name.toLowerCase() === 'name'))
+      say(
+        where,
+        'info',
+        `${headOf(declaration)}: read as a Conflict link, which has no name: its name is not kept`,
+        headAt(declaration),
+      );
+    return null;
+  };
+
   /** `refinedby [pattern] a [p], b`: one refinement; false (nothing read) when it is in another form. */
   const refinement = (
     element: Element,
@@ -991,7 +1042,14 @@ export const readKaos = (
       countermeasure: CountermeasureTexts;
     }[];
     assignments: { agent: Element; goal: Element }[];
-  } = { refinements: [], obstructions: [], resolutions: [], assignments: [] };
+    conflicts: { a: Element; b: Element }[];
+  } = {
+    refinements: [],
+    obstructions: [],
+    resolutions: [],
+    assignments: [],
+    conflicts: [],
+  };
   for (const element of elements.values()) {
     for (const r of element.refinements)
       links.refinements.push({
@@ -1022,6 +1080,8 @@ export const readKaos = (
     for (const ref of element.assignments)
       links.assignments.push({ agent: resolve(ref, 'agent'), goal: element });
   }
+  for (const { a, b } of conflicts)
+    links.conflicts.push({ a: resolve(a, 'goal'), b: resolve(b, 'goal') });
 
   // kaosres's (goal-controller#191): each goal's annotations on the
   // resolution they are about, made when no `resolvedby` declares it
@@ -1267,6 +1327,13 @@ export const readKaos = (
       source: agent.id,
       target: goal.id,
     });
+  for (const { a, b } of links.conflicts)
+    pistarLinks.push({
+      id: linkId(`${a.id}-conflicts-${b.id}`),
+      type: KAOS_TYPES.conflict,
+      source: a.id,
+      target: b.id,
+    });
 
   // positions: a refinement's children below it, an obstacle below what it
   // obstructs, a resolving goal below its obstacle, an agent beside its goal
@@ -1361,7 +1428,13 @@ export const readKaos = (
   return {
     model,
     dialectRecord: {
-      engine: expertForms ? KAOS_EXPERT_ENGINE : KAOS_ENGINE,
+      // experts first: kaosexpert's dialect reads resolutions too (kaosprop's
+      // keys), its quantities are the file's
+      engine: expertForms
+        ? KAOS_EXPERT_ENGINE
+        : links.resolutions.length
+          ? KAOS_RESOLUTION_ENGINE
+          : KAOS_ENGINE,
       projectResources,
     },
     diagnostics,

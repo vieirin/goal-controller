@@ -139,14 +139,17 @@ describe('readKaos: the corpus, counted', () => {
         [],
       );
       // a file with experts, calibrations or their quantiles opens in
-      // kaosexpert's mode, with them as its resources (#190); any other in kaosprop's
+      // kaosexpert's mode, with them as its resources (#190); one with
+      // resolutions in kaosres's (#191); any other in kaosprop's
       assert.deepStrictEqual(
         [dialectRecord.engine, Object.keys(dialectRecord.projectResources)],
         path === 'ads/las.kaos'
           ? ['kaosexpert', ['expert']]
           : path === 'ads/obstacles.kaos'
             ? ['kaosexpert', ['expert', 'calibration']]
-            : ['kaosprop', []],
+            : EXPECTED[path]!['kaos.ResolutionLink']
+              ? ['kaosres', []]
+              : ['kaosprop', []],
       );
       // the mode is the project's (the native file's dialect), the framework the kinds'
       assert.strictEqual(model.diagram.customProperties.engine, undefined);
@@ -416,6 +419,46 @@ declare obstacle [ o ] probability 2% end`);
 });
 
 describe('readKaos: nothing silently dropped', () => {
+  it('reads a conflict between two goals as a Conflict link, and keeps one among three as written (#191, the flood model’s constraints)', () => {
+    const { model, diagnostics } = readText(`declare goal [ a ] end
+declare goal [ b ] end
+declare goal [ c ] end
+declare constraint
+  id cst1
+  name "A and B"
+  conflict a, b
+end
+declare constraint [ cst2 ] conflict a, b, c end`);
+    assert.deepStrictEqual(
+      model.links.filter((l: Json) => l.type === 'kaos.Conflict'),
+      [
+        {
+          id: 'a-conflicts-b',
+          type: 'kaos.Conflict',
+          source: 'a',
+          target: 'b',
+        },
+      ],
+    );
+    assert.strictEqual(
+      model.diagram.customProperties[KAOS_UNSUPPORTED_KEY],
+      'declare constraint [ cst2 ] conflict a, b, c end',
+    );
+    assert.deepStrictEqual(
+      diagnostics.map((d) => [d.severity, d.message]),
+      [
+        [
+          'info',
+          'declare constraint: read as a Conflict link, which has no name: its name is not kept',
+        ],
+        [
+          'warning',
+          'declare constraint [ cst2 ]: kept as written, not read (a conflict among 3 goals: a Conflict link joins two)',
+        ],
+      ],
+    );
+  });
+
   it('reads experts, calibrations and per-expert estimates as kaosexpert’s (#190): nothing kept', () => {
     const { model, diagnostics, dialectRecord } = read('ads/obstacles.kaos');
     assert.strictEqual(
@@ -856,6 +899,12 @@ declare agent [ e ] type environment end`);
       ),
     );
     assert.ok(text!.includes('declare agent [ e ]\n  type environment\nend'));
+    // a conflict between two goals: KAOSTools' constraint (#191)
+    assert.ok(
+      text!.includes(
+        'declare constraint [ g_conflicts_a ]\n  conflict g, a\nend',
+      ),
+    );
     assert.ok(
       text!.includes(
         'declare goal [ achieve_new ]\n  name "Achieve [New]"\n  formalspec "sooner or later it"\nend',
@@ -865,7 +914,6 @@ declare agent [ e ] type environment end`);
       diagnostics.map((d) => d.message),
       [
         'Achieve [New]: its id 3f2a-uuid is no KAOSTools identifier, written as achieve_new',
-        'kaos.Conflict g → a: no .kaos attribute for it, not written',
         'g: its RSR most is no number, not written',
         'g: its Owner has no .kaos attribute, not written',
         "g: a refinement's SysRef has no .kaos attribute, not written",
