@@ -964,6 +964,7 @@
     "dialect": "kaosexpert",
     "root": "kaos/mooring",
     "files": [
+      "README.md",
       "evidence.json",
       "mooring.expected.csv",
       "mooring.kaos",
