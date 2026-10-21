@@ -93,8 +93,7 @@
           "x": 40,
           "y": 490,
           "customProperties": {
-            "Description": "",
-            "assertion": "R3>3"
+            "Description": ""
           }
         },
         {
@@ -104,8 +103,7 @@
           "x": 200,
           "y": 490,
           "customProperties": {
-            "Description": "",
-            "assertion": "R3<=3 & R0<15"
+            "Description": ""
           }
         },
         {
@@ -115,8 +113,7 @@
           "x": 340,
           "y": 490,
           "customProperties": {
-            "Description": "",
-            "assertion": "R2<=5"
+            "Description": ""
           }
         },
         {
@@ -159,7 +156,8 @@
           "customProperties": {
             "Description": "",
             "cost": "1",
-            "utility": "1"
+            "utility": "1",
+            "assertion": "R3>3 & R0>0"
           }
         },
         {
@@ -171,7 +169,8 @@
           "customProperties": {
             "Description": "",
             "cost": "3",
-            "utility": "3"
+            "utility": "3",
+            "assertion": "R3<=3 & R0<15"
           }
         },
         {
@@ -183,7 +182,8 @@
           "customProperties": {
             "Description": "",
             "cost": "1",
-            "utility": "1"
+            "utility": "1",
+            "assertion": "R2<=5"
           }
         },
         {
@@ -195,7 +195,8 @@
           "customProperties": {
             "Description": "",
             "cost": "2",
-            "utility": "2"
+            "utility": "2",
+            "assertion": "R1>0"
           }
         },
         {
