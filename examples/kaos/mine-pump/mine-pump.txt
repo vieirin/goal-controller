@@ -1,0 +1,122 @@
+{
+  "actors": [],
+  "orphans": [
+    {
+      "id": "miner_in_overflowed_mine",
+      "text": "Avoid [MinerInOverflowedMine]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": "The objective function for this goal is the conditional probability that a miner is in the mine when the mine is overflowed (FSE'04 §3.2, H2). §4.3 names it Avoid [MinerInsideOverflowedMine]: PumpOnWhenHighWater and AlarmWhenMineOverflowed contribute to it."
+      },
+      "x": 40,
+      "y": 80
+    },
+    {
+      "id": "working_shift_lost",
+      "text": "Avoid [WorkingShiftLost]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": "The objective function for this goal is to minimize the probability of losing an 8-hour working shift in order not to lose more than one shift in a thousand (FSE'04 §3.2, H2)."
+      },
+      "x": 200,
+      "y": 80
+    },
+    {
+      "id": "water_alarm_iff_critical_water_level",
+      "text": "Achieve [WaterAlarmIffCriticalWaterLevel]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": "The water alarm should be raised if, and only if, the water level exceeds the 'Overflow' limit.",
+        "QualityVariable[WaterAlarmFailure]": "Boolean",
+        "SampleSpace[WaterAlarmFailure]": "set of all time points at which the water level becomes critical",
+        "QualityDefinition[WaterAlarmFailure]": "WaterAlarmFailure is true if the alarm is not raised when the water level becomes critical. Its probability is the conditional probability that the alarm is not raised when the water level becomes critical.",
+        "QualityVariable[FalseWaterAlarmInShift]": "Boolean",
+        "SampleSpace[FalseWaterAlarmInShift]": "set of all possible working shifts",
+        "QualityDefinition[FalseWaterAlarmInShift]": "FalseWaterAlarmInShift is true if at some time during the working shift (8 hours) the water alarm is raised when the water level is not critical",
+        "Objective[AlarmFailureRate]": "WaterAlarmFailure",
+        "ObjectiveSpec[AlarmFailureRate]": "WaterLevel ≥ 'Overflow' ⇒ Pr≥1−10⁻⁴ ○ WaterAlarm = 'On'",
+        "Modal[AlarmFailureRate]": "Min",
+        "Target[AlarmFailureRate]": "0.0001",
+        "Objective[FalseAlarmRate]": "FalseWaterAlarmInShift",
+        "ObjectiveSpec[FalseAlarmRate]": "Pr≥1−10⁻³ □≤8h (WaterAlarm = 'On' → WaterLevel ≥ 'Overflow')",
+        "Modal[FalseAlarmRate]": "Min",
+        "Target[FalseAlarmRate]": "0.001"
+      },
+      "x": 360,
+      "y": 80
+    },
+    {
+      "id": "pump_on_when_high_water",
+      "text": "PumpOnWhenHighWater",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": "FSE'04 §4.3: its quality variables and AlarmWhenMineOverflowed's are not independent, because the design used the same water sensor to detect high water levels, that would trigger the pump, and water levels that would raise the alarm in case of pump failure."
+      },
+      "x": 520,
+      "y": 80
+    },
+    {
+      "id": "alarm_when_mine_overflowed",
+      "text": "AlarmWhenMineOverflowed",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": "FSE'04 §4.3: see PumpOnWhenHighWater."
+      },
+      "x": 680,
+      "y": 80
+    }
+  ],
+  "dependencies": [],
+  "links": [],
+  "display": {},
+  "tool": "dsm3-goals",
+  "metamodelVersion": "1.0",
+  "diagram": {
+    "width": 975,
+    "height": 336,
+    "name": "Mine pump, FSE'04's probabilistic layer",
+    "customProperties": {
+      "Description": ""
+    }
+  }
+}

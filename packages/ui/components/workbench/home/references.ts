@@ -193,6 +193,12 @@ export const SECTION_REFERENCES: Readonly<
       url: 'https://doi.org/10.1109/HASE.2011.25',
       examples: ['kaos/mooring'],
     },
+    // quantitative goals (goal-controller#193)
+    {
+      text: "E. Letier, A. van Lamsweerde. Reasoning about partial goal satisfaction for requirements and design engineering. SIGSOFT'04/FSE-12 (§3.2–3.3's mine pump, re-keyed as far as it prints; goal-controller#208).",
+      url: 'https://doi.org/10.1145/1029894.1029905',
+      examples: ['kaos/mine-pump'],
+    },
     {
       text: 'ancailliau/KAOSTools: KAOSTools and its London Ambulance model, las.kaos (MIT).',
       url: 'https://github.com/ancailliau/KAOSTools',

@@ -16,8 +16,8 @@
  * - **validate**: istar-ts validates the model (`validateModel`: none);
  * - **roundtrip**: written back (`writeKaos`, with its resources) and read
  *   again, the same model and the same resources;
- * - **analyses**: kaosprop's analyses, kaosres's and kaosexpert's (all
- *   read every `.kaos`), run without error;
+ * - **analyses**: kaosprop's analyses, kaosres's, kaossim's and
+ *   kaosexpert's (all read every `.kaos`), run without error;
  * - **oracle**: the seed's `*.expected.csv`, each row against what the
  *   engine computes (below).
  *
@@ -57,6 +57,17 @@
  *   - of the run (`selection` `-`): `minimal cost` (`none`: no safe
  *     selection), `chosen` (the chosen selections, ` | `), `candidates`,
  *     `evaluated`, `exact` (`yes`/`no`).
+ * - `quantity,design,objective,expected,tolerance,paper,source,derivation`
+ *   (kaossim's quantitative goals, goal-controller#193): `design` is one of
+ *   the seed's `designs.json` by id (`model`: the model as it is, no
+ *   decision point), simulated with SIM_SAMPLES samples, seed 1:
+ *   - `value`: the objective's value, within `tolerance`;
+ *   - `unresolved`: the variables it lacks (space-separated, any order);
+ *   - `target`, `current`: as the model reads them;
+ *   - of the design space (`design` `-`): `designs` (how many), `pareto`
+ *     (the exhaustive front's designs, ` | `, sorted).
+ *   `expected` `-`: a number the paper prints and the seed can't
+ *   reproduce, reported, never a failure.
  *
  * The corpus (goal-controller#191, #201): ADS's simple.kaos and
  * validation-model.kaos, and las.kaos with obstacles.kaos and
@@ -400,6 +411,120 @@ const expertOracle = (modelText, resources, rows) => {
       ...(!ok && {
         problems: [`${got} is not ${row.expected} ± ${tolerance}`],
       }),
+    };
+  });
+};
+
+/** kaossim's samples per design for its oracle rows (goal-controller#193). */
+const SIM_SAMPLES = 100000;
+
+/** kaossim's rows: each a quantity of a design, or of the design space. */
+const simOracle = (modelText, resources, rows) => {
+  const model = lib.quantitativeModel(
+    lib.kaossimAnalysisModel(lib.readKaosObstacleModel(modelText)),
+  );
+  const files = Object.entries(resources.design ?? {}).map(([p, text]) => ({
+    path: p,
+    text,
+  }));
+  const designs = lib.readDesigns(files).designs;
+  const runs = new Map();
+  const runOf = (id) => {
+    if (!runs.has(id)) {
+      const design =
+        id === 'model'
+          ? { id, name: 'The model', options: [], set: new Map() }
+          : designs.find((d) => d.id === id);
+      if (!design) throw new Error(`no design ${id}`);
+      runs.set(
+        id,
+        lib.simulateDesign(model, design, { samples: SIM_SAMPLES, seed: 1 }),
+      );
+    }
+    return runs.get(id);
+  };
+  let front;
+  const frontOf = () =>
+    (front ??= lib
+      .exhaustiveSearch(model, {
+        ...lib.DEFAULT_SIM_OPTIONS,
+        samples: SIM_SAMPLES,
+        seed: 1,
+      })
+      .front.map((s) => s.run.design.id)
+      .sort()
+      .join(' | '));
+  const objectiveOf = (name) => {
+    const found = model.objectives.find((o) => o.name === name);
+    if (!found) throw new Error(`no objective ${name}`);
+    return found;
+  };
+  const value = (row) => {
+    switch (row.quantity) {
+      case 'value':
+      case 'unresolved': {
+        const found = runOf(row.design).objectives.find(
+          (o) => o.objective.name === row.objective,
+        );
+        if (!found) throw new Error(`${row.objective} is not in ${row.design}`);
+        if (row.quantity === 'unresolved')
+          return 'missing' in found
+            ? [...found.missing].sort().join(' ')
+            : 'resolved';
+        if ('missing' in found)
+          throw new Error(`unresolved: needs ${found.missing.join(', ')}`);
+        return found.value;
+      }
+      case 'target':
+      case 'current':
+        return objectiveOf(row.objective)[row.quantity];
+      case 'designs':
+        return lib.enumerateDesigns(model).designs.length;
+      case 'pareto':
+        return frontOf();
+      default:
+        throw new Error(`unknown quantity ${row.quantity}`);
+    }
+  };
+  return rows.map((row) => {
+    const base = {
+      quantity: row.quantity,
+      id: `${row.design} ${row.objective}`.trim(),
+      expected: row.expected,
+      tolerance: row.tolerance,
+      paper: row.paper,
+      data: row.source,
+    };
+    if (row.expected.trim() === '-')
+      return { ...base, got: null, status: 'skip' };
+    let got;
+    try {
+      got = value(row);
+    } catch (error) {
+      return {
+        ...base,
+        got: null,
+        status: 'fail',
+        problems: [errorText(error)],
+      };
+    }
+    const textual = row.quantity === 'unresolved' || row.quantity === 'pareto';
+    const ok = textual
+      ? got ===
+        (row.quantity === 'unresolved'
+          ? row.expected.split(/\s+/).sort().join(' ')
+          : row.expected)
+      : got !== undefined &&
+        Math.abs(got - Number(row.expected)) <=
+          Number(row.tolerance || 0) + 1e-12;
+    return {
+      ...base,
+      got:
+        textual || got === undefined
+          ? (got ?? null)
+          : Number(Number(got).toFixed(6)),
+      status: ok ? 'pass' : 'fail',
+      ...(!ok && { problems: [`${got} is not ${row.expected}`] }),
     };
   });
 };
@@ -873,6 +998,17 @@ const checkSeed = (name) => {
         return { status: 'fail', detail: `kaosres ${id}: ${out.error}` };
       ran.push(`kaosres ${id}: ${out.result.cases.length} case(s)`);
     }
+    for (const [id, analysis] of Object.entries(lib.kaossimAnalyses)) {
+      const out = lib.runAnalysis(
+        analysis,
+        lib.kaossimAnalysisModel(lib.readKaosObstacleModel(modelText)),
+        undefined,
+        { resources: committed, options: { samples: 200, seed: 1 } },
+      );
+      if ('error' in out)
+        return { status: 'fail', detail: `kaossim ${id}: ${out.error}` };
+      ran.push(`kaossim ${id}: ${out.result.cases.length} case(s)`);
+    }
     for (const [id, analysis] of Object.entries(lib.kaosexpertAnalyses)) {
       const out = lib.runAnalysis(
         analysis,
@@ -896,7 +1032,11 @@ const checkSeed = (name) => {
   for (const file of oracleFiles) {
     const csv = readCsv(fs.readFileSync(path.join(dir, file), 'utf8'));
     if (!csv.length) continue;
-    if ('selection' in csv[0])
+    if ('objective' in csv[0])
+      rows.push(
+        ...simOracle(modelText, committed, csv).map((r) => ({ file, ...r })),
+      );
+    else if ('selection' in csv[0])
       rows.push(
         ...selectionOracle(() => kaosModelOf(JSON.parse(modelText)), csv).map(
           (r) => ({ file, ...r }),

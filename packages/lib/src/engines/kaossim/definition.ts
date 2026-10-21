@@ -1,7 +1,7 @@
 /**
  * kaossim's dialect (goal-controller#193, D1): kaosprop's, with the
  * quantities of Letier and van Lamsweerde's partial goal satisfaction
- * (SIGSOFT'04/FSE-12, pp. 53–62) and Heaven and Letier's simulation
+ * (FSE'04, DOI 10.1145/1029894.1029905) and Heaven and Letier's simulation
  * and design-space search (RE'11, DOI 10.1109/RE.2011.6051653). The encoding
  * is logged on #189 ("#193 D1"):
  *

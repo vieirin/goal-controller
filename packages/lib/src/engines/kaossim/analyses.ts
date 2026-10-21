@@ -163,7 +163,8 @@ export const runDesignSpace = (
     result.method === 'nsga2'
       ? `NSGA-II, population ${options.population}, ${options.generations} generations, seed ${options.seed}`
       : `every design${result.complete ? '' : `, at most ${options.limit} (the space is larger: not exact)`}`;
-  const account = `${result.evaluated.length} designs evaluated (${how}), ${options.samples} samples each: ${result.front.length} Pareto-optimal${unranked ? `; ${unranked} with an unresolved objective, not ranked` : ''}`;
+  const count = result.evaluated.length;
+  const account = `${count} design${count === 1 ? '' : 's'} evaluated (${how}), ${options.samples} samples each: ${result.front.length} Pareto-optimal${unranked ? `; ${unranked} with an unresolved objective, not ranked` : ''}`;
   if (!result.front.length)
     return {
       cases: [

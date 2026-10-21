@@ -1109,6 +1109,24 @@
     "outputs": []
   },
   {
+    "path": "kaos/mine-pump",
+    "group": "kaos",
+    "name": "mine-pump",
+    "form": "file",
+    "dialect": "kaossim",
+    "root": "kaos/mine-pump",
+    "files": [
+      "README.md",
+      "mine-pump.expected.csv",
+      "mine-pump.kaos",
+      "mine-pump.txt",
+      "project.json"
+    ],
+    "models": ["mine-pump.txt"],
+    "projectResources": {},
+    "outputs": []
+  },
+  {
     "path": "kaos/mooring",
     "group": "kaos",
     "name": "mooring",

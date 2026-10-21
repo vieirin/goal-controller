@@ -125,6 +125,7 @@ describe('Home: the KAOS and NFR seeds (#171)', () => {
           'flood',
           'kaos-welcome.txt',
           'las',
+          'mine-pump',
           'mooring',
         ],
       ],
@@ -190,6 +191,7 @@ describe('Home: the KAOS and NFR seeds (#171)', () => {
       expect.stringContaining('flood'),
       expect.stringContaining('kaos-welcome.txt'),
       expect.stringContaining('las'),
+      expect.stringContaining('mine-pump'),
       expect.stringContaining('mooring'),
     ]);
   });

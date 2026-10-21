@@ -136,7 +136,7 @@ describe('kaossim: .kaos (#193 D1)', () => {
     const strip = (m: any) =>
       JSON.stringify({
         ...m,
-        orphans: m.orphans.map(({ x, y, ...n }: any) => n),
+        orphans: m.orphans.map(({ x: _x, y: _y, ...n }: any) => n),
         links: m.links,
       });
     assert.strictEqual(strip(again.model), strip(read.model));
