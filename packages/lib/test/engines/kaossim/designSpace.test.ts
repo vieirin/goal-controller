@@ -21,6 +21,7 @@ import {
   nsga2Search,
   quantitativeModel,
 } from '../../../src/engines/kaossim';
+import { frontMultiset } from './fronts';
 
 const SEED = join(
   __dirname,
@@ -140,18 +141,17 @@ describe('kaossim: RE’11’s design space, searched (#207, D5)', () => {
     const exact = exhaustiveSearch(model, options);
     assert.strictEqual(exact.evaluated.length, 648);
     assert.ok(exact.evaluated.every((s) => s.scores !== null));
-    const front = exact.front.map((s) => s.run.design.id).sort();
+    const front = frontMultiset(exact.front);
     assert.ok(front.length > 5, `${front.length} designs on the front`);
+    assert.ok(front.every(([, count]) => count === 1));
     const found = nsga2Search(model, {
       ...options,
       method: 'nsga2',
       population: 60,
       generations: 80,
     });
-    assert.deepStrictEqual(
-      found.front.map((s) => s.run.design.id).sort(),
-      front,
-    );
+    // as multisets: a member dropped or duplicated fails
+    assert.deepStrictEqual(frontMultiset(found.front), front);
     assert.ok(
       found.evaluated.length < 648,
       `${found.evaluated.length} evaluated`,

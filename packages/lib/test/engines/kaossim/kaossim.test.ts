@@ -25,11 +25,16 @@ import {
   runSimulation,
   simulateDesign,
   DEFAULT_SIM_OPTIONS,
+  dominates,
+  paretoFront,
   type DesignChoice,
+  type DesignRun,
+  type Scored,
   type ObjectiveValue,
   type QuantitativeModel,
 } from '../../../src/engines/kaossim';
 import { continuousOf } from '../../../src/numeric/distributions';
+import { frontMultiset } from './fronts';
 import { normalCdf, normalQuantile } from '../../../src/numeric/special';
 
 type Props = Readonly<Record<string, string>>;
@@ -528,19 +533,16 @@ describe('kaossim: the design-space search (#193 D5)', () => {
 
   it('NSGA-II, seeded, reaches the exhaustive front', () => {
     const model = designSpace();
-    const exact = exhaustiveSearch(model, options)
-      .front.map((s) => s.run.design.id)
-      .sort();
+    const exact = frontMultiset(exhaustiveSearch(model, options).front);
+    assert.ok(exact.every(([, count]) => count === 1));
     const found = nsga2Search(model, {
       ...options,
       method: 'nsga2',
       population: 40,
       generations: 60,
     });
-    assert.deepStrictEqual(
-      found.front.map((s) => s.run.design.id).sort(),
-      exact,
-    );
+    // as multisets: a member dropped or duplicated fails
+    assert.deepStrictEqual(frontMultiset(found.front), exact);
     assert.ok(
       found.evaluated.length < 648,
       `${found.evaluated.length} designs evaluated`,
@@ -593,5 +595,43 @@ describe('kaossim: the design-space search (#193 D5)', () => {
       result.cases[0]!.summary!,
       /3 designs evaluated \(every design\), 2 samples each: 2 Pareto-optimal/,
     );
+  });
+
+  it('keeps two designs tied on every objective, both on the front, neither dominating', () => {
+    const run = (id: string): DesignRun => ({
+      design: { id, name: id, options: [], set: new Map() },
+      active: {
+        goals: new Set(),
+        refinements: new Map(),
+        assignments: new Map(),
+        selection: [],
+        problems: [],
+      },
+      objectives: [],
+      samples: new Map(),
+      missing: new Map(),
+      problems: [],
+    });
+    const scored = (id: string, scores: readonly number[] | null): Scored => ({
+      run: run(id),
+      scores,
+    });
+    const tiedA = scored('a', [0.8, -100]);
+    const tiedB = scored('b', [0.8, -100]);
+    const worse = scored('c', [0.7, -100]);
+    const other = scored('d', [0.9, -200]);
+    const unresolved = scored('e', null);
+    assert.strictEqual(dominates(tiedA.scores!, tiedB.scores!), false);
+    assert.strictEqual(dominates(tiedB.scores!, tiedA.scores!), false);
+    assert.strictEqual(dominates(tiedA.scores!, worse.scores!), true);
+    assert.strictEqual(dominates(other.scores!, tiedA.scores!), false);
+    const front = paretoFront([tiedA, worse, tiedB, unresolved, other]);
+    // both tied ones kept, once each, in their order; the dominated and the unresolved dropped
+    assert.deepStrictEqual(front, [tiedA, tiedB, other]);
+    assert.deepStrictEqual(frontMultiset(front), [
+      ['a', 1],
+      ['b', 1],
+      ['d', 1],
+    ]);
   });
 });
