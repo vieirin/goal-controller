@@ -40,7 +40,6 @@
  *   nor positions (`KAOS_LOSSY`).
  */
 import {
-  keyedKeyOf,
   numberOf,
   readDistribution,
   type NativeDiagnostic,
@@ -55,6 +54,7 @@ import type {
   ExpertsFile,
 } from '../../engines/kaosexpert/resources';
 import type { DesignsFile } from '../../engines/kaossim/designs';
+import { keyedKeyOf } from '@goal-controller/goal-language';
 import { kaosLanguage } from '@goal-controller/goal-language/formats';
 import type { CountermeasureForm } from '../../engines/kaosres/definition';
 import { identifierOf, KAOS_UNSUPPORTED_KEY } from './read';

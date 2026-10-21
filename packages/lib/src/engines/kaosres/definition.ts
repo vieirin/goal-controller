@@ -55,9 +55,13 @@ export const kaosres = defineDialect({
       property.formula('Condition', 'ltl', {
         help: 'provided’s extra conjunct, providedNot’s negated one, relaxedTo’s extra disjunct',
       }),
-      property.reference('Replaces', GOALS, {
-        help: 'the goal this one substitutes (replaces), by its id',
-      }),
+      property.reference(
+        'Replaces',
+        { kinds: GOALS },
+        {
+          help: 'the goal this one substitutes (replaces), by its id',
+        },
+      ),
     ],
   }),
 });

@@ -35,7 +35,7 @@ import {
   links,
   property,
   type FunctionDefinition,
-  type KeyedByWritten,
+  type WrittenTarget,
 } from '@goal-controller/dialect';
 import { kaosprop } from '../kaosprop/definition';
 
@@ -54,7 +54,7 @@ export const EQUATION_FUNCTIONS = [
   { name: 'max', arity: 2 },
 ] as const satisfies readonly FunctionDefinition[];
 
-const WRITTEN: KeyedByWritten = { names: 'written' };
+const WRITTEN: WrittenTarget = { written: true };
 
 const distribution = (help: string) =>
   property.distribution('Distribution', {

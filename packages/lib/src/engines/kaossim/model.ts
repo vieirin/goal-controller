@@ -12,11 +12,11 @@
  */
 import {
   distributionOf,
-  keyedKeyOf,
   probabilityOf,
   type Distribution,
 } from '@goal-controller/dialect';
 import {
+  keyedKeyOf,
   readAssertion,
   readExpression,
   type AssertionReading,
