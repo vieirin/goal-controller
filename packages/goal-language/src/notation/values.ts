@@ -32,6 +32,7 @@ import {
   type AssertionTree,
   type ExpressionTree,
 } from '../parse.js';
+import { ltlProblem } from '../ltl/index.js';
 import { assertionVariables } from './goalNames.js';
 import { propertyIn, propertyOf, targetScopeOf } from './properties.js';
 
@@ -461,8 +462,9 @@ export const valueProblem = (
       return 'error' in read ? read.error : null;
     }
     case 'text':
-    case 'formula':
       return null;
+    case 'formula':
+      return value.language === 'ltl' ? ltlProblem(text) : null;
     case 'ocl': {
       // read leniently: only a character no OCL token matches is wrong
       const [error] = parseValue('ocl', text).errors;

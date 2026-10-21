@@ -2074,3 +2074,71 @@ attempts log are on #369. D1's encoding is logged on #189 ("#193 D1").
   they differ); one clicked opens in its own framework: its entry's mode,
   else its framework's mode, so its palette. The left model's edits stay in
   the project in memory and in Recent, as an open model's always have.
+
+### Step 7 part A: FormalSpec → LTL, a parser and an AST for the `formula` value (goal-controller#211)
+
+One AST for a `formula` value tagged `ltl` (`kaos`'s `FormalSpec`,
+`kaosres`'s `Condition`), goal-language's `src/ltl/` (not lib's: an LTL
+value isn't KAOS-specific, so it sits beside the other generic value
+readers, `src/parse.ts`'s). Two surface syntaxes write it — a word-based
+sugar (`when … then sooner-or-later …`) and the symbolic RT-LTL of van
+Lamsweerde's RE'01 "Guided Tour" — over one grammar and one AST (D4 of
+#194); which surface a node was read with is recorded on the node
+(`Surface`), so a writer reproduces it. The paper transcription is
+`docs/papers/rt-ltl-re01.md`.
+
+- **Provenance, since RE'01 itself prints no operator table** (the
+  transcription's finding, §1–2 and §8): `◇`, `W`, `o`/next, the one
+  bounded `■≤0.5 sec` example and plain `⇒` are attested in the paper's
+  own formulas; the rest of the operator set `goal-controller#211`'s
+  issue text lists (`●`, `♦`, unbounded `□`/`■`, bounded `◇≤d`/`□≤d`,
+  `@P`, strong `⇒`, `⇔`) is the standard KAOS real-time LTL set, not this
+  paper's. The sugar surface is `ancailliau/KAOSTools`'s grammar (MIT),
+  `Parsing/Parsers/GoalModelParser.peg` (289 lines; transcription §7, one
+  row per construct with its grammar line numbers) — every operator it has
+  a spelling for, plus `release` (dual of until; not attested in RE'01,
+  kept since a sugar corpus may use it).
+- **Right-associative by construction, like the source grammar.** The
+  sugar grammar's binary rules recurse their right-hand side to the top
+  (`Formula`), not to the next tighter level; the parser mirrors this
+  exactly (`src/ltl/parser.ts`'s module doc) rather than precedence-climb,
+  since a different shape would silently diverge from the oracle grammar
+  on anything past two operators deep.
+- **A hand-written tokenizer and recursive-descent parser, not a Langium
+  rule.** `formula` is a schema-level value (a `ValueConfig` tagged with a
+  language, `dialect/src/schema.ts`), not one of goal-language's generic
+  `ValueType`s the shared Langium grammar parses (`assertion`, `ocl`, …);
+  it has no lexer start, so there is nothing for a Langium rule to plug
+  into without widening that machinery for one value tag. `src/ltl/lexer.ts`
+  tokenizes both surfaces alike (an identifier, matching the sugar
+  grammar's own name terminal, so `sooner-or-later` is one token).
+- **The checker is a parser, not a validator against the object model**
+  (D3 of #194: no model checking this round). `ltlProblem` (`src/ltl/
+  index.ts`) is wired into the `formula` value's check for tag `ltl`
+  (`src/notation/values.ts`): a syntax error is a Problem, never a parse
+  failure — the text is written back unchanged either way, as every other
+  value type's is. The well-formedness check against a model's predicates
+  and attributes (gt194's object model, items 1–2, in flight) is a hook,
+  `ltlTypeProblems(formula, symbols)`, left unimplemented (always no
+  Problems) until a follow-up PR wires a real `SymbolTable` in —
+  goal-controller#385.
+- **Epistemic operators (`Knows`/`Belief`, ICSE'04, #212) have no node
+  yet.** The grammar's shape (one node per operator, a `Unary`-level
+  parsing slot) leaves room: an agent-indexed unary operator fits beside
+  `Next`/`Always` without reshaping the rest.
+- **No actual document round trip is at stake.** A `formula` value's text
+  is stored and written back verbatim regardless of this AST (as `ocl`
+  and `text` values are); `src/ltl/print.ts`'s `printLtl` exists only to
+  prove the AST is faithful (parse, print, re-parse, compare), and
+  normalizes internal whitespace to one space doing it — the corpus wraps
+  a `formalspec` over several indented lines, and `kaosFormulaText`
+  (`src/formats/kaos/index.ts`) already turns each such gap into one
+  space it cannot tell apart from a deliberate one, so a parser-and-printer
+  pair cannot reproduce the file's original bytes either. The corpus test
+  (`goal-language/test/ltl/corpus.test.ts`) additionally squashes
+  whitespace touching `( ) , .` before comparing, for the same reason.
+- **The oracle: every `formalspec` in the MIT corpora.** ADS's six models
+  and KAOSTools' own `las.kaos` (`goal-language/test/fixtures/kaos`) and
+  `examples/kaos/**`: 401 formulas across 6 files that have any, all
+  parsing with zero Problems and printing back (squashed) byte-identical.
+  Results are on #383.
