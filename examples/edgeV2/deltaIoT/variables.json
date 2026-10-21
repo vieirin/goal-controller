@@ -1,10 +1,7 @@
 {
   "networkActive": true,
-  "packetLossBelow10": true,
-  "gatewayReachable": true,
-  "latencyWithinBound": true,
-  "highInterference": false,
-  "highTraffic": false,
+  "r3Enabled": false,
+  "twoParents": true,
   "T1_achievable": 0.7,
   "T2_achievable": 0.95,
   "T3_achievable": 0.8,
