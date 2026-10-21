@@ -197,6 +197,35 @@ kinds carry them (`declares`, `annotated`).
 - Annotations `<<stereotype>>` and `{tag = tagValue}` (or `{tag}`) set
   `ANNOTATION_KEYS`. Only the first of each kind is read.
 
+### Keyed property lines: one per name of a target
+
+A property a dialect keys (`keyed`, goal-controller#190, #354) has, besides
+its own value, one value per name of its **target**: the entries of a
+project resource (`{ resource: 'expert' }`, kaosexpert's experts), the ids
+of elements of some kinds (`{ kinds: [...] }`), or any name the model
+writes under the key (`{ written: true }`, kaossim's quality variables).
+Each is stored under the key `Key[name]` and written as a property line
+with that key, after the property's own line:
+
+```
+O2: Paper Jam
+  Probability[e1] (13.33%, 20.00%, 33.33%)
+  Probability[e2] (0.00%, 5.00%, 50.00%)
+```
+
+- The grammar reads the key (`PropertyKey`: `KEY ('[' KEYED_NAME ']')?`); a
+  name is anything but spaces and brackets (`e1`, `8MinRespRate`, `G1.2`).
+  `keyedKeyOf` reads a key on disk with the same rule, and `propertyOf`
+  resolves `Probability[e1]` to the keyed property.
+- The lines follow the names in the order the model stores them. A keyed
+  line is read only under a kind whose property is keyed, and only in a
+  document with ids.
+- A name that resolves to nothing of its target is the problem a
+  `reference` naming nothing is (`danglingName`): `e9 is not one of the
+  project's experts`, where the project's resources are read.
+- Completion after `[` offers the target's names: the resource's entries,
+  the kinds' elements, or the names the model already writes under the key.
+
 ### Link lines: properties on links
 
 A dialect that gives links properties (`links` in its definition,
@@ -440,6 +469,7 @@ Completion (`completionsAt`, `fieldCompletionsAt`) offers:
 - inside a notation: the goal's children, `skip`, and only the enabled
   operators, each with its construct;
 - on a property line: the keys the kind reads that aren't set yet;
+- after a keyed key's `[`: its target's names (goal-controller#354);
 - in a field: element ids, or the names an assertion may use.
 
 ## Packaging: ESM, with a CommonJS bundle

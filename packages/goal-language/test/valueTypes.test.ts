@@ -21,7 +21,7 @@ const context: DefinitionContext = {
 describe('value types: reference, formula, probability (#181)', () => {
   const anchor: ValueConfig = {
     type: 'reference',
-    kinds: ['kaos.BehavioralGoal', 'kaos.Softgoal'],
+    target: { kinds: ['kaos.BehavioralGoal', 'kaos.Softgoal'] },
   };
 
   it('a reference names one element of its kinds', () => {
@@ -122,7 +122,13 @@ describe('value types: distribution, and keyed properties (#190)', () => {
   it('a keyed property reads each name’s value by its key on disk (`Probability[e1]`)', () => {
     const dialect = {
       properties: {
-        obstacle: [{ key: 'Probability', value: estimate, keyed: 'expert' }],
+        obstacle: [
+          {
+            key: 'Probability',
+            value: estimate,
+            keyed: { resource: 'expert' },
+          },
+        ],
       },
     } as const;
     const { values, text } = readProperties(

@@ -15,6 +15,7 @@ export const GoalTerminals = {
     TEXT: /[^\s<>{}=](?:[^\r\n<>{}=]*[^\s<>{}=])?/,
     IDENT: /[A-Za-z_][A-Za-z0-9_]*/,
     KEY: /[A-Za-z][A-Za-z0-9_]*/,
+    KEYED_NAME: /[^\s\[\]]+/,
     VALUE: /[^\s](?:[^\r\n]*[^\s])?/,
     A_ID: /[a-zA-Z_][a-zA-Z0-9_]*/,
     A_REF: /(G|T|R|AT)([0-9]+(\.[0-9]+)*X?|X)|[A-Z]{1,2}[0-9]+(\.[0-9]+)+/,
@@ -736,10 +737,27 @@ export function isPlainLine(item: unknown): item is PlainLine {
     return reflection.isInstance(item, PlainLine.$type);
 }
 
+export interface PropertyKey extends langium.AstNode {
+    readonly $container: PropertyLine | Reach;
+    readonly $type: 'PropertyKey';
+    key: string;
+    name?: string;
+}
+
+export const PropertyKey = {
+    $type: 'PropertyKey',
+    key: 'key',
+    name: 'name'
+} as const;
+
+export function isPropertyKey(item: unknown): item is PropertyKey {
+    return reflection.isInstance(item, PropertyKey.$type);
+}
+
 export interface PropertyLine extends langium.AstNode {
     readonly $container: Document | PlainDocument;
     readonly $type: 'PropertyLine';
-    key: string;
+    key: PropertyKey;
     value?: string;
 }
 
@@ -766,6 +784,7 @@ export interface Reach extends langium.AstNode {
     ocl: OclValue;
     pairList: PairListValue;
     plain: PlainDocument;
+    propertyKey: PropertyKey;
     refList: RefListValue;
     text: TextValue;
 }
@@ -782,6 +801,7 @@ export const Reach = {
     ocl: 'ocl',
     pairList: 'pairList',
     plain: 'plain',
+    propertyKey: 'propertyKey',
     refList: 'refList',
     text: 'text'
 } as const;
@@ -1054,6 +1074,7 @@ export type GoalAstType = {
     PairListValue: PairListValue
     PlainDocument: PlainDocument
     PlainLine: PlainLine
+    PropertyKey: PropertyKey
     PropertyLine: PropertyLine
     Reach: Reach
     RefListValue: RefListValue
@@ -1530,6 +1551,19 @@ export class GoalAstReflection extends langium.AbstractAstReflection {
             },
             superTypes: []
         },
+        PropertyKey: {
+            name: PropertyKey.$type,
+            properties: {
+                key: {
+                    name: PropertyKey.key
+                },
+                name: {
+                    name: PropertyKey.name,
+                    optional: true
+                }
+            },
+            superTypes: []
+        },
         PropertyLine: {
             name: PropertyLine.$type,
             properties: {
@@ -1575,6 +1609,9 @@ export class GoalAstReflection extends langium.AbstractAstReflection {
                 },
                 plain: {
                     name: Reach.plain
+                },
+                propertyKey: {
+                    name: Reach.propertyKey
                 },
                 refList: {
                     name: Reach.refList

@@ -216,10 +216,11 @@ export type ValueConfig =
   | { type: 'refList'; kind: DialectKind }
   | { type: 'refList'; kinds: readonly DialectKind[] }
   /**
-   * one element's id, of one of these kinds (a resolution's anchor goal):
-   * an id the model lacks, or another kind's, is a problem
+   * one name of its target (goal-controller#354): an element's id, of one
+   * of its kinds (a resolution's anchor goal), or the id of an entry of a
+   * project resource; a name that resolves to nothing is a problem
    */
-  | { type: 'reference'; kinds: readonly DialectKind[] }
+  | { type: 'reference'; target: ReferenceTarget }
   /**
    * a sentence of a formal language, tagged with it (`ltl`: KAOS's
    * `FormalSpec`): read as text, which nothing checks yet
@@ -438,15 +439,15 @@ export type PropertyDefinition<C extends string = string> = {
   /** offered as an inspector field (default: true) */
   inspector?: boolean;
   /**
-   * keyed by a project resource's names (goal-controller#190, D2): besides
-   * its own value (`Probability`), one per name of that resource kind,
-   * `Probability[e1]` on disk (`keyedKeyOf`), each of its value type; the
-   * inspector shows a row per name. The kind is one of the dialect's
-   * `projectResources`. `{ names: 'written' }` (goal-controller#193): keyed
-   * by any name the model writes (`QualityVariable[ResponseTime]`, a goal's
-   * own quality variables), which no resource lists.
+   * keyed by the names of a target (goal-controller#190 D2, #354): besides
+   * its own value (`Probability`), one per name, `Probability[e1]` on disk
+   * (`KeyedKey`), each of its value type. The names are the entries of a
+   * project resource (`{ resource: 'expert' }`, kaosexpert's experts), the
+   * ids of elements of some kinds (`{ kinds: ['goal'] }`), or any name the
+   * model writes under the key (`{ written: true }`, goal-controller#193:
+   * kaossim's `QualityVariable[ResponseTime]`, which nothing lists).
    */
-  keyed?: string | KeyedByWritten;
+  keyed?: Target;
   /**
    * `'engine'`: an engine-owned language server serves this property's value
    * (its sub-language): the shared goal-language server and the local
@@ -457,8 +458,130 @@ export type PropertyDefinition<C extends string = string> = {
   servedBy?: 'engine';
 };
 
-/** A keyed property's names: any the model writes, none listed (goal-controller#193). */
-export type KeyedByWritten = { names: 'written' };
+// ---------------------------------------------------------------------------
+// targets: what a property names besides its own value (goal-controller#354)
+// ---------------------------------------------------------------------------
+
+/** The elements of these kinds: a name is an element's id. */
+export type ElementTarget<K extends string = DialectKind> = {
+  kinds: readonly K[];
+};
+
+/** The entries of a project resource kind (one with `entries`): a name is an entry's id. */
+export type ResourceTarget<R extends string = string> = { resource: R };
+
+/**
+ * The names the model itself writes under a keyed property's key
+ * (goal-controller#193: kaossim's quality variables), which nothing lists:
+ * every name written resolves.
+ */
+export type WrittenTarget = { written: true };
+
+/**
+ * What a property names besides its own value (goal-controller#354): a
+ * `reference` value's one name, or a keyed property's names. A `reference`
+ * names elements or resource entries only, as a name written under its own
+ * key is no other object.
+ */
+export type Target = ElementTarget | ResourceTarget | WrittenTarget;
+export type ReferenceTarget = ElementTarget | ResourceTarget;
+
+declare const elementOf: unique symbol;
+declare const entryOf: unique symbol;
+declare const writtenUnder: unique symbol;
+
+/** An element's id, branded by its kinds (one of them). */
+export type ElementId<K extends string = string> = string & {
+  readonly [elementOf]: K;
+};
+
+/** A project resource entry's id, branded by its resource kind. */
+export type ResourceId<R extends string = string> = string & {
+  readonly [entryOf]: R;
+};
+
+/** A name the model writes under a keyed property's key, branded by that key. */
+export type WrittenName<Key extends string = string> = string & {
+  readonly [writtenUnder]: Key;
+};
+
+/**
+ * A target's names, branded by what they name: an element's id by its
+ * kinds, an entry's by its resource kind, a written name by the key it is
+ * written under (`Key`).
+ */
+export type TargetId<T, Key extends string = string> = T extends {
+  kinds: readonly (infer K extends string)[];
+}
+  ? ElementId<K>
+  : T extends { resource: infer R extends string }
+    ? ResourceId<R>
+    : T extends { written: true }
+      ? WrittenName<Key>
+      : never;
+
+/** A keyed property's key on disk for one name of its target: `Probability[e1]`. */
+export type KeyedKey<
+  Key extends string = string,
+  Id extends string = string,
+> = `${Key}[${Id}]`;
+
+/**
+ * A name as one of its target's: where a name is read as what it names
+ * (the reader of a resource's entries, a model's element, a key on disk).
+ * The brand says what the name is meant to name; whether it resolves is
+ * `danglingName`'s to say.
+ */
+export const targetId = <
+  const T extends Target,
+  const Key extends string = string,
+>(
+  _target: T,
+  name: string,
+): TargetId<T, Key> => name as TargetId<T, Key>;
+
+/** A project resource's entry (one with `entries`), as its reader lists it. */
+export type ResourceEntry<R extends string = string> = {
+  id: ResourceId<R>;
+  name: string;
+};
+
+/**
+ * Where a target's names resolve: the model's elements (an id's kind, or
+ * undefined for none), and the project's resources' entries, by kind
+ * (undefined: the resource isn't read, so nothing can be told).
+ */
+export type TargetScope = {
+  kindOf(id: string): string | undefined;
+  entriesOf?(resource: string): readonly ResourceEntry[] | undefined;
+};
+
+/**
+ * Why a name resolves to nothing of its target (null: it resolves, or what
+ * it would name isn't known): the one dangling-name problem a `reference`
+ * value and a keyed property's name share (goal-controller#354).
+ */
+export const danglingName = (
+  target: Target,
+  name: string,
+  scope: TargetScope,
+  resources?: Readonly<
+    Record<string, Pick<ProjectResourceDefinition, 'label'>>
+  >,
+): string | null => {
+  if ('written' in target) return null;
+  if ('resource' in target) {
+    const entries = scope.entriesOf?.(target.resource);
+    if (!entries || entries.some((entry) => entry.id === name)) return null;
+    const label = resources?.[target.resource]?.label ?? target.resource;
+    return `${name} is not one of the project's ${label.toLowerCase()}`;
+  }
+  const kind = scope.kindOf(name);
+  if (!kind) return `${name} is not an element of this model`;
+  return (target.kinds as readonly string[]).includes(kind)
+    ? null
+    : `${name} is a ${kind}, not a ${target.kinds.join(' or ')}`;
+};
 
 /** The mismatches between a notation and the structure the views report. */
 export type ProblemKind =
@@ -668,6 +791,12 @@ export type ProjectResourceDefinition = {
   /** the file extensions it takes (`.xml`); default: any */
   accept?: readonly string[];
   help?: string;
+  /**
+   * it holds identified entries (kaosexpert's experts), which its reader
+   * lists as `{ id, name }` (`ResourceEntry`): what a `{ resource }` target
+   * names (goal-controller#354)
+   */
+  entries?: true;
 };
 
 // ---------------------------------------------------------------------------
@@ -842,6 +971,8 @@ export type ResourceSymbols = Readonly<
 export type ProjectResourceContext = {
   symbols: ResourceSymbols;
   data?: unknown;
+  /** its entries, where its kind declares them (`entries`, goal-controller#354) */
+  entries?: readonly ResourceEntry[];
 };
 
 /** The project-resource kinds a definition declares. */
@@ -1123,6 +1254,76 @@ type KnownPropertyKinds<D extends { properties: object }> =
         };
       };
 
+/** The project resource kinds of a definition that hold entries (a `{ resource }` target's). */
+export type EntryResourceKindOf<D> = D extends { projectResources: infer R }
+  ? string extends keyof R
+    ? // a derived definition's (not literal): checked at run time only
+      string
+    : {
+        [K in keyof R & string]: R[K] extends { entries: true } ? K : never;
+      }[keyof R & string]
+  : never;
+
+/** The kinds in `K` that aren't `Known`. */
+type UnknownOf<K, Known> = K extends Known ? never : K;
+
+/** What is wrong with a target `T` of a definition's property `Key`, as a message; never: nothing. */
+type TargetProblemOf<D, Key extends string, T> = T extends {
+  resource: infer R extends string;
+}
+  ? string extends R
+    ? never
+    : R extends EntryResourceKindOf<D>
+      ? never
+      : `${Key} names project resource ${R}, which the dialect doesn't declare with entries`
+  : T extends { kinds: readonly (infer K extends string)[] }
+    ? string extends K
+      ? never
+      : ExtensionKind extends K
+        ? never
+        : [UnknownOf<K, PropertyKindOf<D>>] extends [never]
+          ? never
+          : `${Key} names unknown kind ${UnknownOf<K, PropertyKindOf<D>>}`
+    : never;
+
+/** The targets of a value config (a conditional one's either). */
+type ValueTargetOf<V> = V extends { matching: infer M; otherwise: infer O }
+  ? ValueTargetOf<M> | ValueTargetOf<O>
+  : V extends { type: 'reference'; target: infer T }
+    ? T
+    : never;
+
+/** What is wrong with the targets of a list of properties. */
+type ListTargetProblems<D, L> = L extends readonly (infer P)[]
+  ? P extends { key: infer Key extends string }
+    ?
+        | (P extends { keyed: infer T } ? TargetProblemOf<D, Key, T> : never)
+        | (P extends { value: infer V }
+            ? TargetProblemOf<D, Key, ValueTargetOf<V>>
+            : never)
+    : never
+  : never;
+
+/** What is wrong with every target of a definition: its element kinds', link kinds' and actors' properties. */
+type TargetProblems<D> =
+  | (D extends { properties: infer P }
+      ? { [K in keyof P]: ListTargetProblems<D, P[K]> }[keyof P]
+      : never)
+  | (D extends { links: infer L }
+      ? { [K in keyof L]: ListTargetProblems<D, L[K]> }[keyof L]
+      : never)
+  | (D extends { actors: infer A } ? ListTargetProblems<D, A> : never);
+
+/**
+ * A target naming a kind the definition doesn't have, or a project resource
+ * it doesn't declare with entries (goal-controller#354), made a missing
+ * member that says so (it doesn't compile); targets that aren't literal (a
+ * derived definition's) are checked at run time only.
+ */
+type KnownTargets<D> = [TargetProblems<D>] extends [never]
+  ? unknown
+  : { readonly 'unknown target': TargetProblems<D> };
+
 /**
  * A dialect's native files, as the types can't check them: each id a name,
  * its extensions its own, its schema one its format has (inside the
@@ -1288,7 +1489,7 @@ const checkFrameworkLinks = (
  * each operand kind's key once (but those its element line writes).
  */
 export const defineDialect = <const D extends AnyDialect>(
-  definition: D & KnownPropertyKinds<D>,
+  definition: D & KnownPropertyKinds<D> & KnownTargets<D>,
 ): DeepReadonly<D> => {
   const fail = (why: string) => {
     throw new Error(`${definition.id}: ${why}`);
@@ -1378,10 +1579,19 @@ export const defineDialect = <const D extends AnyDialect>(
       fail(`repeated ${owner} property key`);
     for (const property of list) {
       const value = property.value;
-      if (typeof property.keyed === 'string' && !(property.keyed in resources))
-        fail(
-          `${owner}.${property.key} is keyed by unknown project resource ${property.keyed}`,
-        );
+      const targets = [
+        ...(property.keyed ? [property.keyed] : []),
+        ...('when' in value
+          ? [value.matching, value.otherwise]
+          : [value]
+        ).flatMap((config) =>
+          config.type === 'reference' ? [config.target] : [],
+        ),
+      ];
+      for (const target of targets) {
+        const problem = targetProblem(target, resources, isKind);
+        if (problem) fail(`${owner}.${property.key} ${problem}`);
+      }
       for (const key of [property.applies, property.required, value].map(
         conditionKey,
       ))
@@ -1585,6 +1795,28 @@ export const refListKinds = (
   config: Extract<ValueConfig, { type: 'refList' }>,
 ): readonly DialectKind[] => ('kinds' in config ? config.kinds : [config.kind]);
 
+/**
+ * Why a target names nothing a dialect has (null: it is fine): a kind that
+ * isn't one of its (`isKind`), a resource kind it doesn't declare, or one
+ * that holds no entries.
+ */
+const targetProblem = (
+  target: Target,
+  resources: Readonly<Record<string, ProjectResourceDefinition>>,
+  isKind: (kind: string) => boolean,
+): string | null => {
+  if ('written' in target) return null;
+  if ('resource' in target) {
+    const resource = resources[target.resource];
+    if (!resource) return `names unknown project resource ${target.resource}`;
+    return resource.entries
+      ? null
+      : `names project resource ${target.resource}, which declares no entries`;
+  }
+  const unknown = target.kinds.find((kind) => !isKind(kind));
+  return unknown === undefined ? null : `names unknown kind ${unknown}`;
+};
+
 /** The kinds a value names its elements by (an assertion's, an expression's, a refList's). */
 export const referencedKinds = (config: ValueConfig): readonly string[] =>
   config.type === 'assertion'
@@ -1593,8 +1825,8 @@ export const referencedKinds = (config: ValueConfig): readonly string[] =>
       ? (config.resolves ?? [])
       : config.type === 'refList'
         ? refListKinds(config)
-        : config.type === 'reference'
-          ? config.kinds
+        : config.type === 'reference' && 'kinds' in config.target
+          ? config.target.kinds
           : [];
 
 /**

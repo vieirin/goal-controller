@@ -28,7 +28,7 @@ import {
   writeDeclaration,
   writtenName,
 } from '../print.js';
-import { parseValue } from '../parse.js';
+import { keyedKeyOf, parseValue } from '../parse.js';
 import { annotatedProperties, readLine } from './lines.js';
 import {
   ACTOR_LINE_KEY,
@@ -83,6 +83,43 @@ export const isListed = (
       !hasIds(definition))
   );
 };
+
+/**
+ * A node's keys a property line is written with: the keys `propertyLineOrder`
+ * lists, each followed by its keyed keys the node has (`Probability[e1]`,
+ * goal-controller#354), in the order stored. Keyed lines are a document's
+ * with ids only (one without reads a line's first word as its key).
+ */
+const lineKeysOf = (
+  definition: Document,
+  node: Pick<DocumentNode, 'kind' | 'properties'>,
+): string[] =>
+  definition.propertyLineOrder.flatMap((key) => [
+    key,
+    ...(isKeyedLineKey(definition, node.kind, key)
+      ? Object.keys(node.properties).filter(
+          (stored) => keyedKeyOf(stored)?.key === key,
+        )
+      : []),
+  ]);
+
+/** Whether a kind's property `key` is keyed, and so has keyed lines (in a document with ids). */
+const isKeyedLineKey = (definition: Document, kind: string, key: string) =>
+  hasIds(definition) &&
+  !!definition.properties?.[kind]?.some(
+    (p) => p.key === key && p.keyed !== undefined,
+  );
+
+/** Whether a line's key is one a kind's property lines are written with: a listed key, or one of its keyed keys. */
+const isLineKey = (
+  definition: Document,
+  kind: string,
+  read: { key: string; keyed?: { key: string } },
+): boolean =>
+  read.keyed
+    ? definition.propertyLineOrder.includes(read.keyed.key) &&
+      isKeyedLineKey(definition, kind, read.keyed.key)
+    : definition.propertyLineOrder.includes(read.key);
 
 /** An element's line without its declaration. */
 export const nodeLine = (
@@ -179,7 +216,7 @@ export const notationDocument = (
         elementLine(definition, node, null, annotations),
     );
     ids.push(id);
-    for (const key of definition.propertyLineOrder) {
+    for (const key of lineKeysOf(definition, node)) {
       const value = node.properties[key];
       if (value !== undefined) {
         lines.push(
@@ -345,7 +382,7 @@ export const notationEdits = (
     if (
       read.kind === 'property' &&
       !read.errors.length &&
-      definition.propertyLineOrder.includes(read.key)
+      isLineKey(definition, current.node.kind, read)
     )
       current.properties.set(read.key, read.value);
     else current.unreadable = true;
@@ -366,7 +403,12 @@ export const notationEdits = (
       edits.push(...linkEdits(definition, tree, names, block));
   }
   for (const { node, properties, unreadable } of blocks) {
-    for (const key of definition.propertyLineOrder) {
+    // its keys, and the keyed keys its lines add
+    const keys = new Set([
+      ...lineKeysOf(definition, node),
+      ...[...properties.keys()].filter((key) => keyedKeyOf(key) !== null),
+    ]);
+    for (const key of keys) {
       const value = properties.get(key);
       const stored = node.properties[key];
       if (value !== undefined && value !== stored) {

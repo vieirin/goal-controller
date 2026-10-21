@@ -92,6 +92,8 @@ const STYLE: Record<string, HighlightStyle> = {
   WORD: 'string',
   PLAIN_NAME: 'string',
   KEY: 'propertyName',
+  // a keyed key's name (`Probability[e1]`, goal-controller#354)
+  KEYED_NAME: 'variableName',
   INTEGER: 'number',
   NUMBER: 'number',
   A_INT: 'number',

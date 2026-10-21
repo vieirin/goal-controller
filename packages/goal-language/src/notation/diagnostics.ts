@@ -13,7 +13,6 @@ import {
   hasIds,
   linkLinesOf,
   linkPropertiesOf,
-  propertyOf,
   relationMismatch,
   valueOf,
   type AnyDialect,
@@ -23,7 +22,10 @@ import {
   type WithNotation,
   type PropertyDefinition,
   type ValueConfig,
+  danglingName,
 } from '@goal-controller/dialect';
+import { propertyOf, targetScopeOf } from './properties.js';
+import { keyedKeyOf } from '../parse.js';
 import { annotatedProperties, readLine, type ElementReading } from './lines.js';
 import { ACTOR_LINE_KEY, actorNames, readActorLine } from './actorLine.js';
 import { arityText, CALLS, takesOperands, type CallName } from '../catalog.js';
@@ -190,7 +192,12 @@ type Definition = Pick<
   | 'problems'
   | 'idScope'
 > &
-  Partial<Pick<AnyDialect, 'links' | 'linkLines' | 'actors' | 'framework'>>;
+  Partial<
+    Pick<
+      AnyDialect,
+      'links' | 'linkLines' | 'actors' | 'framework' | 'projectResources'
+    >
+  >;
 
 /**
  * Why a framework's line (KAOS, NFR: goal-controller#171) names no element
@@ -280,6 +287,21 @@ const propertyDiagnostics = (
     if (!property || properties[key] === undefined) continue;
     // anchored on the element and the property
     const where = { ...at(key), elementId: self, key };
+    // a keyed key's name: one of its target's (goal-controller#354), the
+    // dangling-name problem a reference's is
+    const name = keyedKeyOf(key)?.name;
+    const dangling =
+      property.keyed &&
+      name !== undefined &&
+      context &&
+      danglingName(
+        property.keyed,
+        name,
+        targetScopeOf(context),
+        definition.projectResources,
+      );
+    if (dangling)
+      diagnostics.push({ ...where, severity: 'error', message: dangling });
     if (!evaluateCondition(property.applies, properties, true)) {
       diagnostics.push({
         ...where,
@@ -488,7 +510,8 @@ export const documentDiagnostics = (
     // what the document sets: its property lines replace the stored ones
     const properties: Record<string, string> = {};
     for (const [key, value] of Object.entries(element.properties))
-      if (!definition.propertyLineOrder.includes(key)) properties[key] = value;
+      if (!definition.propertyLineOrder.includes(keyedKeyOf(key)?.key ?? key))
+        properties[key] = value;
     for (const [key, value] of values) properties[key] = value;
     diagnostics.push(
       ...propertyDiagnostics(
