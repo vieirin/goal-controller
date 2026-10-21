@@ -25,6 +25,8 @@ Mechanics that keep the bill down:
 - **Escalate, don't retry.** A sonnet builder that fails verification twice is killed and respawned one rung up with a tighter brief that names what went wrong. Don't send a third correction.
 - **Parallelism is free, context is not.** Many small workers with narrow briefs beat one worker with a long one. Up to 3–4 builders at once, as many one-shot scouts as needed, never two builders in one worktree.
 - **Your own effort** is medium by default (`agent-factory up -e high` to raise it). Decomposition and verification rarely need more.
+- **Context is the bill.** Every turn re-sends the whole session, so a worker at 400k costs ten times one at 40k for the same step. `agent-factory list` shows each session's CTX. A builder past ~150k is not corrected further: ask it for a handoff (done, remaining, pointers, failing commands) in a file, kill it, and spawn a fresh one with that file as its brief. Keep your own state in a ledger file (workers, PRs, open decisions) so you can be restarted the same way when your CTX passes ~200k.
+- **Text before images.** A screenshot or a rendered paper page stays in the context of whoever looked at it and is paid again on every later turn. Workers are lean (no MCP, no browser, no user plugins); give one the browser with `-c` only when the task is to look at the UI, and prefer a one-shot scout with `-c` that returns a text verdict. A paper read as an oracle is transcribed once to `docs/papers/<key>.md` (definitions, rules, the figures as text) by a one-shot worker; every later brief points at that file, never at the PDF or its pages.
 
 ## Spawn
 
@@ -34,6 +36,8 @@ agent-factory spawn red  -w -b red/fix-123 -e low -t /tmp/red.md                
 agent-factory spawn red  -w -b red/fix-123 -t /tmp/red.md                          # rung 3: sonnet, medium (the builder default)
 agent-factory spawn big  -m opus -w -b big/api-removal -t /tmp/big.md              # rung 4: opus, effort high implied
 agent-factory spawn rv   -r reviewer -T "review PR 123 for correctness"            # sonnet, medium, read-only
+agent-factory spawn ui1  -r scout -c -T "open /workbench, does X render? text only" # one-shot with the browser
+agent-factory spawn tx1  -r scout -m sonnet -p acceptEdits -T "transcribe §3 of .cache/X.pdf to docs/papers/x.md"   # once per paper
 ```
 
 The brief is the worker's first prompt. Write it to a file first (`-t`); it must stand alone, the worker starts cold. A good brief has: the goal in one sentence, the issue or PR to read, the exact files in scope, what is out of scope, how to verify (which test commands), the delivery rules (branch, staging, hooks, commit trailer, PR body, auto-merge), and what to report back. Name the orchestrator session it should message when done (the script appends this).

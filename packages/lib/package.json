@@ -13,6 +13,7 @@
     "watch": "node build.mjs --watch & tsc --watch",
     "test": "TS_NODE_COMPILER_OPTIONS='{\"strict\":false,\"noImplicitAny\":false}' mocha && pnpm run test:dialect",
     "test:dialect": "TS_NODE_PROJECT=./tsconfig.dialect-test.json mocha --config .mocharc.dialect.json",
+    "test:only": "TS_NODE_COMPILER_OPTIONS='{\"strict\":false,\"noImplicitAny\":false}' mocha --no-config -r ts-node/register -r ./test/support/langium.cjs --extension ts -n loader=ts-node/esm --timeout 10000 --reporter dot",
     "clean": "rm -rf out tsconfig.tsbuildinfo",
     "dev": "node --experimental-strip-types src/cli.ts",
     "generate": "node scripts/langium-generate.mjs src/engines test/dialect/support"

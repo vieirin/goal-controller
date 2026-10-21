@@ -28,6 +28,6 @@ install_hook post-commit true
 echo ""
 echo "Git hooks installed."
 echo "  post-commit — oxfmt + oxlint --fix, amend if needed"
-echo "  pre-push    — oxfmt --check, oxlint, then pnpm test"
+echo "  pre-push    — oxfmt --check, oxlint, then tests for affected packages only"
 echo ""
 echo "Bypass (not recommended): git push --no-verify"

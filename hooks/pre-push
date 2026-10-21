@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Block push if commits being pushed fail oxfmt --check or oxlint.
-# Also runs the test suite.
+# Runs tests only for packages touched by the push (and their dependents).
 
 set -euo pipefail
 
@@ -10,8 +10,10 @@ cd "$ROOT"
 
 ZERO="0000000000000000000000000000000000000000"
 TMP="$(mktemp)"
-trap 'rm -f "$TMP"' EXIT
+ALL="$(mktemp)"
+trap 'rm -f "$TMP" "$ALL"' EXIT
 
+# Collect every path in the commits being pushed (one ref line per push).
 while read -r local_ref local_sha remote_ref remote_sha; do
   if [ "$local_sha" = "$ZERO" ]; then
     continue
@@ -26,19 +28,16 @@ while read -r local_ref local_sha remote_ref remote_sha; do
     range="$remote_sha..$local_sha"
   fi
 
-  git diff --name-only "$range" | while IFS= read -r file; do
-    case "$file" in
-      *node_modules*) continue ;;
-    esac
-    case "$file" in
-      *.ts|*.tsx|*.js|*.jsx|*.mjs|*.cjs|*.json|*.css)
-        if [ -f "$file" ]; then
-          printf '%s\n' "$file"
-        fi
-        ;;
-    esac
-  done
-done | awk 'NF && !seen[$0]++' >"$TMP"
+  git diff --name-only "$range"
+done | awk 'NF && !seen[$0]++' >"$ALL"
+
+# Lint/format: source-like files that still exist in the tree.
+awk '
+  /node_modules\// { next }
+  /\.(ts|tsx|js|jsx|mjs|cjs|json|css)$/ { print }
+' "$ALL" | while IFS= read -r file; do
+  [ -f "$file" ] && printf '%s\n' "$file"
+done >"$TMP"
 
 if [ ! -s "$TMP" ]; then
   echo "✅ No source files in push range to lint/format-check."
@@ -75,8 +74,84 @@ else
   fi
 fi
 
-echo "🔍 Running tests..."
-if ! pnpm test; then
+# Packages whose sources or package.json changed in the push, plus dependents
+# (dialect ← goal-language ← goal-tree ← lib ← ui).
+PKGS="$(
+  awk '
+    BEGIN { d=0; gl=0; gt=0; l=0; u=0 }
+    /^packages\/dialect\// { d=1 }
+    /^packages\/goal-language\// { gl=1 }
+    /^packages\/goal-tree\// { gt=1 }
+    /^packages\/lib\// { l=1 }
+    /^packages\/ui\// { u=1 }
+    END {
+      if (d) { gl=1; gt=1; l=1; u=1 }
+      if (gl) { gt=1; l=1; u=1 }
+      if (gt) { l=1; u=1 }
+      if (l) { u=1 }
+      if (d) print "dialect"
+      if (gl) print "goal-language"
+      if (gt) print "goal-tree"
+      if (l) print "lib"
+      if (u) print "ui"
+    }
+  ' "$ALL"
+)"
+
+if [ -z "$PKGS" ]; then
+  echo "✅ No package sources in push range; skipping tests."
+  echo "✅ All checks passed. Proceeding with push..."
+  exit 0
+fi
+
+echo "🔍 Affected packages: $(printf '%s' "$PKGS" | tr '\n' ' ')"
+
+# Build only what the suites below need (lib/ui import the other packages' out/).
+BUILD_PLAN="$(
+  printf '%s\n' "$PKGS" | awk '
+    /^(ui|lib)$/ { l=1 }
+    /^goal-tree$/ { t=1 }
+    /^goal-language$/ { g=1 }
+    /^dialect$/ { d=1 }
+    END {
+      if (l) { print "build:lib"; exit }
+      if (t) { print "tree"; exit }
+      if (g) { print "lang"; exit }
+      if (d) { print "dialect"; exit }
+    }
+  '
+)"
+case "$BUILD_PLAN" in
+  build:lib)
+    echo "🔨 Building lib (and its dependencies)..."
+    pnpm run build:lib
+    ;;
+  tree)
+    echo "🔨 Building dialect, goal-language, goal-tree..."
+    pnpm run build:dialect && pnpm run build:goal-language && pnpm run build:goal-tree
+    ;;
+  lang)
+    echo "🔨 Building dialect, goal-language..."
+    pnpm run build:dialect && pnpm run build:goal-language
+    ;;
+  dialect)
+    echo "🔨 Building dialect..."
+    pnpm run build:dialect
+    ;;
+esac
+
+echo "🔍 Running tests for affected packages..."
+failed=0
+while IFS= read -r pkg; do
+  [ -z "$pkg" ] && continue
+  echo "→ @goal-controller/$pkg"
+  if ! pnpm --filter "@goal-controller/$pkg" run test; then
+    failed=1
+    break
+  fi
+done <<<"$PKGS"
+
+if [ "$failed" -ne 0 ]; then
   echo ""
   echo "❌ Tests failed. Push aborted."
   exit 1
