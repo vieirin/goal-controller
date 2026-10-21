@@ -1,0 +1,108 @@
+# The Elevator's obstacles and their resolutions, re-keyed by hand from the
+# figures of Respect-IT's "A KAOS Tutorial" (v1.0, 18 October 2007, §3.6
+# "Dealing with obstacles", Figures 33-35, (c) Respect-IT sa; the tutorial
+# states no licence). Only the figures' labels and links are taken; no text
+# of the tutorial is copied. goal-controller#202 (Refs #191, #195).
+#
+# - Figures 33-34: "Elevator direction unreadable" obstructs "Elevator
+#   direction updated few seconds before next stop", the one sub-goal of
+#   "Passengers informed of elevator direction"; it is refined into three
+#   alternatives (an OR: one refinement each; the figures' dashed and solid
+#   lines are not told apart). Figure 34 adds two resolutions, which §3.6
+#   calls new requirements "that prevent the obstacle from occurring":
+#   prevention.
+# - Figure 35: "Service interrupted" obstructs "Robust and reliable elevator
+#   system" and three goals resolve it. §3.6 describes them: replacing worn
+#   components in time is a reliability requirement "aim[ing] at preventing
+#   failures" (prevention); a maximum repair delay "restore[s] the obstructed
+#   goal" (restoration); a self-reconfiguring system "minimiz[es] its
+#   effects" (mitigation). "Worn-out components replaced in time" has two
+#   alternative refinements, as drawn.
+# - No probabilities: the tutorial gives none (#202 is qualitative).
+
+@title "Elevator (Respect-IT tutorial, Figures 33-35)"
+
+declare goal [ passengers_informed_of_direction ]
+  name "Passengers informed of elevator direction"
+  refinedby direction_updated_before_next_stop
+end
+
+declare goal [ direction_updated_before_next_stop ]
+  name "Elevator direction updated few seconds before next stop"
+  obstructedby direction_unreadable
+end
+
+declare obstacle [ direction_unreadable ]
+  name "Elevator direction unreadable"
+  refinedby inadequate_led_size
+  refinedby unreadable_by_blind_people
+  refinedby insufficient_display_contrast
+end
+
+declare obstacle [ inadequate_led_size ]
+  name "Inadequate LED size"
+  resolvedby [prevention] leds_at_least_2in_high
+end
+
+declare obstacle [ unreadable_by_blind_people ]
+  name "Elevator direction unreadable by blind people"
+  resolvedby [prevention] direction_announced_by_voice
+end
+
+declare obstacle [ insufficient_display_contrast ]
+  name "Insufficient display contrast"
+end
+
+declare goal [ leds_at_least_2in_high ]
+  name "LEDs at least 2in high"
+end
+
+declare goal [ direction_announced_by_voice ]
+  name "Elevator direction announced by voice"
+end
+
+declare goal [ robust_and_reliable ]
+  name "Robust and reliable elevator system"
+  obstructedby service_interrupted
+end
+
+declare obstacle [ service_interrupted ]
+  name "Service interrupted"
+  resolvedby [mitigation] self_reconfigurable_on_partial_failure
+  resolvedby [restoration] repair_delay_enforced
+  resolvedby [prevention] worn_out_components_replaced_in_time
+end
+
+declare goal [ self_reconfigurable_on_partial_failure ]
+  name "Self-reconfigurable system in case of partial failure"
+end
+
+declare goal [ repair_delay_enforced ]
+  name "Maximum permitted time delay for repairing failure enforced"
+end
+
+declare goal [ worn_out_components_replaced_in_time ]
+  name "Worn-out components replaced in time"
+  refinedby maintenance_program_provided, worn_out_components_replaced
+  refinedby worn_out_components_replaced, elevator_system_monitored
+end
+
+declare goal [ maintenance_program_provided ]
+  name "Maintenance program provided"
+  refinedby mtbf_requirements_specified, maintenance_program_defined, maintenance_program_executed
+end
+
+declare goal [ worn_out_components_replaced ]
+  name "Worn-out components replaced"
+end
+
+declare goal [ elevator_system_monitored ]
+  name "Elevator system monitored"
+  refinedby component_wear_detected, component_wear_reported
+end
+
+declare goal [ mtbf_requirements_specified ] name "MTBF requirements specified" end
+declare goal [ maintenance_program_defined ] name "Maintenance program defined" end
+declare goal [ maintenance_program_executed ] name "Maintenance program executed" end
+declare goal [ component_wear_detected ] name "Component wear detected" end
+declare goal [ component_wear_reported ] name "Component wear reported" end

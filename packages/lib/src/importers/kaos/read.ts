@@ -1039,7 +1039,8 @@ export const readKaos = (
       at(annotation.attribute),
     );
   };
-  for (const element of [...elements.values()])
+  // an element made while resolving has no annotations: the live map is fine
+  for (const element of elements.values())
     for (const annotation of element.annotations) {
       const label = element.id ?? element.name ?? 'a goal';
       // `cost [x] n` whose x is no obstacle: KAOSTools' cost variable

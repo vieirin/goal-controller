@@ -424,6 +424,31 @@ export {
   type Weighting,
 } from './engines/kaosexpert';
 export { kaosexpertEngine } from './engines/kaosexpert/engine';
+// countermeasures (goal-controller#191 part A): kaosres's dialect and the
+// transformations; the selection engine is part B's
+export {
+  applyCountermeasures,
+  applyCountermeasuresToView,
+  COUNTERMEASURE_FORMS,
+  countermeasuresOf,
+  FORM_INTEGRATIONS,
+  integrationOf,
+  kaosModelOfView,
+  kaosres,
+  kaosresView,
+  obstructs,
+  STRATEGY_INTEGRATIONS,
+  type AppliedCountermeasure,
+  type ApplyOptions,
+  type Countermeasure,
+  type CountermeasureForm,
+  type CountermeasureProblem,
+  type CountermeasureVariant,
+  type Integration,
+  type KaosModel,
+  type ResolutionScope,
+  type ResolutionStrategy,
+} from './engines/kaosres';
 // the numeric back-end (goal-controller#190): distributions, BDDs, a seeded generator
 export { Bdd } from './numeric/bdd';
 export {
