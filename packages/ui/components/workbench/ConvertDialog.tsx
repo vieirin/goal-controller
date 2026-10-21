@@ -47,7 +47,7 @@ export default function ConvertDialog({
   );
   const engineIds = useMemo(() => candidates.map((c) => c.id), [candidates]);
   const [skipChecks, setSkipChecks] = useState(false);
-  const { plans, checks, statusOf, warningsOf } = useEngineConformity(
+  const { plans, checks, statusOf, warningsOf, detailOf } = useEngineConformity(
     wb.text,
     engineIds,
     skipChecks,
@@ -168,6 +168,7 @@ export default function ConvertDialog({
                     <ConformityStatus
                       status={cardStatus}
                       warnings={warningsOf(engine.id)}
+                      detail={detailOf(engine.id)}
                     />
                   </label>
                 );
