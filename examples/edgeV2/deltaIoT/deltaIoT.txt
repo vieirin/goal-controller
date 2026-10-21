@@ -22,14 +22,14 @@
         },
         {
           "id": "04c978fe-5f50-4301-99b7-958a1c9f4245",
-          "text": "G1: Keep packet loss low [G3@2->G4]",
+          "text": "G1: Keep packet loss low [G3->G4]",
           "type": "istar.Goal",
           "x": 374,
           "y": 158,
           "customProperties": {
             "Description": "",
             "type": "maintain",
-            "maintain": "packetLossBelow10",
+            "maintain": "R4<=10",
             "assertion": "networkActive"
           }
         },
@@ -42,8 +42,8 @@
           "customProperties": {
             "Description": "",
             "type": "maintain",
-            "maintain": "latencyWithinBound",
-            "assertion": "gatewayReachable"
+            "maintain": "R5<5",
+            "assertion": "r3Enabled"
           }
         },
         {
@@ -94,7 +94,7 @@
           "y": 490,
           "customProperties": {
             "Description": "",
-            "assertion": "!highInterference"
+            "assertion": "R3>3"
           }
         },
         {
@@ -104,7 +104,8 @@
           "x": 200,
           "y": 490,
           "customProperties": {
-            "Description": ""
+            "Description": "",
+            "assertion": "R3<=3 & R0<15"
           }
         },
         {
@@ -115,7 +116,7 @@
           "y": 490,
           "customProperties": {
             "Description": "",
-            "assertion": "!highTraffic"
+            "assertion": "R2<=5"
           }
         },
         {
@@ -125,7 +126,8 @@
           "x": 480,
           "y": 490,
           "customProperties": {
-            "Description": ""
+            "Description": "",
+            "assertion": "twoParents"
           }
         },
         {
@@ -156,7 +158,8 @@
           "y": 600,
           "customProperties": {
             "Description": "",
-            "cost": "1"
+            "cost": "1",
+            "utility": "1"
           }
         },
         {
@@ -168,7 +171,7 @@
           "customProperties": {
             "Description": "",
             "cost": "3",
-            "assertion": "R0>20"
+            "utility": "3"
           }
         },
         {
@@ -179,7 +182,8 @@
           "y": 602,
           "customProperties": {
             "Description": "",
-            "cost": "1"
+            "cost": "1",
+            "utility": "1"
           }
         },
         {
@@ -190,7 +194,8 @@
           "y": 603.6780267877343,
           "customProperties": {
             "Description": "",
-            "cost": "2"
+            "cost": "2",
+            "utility": "2"
           }
         },
         {
@@ -201,7 +206,8 @@
           "y": 368.98295981839857,
           "customProperties": {
             "Description": "",
-            "cost": "5"
+            "cost": "6",
+            "utility": "4"
           }
         },
         {
@@ -227,15 +233,85 @@
           }
         },
         {
-          "id": "cf2645e8-a99a-4132-ad9a-d70c92fff40d",
-          "text": "R0: Mote battery",
+          "id": "143f1ed3-6e6b-427f-81b3-0039f441de11",
+          "text": "R0: Transmission power",
           "type": "istar.Resource",
-          "x": 200,
+          "x": 250,
           "y": 700,
           "customProperties": {
             "Description": "",
             "type": "int",
-            "initialValue": "80",
+            "initialValue": "15",
+            "lowerBound": "0",
+            "upperBound": "15"
+          }
+        },
+        {
+          "id": "1aadb617-5cd7-42b1-a876-714f51af9635",
+          "text": "R1: Distribution factor step",
+          "type": "istar.Resource",
+          "x": 420,
+          "y": 700,
+          "customProperties": {
+            "Description": "",
+            "type": "int",
+            "initialValue": "5",
+            "lowerBound": "0",
+            "upperBound": "5"
+          }
+        },
+        {
+          "id": "4a448252-c67b-4709-9fe1-8e137625b9e9",
+          "text": "R2: Traffic load",
+          "type": "istar.Resource",
+          "x": 590,
+          "y": 700,
+          "customProperties": {
+            "Description": "",
+            "type": "int",
+            "initialValue": "5",
+            "lowerBound": "0",
+            "upperBound": "10"
+          }
+        },
+        {
+          "id": "b1e5ae28-6166-400e-9225-bf48432aa7c7",
+          "text": "R3: Link SNR margin",
+          "type": "istar.Resource",
+          "x": 80,
+          "y": 700,
+          "customProperties": {
+            "Description": "",
+            "type": "int",
+            "initialValue": "5",
+            "lowerBound": "0",
+            "upperBound": "20"
+          }
+        },
+        {
+          "id": "3ec1c6c2-d72d-4290-b15e-bc6c1514d96f",
+          "text": "R4: Packet loss",
+          "type": "istar.Resource",
+          "x": 1000,
+          "y": 500,
+          "customProperties": {
+            "Description": "",
+            "type": "int",
+            "initialValue": "8",
+            "lowerBound": "0",
+            "upperBound": "100"
+          }
+        },
+        {
+          "id": "6f614ec2-274d-45c2-ad68-35023eb207b7",
+          "text": "R5: Latency",
+          "type": "istar.Resource",
+          "x": 1160,
+          "y": 500,
+          "customProperties": {
+            "Description": "",
+            "type": "int",
+            "initialValue": "2",
             "lowerBound": "0",
             "upperBound": "100"
           }
@@ -361,15 +437,87 @@
       "target": "04c978fe-5f50-4301-99b7-958a1c9f4245"
     },
     {
-      "id": "c57e496b-f651-4829-a2d6-3c6ed850bc66",
+      "id": "0aa32c1b-74d3-4259-aa8f-5e462a09f792",
       "type": "istar.NeededByLink",
-      "source": "cf2645e8-a99a-4132-ad9a-d70c92fff40d",
+      "source": "143f1ed3-6e6b-427f-81b3-0039f441de11",
+      "target": "b4cb1553-0d47-4803-8aef-8e221f6011af"
+    },
+    {
+      "id": "518d5f8a-4ade-4265-a64d-e39f458fcbc0",
+      "type": "istar.NeededByLink",
+      "source": "143f1ed3-6e6b-427f-81b3-0039f441de11",
       "target": "a0b9ad0c-f25f-4d19-b552-5225bdea1271"
+    },
+    {
+      "id": "b2aaf831-913b-441e-a640-2657fd5d016b",
+      "type": "istar.NeededByLink",
+      "source": "143f1ed3-6e6b-427f-81b3-0039f441de11",
+      "target": "01c45c8d-aebc-4ac0-b433-95653e9a3227"
+    },
+    {
+      "id": "27d9fe19-2271-4ab3-a31a-930e28c14f6e",
+      "type": "istar.NeededByLink",
+      "source": "1aadb617-5cd7-42b1-a876-714f51af9635",
+      "target": "d15d4ff4-fca2-4be1-94bc-8a4b4d39dde3"
+    },
+    {
+      "id": "68f65fb5-e270-46f5-b546-86b2ffd1ffbf",
+      "type": "istar.NeededByLink",
+      "source": "1aadb617-5cd7-42b1-a876-714f51af9635",
+      "target": "89759ff4-1691-437e-9a5d-d54fe8e5544d"
+    },
+    {
+      "id": "f0f5d0a0-f4e1-48a3-a182-ebed7f60db31",
+      "type": "istar.NeededByLink",
+      "source": "1aadb617-5cd7-42b1-a876-714f51af9635",
+      "target": "01c45c8d-aebc-4ac0-b433-95653e9a3227"
+    },
+    {
+      "id": "d502ee3e-72e1-4849-8767-67b11bbd57b7",
+      "type": "istar.NeededByLink",
+      "source": "4a448252-c67b-4709-9fe1-8e137625b9e9",
+      "target": "d15d4ff4-fca2-4be1-94bc-8a4b4d39dde3"
+    },
+    {
+      "id": "645dd1e4-73e4-47e2-bf92-257db38be43e",
+      "type": "istar.NeededByLink",
+      "source": "4a448252-c67b-4709-9fe1-8e137625b9e9",
+      "target": "89759ff4-1691-437e-9a5d-d54fe8e5544d"
+    },
+    {
+      "id": "dcc7fe93-6a14-4e80-b440-dc8d49ebcb22",
+      "type": "istar.NeededByLink",
+      "source": "4a448252-c67b-4709-9fe1-8e137625b9e9",
+      "target": "dc9f76f3-baa0-45f4-be3f-8225303a3302"
+    },
+    {
+      "id": "73771b89-bbe0-4601-a9aa-8dafe04a7646",
+      "type": "istar.NeededByLink",
+      "source": "b1e5ae28-6166-400e-9225-bf48432aa7c7",
+      "target": "b4cb1553-0d47-4803-8aef-8e221f6011af"
+    },
+    {
+      "id": "f3947921-e9ac-4a00-8882-608d7375dcec",
+      "type": "istar.NeededByLink",
+      "source": "b1e5ae28-6166-400e-9225-bf48432aa7c7",
+      "target": "a0b9ad0c-f25f-4d19-b552-5225bdea1271"
+    },
+    {
+      "id": "81ed8677-a937-4c58-b580-337271f9d0e1",
+      "type": "istar.NeededByLink",
+      "source": "3ec1c6c2-d72d-4290-b15e-bc6c1514d96f",
+      "target": "5f7b5fd8-34f0-4bae-91ce-cb1909f0faf8"
+    },
+    {
+      "id": "57b3561f-fc0e-4d6e-839a-60bd9f7aa27a",
+      "type": "istar.NeededByLink",
+      "source": "6f614ec2-274d-45c2-ad68-35023eb207b7",
+      "target": "5f7b5fd8-34f0-4bae-91ce-cb1909f0faf8"
     }
   ],
   "display": {
     "fb4fa2c1-69b7-44b5-bd61-0161b23d209f": {
-      "backgroundColor": "#75B1FF"
+      "backgroundColor": "#5AEEFA"
     },
     "3c5d314f-16e0-4226-a805-3175390c434a": {
       "width": 130,
@@ -377,7 +525,8 @@
     },
     "04c978fe-5f50-4301-99b7-958a1c9f4245": {
       "width": 136,
-      "height": 37
+      "height": 37,
+      "backgroundColor": "#5AEEFA"
     },
     "dd560575-4794-4a74-b5b0-ad601ab0a2e3": {
       "width": 144,

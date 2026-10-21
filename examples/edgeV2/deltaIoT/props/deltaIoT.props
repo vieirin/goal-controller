@@ -1,9 +1,9 @@
 // =====================================================================
 // DeltaIoT (ActivFORMS, arXiv 1908.11179): PCTL properties
-//   R1 packet loss below 10%  -> G1, maintain packetLossBelow10
-//   R2 minimise energy        -> "cost" rewards on T1..T7
-//   R3 latency bound          -> G2, maintain latencyWithinBound
-//   R4 failsafe               -> G1 degradation [G3@2->G4]
+//   R1 packet loss below 10%  -> G1, maintain R4<=10 (R4: packet loss %)
+//   R2 minimise energy        -> "cost" rewards on T1..T7 (vs "utility")
+//   R3 latency bound          -> G2, maintain R5<5, active once r3Enabled
+//   R4 failsafe               -> G1 degradation [G3->G4]
 // =====================================================================
 
 // Requirements satisfied (G0) and each requirement on its own
@@ -18,10 +18,60 @@ R{"cost"}=? [ F g0_achieved ];
 // Sequence G0 [G1;G2]: data is relayed only once packet loss is under control
 P>=1 [ G (g2_state=1 => g1_achieved) ];
 
-// Degradation G1 [G3@2->G4]: the failsafe only after two failed attempts
-// at the energy-efficient configuration
-P>=1 [ G (g4_state=1 => g3_failed=2) ];
+// Degradation G1 [G3->G4]: the failsafe and the energy-efficient
+// configuration are never pursued together
+P>=1 [ G !(g3_state=1 & g4_state=1) ];
+
+// R2 against R1: expected delivery utility of reaching G0
+R{"utility"}=? [ F g0_achieved ];
 
 // Alternatives G5 [G7|G8], G6 [G9|G10]: one power and one routing option at a time
 P>=1 [ G !(g7_state=1 & g8_state=1) ];
 P>=1 [ G !(g9_state=1 & g10_state=1) ];
+
+
+// =====================================================================
+// ActivFORMS P1..P12 (Weyns and Iftikhar, Sec. 6): the paper verifies its
+// MAPE models; here the MAPE loop is EdgeV2 + PRISM, so each property is
+// restated over the generated controller where it has a counterpart.
+//   P1-P4 (probe -> monitor -> analyzer -> verifier) and P9 (executor ->
+//   effector) are about EdgeV2's runtime, outside the generated model.
+//   P5 (verification timeout -> failsafe) needs a timeout in the model,
+//   which it does not have yet.
+// =====================================================================
+
+// P6/P7: a pursued goal is eventually achieved or released (skipped)
+P>=1 [ G (g3_state=1 => F g3_state=0) ];
+P>=1 [ G (g4_state=1 => F g4_state=0) ];
+P>=1 [ G (g5_state=1 => F g5_state=0) ];
+P>=1 [ G (g6_state=1 => F g6_state=0) ];
+P>=1 [ G (g11_state=1 => F g11_state=0) ];
+P>=1 [ G (g12_state=1 => F g12_state=0) ];
+
+// P8: every planned step (a pursued task) is eventually tried to the end
+P>=1 [ G (t1_state=1 => F t1_state=0) ];
+P>=1 [ G (t2_state=1 => F t2_state=0) ];
+P>=1 [ G (t3_state=1 => F t3_state=0) ];
+P>=1 [ G (t4_state=1 => F t4_state=0) ];
+P>=1 [ G (t5_state=1 => F t5_state=0) ];
+P>=1 [ G (t6_state=1 => F t6_state=0) ];
+P>=1 [ G (t7_state=1 => F t7_state=0) ];
+
+// P10: incorrect adaptation results are never reached
+//   - never two power settings, nor two routing settings, applied at once
+P>=1 [ G !(t1_achieved & t2_achieved) ];
+P>=1 [ G !(t3_achieved & t4_achieved) ];
+//   - the failsafe never on top of part of an energy-efficient configuration
+//     (can fail: G3 may set power, fail on routing, then fall back to G4)
+P>=1 [ G !(t5_achieved & (t1_achieved | t2_achieved | t3_achieved | t4_achieved)) ];
+
+// P11c: the failsafe strategy is reachable; so is the energy-efficient one
+P>0 [ F g4_state=1 ];
+P>0 [ F g3_achieved ];
+
+// P12: no deadlock
+P>=1 [ G !"deadlock" ];
+
+// Note: with the resources as given (R4 packet loss = 8) G1 holds from the
+// start and nothing is adapted, so most of the above hold vacuously. Start
+// R4 above 10 for the adaptation scenario.
