@@ -729,6 +729,21 @@ const { variants, truncated, total } = variantsOf(model, rootId, {
   they don't hold.
 - Ranking, cost and core-variant algorithms are yours, written over these.
 
+**A variant that changes the model** (goal-controller#191): a variant above
+is a part of the model. An analysis that asks "what if the model changed
+like this" applies the change to the model and propagates the result. KAOS's
+countermeasures do this (`engines/kaosres/transform.ts`).
+- Transform the kind-typed model (`IstarModel<EK, LK>` of your framework's
+  root), not the `KindModel`, whose trees are derived from it. Then read the
+  result as every consumer already does: Problems, your mapper, your
+  propagation.
+- An analysis is given the `AnalysisModel`, whose kinds are text. Narrow it
+  to your kinds once, at that boundary (`kaosModelOfView`: an error for a
+  kind your root doesn't have), transform, and give back the variant's view.
+- Keep each transformation pure, from the model given, with an error that
+  says why when it can't apply. A selection then enumerates subsets and
+  propagates each.
+
 ### 3.8 Generation options (optional): the template's knobs
 
 An option the user sets for a whole model (EdgeV2's discretisation, GODA's generator version) is declared with the same value types as a property: `bool`, `number`, `int` (`min`, `max`) or `enum` (`options`, each with a `help` shown on hover), and a default. File: `packages/lib/src/engines/mission/options.ts`, exported from `packages/lib/src/index.ts`:
