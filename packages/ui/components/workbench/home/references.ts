@@ -265,6 +265,11 @@ export const SECTION_REFERENCES: Readonly<
         'kaos/cairis-neurogrid-stroke',
       ],
     },
+    // the Elevator tutorial's responsibility, object and operation models (goal-controller#210)
+    {
+      text: 'Respect-IT sa. A KAOS Tutorial. Version 1.0, 18 October 2007 (§3.3–3.5, the Elevator case study’s responsibility, object and operation models, re-keyed from its prose; no licence stated).',
+      examples: ['kaos/elevator'],
+    },
   ],
   nfr: [
     {

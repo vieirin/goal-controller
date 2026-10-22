@@ -228,6 +228,7 @@ describe('frameworks: the DSM3 seeds (#171)', () => {
       'examples/kaos/cairis-neurogrid-psychosis/cairis-neurogrid-psychosis.txt',
       'examples/kaos/cairis-neurogrid-stroke/cairis-neurogrid-stroke.txt',
       'examples/kaos/carpooling/carpooling.txt',
+      'examples/kaos/elevator/elevator.txt',
       'examples/kaos/fire-alarm/fire-alarm.txt',
       'examples/kaos/flood/flood.txt',
       'examples/kaos/kaos-welcome.txt',

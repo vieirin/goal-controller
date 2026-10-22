@@ -2104,6 +2104,23 @@ object model those reference. Items 1–2 of #194 (the formula parser is
   pump-operations.kaos` re-keys the structure of FSE'02's mine pump in our
   own names: it reads, lints clean, and writes back byte for byte but its
   comments.
+- **The Elevator seed (goal-controller#210).** `examples/kaos/elevator`
+  adds the tutorial's responsibility, object and operation models (§3.3–
+  3.5) to `kaosres`'s obstacle-model fixture (§3.6, #202, Figures 33–35,
+  reused byte for byte, a test asserts it): agents, entities, associations,
+  events and operations from the tutorial's *prose* (the figures have no
+  text layer, D1 above), with the triangle's worked example (Fig. 30,
+  Execute schedule performed by and responsible to the Elevator Controller)
+  and a mutation test that breaks it. `Multiplicity`, `Frequency`, `Delay`
+  and `Load` are left unset throughout: none has a value in the tutorial's
+  text, only in its figures. kaosdoc's document for the seed has the same
+  sections as every other KAOS seed's: the operation and object models'
+  kinds aren't among them, so none of this seed's content gains a new one
+  (D3 of #195). **#195 stays open**: its own scope is the tutorial's full
+  goal model (~25 goals, a conflict, expectations per agent) as kaosdoc's
+  document oracle; #210 only adds the triangle's few goals the operations
+  side needs, not that model, so `elevator.expected.md` here is not that
+  oracle.
 
 ### Models typed by their framework (goal-controller#185)
 
