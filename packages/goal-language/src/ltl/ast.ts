@@ -72,6 +72,8 @@ export type LtlNode =
   | Always
   | Historically
   | AtLabel
+  | Knows
+  | Belief
   | Paren
   | Comparison
   | PredicateCall
@@ -210,6 +212,34 @@ export interface AtLabel {
   readonly kind: 'atLabel';
   readonly expr: LtlNode;
   readonly label: string;
+}
+
+/**
+ * `Knows ag (P)` / `KnowsV ag (v)` (ICSE'04, #212): an agent-indexed
+ * epistemic unary operator, attested in the paper's own formulas (its
+ * `KnowsV` is the value-knowledge form, `∃x: Knows ag (x = v)`; both are
+ * written directly in formulas, so both get a node rather than expanding
+ * `KnowsV` away). Neither surface's `[ag]` subscript spelling is attested
+ * (the paper's own PDF-to-text extraction prints the subscript with
+ * inconsistent spacing, "Knows ag (P)" / "KnowsVp (…)"); the bracket here
+ * is this project's own choice, matching the keyed-value spelling the
+ * dialects already use elsewhere (`Probability[e1]`), documented as
+ * unattested in frameworks.md.
+ */
+export interface Knows {
+  readonly kind: 'knows';
+  readonly agent: string;
+  readonly expr: LtlNode;
+  readonly asValue: boolean;
+  readonly surface: Surface;
+}
+
+/** `Belief ag (P)` (ICSE'04, #212): "P is in agent ag's local memory"; see `Knows`'s doc for the `[ag]` spelling */
+export interface Belief {
+  readonly kind: 'belief';
+  readonly agent: string;
+  readonly expr: LtlNode;
+  readonly surface: Surface;
 }
 
 /** an explicit `(…)`, kept so a writer reproduces it even where precedence wouldn't need it */

@@ -250,6 +250,49 @@ describe('LTL: the state-label operator', () => {
   });
 });
 
+describe('LTL: epistemic operators (ICSE’04, #212; the `[ag]` subscript spelling is unattested, see ../../src/ltl/ast.ts’s Knows doc)', () => {
+  it('Knows / knows', () => {
+    const sugar = parsed('knows [p] a()');
+    assert.strictEqual(sugar.kind, 'knows');
+    assert.strictEqual(surfaceOf(sugar), 'sugar');
+    if (sugar.kind === 'knows') {
+      assert.strictEqual(sugar.agent, 'p');
+      assert.strictEqual(sugar.asValue, false);
+    }
+    const symbolic = parsed('Knows[p] a()');
+    assert.strictEqual(symbolic.kind, 'knows');
+    assert.strictEqual(surfaceOf(symbolic), 'symbolic');
+    if (symbolic.kind === 'knows') assert.strictEqual(symbolic.asValue, false);
+  });
+  it('KnowsV / knows-value', () => {
+    const sugar = parsed('knows-value [p] acc.PIN');
+    assert.strictEqual(sugar.kind, 'knows');
+    assert.strictEqual(surfaceOf(sugar), 'sugar');
+    if (sugar.kind === 'knows') assert.strictEqual(sugar.asValue, true);
+    const symbolic = parsed('KnowsV[p] acc.PIN');
+    assert.strictEqual(symbolic.kind, 'knows');
+    assert.strictEqual(surfaceOf(symbolic), 'symbolic');
+    if (symbolic.kind === 'knows') {
+      assert.strictEqual(symbolic.agent, 'p');
+      assert.strictEqual(symbolic.asValue, true);
+    }
+  });
+  it('Belief / believes', () => {
+    const sugar = parsed('believes [ag] a()');
+    assert.strictEqual(sugar.kind, 'belief');
+    assert.strictEqual(surfaceOf(sugar), 'sugar');
+    if (sugar.kind === 'belief') assert.strictEqual(sugar.agent, 'ag');
+    const symbolic = parsed('Belief[ag] a()');
+    assert.strictEqual(symbolic.kind, 'belief');
+    assert.strictEqual(surfaceOf(symbolic), 'symbolic');
+  });
+  it('the paper’s own instantiated confidentiality goal (ICSE’04 §2)', () => {
+    parsed(
+      'forall p: Person, acc: Account . not (Owner(p, acc) or Proxy(p, acc) or Manager(p, acc)) ⇒ not (KnowsV[p] acc.AccNum and KnowsV[p] acc.PIN)',
+    );
+  });
+});
+
 describe('LTL: predicates, attributes, relations, comparisons, literals', () => {
   it('a predicate with arguments', () => {
     const tree = parsed('p(x, y)');

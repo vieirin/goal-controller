@@ -85,7 +85,7 @@ export const tokenize = (text: string): LtlToken[] => {
       i += 2;
       continue;
     }
-    if (UNICODE_SYMBOLS.has(c) || '(),.:;@=<>'.includes(c)) {
+    if (UNICODE_SYMBOLS.has(c) || '(),.:;@=<>[]'.includes(c)) {
       tokens.push({ type: 'symbol', text: c, pos: start });
       i++;
       continue;

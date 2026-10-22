@@ -251,15 +251,35 @@ declare agent [ m ] type malicious end`);
     assert.strictEqual(nodeOf(model, 'h').customProperties.Kind, 'hypothesis');
     assert.strictEqual(nodeOf(model, 'e').type, 'kaos.EnvironmentAgent');
     assert.strictEqual(nodeOf(model, 'm').type, 'kaos.Agent');
-    assert.deepStrictEqual(
-      diagnostics.map((d) => [d.severity, d.message]),
-      [
-        [
-          'info',
-          "m: a malicious agent, read as an agent (KAOS's anti-models have no kind of their own)",
-        ],
-      ],
+    assert.strictEqual(nodeOf(model, 'm').customProperties.Type, 'malicious');
+    assert.deepStrictEqual(diagnostics, []);
+  });
+
+  it('an anti-goal (ICSE’04, #212): an obstacle `assignedto` an agent, its Category AntiGoal, its Type malicious', () => {
+    const { model, diagnostics } = readText(`declare agent [ thief ]
+  type malicious
+end
+declare obstacle [ pin_known ]
+  $Category "AntiGoal"
+  assignedto thief
+end`);
+    assert.strictEqual(nodeOf(model, 'thief').type, 'kaos.Agent');
+    assert.strictEqual(
+      nodeOf(model, 'thief').customProperties.Type,
+      'malicious',
     );
+    assert.strictEqual(
+      nodeOf(model, 'pin_known').customProperties.Category,
+      'AntiGoal',
+    );
+    const assignment = model.links.find(
+      (l: Json) => l.type === 'kaos.ResponsibilityAssignment',
+    );
+    assert.deepStrictEqual(
+      [assignment.source, assignment.target],
+      ['thief', 'pin_known'],
+    );
+    assert.deepStrictEqual(diagnostics, []);
   });
 
   it('`refinedby [milestone|case]` is a hub with the canonical Tactic; a refinee’s [p] its leg’s Probability, as written', () => {
@@ -866,6 +886,25 @@ declare obstacle [ o ] resolvedby [prevention] g end`);
         '  resolvedby [prevention] avoid_mobilization_without_order\n',
       ),
     );
+  });
+
+  it('writes a malicious agent’s `type malicious`, and an obstacle `assignedto` it (ICSE’04, #212)', () => {
+    const { model } = readText(`declare agent [ thief ]
+  type malicious
+end
+declare obstacle [ pin_known ]
+  $Category "AntiGoal"
+  assignedto thief
+end`);
+    const { text, diagnostics } = writeKaos(model, { modelName: 'm' });
+    assert.ok(text!.includes('declare agent [ thief ]\n  type malicious\nend'));
+    assert.ok(
+      text!.includes(
+        'declare obstacle [ pin_known ]\n  $Category "AntiGoal"\n  assignedto thief\nend',
+      ),
+    );
+    assert.deepStrictEqual(diagnostics, []);
+    assert.ok(modelRoundTrip(kaosNativeFile, model, { modelName: 'm' }).ok);
   });
 
   it('writes the `kaos` dialect’s keys .kaos lacks as custom attributes, and says what it can’t write', () => {

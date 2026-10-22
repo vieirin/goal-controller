@@ -305,6 +305,7 @@
       "text": "On-screen call-taking software",
       "type": "kaos.Agent",
       "customProperties": {
+        "Type": "",
         "Description": ""
       },
       "x": 360,
@@ -325,6 +326,7 @@
       "text": "Allocation software",
       "type": "kaos.Agent",
       "customProperties": {
+        "Type": "",
         "Description": ""
       },
       "x": 840,

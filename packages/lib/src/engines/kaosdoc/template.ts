@@ -6,7 +6,9 @@
  * they rely on, the leaf goals as requirements and expectations, the agents
  * responsible for them, and the conflicts with their boundary conditions;
  * then, in a model with obstacle analysis (goal-controller#181), the
- * obstacles: what each obstructs and the goals resolving it, with how.
+ * obstacles: what each obstructs and the goals resolving it, with how;
+ * then, in a model with an anti-goal (van Lamsweerde ICSE'04, #212: an
+ * obstacle whose Category is AntiGoal), the Threats section.
  *
  * Goals are in the order of their refinement trees (depth first, a goal
  * refining several parents once); every element is named by its text as
@@ -279,6 +281,54 @@ export const kaosdocDocument = (
       ),
     ],
   ];
+  // an anti-goal (van Lamsweerde ICSE'04, #212): an obstacle whose Category
+  // is AntiGoal, riding on the obstacle machinery (#196 D2, logged on #189
+  // and frameworks.md's "KAOS stress test, step 8: anti-models"); a leaf's
+  // responsible agent (`kaos.ResponsibilityAssignment`, extended here to an
+  // obstacle source, same link kind the goal side uses) tells an
+  // anti-requirement (the attacker's own) from a vulnerability (the
+  // attackee's), the same way "Requirements and expectations" tells a
+  // requirement from an expectation
+  const antiGoals = obstacles.filter((id) => {
+    const obstacleNode = nodes.find(
+      (node): node is Extract<KaosdocNode, { kind: typeof OBSTACLE }> =>
+        isObstacleNode(node) && node.iStarId === id,
+    );
+    return (
+      !!obstacleNode &&
+      prop(obstacleNode.properties.engine.properties, 'Category') === 'AntiGoal'
+    );
+  });
+  if (antiGoals.length)
+    sections.push([
+      'Threats',
+      table(
+        ['Anti-goal', 'Obstructs', 'Assigned to', 'As'],
+        antiGoals.map((id) => {
+          const responsible = agentsOf(id);
+          const malicious = new Set(
+            responsible.map(
+              (agent) => elements.get(agent)?.properties.Type === 'malicious',
+            ),
+          );
+          return [
+            nameOf(id),
+            linksOf('kaosObstacles.ObstructionLink')
+              .filter((link) => link.source === id)
+              .map((link) => nameOf(link.target))
+              .join(', '),
+            responsible.map(nameOf).join(', '),
+            responsible.length === 0
+              ? 'anti-goal'
+              : malicious.size > 1
+                ? 'shared'
+                : malicious.has(true)
+                  ? 'anti-requirement'
+                  : 'vulnerability',
+          ];
+        }),
+      ),
+    ]);
   // only a model with obstacles has the section (DSM3's KAOS has none)
   if (obstacles.length)
     sections.push([

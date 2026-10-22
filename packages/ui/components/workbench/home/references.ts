@@ -188,6 +188,14 @@ export const SECTION_REFERENCES: Readonly<
       url: 'https://doi.org/10.1109/SEAMS.2017.5',
       examples: ['kaos/ambulance', 'kaos/flood'],
     },
+    // anti-models: malicious agents, anti-goals, vulnerabilities,
+    // epistemic operators (goal-controller#212, re-keyed structurally from
+    // the paper's §2, §3 and §6; no model of this example is public)
+    {
+      text: 'A. van Lamsweerde. Elaborating security requirements by construction of intentional anti-models. ICSE 2004.',
+      url: 'https://doi.org/10.1109/ICSE.2004.1317437',
+      examples: ['kaos/ebanking'],
+    },
     {
       text: 'M. Sabetzadeh, D. Falessi, L. Briand, S. Di Alesio, D. McGeorge, V. Åhjem, J. Borg. Combining Goal Models, Expert Elicitation, and Probabilistic Simulation for Qualification of New Technology. HASE 2011 (Fig. 2, re-keyed as far as it prints; Sec. V withholds the elicited quantities, goal-controller#199).',
       url: 'https://doi.org/10.1109/HASE.2011.25',

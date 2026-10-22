@@ -138,7 +138,7 @@ const WRITTEN: Readonly<Record<string, readonly string[]>> = {
     'FormalSpec',
     'Probability',
   ],
-  [KAOS_TYPES.agent]: ['Description'],
+  [KAOS_TYPES.agent]: ['Description', 'Type'],
   [KAOS_TYPES.environmentAgent]: ['Description'],
 };
 
@@ -432,6 +432,8 @@ export const writeKaos = (
       }
     }
     if (type === KAOS_TYPES.environmentAgent) body.push('type environment');
+    else if (type === KAOS_TYPES.agent && text('Type') === 'malicious')
+      body.push('type malicious');
     // ESR and Beta are distributions too (goal-controller#199, HASE'11's
     // P(G) and β; no per-expert form, unlike an obstacle's Probability)
     const DISTRIBUTION_KEYS = ['Probability', 'ESR', 'Beta'];

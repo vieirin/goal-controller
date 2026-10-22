@@ -182,6 +182,7 @@
       "text": "Incident Form Encoding Method: Current Paper-Based",
       "type": "kaos.Agent",
       "customProperties": {
+        "Type": "",
         "Description": ""
       },
       "x": 200,
@@ -192,6 +193,7 @@
       "text": "Incident Form Encoding Method: Computer Based",
       "type": "kaos.Agent",
       "customProperties": {
+        "Type": "",
         "Description": ""
       },
       "x": 360,
@@ -202,6 +204,7 @@
       "text": "Incident Form Encoding Method: Automated Call Location",
       "type": "kaos.Agent",
       "customProperties": {
+        "Type": "",
         "Description": ""
       },
       "x": 520,
@@ -212,6 +215,7 @@
       "text": "Incident Form Encoding Method: Computer-Based and Automated Call Location",
       "type": "kaos.Agent",
       "customProperties": {
+        "Type": "",
         "Description": ""
       },
       "x": 680,
@@ -222,6 +226,7 @@
       "text": "Ambulance Allocation Method: Current Paper-Based",
       "type": "kaos.Agent",
       "customProperties": {
+        "Type": "",
         "Description": ""
       },
       "x": 1000,
@@ -232,6 +237,7 @@
       "text": "Ambulance Allocation Method: Interactive Allocation",
       "type": "kaos.Agent",
       "customProperties": {
+        "Type": "",
         "Description": ""
       },
       "x": 1160,
@@ -242,6 +248,7 @@
       "text": "Ambulance Allocation Method: Fully Automated Allocation",
       "type": "kaos.Agent",
       "customProperties": {
+        "Type": "",
         "Description": ""
       },
       "x": 1320,
@@ -252,6 +259,7 @@
       "text": "Mobilisation Communication Method: Current Radio-Based",
       "type": "kaos.Agent",
       "customProperties": {
+        "Type": "",
         "Description": ""
       },
       "x": 1640,
@@ -262,6 +270,7 @@
       "text": "Mobilisation Communication Method: MDT-System A",
       "type": "kaos.Agent",
       "customProperties": {
+        "Type": "",
         "Description": ""
       },
       "x": 1800,
@@ -272,6 +281,7 @@
       "text": "Mobilisation Communication Method: MDT-System B",
       "type": "kaos.Agent",
       "customProperties": {
+        "Type": "",
         "Description": ""
       },
       "x": 1960,
@@ -282,6 +292,7 @@
       "text": "Ambulance Location Method: Current Radio and Paper-Based",
       "type": "kaos.Agent",
       "customProperties": {
+        "Type": "",
         "Description": ""
       },
       "x": 2280,
@@ -292,6 +303,7 @@
       "text": "Ambulance Location Method: Automated Vehicle Location A",
       "type": "kaos.Agent",
       "customProperties": {
+        "Type": "",
         "Description": ""
       },
       "x": 2440,
@@ -302,6 +314,7 @@
       "text": "Ambulance Location Method: Automated Vehicle Location B",
       "type": "kaos.Agent",
       "customProperties": {
+        "Type": "",
         "Description": ""
       },
       "x": 2600,
@@ -312,6 +325,7 @@
       "text": "Additional Ambulance: Current_100_Amb",
       "type": "kaos.Agent",
       "customProperties": {
+        "Type": "",
         "Description": ""
       },
       "x": 2920,
@@ -322,6 +336,7 @@
       "text": "Additional Ambulance: 120_Amb",
       "type": "kaos.Agent",
       "customProperties": {
+        "Type": "",
         "Description": ""
       },
       "x": 3080,
@@ -332,6 +347,7 @@
       "text": "Additional Ambulance: 140_Amb",
       "type": "kaos.Agent",
       "customProperties": {
+        "Type": "",
         "Description": ""
       },
       "x": 3240,
@@ -342,6 +358,7 @@
       "text": "Additional Ambulance: 160_Amb",
       "type": "kaos.Agent",
       "customProperties": {
+        "Type": "",
         "Description": ""
       },
       "x": 3400,
@@ -352,6 +369,7 @@
       "text": "Additional Ambulance: 180_Amb",
       "type": "kaos.Agent",
       "customProperties": {
+        "Type": "",
         "Description": ""
       },
       "x": 3560,
@@ -362,6 +380,7 @@
       "text": "Additional Ambulance: 200_Amb",
       "type": "kaos.Agent",
       "customProperties": {
+        "Type": "",
         "Description": ""
       },
       "x": 3720,
