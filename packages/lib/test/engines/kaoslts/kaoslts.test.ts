@@ -110,13 +110,14 @@ describe('kaoslts: KAOS operations as FSP for LTSA (KAOS2LTSA)', () => {
     );
     assert.deepStrictEqual(
       controller!.processes.map((p) => [p.name, p.events]),
-      [['OnePerTick_Pump', ['startPump', 'stopPump']]],
+      [['OnePerTick_PumpOn', ['startPump', 'stopPump']]],
     );
     assert.deepStrictEqual(
       environment!.processes.map((p) => [p.name, p.events]),
       [
-        ['OnePerTick_Sump', ['aboveHigh', 'belowHigh', 'aboveLow', 'belowLow']],
-        ['OnePerTick_Mine', ['methaneAppears', 'methaneLeaves']],
+        ['OnePerTick_HighWater', ['aboveHigh', 'belowHigh']],
+        ['OnePerTick_LowWater', ['aboveLow', 'belowLow']],
+        ['OnePerTick_Methane', ['methaneAppears', 'methaneLeaves']],
       ],
     );
     assert.strictEqual(environment!.constraints.length, 6);
@@ -164,10 +165,58 @@ describe('kaoslts: KAOS operations as FSP for LTSA (KAOS2LTSA)', () => {
       lts.shared.constraints.map((c) => c.name),
       ['DomPre_methaneLeaves'],
     );
-    // the methane's tick process has two performers' events: the system's
+    // the methane fluent's tick process has two performers' events: the system's
     assert.deepStrictEqual(
       lts.shared.processes.map((p) => p.name),
-      ['OnePerTick_Mine'],
+      ['OnePerTick_Methane'],
+    );
+  });
+
+  it('step 3: one OnePerTick process per fluent, not per object (rv392’s #392 review)', () => {
+    // a Robot with two independent Boolean attributes: the paper (ASE'08 §4
+    // step 3) allows raiseArm and raiseLeg in the same tick interval; a
+    // single per-object process would forbid it (the models archive's
+    // grouping, reference-defects.md's ASE'08 entry)
+    const robot = `
+declare agent [ robot ]
+  name "Robot"
+end
+
+declare entity [ robot_body ]
+  name "Robot"
+  attribute armUp : bool
+  attribute legUp : bool
+end
+
+declare operation [ raise_arm ]
+  name "raiseArm"
+  dompost robot_body.armUp
+  performedby robot
+  output robot_body
+end
+
+declare operation [ raise_leg ]
+  name "raiseLeg"
+  dompost robot_body.legUp
+  performedby robot
+  output robot_body
+end
+`;
+    const lts = ltsModel(operationsOf(robot));
+    assert.deepStrictEqual(
+      lts.agents.map((a) => [
+        a.name,
+        a.processes.map((p) => [p.name, p.events]),
+      ]),
+      [
+        [
+          'Robot',
+          [
+            ['OnePerTick_ArmUp', ['raiseArm']],
+            ['OnePerTick_LegUp', ['raiseLeg']],
+          ],
+        ],
+      ],
     );
   });
 

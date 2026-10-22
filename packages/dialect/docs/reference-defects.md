@@ -286,11 +286,16 @@ tool.
   comment, on a commented-out `DomInvar_NeverHighAndLow`, asks whether
   excluding that is "cheating"). The same section says the extra process
   constrains "each fluent" to change at most once between two ticks; the
-  archive's constrains the water level's two fluents together. Found for
+  archive's constrains the water level's two fluents together, one
+  `OnePerTick` process per object rather than per fluent. Found for
   goal-controller#209 by setting the transcription (§3.4) beside the
   archive's constraints; the mine pump seed keeps the paper's
-  preconditions, groups its tick processes by object (which gives the
-  archive's grouping) and checks both in `mine-pump-lts.expected.csv`.
+  preconditions and, per rv392's review (#209 follow-up), the paper's
+  per-fluent grouping too — the oracle outranks the archive's own output
+  where they conflict. `mine-pump-lts.expected.csv` checks the paper's
+  reading (`OnePerTick_HighWater`, `OnePerTick_LowWater`, …, one row per
+  fluent) and marks the rows that differ from the archive's per-object
+  `OnePerTick_Sump`/`OnePerTick_Mine` grouping with this defect.
 
 ## Inputs withheld (not a defect)
 
