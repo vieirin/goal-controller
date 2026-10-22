@@ -1,0 +1,42 @@
+// mine-pump: the system, its agents composed
+// kaoslts: KAOS2LTSA's derivation (Letier, Kramer, Magee and Uchitel, ASE'08 §4)
+
+// step 2: fluents, from the operations’ domain postconditions
+fluent HighWater = <aboveHigh, belowHigh>
+fluent LowWater = <belowLow, aboveLow> initially 1
+fluent Methane = <methaneAppears, methaneLeaves>
+fluent PumpOn = <startPump, stopPump>
+
+// PumpController
+OnePerTick_Pump = (tick -> Ticked),
+  Ticked = (tick -> Ticked | {startPump, stopPump} -> tick -> Ticked).
+constraint DomPre_startPump = [](tick && ! !PumpOn -> X(!startPump W tick))
+constraint ReqTrig_startPump_For_PumpOnWhenHighWaterAndNoMethane = [](tick && (HighWater && !Methane) && !PumpOn -> X(!tick W startPump))
+constraint ReqPre_startPump_For_PumpOffWhenMethane = [](tick && ! !Methane -> X(!startPump W tick))
+constraint ReqPre_startPump_For_PumpOffWhenLowWater = [](tick && ! !LowWater -> X(!startPump W tick))
+constraint DomPre_stopPump = [](tick && !PumpOn -> X(!stopPump W tick))
+constraint ReqPre_stopPump_For_PumpOnWhenHighWaterAndNoMethane = [](tick && ! !(HighWater && !Methane) -> X(!stopPump W tick))
+constraint ReqTrig_stopPump_For_PumpOffWhenMethane = [](tick && Methane && PumpOn -> X(!tick W stopPump))
+constraint ReqTrig_stopPump_For_PumpOffWhenLowWater = [](tick && LowWater && PumpOn -> X(!tick W stopPump))
+minimal ||PumpController = (OnePerTick_Pump || DomPre_startPump || ReqTrig_startPump_For_PumpOnWhenHighWaterAndNoMethane || ReqPre_startPump_For_PumpOffWhenMethane || ReqPre_startPump_For_PumpOffWhenLowWater || DomPre_stopPump || ReqPre_stopPump_For_PumpOnWhenHighWaterAndNoMethane || ReqTrig_stopPump_For_PumpOffWhenMethane || ReqTrig_stopPump_For_PumpOffWhenLowWater).
+
+// Environment
+OnePerTick_Sump = (tick -> Ticked),
+  Ticked = (tick -> Ticked | {aboveHigh, belowHigh, aboveLow, belowLow} -> tick -> Ticked).
+OnePerTick_Mine = (tick -> Ticked),
+  Ticked = (tick -> Ticked | {methaneAppears, methaneLeaves} -> tick -> Ticked).
+constraint DomPre_aboveHigh = [](tick && !(!HighWater && !LowWater) -> X(!aboveHigh W tick))
+constraint DomPre_belowHigh = [](tick && !HighWater -> X(!belowHigh W tick))
+constraint DomPre_aboveLow = [](tick && !LowWater -> X(!aboveLow W tick))
+constraint DomPre_belowLow = [](tick && !(!HighWater && !LowWater) -> X(!belowLow W tick))
+constraint DomPre_methaneAppears = [](tick && ! !Methane -> X(!methaneAppears W tick))
+constraint DomPre_methaneLeaves = [](tick && !Methane -> X(!methaneLeaves W tick))
+minimal ||Environment = (OnePerTick_Sump || OnePerTick_Mine || DomPre_aboveHigh || DomPre_belowHigh || DomPre_aboveLow || DomPre_belowLow || DomPre_methaneAppears || DomPre_methaneLeaves).
+
+// step 5: the system
+||System = (PumpController || Environment).
+
+// the requirements, synchronous in KAOS, encoded with ticks (ASE’08 §2.2.3)
+assert PumpOnWhenHighWaterAndNoMethane = [](tick -> ((HighWater && !Methane) -> X(!tick W (tick && PumpOn))))
+assert PumpOffWhenMethane = [](tick -> (Methane -> X(!tick W (tick && !PumpOn))))
+assert PumpOffWhenLowWater = [](tick -> (LowWater -> X(!tick W (tick && !PumpOn))))

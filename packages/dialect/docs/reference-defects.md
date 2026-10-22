@@ -275,6 +275,22 @@ tool.
   naming a requirement nobody declares. The mine pump seed (#209) keys
   every operation to Figure 2's name, the one the requirement is declared
   with, and records the other two spellings as this defect.
+- **ASE'08 (the mine pump's environment, §4 step 2, against its models
+  archive):** the paper prints `aboveHigh`'s domain precondition as
+  ¬HighWater ∧ ¬LowWater (the water rises above high from the medium
+  level) and says `belowHigh`, `aboveLow` and `belowLow` are "specified in
+  a similar way"; the archive's `Mine Pump LTS from goal operationalization
+  - ASEJ vesrion.lts` (licence not stated, read and not copied) has
+  `DomPre_aboveHigh` on ¬HighWater alone and `DomPre_belowLow` on ¬LowWater
+  alone, so its environment lets the water be high and low at once (its own
+  comment, on a commented-out `DomInvar_NeverHighAndLow`, asks whether
+  excluding that is "cheating"). The same section says the extra process
+  constrains "each fluent" to change at most once between two ticks; the
+  archive's constrains the water level's two fluents together. Found for
+  goal-controller#209 by setting the transcription (§3.4) beside the
+  archive's constraints; the mine pump seed keeps the paper's
+  preconditions, groups its tick processes by object (which gives the
+  archive's grouping) and checks both in `mine-pump-lts.expected.csv`.
 
 ## Inputs withheld (not a defect)
 

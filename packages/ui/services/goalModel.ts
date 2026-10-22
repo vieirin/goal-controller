@@ -16,9 +16,12 @@ import {
   godaEngineMapper,
   kaosdocEngineMapper,
   kaosdocGoalModel,
+  kaosltsEngineMapper,
+  kaosltsGoalModel,
   mutroseEngineMapper,
   sleecEngineMapper,
   type KaosdocGoalModel,
+  type KaosltsGoalModel,
   type AnyModel,
 } from '@goal-controller/lib';
 
@@ -130,6 +133,36 @@ export const GoalModel = {
 
   parseForMutrose(modelJson: string, options: ParseOptions = {}) {
     return this.parseWith(modelJson, mutroseEngineMapper, options);
+  },
+
+  /**
+   * A KAOS model as kaoslts reads it (goal-controller#209): parsed in its
+   * framework, its IR (goals, agents, operations, objects, links) built.
+   */
+  parseForKaoslts(modelJson: string):
+    | {
+        success: true;
+        model: AnyModel;
+        tree: null;
+        goalModel: KaosltsGoalModel;
+      }
+    | ParseError {
+    const parseResult = this.parseModel(
+      modelJson,
+      {},
+      kaosltsEngineMapper.dialect,
+    );
+    if (!parseResult.success) return parseResult;
+    try {
+      const goalModel = kaosltsGoalModel(parseResult.model);
+      return { ...parseResult, tree: null, goalModel };
+    } catch (error) {
+      return {
+        success: false,
+        error: `Tree conversion failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        stage: 'tree',
+      };
+    }
   },
 
   /**

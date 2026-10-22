@@ -231,3 +231,35 @@ describe('kaosdoc: threats, anti-goals ridden on the obstacle machinery (van Lam
     assert.strictEqual(sectionOf(documentOf(las), 'Threats'), undefined);
   });
 });
+
+describe('kaosdoc: the Elevator tutorial seed, operations side (#210)', () => {
+  const elevator = readFileSync(
+    '../../examples/kaos/elevator/elevator.txt',
+    'utf8',
+  );
+  const expected = readFileSync(
+    '../../examples/kaos/elevator/elevator.expected.md',
+    'utf8',
+  );
+
+  it('writes the same document as committed next to the seed', () => {
+    assert.strictEqual(
+      kaosdocDocument(kaosdocGoalModel(readKaosModel(elevator)), {
+        title: 'elevator',
+      }),
+      expected,
+    );
+  });
+
+  it('has no section for operations or objects: its mapper ignores kaosOperations kinds (D3 of #195)', () => {
+    const document = kaosdocDocument(
+      kaosdocGoalModel(readKaosModel(elevator)),
+      { title: 'elevator' },
+    );
+    for (const heading of ['Operations', 'Entities', 'Associations', 'Events'])
+      assert.ok(
+        !document.includes(`## ${heading}`),
+        `unexpected section ${heading}`,
+      );
+  });
+});

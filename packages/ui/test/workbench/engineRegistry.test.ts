@@ -39,6 +39,7 @@ import {
   istardtOptions,
   kaos,
   kaosdocEngineMapper,
+  kaosltsEngineMapper,
   kaosexpert,
   kaosexpertAnalyses,
   kaosexpertAnalysisModel,
@@ -111,6 +112,7 @@ const ALL: TransformEngine[] = [
   'tropos4as',
   'cgm',
   'kaosdoc',
+  'kaoslts',
   'kaosprop',
   'kaosexpert',
   'kaosres',
@@ -144,6 +146,7 @@ describe('the engine registry', () => {
   it("keeps the other frameworks' engines apart, their dialects their frameworks' (#171)", () => {
     expectSameEntries(FRAMEWORK_ENGINE_DIALECTS, {
       kaosdoc: kaos,
+      kaoslts: kaos,
       kaosprop,
       kaosexpert,
       kaosres,
@@ -152,6 +155,7 @@ describe('the engine registry', () => {
     });
     expect(ALL.filter(isFrameworkEngine)).toEqual([
       'kaosdoc',
+      'kaoslts',
       'kaosprop',
       'kaosexpert',
       'kaosres',
@@ -193,11 +197,13 @@ describe('the engine registry', () => {
   it('derives FRAMEWORK_ENGINE_PROJECT_RESOURCES, ENGINE_PROJECT_RESOURCES’s counterpart (kaosdoc and kaosprop read nothing beside the model, goal-controller#334)', () => {
     const {
       kaosdoc: none,
+      kaoslts: noLts,
       kaosprop: nothing,
       kaosres: neither,
       ...parsers
     } = FRAMEWORK_ENGINE_PROJECT_RESOURCES;
     expect(none).toEqual({});
+    expect(noLts).toEqual({});
     expect(nothing).toEqual({});
     expect(neither).toEqual({});
     expectSameEntries(parsers, {
@@ -232,6 +238,7 @@ describe('the engine registry', () => {
       tropos4as: tropos4asEngineMapper,
       cgm: cgmEngineMapper,
       kaosdoc: kaosdocEngineMapper,
+      kaoslts: kaosltsEngineMapper,
       kaosprop: kaospropEngineMapper,
       // kaosprop's: its entries and link keys (#190)
       kaosexpert: kaospropEngineMapper,
@@ -247,11 +254,13 @@ describe('the engine registry', () => {
       tropos4as: neither,
       cgm: nor,
       kaosdoc: noKaos,
+      kaoslts: noLts,
       kaosprop: noKaosprop,
       nfrprop: noNfr,
       ...declared
     } = ENGINE_OPTIONS;
     expect(noKaos).toEqual([]);
+    expect(noLts).toEqual([]);
     expect(noKaosprop).toEqual([]);
     expect(noNfr).toEqual([]);
     expect(none).toEqual([]);
@@ -282,6 +291,7 @@ describe('the engine registry', () => {
       tropos4as: 'Tropos4AS',
       cgm: 'Contextual goal model',
       kaosdoc: 'KAOS document',
+      kaoslts: 'KAOS LTS (FSP)',
       kaosprop: 'KAOS obstacle probabilities',
       kaosexpert: 'KAOS expert estimates and uncertainty',
       kaosres: 'KAOS countermeasure selection',
@@ -373,6 +383,14 @@ describe('the engine registry', () => {
         extension: 'md',
         language: 'text',
         help: 'A requirements document from the KAOS model: goals with their fit criteria, refinements, requirements and expectations, agents, conflicts',
+      },
+      {
+        id: 'kaoslts',
+        label: 'KAOS LTS (FSP)',
+        output: 'FSP for LTSA',
+        extension: 'lts',
+        language: 'text',
+        help: "The operation model as FSP for LTSA, KAOS2LTSA's derivation: fluents, domain and required conditions as constraints, one composition per agent and the system; and each requirement's operationalisation checked for completeness",
       },
       {
         id: 'kaosprop',
@@ -469,6 +487,7 @@ describe('the engine registry', () => {
       tropos4as: ['Lifecycle', 'txt', 'text', false, false, tropos4as],
       cgm: ['Variants', 'txt', 'text', false, false, cgm],
       kaosdoc: ['Requirements document', 'md', 'text', true, false, kaos],
+      kaoslts: ['FSP for LTSA', 'lts', 'text', true, false, kaos],
       kaosprop: ['Probabilities', 'json', 'text', false, false, kaosprop],
       kaosexpert: ['Uncertainty', 'json', 'text', false, true, kaosexpert],
       kaosres: ['Selections', 'json', 'text', false, true, kaosres],

@@ -549,6 +549,16 @@ const ATTRIBUTES = property.pairList('Attributes', 'text', {
   help: 'its attributes, each name:type (HighWater:bool, PumpSwitch:On|Off)',
 });
 
+/**
+ * Its attributes' values in the initial state, each name:value
+ * (`LowWater:true`): KAOS2LTSA's fluent `initially` (ASE'08 §2.2.2), on the
+ * attribute it bounds (goal-controller#209). An attribute without one starts
+ * false, as a fluent does.
+ */
+const INITIALLY = property.pairList('Initially', 'text', {
+  help: 'its attributes’ values in the initial state, each name:value (LowWater:true); unset, false',
+});
+
 /** an ltl formula of the operation model (FSE'02 §2.1.4), which nothing checks yet */
 const condition = <const K extends string>(key: K, help: string) =>
   property.formula(key, 'ltl', { help });
@@ -572,12 +582,14 @@ const ENTITY_PROPERTIES = [
     'EntityType',
   ),
   ATTRIBUTES,
+  INITIALLY,
   DESCRIPTION,
 ] as const;
 
 const EVENT_PROPERTIES = [
   text('Frequency', 'how often it occurs (Objectiver’s Frequency)'),
   ATTRIBUTES,
+  INITIALLY,
   DESCRIPTION,
 ] as const;
 
@@ -603,6 +615,7 @@ const AGENT_PROPERTIES = [
     'how much of its capacity its operations take (Objectiver’s Load)',
   ),
   ATTRIBUTES,
+  INITIALLY,
 ] as const;
 
 /** a monitoring's or a control's attribute: an object's, by `object.attribute` (D2) */
@@ -630,7 +643,7 @@ export const kaos = defineDialect({
     [KAOS_REFINEMENT_HUB]: REFINEMENT,
     [OPERATION]: OPERATION_PROPERTIES,
     [ENTITY]: ENTITY_PROPERTIES,
-    [ASSOCIATION]: [ATTRIBUTES, DESCRIPTION],
+    [ASSOCIATION]: [ATTRIBUTES, INITIALLY, DESCRIPTION],
     [EVENT]: EVENT_PROPERTIES,
     [PREDICATE]: PREDICATE_PROPERTIES,
     'kaosOperations.Type': [DESCRIPTION],
@@ -649,6 +662,7 @@ export const kaos = defineDialect({
     'Default',
     'Load',
     'Attributes',
+    'Initially',
   ],
   indent: '  ',
   refinements: {

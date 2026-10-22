@@ -14,6 +14,7 @@ import {
   tropos4asEngine,
   cgmEngine,
   kaosdocEngine,
+  kaosltsEngine,
   kaospropEngine,
   kaosexpertEngine,
   kaosresEngine,
@@ -51,6 +52,7 @@ export const ENGINE_LIST = registerEngines(
   cgmEngine,
   // the frameworks' (goal-controller#171): offered under KAOS and NFR
   kaosdocEngine,
+  kaosltsEngine,
   kaospropEngine,
   kaosexpertEngine,
   kaosresEngine,

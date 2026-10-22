@@ -104,19 +104,727 @@
       },
       "x": 680,
       "y": 80
+    },
+    {
+      "id": "pump_on_when_high_water_and_no_methane",
+      "text": "Maintain [PumpOnWhenHighWaterAndNoMethane]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "when sump.highWater and not mine.methane then next pump.pumpOn",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": "If the water level is above high and there is no methane, then at the next time unit the pump must be on."
+      },
+      "x": 840,
+      "y": 80
+    },
+    {
+      "id": "pump_off_when_methane",
+      "text": "Maintain [PumpOffWhenMethane]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "when mine.methane then next not pump.pumpOn",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": "If there is methane in the mine, the pump must be off within the next time unit."
+      },
+      "x": 2760,
+      "y": 80
+    },
+    {
+      "id": "pump_off_when_low_water",
+      "text": "Maintain [PumpOffWhenLowWater]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "when sump.lowWater then next not pump.pumpOn",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": "If the water is below the low level, the pump must be off within the next time unit."
+      },
+      "x": 2920,
+      "y": 80
+    },
+    {
+      "id": "pump_controller",
+      "text": "PumpController",
+      "type": "kaos.Agent",
+      "customProperties": {
+        "Type": "",
+        "Description": ""
+      },
+      "x": 1000,
+      "y": 80
+    },
+    {
+      "id": "environment",
+      "text": "Environment",
+      "type": "kaos.EnvironmentAgent",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 2600,
+      "y": 80
+    },
+    {
+      "id": "sump",
+      "text": "Sump",
+      "type": "kaos.Entity",
+      "customProperties": {
+        "Description": "",
+        "EntityType": "environment",
+        "Attributes": "highWater:bool, lowWater:bool",
+        "Initially": "lowWater:true"
+      },
+      "x": 1160,
+      "y": 80
+    },
+    {
+      "id": "mine",
+      "text": "Mine",
+      "type": "kaos.Entity",
+      "customProperties": {
+        "Description": "",
+        "EntityType": "environment",
+        "Attributes": "methane:bool"
+      },
+      "x": 1320,
+      "y": 80
+    },
+    {
+      "id": "pump",
+      "text": "Pump",
+      "type": "kaos.Entity",
+      "customProperties": {
+        "Description": "",
+        "EntityType": "shared",
+        "Attributes": "pumpOn:bool"
+      },
+      "x": 1480,
+      "y": 80
+    },
+    {
+      "id": "start_pump",
+      "text": "startPump",
+      "type": "kaos.Operation",
+      "customProperties": {
+        "Description": "",
+        "DomPre": "not pump.pumpOn",
+        "DomPost": "pump.pumpOn"
+      },
+      "x": 1640,
+      "y": 180
+    },
+    {
+      "id": "stop_pump",
+      "text": "stopPump",
+      "type": "kaos.Operation",
+      "customProperties": {
+        "Description": "",
+        "DomPre": "pump.pumpOn",
+        "DomPost": "not pump.pumpOn"
+      },
+      "x": 1800,
+      "y": 180
+    },
+    {
+      "id": "above_high",
+      "text": "aboveHigh",
+      "type": "kaos.Operation",
+      "customProperties": {
+        "Description": "",
+        "DomPre": "not sump.highWater and not sump.lowWater",
+        "DomPost": "sump.highWater"
+      },
+      "x": 1640,
+      "y": 80
+    },
+    {
+      "id": "below_high",
+      "text": "belowHigh",
+      "type": "kaos.Operation",
+      "customProperties": {
+        "Description": "",
+        "DomPre": "sump.highWater",
+        "DomPost": "not sump.highWater"
+      },
+      "x": 1800,
+      "y": 80
+    },
+    {
+      "id": "above_low",
+      "text": "aboveLow",
+      "type": "kaos.Operation",
+      "customProperties": {
+        "Description": "",
+        "DomPre": "sump.lowWater",
+        "DomPost": "not sump.lowWater"
+      },
+      "x": 1960,
+      "y": 80
+    },
+    {
+      "id": "below_low",
+      "text": "belowLow",
+      "type": "kaos.Operation",
+      "customProperties": {
+        "Description": "",
+        "DomPre": "not sump.highWater and not sump.lowWater",
+        "DomPost": "sump.lowWater"
+      },
+      "x": 2120,
+      "y": 80
+    },
+    {
+      "id": "methane_appears",
+      "text": "methaneAppears",
+      "type": "kaos.Operation",
+      "customProperties": {
+        "Description": "",
+        "DomPre": "not mine.methane",
+        "DomPost": "mine.methane"
+      },
+      "x": 2280,
+      "y": 80
+    },
+    {
+      "id": "methane_leaves",
+      "text": "methaneLeaves",
+      "type": "kaos.Operation",
+      "customProperties": {
+        "Description": "",
+        "DomPre": "mine.methane",
+        "DomPost": "not mine.methane"
+      },
+      "x": 2440,
+      "y": 80
     }
   ],
   "dependencies": [],
-  "links": [],
+  "links": [
+    {
+      "id": "pump_controller-assigned-pump_on_when_high_water_and_no_methane",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "pump_controller",
+      "target": "pump_on_when_high_water_and_no_methane"
+    },
+    {
+      "id": "pump_controller-assigned-pump_off_when_methane",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "pump_controller",
+      "target": "pump_off_when_methane"
+    },
+    {
+      "id": "pump_controller-assigned-pump_off_when_low_water",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "pump_controller",
+      "target": "pump_off_when_low_water"
+    },
+    {
+      "id": "pump_controller-monitors-sump",
+      "type": "kaos.MonitoringLink",
+      "source": "pump_controller",
+      "target": "sump",
+      "customProperties": {
+        "Monitors": "sump.highWater"
+      }
+    },
+    {
+      "id": "pump_controller-monitors-sump-2",
+      "type": "kaos.MonitoringLink",
+      "source": "pump_controller",
+      "target": "sump",
+      "customProperties": {
+        "Monitors": "sump.lowWater"
+      }
+    },
+    {
+      "id": "pump_controller-monitors-mine",
+      "type": "kaos.MonitoringLink",
+      "source": "pump_controller",
+      "target": "mine",
+      "customProperties": {
+        "Monitors": "mine.methane"
+      }
+    },
+    {
+      "id": "pump_controller-controls-pump",
+      "type": "kaos.ControlLink",
+      "source": "pump_controller",
+      "target": "pump",
+      "customProperties": {
+        "Controls": "pump.pumpOn"
+      }
+    },
+    {
+      "id": "environment-controls-sump",
+      "type": "kaos.ControlLink",
+      "source": "environment",
+      "target": "sump",
+      "customProperties": {
+        "Controls": "sump.highWater"
+      }
+    },
+    {
+      "id": "environment-controls-sump-2",
+      "type": "kaos.ControlLink",
+      "source": "environment",
+      "target": "sump",
+      "customProperties": {
+        "Controls": "sump.lowWater"
+      }
+    },
+    {
+      "id": "environment-controls-mine",
+      "type": "kaos.ControlLink",
+      "source": "environment",
+      "target": "mine",
+      "customProperties": {
+        "Controls": "mine.methane"
+      }
+    },
+    {
+      "id": "pump_controller-performs-start_pump",
+      "type": "kaos.PerformanceLink",
+      "source": "pump_controller",
+      "target": "start_pump"
+    },
+    {
+      "id": "start_pump-operationalises-pump_on_when_high_water_and_no_methane",
+      "type": "kaos.OperationalisationLink",
+      "source": "start_pump",
+      "target": "pump_on_when_high_water_and_no_methane",
+      "customProperties": {
+        "ReqTrig": "sump.highWater and not mine.methane"
+      }
+    },
+    {
+      "id": "start_pump-operationalises-pump_off_when_methane",
+      "type": "kaos.OperationalisationLink",
+      "source": "start_pump",
+      "target": "pump_off_when_methane",
+      "customProperties": {
+        "ReqPre": "not mine.methane"
+      }
+    },
+    {
+      "id": "start_pump-operationalises-pump_off_when_low_water",
+      "type": "kaos.OperationalisationLink",
+      "source": "start_pump",
+      "target": "pump_off_when_low_water",
+      "customProperties": {
+        "ReqPre": "not sump.lowWater"
+      }
+    },
+    {
+      "id": "sump-input-start_pump",
+      "type": "kaos.InputLink",
+      "source": "sump",
+      "target": "start_pump"
+    },
+    {
+      "id": "mine-input-start_pump",
+      "type": "kaos.InputLink",
+      "source": "mine",
+      "target": "start_pump"
+    },
+    {
+      "id": "start_pump-output-pump",
+      "type": "kaos.OutputLink",
+      "source": "start_pump",
+      "target": "pump"
+    },
+    {
+      "id": "pump_controller-performs-stop_pump",
+      "type": "kaos.PerformanceLink",
+      "source": "pump_controller",
+      "target": "stop_pump"
+    },
+    {
+      "id": "stop_pump-operationalises-pump_on_when_high_water_and_no_methane",
+      "type": "kaos.OperationalisationLink",
+      "source": "stop_pump",
+      "target": "pump_on_when_high_water_and_no_methane",
+      "customProperties": {
+        "ReqPre": "not (sump.highWater and not mine.methane)"
+      }
+    },
+    {
+      "id": "stop_pump-operationalises-pump_off_when_methane",
+      "type": "kaos.OperationalisationLink",
+      "source": "stop_pump",
+      "target": "pump_off_when_methane",
+      "customProperties": {
+        "ReqTrig": "mine.methane"
+      }
+    },
+    {
+      "id": "stop_pump-operationalises-pump_off_when_low_water",
+      "type": "kaos.OperationalisationLink",
+      "source": "stop_pump",
+      "target": "pump_off_when_low_water",
+      "customProperties": {
+        "ReqTrig": "sump.lowWater"
+      }
+    },
+    {
+      "id": "sump-input-stop_pump",
+      "type": "kaos.InputLink",
+      "source": "sump",
+      "target": "stop_pump"
+    },
+    {
+      "id": "mine-input-stop_pump",
+      "type": "kaos.InputLink",
+      "source": "mine",
+      "target": "stop_pump"
+    },
+    {
+      "id": "stop_pump-output-pump",
+      "type": "kaos.OutputLink",
+      "source": "stop_pump",
+      "target": "pump"
+    },
+    {
+      "id": "environment-performs-above_high",
+      "type": "kaos.PerformanceLink",
+      "source": "environment",
+      "target": "above_high"
+    },
+    {
+      "id": "above_high-output-sump",
+      "type": "kaos.OutputLink",
+      "source": "above_high",
+      "target": "sump"
+    },
+    {
+      "id": "environment-performs-below_high",
+      "type": "kaos.PerformanceLink",
+      "source": "environment",
+      "target": "below_high"
+    },
+    {
+      "id": "below_high-output-sump",
+      "type": "kaos.OutputLink",
+      "source": "below_high",
+      "target": "sump"
+    },
+    {
+      "id": "environment-performs-above_low",
+      "type": "kaos.PerformanceLink",
+      "source": "environment",
+      "target": "above_low"
+    },
+    {
+      "id": "above_low-output-sump",
+      "type": "kaos.OutputLink",
+      "source": "above_low",
+      "target": "sump"
+    },
+    {
+      "id": "environment-performs-below_low",
+      "type": "kaos.PerformanceLink",
+      "source": "environment",
+      "target": "below_low"
+    },
+    {
+      "id": "below_low-output-sump",
+      "type": "kaos.OutputLink",
+      "source": "below_low",
+      "target": "sump"
+    },
+    {
+      "id": "environment-performs-methane_appears",
+      "type": "kaos.PerformanceLink",
+      "source": "environment",
+      "target": "methane_appears"
+    },
+    {
+      "id": "methane_appears-output-mine",
+      "type": "kaos.OutputLink",
+      "source": "methane_appears",
+      "target": "mine"
+    },
+    {
+      "id": "environment-performs-methane_leaves",
+      "type": "kaos.PerformanceLink",
+      "source": "environment",
+      "target": "methane_leaves"
+    },
+    {
+      "id": "methane_leaves-output-mine",
+      "type": "kaos.OutputLink",
+      "source": "methane_leaves",
+      "target": "mine"
+    }
+  ],
   "display": {},
   "tool": "dsm3-goals",
   "metamodelVersion": "1.0",
   "diagram": {
-    "width": 975,
+    "width": 3215,
     "height": 336,
-    "name": "Mine pump, FSE'04's probabilistic layer",
+    "name": "Mine pump: FSE'04's quantities, ASE'08's operations",
     "customProperties": {
       "Description": ""
     }
+  },
+  "metamodel": {
+    "name": "kaosOperations",
+    "elements": [
+      {
+        "kind": "kaosOperations.Operation",
+        "label": "Operation",
+        "category": "node",
+        "pistarType": "kaos.Operation",
+        "size": {
+          "width": 135,
+          "height": 36
+        },
+        "info": {
+          "canBeInnerElement": false,
+          "canBeDependum": false,
+          "canBeOnPaper": true
+        }
+      },
+      {
+        "kind": "kaosOperations.Entity",
+        "label": "Entity",
+        "category": "node",
+        "pistarType": "kaos.Entity",
+        "size": {
+          "width": 135,
+          "height": 36
+        },
+        "info": {
+          "canBeInnerElement": false,
+          "canBeDependum": false,
+          "canBeOnPaper": true
+        }
+      },
+      {
+        "kind": "kaosOperations.Association",
+        "label": "Association",
+        "category": "node",
+        "pistarType": "kaos.Association",
+        "size": {
+          "width": 135,
+          "height": 36
+        },
+        "info": {
+          "canBeInnerElement": false,
+          "canBeDependum": false,
+          "canBeOnPaper": true
+        }
+      },
+      {
+        "kind": "kaosOperations.Event",
+        "label": "Event",
+        "category": "node",
+        "pistarType": "kaos.Event",
+        "size": {
+          "width": 135,
+          "height": 36
+        },
+        "info": {
+          "canBeInnerElement": false,
+          "canBeDependum": false,
+          "canBeOnPaper": true
+        }
+      },
+      {
+        "kind": "kaosOperations.Predicate",
+        "label": "Predicate",
+        "category": "node",
+        "pistarType": "kaos.Predicate",
+        "size": {
+          "width": 135,
+          "height": 36
+        },
+        "info": {
+          "canBeInnerElement": false,
+          "canBeDependum": false,
+          "canBeOnPaper": true
+        }
+      },
+      {
+        "kind": "kaosOperations.Type",
+        "label": "Type",
+        "category": "node",
+        "pistarType": "kaos.Type",
+        "size": {
+          "width": 135,
+          "height": 36
+        },
+        "info": {
+          "canBeInnerElement": false,
+          "canBeDependum": false,
+          "canBeOnPaper": true
+        }
+      }
+    ],
+    "links": [
+      {
+        "kind": "kaosOperations.OperationalisationLink",
+        "label": "Operationalisation",
+        "rules": {
+          "sources": [
+            "kaosOperations.Operation"
+          ],
+          "targets": [
+            "kaos.BehavioralGoal"
+          ],
+          "sameActor": false,
+          "unique": "kind"
+        },
+        "pistarType": "kaos.OperationalisationLink"
+      },
+      {
+        "kind": "kaosOperations.PerformanceLink",
+        "label": "Performance",
+        "rules": {
+          "sources": [
+            "kaos.Agent",
+            "kaos.EnvironmentAgent"
+          ],
+          "targets": [
+            "kaosOperations.Operation"
+          ],
+          "sameActor": false,
+          "unique": "kind"
+        },
+        "pistarType": "kaos.PerformanceLink"
+      },
+      {
+        "kind": "kaosOperations.MonitoringLink",
+        "label": "Monitoring",
+        "rules": {
+          "sources": [
+            "kaos.Agent",
+            "kaos.EnvironmentAgent"
+          ],
+          "targets": [
+            "kaosOperations.Entity",
+            "kaosOperations.Association",
+            "kaosOperations.Event",
+            "kaos.Agent",
+            "kaos.EnvironmentAgent",
+            "kaosOperations.Predicate"
+          ],
+          "sameActor": false,
+          "unique": false,
+          "allowSelf": true
+        },
+        "pistarType": "kaos.MonitoringLink"
+      },
+      {
+        "kind": "kaosOperations.ControlLink",
+        "label": "Control",
+        "rules": {
+          "sources": [
+            "kaos.Agent",
+            "kaos.EnvironmentAgent"
+          ],
+          "targets": [
+            "kaosOperations.Entity",
+            "kaosOperations.Association",
+            "kaosOperations.Event",
+            "kaos.Agent",
+            "kaos.EnvironmentAgent",
+            "kaosOperations.Predicate"
+          ],
+          "sameActor": false,
+          "unique": false,
+          "allowSelf": true
+        },
+        "pistarType": "kaos.ControlLink"
+      },
+      {
+        "kind": "kaosOperations.CauseLink",
+        "label": "Cause",
+        "rules": {
+          "sources": [
+            "kaosOperations.Event"
+          ],
+          "targets": [
+            "kaosOperations.Operation"
+          ],
+          "sameActor": false,
+          "unique": "kind"
+        },
+        "pistarType": "kaos.CauseLink"
+      },
+      {
+        "kind": "kaosOperations.InputLink",
+        "label": "Input",
+        "rules": {
+          "sources": [
+            "kaosOperations.Entity",
+            "kaosOperations.Association",
+            "kaosOperations.Event",
+            "kaos.Agent",
+            "kaos.EnvironmentAgent"
+          ],
+          "targets": [
+            "kaosOperations.Operation"
+          ],
+          "sameActor": false,
+          "unique": "kind"
+        },
+        "pistarType": "kaos.InputLink"
+      },
+      {
+        "kind": "kaosOperations.OutputLink",
+        "label": "Output",
+        "rules": {
+          "sources": [
+            "kaosOperations.Operation"
+          ],
+          "targets": [
+            "kaosOperations.Entity",
+            "kaosOperations.Association",
+            "kaosOperations.Event",
+            "kaos.Agent",
+            "kaos.EnvironmentAgent"
+          ],
+          "sameActor": false,
+          "unique": "kind"
+        },
+        "pistarType": "kaos.OutputLink"
+      },
+      {
+        "kind": "kaosOperations.AssociationLink",
+        "label": "Association",
+        "rules": {
+          "sources": [
+            "kaosOperations.Association"
+          ],
+          "targets": [
+            "kaosOperations.Entity",
+            "kaosOperations.Association",
+            "kaosOperations.Event",
+            "kaos.Agent",
+            "kaos.EnvironmentAgent"
+          ],
+          "sameActor": false,
+          "unique": false
+        },
+        "pistarType": "kaos.AssociationLink"
+      }
+    ]
   }
 }
