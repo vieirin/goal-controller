@@ -2126,6 +2126,12 @@ Lamsweerde's RE'01 "Guided Tour" — over one grammar and one AST (D4 of
   yet.** The grammar's shape (one node per operator, a `Unary`-level
   parsing slot) leaves room: an agent-indexed unary operator fits beside
   `Next`/`Always` without reshaping the rest.
+- **Two details are the writer's own choice, unattested anywhere in the
+  sources**: the quantifier's symbolic separator `·`/`∙` (no oracle spells
+  a symbolic `forall`/`exists` out), and `@P` binding to the innermost
+  atom rather than a whole formula (RE'01 uses it only on a dotted
+  attribute comparison, p.6's example, never on a compound formula, so
+  there is nothing to attest a wider binding against).
 - **No actual document round trip is at stake.** A `formula` value's text
   is stored and written back verbatim regardless of this AST (as `ocl`
   and `text` values are); `src/ltl/print.ts`'s `printLtl` exists only to

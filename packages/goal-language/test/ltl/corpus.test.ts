@@ -22,6 +22,7 @@ import {
   kaosFormulaText,
   parseKaos,
   type KaosAtom,
+  type KaosAttribute,
   type KaosFile,
   type KaosValue,
 } from '../../src/formats/index.js';
@@ -58,17 +59,20 @@ const formulasOf = (file: KaosFile): string[] => {
     if (atom.$type === 'FormulaAtom') texts.push(kaosFormulaText(atom));
     if (atom.$type === 'DeclarationAtom')
       for (const attribute of atom.declaration.attributes)
-        for (const value of attribute.values) fromValue(value);
+        fromAttribute(attribute);
   };
   const fromValue = (value: KaosValue) => {
     fromAtom(value.atom);
     if (value.right) fromAtom(value.right);
     for (const nested of value.bracket) fromValue(nested);
   };
+  const fromAttribute = (attribute: KaosAttribute) => {
+    for (const value of attribute.values) fromValue(value);
+    for (const param of attribute.params) fromValue(param);
+  };
   for (const item of file.items)
     if (item.$type === 'Declaration')
-      for (const attribute of item.attributes)
-        for (const value of attribute.values) fromValue(value);
+      for (const attribute of item.attributes) fromAttribute(attribute);
   return texts;
 };
 
