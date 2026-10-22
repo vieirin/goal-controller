@@ -1,0 +1,1695 @@
+{
+  "actors": [],
+  "orphans": [
+    {
+      "id": "passengers_informed_of_direction",
+      "text": "Passengers informed of elevator direction",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 200,
+      "y": 80
+    },
+    {
+      "id": "direction_updated_before_next_stop",
+      "text": "Elevator direction updated few seconds before next stop",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 200,
+      "y": 180
+    },
+    {
+      "id": "direction_unreadable",
+      "text": "Elevator direction unreadable",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 200,
+      "y": 280
+    },
+    {
+      "id": "inadequate_led_size",
+      "text": "Inadequate LED size",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 40,
+      "y": 380
+    },
+    {
+      "id": "unreadable_by_blind_people",
+      "text": "Elevator direction unreadable by blind people",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 200,
+      "y": 380
+    },
+    {
+      "id": "insufficient_display_contrast",
+      "text": "Insufficient display contrast",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 360,
+      "y": 380
+    },
+    {
+      "id": "leds_at_least_2in_high",
+      "text": "LEDs at least 2in high",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 40,
+      "y": 480
+    },
+    {
+      "id": "direction_announced_by_voice",
+      "text": "Elevator direction announced by voice",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 200,
+      "y": 480
+    },
+    {
+      "id": "robust_and_reliable",
+      "text": "Robust and reliable elevator system",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 1000,
+      "y": 80
+    },
+    {
+      "id": "service_interrupted",
+      "text": "Service interrupted",
+      "type": "kaos.Obstacle",
+      "customProperties": {
+        "Description": "",
+        "FormalSpec": "",
+        "Category": ""
+      },
+      "x": 1000,
+      "y": 180
+    },
+    {
+      "id": "self_reconfigurable_on_partial_failure",
+      "text": "Self-reconfigurable system in case of partial failure",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 520,
+      "y": 280
+    },
+    {
+      "id": "repair_delay_enforced",
+      "text": "Maximum permitted time delay for repairing failure enforced",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 680,
+      "y": 280
+    },
+    {
+      "id": "worn_out_components_replaced_in_time",
+      "text": "Worn-out components replaced in time",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 1160,
+      "y": 280
+    },
+    {
+      "id": "maintenance_program_provided",
+      "text": "Maintenance program provided",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 1000,
+      "y": 380
+    },
+    {
+      "id": "worn_out_components_replaced",
+      "text": "Worn-out components replaced",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 1320,
+      "y": 380
+    },
+    {
+      "id": "elevator_system_monitored",
+      "text": "Elevator system monitored",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 1480,
+      "y": 380
+    },
+    {
+      "id": "mtbf_requirements_specified",
+      "text": "MTBF requirements specified",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 840,
+      "y": 480
+    },
+    {
+      "id": "maintenance_program_defined",
+      "text": "Maintenance program defined",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 1000,
+      "y": 480
+    },
+    {
+      "id": "maintenance_program_executed",
+      "text": "Maintenance program executed",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 1160,
+      "y": 480
+    },
+    {
+      "id": "component_wear_detected",
+      "text": "Component wear detected",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 1480,
+      "y": 480
+    },
+    {
+      "id": "component_wear_reported",
+      "text": "Component wear reported",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 1640,
+      "y": 480
+    },
+    {
+      "id": "system_protected_against_fire",
+      "text": "System protected against fire",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 3080,
+      "y": 80
+    },
+    {
+      "id": "doors_locked_open_on_fire_alarm",
+      "text": "Doors locked open when fire alarm is set",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 1800,
+      "y": 180
+    },
+    {
+      "id": "elevators_stopped_at_nearest_floor_on_fire",
+      "text": "All moving elevators stopped as soon as they reach any floor, when a fire alarm is set",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 3880,
+      "y": 180
+    },
+    {
+      "id": "fireproof_cage_provided",
+      "text": "Fireproof cage provided",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 4040,
+      "y": 180
+    },
+    {
+      "id": "fireproof_equipment_provided",
+      "text": "Fireproof equipment provided",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 4360,
+      "y": 180
+    },
+    {
+      "id": "efficient_elevator_system",
+      "text": "Efficient elevator system",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 4680,
+      "y": 80
+    },
+    {
+      "id": "moving_elevator_stopped_next_floor_on_fire_signal",
+      "text": "Moving elevator stopped next floor in case of fire signal",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 4520,
+      "y": 180
+    },
+    {
+      "id": "elevator_stopped",
+      "text": "Elevator stopped",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": "Contributes to Emergency stop available inside the cage (Fig. 16), which this seed does not otherwise model"
+      },
+      "x": 4680,
+      "y": 180
+    },
+    {
+      "id": "minimize_elevator_moves",
+      "text": "Minimize elevator moves",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 4840,
+      "y": 180
+    },
+    {
+      "id": "minimize_average_waiting_time",
+      "text": "Minimize average waiting time",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 5000,
+      "y": 180
+    },
+    {
+      "id": "elevator_stopped_on_calling_floor",
+      "text": "Elevator stopped on calling floor",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 5800,
+      "y": 80
+    },
+    {
+      "id": "stop_button_used",
+      "text": "Stop button used",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 6600,
+      "y": 80
+    },
+    {
+      "id": "elevator_controller",
+      "text": "Elevator Controller",
+      "type": "kaos.Agent",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 1960,
+      "y": 180
+    },
+    {
+      "id": "elevator_company",
+      "text": "Elevator company",
+      "type": "kaos.EnvironmentAgent",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 4200,
+      "y": 180
+    },
+    {
+      "id": "passenger",
+      "text": "Passenger",
+      "type": "kaos.EnvironmentAgent",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 6760,
+      "y": 80
+    },
+    {
+      "id": "elevator_system",
+      "text": "Elevator System",
+      "type": "kaos.Entity",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 2280,
+      "y": 180
+    },
+    {
+      "id": "cage",
+      "text": "Cage",
+      "type": "kaos.Entity",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 3080,
+      "y": 180
+    },
+    {
+      "id": "floor",
+      "text": "Floor",
+      "type": "kaos.Entity",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 3240,
+      "y": 180
+    },
+    {
+      "id": "alarm_device",
+      "text": "Alarm device",
+      "type": "kaos.Entity",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 6920,
+      "y": 80
+    },
+    {
+      "id": "alarm_bell",
+      "text": "Alarm bell",
+      "type": "kaos.Entity",
+      "customProperties": {
+        "Description": "A component of the Elevator System, specialising Alarm device (Fig. 23)"
+      },
+      "x": 3400,
+      "y": 180
+    },
+    {
+      "id": "power_supply",
+      "text": "Power supply",
+      "type": "kaos.Entity",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 3560,
+      "y": 180
+    },
+    {
+      "id": "door",
+      "text": "Door",
+      "type": "kaos.Entity",
+      "customProperties": {
+        "Description": "",
+        "Attributes": "status:Open|Close"
+      },
+      "x": 7080,
+      "y": 80
+    },
+    {
+      "id": "schedule",
+      "text": "Schedule",
+      "type": "kaos.Entity",
+      "customProperties": {
+        "Description": "The sequence of commands the elevator controller has to execute"
+      },
+      "x": 5320,
+      "y": 180
+    },
+    {
+      "id": "button",
+      "text": "Button",
+      "type": "kaos.Entity",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 7240,
+      "y": 80
+    },
+    {
+      "id": "has_cage",
+      "text": "ElevatorSystemHasCage",
+      "type": "kaos.Association",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 2440,
+      "y": 180
+    },
+    {
+      "id": "has_floor",
+      "text": "ElevatorSystemHasFloor",
+      "type": "kaos.Association",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 2600,
+      "y": 180
+    },
+    {
+      "id": "has_alarm_bell",
+      "text": "ElevatorSystemHasAlarmBell",
+      "type": "kaos.Association",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 2760,
+      "y": 180
+    },
+    {
+      "id": "has_controller",
+      "text": "ElevatorSystemHasController",
+      "type": "kaos.Association",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 2120,
+      "y": 180
+    },
+    {
+      "id": "has_power_supply",
+      "text": "ElevatorSystemHasPowerSupply",
+      "type": "kaos.Association",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 2920,
+      "y": 180
+    },
+    {
+      "id": "at",
+      "text": "At",
+      "type": "kaos.Association",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 3720,
+      "y": 180
+    },
+    {
+      "id": "refresh",
+      "text": "Refresh",
+      "type": "kaos.Event",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 5480,
+      "y": 180
+    },
+    {
+      "id": "elevator_state_change",
+      "text": "Elevator state change",
+      "type": "kaos.Event",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 5640,
+      "y": 180
+    },
+    {
+      "id": "floor_call_button_pushed",
+      "text": "Floor call button pushed",
+      "type": "kaos.Event",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 6440,
+      "y": 180
+    },
+    {
+      "id": "arrival_on_floor",
+      "text": "Arrival on floor",
+      "type": "kaos.Event",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 5800,
+      "y": 180
+    },
+    {
+      "id": "button_light_on_command",
+      "text": "Button light on command",
+      "type": "kaos.Event",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 5960,
+      "y": 180
+    },
+    {
+      "id": "stop_cage_command",
+      "text": "Stop cage command",
+      "type": "kaos.Event",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 6120,
+      "y": 180
+    },
+    {
+      "id": "reschedule",
+      "text": "Reschedule",
+      "type": "kaos.Operation",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 6280,
+      "y": 180
+    },
+    {
+      "id": "execute_schedule",
+      "text": "Execute schedule",
+      "type": "kaos.Operation",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 5160,
+      "y": 180
+    },
+    {
+      "id": "push_button",
+      "text": "Push button",
+      "type": "kaos.Operation",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 6600,
+      "y": 180
+    }
+  ],
+  "dependencies": [],
+  "links": [
+    {
+      "hub": {
+        "id": "passengers_informed_of_direction-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        },
+        "x": 258,
+        "y": 138
+      },
+      "starts": [
+        {
+          "id": "passengers_informed_of_direction-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "direction_updated_before_next_stop",
+          "target": "passengers_informed_of_direction-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "passengers_informed_of_direction-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "passengers_informed_of_direction-refinement-1",
+        "target": "passengers_informed_of_direction"
+      }
+    },
+    {
+      "hub": {
+        "id": "direction_unreadable-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 178,
+        "y": 338
+      },
+      "starts": [
+        {
+          "id": "direction_unreadable-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "inadequate_led_size",
+          "target": "direction_unreadable-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "direction_unreadable-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "direction_unreadable-refinement-1",
+        "target": "direction_unreadable"
+      }
+    },
+    {
+      "hub": {
+        "id": "direction_unreadable-refinement-2",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 258,
+        "y": 338
+      },
+      "starts": [
+        {
+          "id": "direction_unreadable-refinement-2-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "unreadable_by_blind_people",
+          "target": "direction_unreadable-refinement-2"
+        }
+      ],
+      "end": {
+        "id": "direction_unreadable-refinement-2-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "direction_unreadable-refinement-2",
+        "target": "direction_unreadable"
+      }
+    },
+    {
+      "hub": {
+        "id": "direction_unreadable-refinement-3",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 338,
+        "y": 338
+      },
+      "starts": [
+        {
+          "id": "direction_unreadable-refinement-3-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "insufficient_display_contrast",
+          "target": "direction_unreadable-refinement-3"
+        }
+      ],
+      "end": {
+        "id": "direction_unreadable-refinement-3-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "direction_unreadable-refinement-3",
+        "target": "direction_unreadable"
+      }
+    },
+    {
+      "hub": {
+        "id": "worn_out_components_replaced_in_time-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        },
+        "x": 1218,
+        "y": 338
+      },
+      "starts": [
+        {
+          "id": "worn_out_components_replaced_in_time-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "maintenance_program_provided",
+          "target": "worn_out_components_replaced_in_time-refinement-1"
+        },
+        {
+          "id": "worn_out_components_replaced_in_time-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "worn_out_components_replaced",
+          "target": "worn_out_components_replaced_in_time-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "worn_out_components_replaced_in_time-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "worn_out_components_replaced_in_time-refinement-1",
+        "target": "worn_out_components_replaced_in_time"
+      }
+    },
+    {
+      "hub": {
+        "id": "worn_out_components_replaced_in_time-refinement-2",
+        "type": "kaos.RefinementLinkHub",
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        },
+        "x": 1338,
+        "y": 338
+      },
+      "starts": [
+        {
+          "id": "worn_out_components_replaced_in_time-refinement-2-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "worn_out_components_replaced",
+          "target": "worn_out_components_replaced_in_time-refinement-2"
+        },
+        {
+          "id": "worn_out_components_replaced_in_time-refinement-2-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "elevator_system_monitored",
+          "target": "worn_out_components_replaced_in_time-refinement-2"
+        }
+      ],
+      "end": {
+        "id": "worn_out_components_replaced_in_time-refinement-2-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "worn_out_components_replaced_in_time-refinement-2",
+        "target": "worn_out_components_replaced_in_time"
+      }
+    },
+    {
+      "hub": {
+        "id": "maintenance_program_provided-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        },
+        "x": 1058,
+        "y": 438
+      },
+      "starts": [
+        {
+          "id": "maintenance_program_provided-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "mtbf_requirements_specified",
+          "target": "maintenance_program_provided-refinement-1"
+        },
+        {
+          "id": "maintenance_program_provided-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "maintenance_program_defined",
+          "target": "maintenance_program_provided-refinement-1"
+        },
+        {
+          "id": "maintenance_program_provided-refinement-1-3",
+          "type": "kaos.RefinementLinkStart",
+          "source": "maintenance_program_executed",
+          "target": "maintenance_program_provided-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "maintenance_program_provided-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "maintenance_program_provided-refinement-1",
+        "target": "maintenance_program_provided"
+      }
+    },
+    {
+      "hub": {
+        "id": "elevator_system_monitored-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        },
+        "x": 1578,
+        "y": 438
+      },
+      "starts": [
+        {
+          "id": "elevator_system_monitored-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "component_wear_detected",
+          "target": "elevator_system_monitored-refinement-1"
+        },
+        {
+          "id": "elevator_system_monitored-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "component_wear_reported",
+          "target": "elevator_system_monitored-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "elevator_system_monitored-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "elevator_system_monitored-refinement-1",
+        "target": "elevator_system_monitored"
+      }
+    },
+    {
+      "hub": {
+        "id": "system_protected_against_fire-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        },
+        "x": 3358,
+        "y": 138
+      },
+      "starts": [
+        {
+          "id": "system_protected_against_fire-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "doors_locked_open_on_fire_alarm",
+          "target": "system_protected_against_fire-refinement-1"
+        },
+        {
+          "id": "system_protected_against_fire-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "elevators_stopped_at_nearest_floor_on_fire",
+          "target": "system_protected_against_fire-refinement-1"
+        },
+        {
+          "id": "system_protected_against_fire-refinement-1-3",
+          "type": "kaos.RefinementLinkStart",
+          "source": "fireproof_cage_provided",
+          "target": "system_protected_against_fire-refinement-1"
+        },
+        {
+          "id": "system_protected_against_fire-refinement-1-4",
+          "type": "kaos.RefinementLinkStart",
+          "source": "fireproof_equipment_provided",
+          "target": "system_protected_against_fire-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "system_protected_against_fire-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "system_protected_against_fire-refinement-1",
+        "target": "system_protected_against_fire"
+      }
+    },
+    {
+      "hub": {
+        "id": "efficient_elevator_system-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        },
+        "x": 4778,
+        "y": 138
+      },
+      "starts": [
+        {
+          "id": "efficient_elevator_system-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "moving_elevator_stopped_next_floor_on_fire_signal",
+          "target": "efficient_elevator_system-refinement-1"
+        },
+        {
+          "id": "efficient_elevator_system-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "elevator_stopped",
+          "target": "efficient_elevator_system-refinement-1"
+        },
+        {
+          "id": "efficient_elevator_system-refinement-1-3",
+          "type": "kaos.RefinementLinkStart",
+          "source": "minimize_elevator_moves",
+          "target": "efficient_elevator_system-refinement-1"
+        },
+        {
+          "id": "efficient_elevator_system-refinement-1-4",
+          "type": "kaos.RefinementLinkStart",
+          "source": "minimize_average_waiting_time",
+          "target": "efficient_elevator_system-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "efficient_elevator_system-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "efficient_elevator_system-refinement-1",
+        "target": "efficient_elevator_system"
+      }
+    },
+    {
+      "id": "direction_unreadable-obstructs-direction_updated_before_next_stop",
+      "type": "kaos.ObstructionLink",
+      "source": "direction_unreadable",
+      "target": "direction_updated_before_next_stop"
+    },
+    {
+      "id": "service_interrupted-obstructs-robust_and_reliable",
+      "type": "kaos.ObstructionLink",
+      "source": "service_interrupted",
+      "target": "robust_and_reliable"
+    },
+    {
+      "id": "leds_at_least_2in_high-resolves-inadequate_led_size",
+      "type": "kaos.ResolutionLink",
+      "source": "leds_at_least_2in_high",
+      "target": "inadequate_led_size",
+      "customProperties": {
+        "ResolutionType": "obstacle prevention",
+        "Anchor": ""
+      }
+    },
+    {
+      "id": "direction_announced_by_voice-resolves-unreadable_by_blind_people",
+      "type": "kaos.ResolutionLink",
+      "source": "direction_announced_by_voice",
+      "target": "unreadable_by_blind_people",
+      "customProperties": {
+        "ResolutionType": "obstacle prevention",
+        "Anchor": ""
+      }
+    },
+    {
+      "id": "self_reconfigurable_on_partial_failure-resolves-service_interrupted",
+      "type": "kaos.ResolutionLink",
+      "source": "self_reconfigurable_on_partial_failure",
+      "target": "service_interrupted",
+      "customProperties": {
+        "ResolutionType": "obstacle mitigation",
+        "Anchor": ""
+      }
+    },
+    {
+      "id": "repair_delay_enforced-resolves-service_interrupted",
+      "type": "kaos.ResolutionLink",
+      "source": "repair_delay_enforced",
+      "target": "service_interrupted",
+      "customProperties": {
+        "ResolutionType": "goal restoration",
+        "Anchor": ""
+      }
+    },
+    {
+      "id": "worn_out_components_replaced_in_time-resolves-service_interrupted",
+      "type": "kaos.ResolutionLink",
+      "source": "worn_out_components_replaced_in_time",
+      "target": "service_interrupted",
+      "customProperties": {
+        "ResolutionType": "obstacle prevention",
+        "Anchor": ""
+      }
+    },
+    {
+      "id": "elevator_controller-assigned-doors_locked_open_on_fire_alarm",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "elevator_controller",
+      "target": "doors_locked_open_on_fire_alarm"
+    },
+    {
+      "id": "elevator_controller-assigned-elevators_stopped_at_nearest_floor_on_fire",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "elevator_controller",
+      "target": "elevators_stopped_at_nearest_floor_on_fire"
+    },
+    {
+      "id": "elevator_company-assigned-fireproof_cage_provided",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "elevator_company",
+      "target": "fireproof_cage_provided"
+    },
+    {
+      "id": "elevator_company-assigned-fireproof_equipment_provided",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "elevator_company",
+      "target": "fireproof_equipment_provided"
+    },
+    {
+      "id": "elevator_controller-assigned-elevator_stopped_on_calling_floor",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "elevator_controller",
+      "target": "elevator_stopped_on_calling_floor"
+    },
+    {
+      "id": "has_cage-links-elevator_system",
+      "type": "kaos.AssociationLink",
+      "source": "has_cage",
+      "target": "elevator_system",
+      "customProperties": {
+        "Multiplicity": "1",
+        "Role": "elevatorSystem"
+      }
+    },
+    {
+      "id": "has_cage-links-cage",
+      "type": "kaos.AssociationLink",
+      "source": "has_cage",
+      "target": "cage",
+      "customProperties": {
+        "Multiplicity": "1..*",
+        "Role": "cage"
+      }
+    },
+    {
+      "id": "has_floor-links-elevator_system",
+      "type": "kaos.AssociationLink",
+      "source": "has_floor",
+      "target": "elevator_system",
+      "customProperties": {
+        "Multiplicity": "1",
+        "Role": "elevatorSystem"
+      }
+    },
+    {
+      "id": "has_floor-links-floor",
+      "type": "kaos.AssociationLink",
+      "source": "has_floor",
+      "target": "floor",
+      "customProperties": {
+        "Multiplicity": "2..*",
+        "Role": "floor"
+      }
+    },
+    {
+      "id": "has_alarm_bell-links-elevator_system",
+      "type": "kaos.AssociationLink",
+      "source": "has_alarm_bell",
+      "target": "elevator_system",
+      "customProperties": {
+        "Multiplicity": "1",
+        "Role": "elevatorSystem"
+      }
+    },
+    {
+      "id": "has_alarm_bell-links-alarm_bell",
+      "type": "kaos.AssociationLink",
+      "source": "has_alarm_bell",
+      "target": "alarm_bell",
+      "customProperties": {
+        "Multiplicity": "1",
+        "Role": "alarmBell"
+      }
+    },
+    {
+      "id": "has_controller-links-elevator_system",
+      "type": "kaos.AssociationLink",
+      "source": "has_controller",
+      "target": "elevator_system",
+      "customProperties": {
+        "Multiplicity": "1",
+        "Role": "elevatorSystem"
+      }
+    },
+    {
+      "id": "has_controller-links-elevator_controller",
+      "type": "kaos.AssociationLink",
+      "source": "has_controller",
+      "target": "elevator_controller",
+      "customProperties": {
+        "Multiplicity": "1",
+        "Role": "controller"
+      }
+    },
+    {
+      "id": "has_power_supply-links-elevator_system",
+      "type": "kaos.AssociationLink",
+      "source": "has_power_supply",
+      "target": "elevator_system",
+      "customProperties": {
+        "Multiplicity": "1",
+        "Role": "elevatorSystem"
+      }
+    },
+    {
+      "id": "has_power_supply-links-power_supply",
+      "type": "kaos.AssociationLink",
+      "source": "has_power_supply",
+      "target": "power_supply",
+      "customProperties": {
+        "Multiplicity": "1",
+        "Role": "powerSupply"
+      }
+    },
+    {
+      "id": "at-links-cage",
+      "type": "kaos.AssociationLink",
+      "source": "at",
+      "target": "cage",
+      "customProperties": {
+        "Role": "cage"
+      }
+    },
+    {
+      "id": "at-links-floor",
+      "type": "kaos.AssociationLink",
+      "source": "at",
+      "target": "floor",
+      "customProperties": {
+        "Role": "floor"
+      }
+    },
+    {
+      "id": "floor_call_button_pushed-causes-reschedule",
+      "type": "kaos.CauseLink",
+      "source": "floor_call_button_pushed",
+      "target": "reschedule"
+    },
+    {
+      "id": "reschedule-output-refresh",
+      "type": "kaos.OutputLink",
+      "source": "reschedule",
+      "target": "refresh"
+    },
+    {
+      "id": "elevator_controller-performs-execute_schedule",
+      "type": "kaos.PerformanceLink",
+      "source": "elevator_controller",
+      "target": "execute_schedule"
+    },
+    {
+      "id": "execute_schedule-operationalises-elevator_stopped_on_calling_floor",
+      "type": "kaos.OperationalisationLink",
+      "source": "execute_schedule",
+      "target": "elevator_stopped_on_calling_floor"
+    },
+    {
+      "id": "refresh-causes-execute_schedule",
+      "type": "kaos.CauseLink",
+      "source": "refresh",
+      "target": "execute_schedule"
+    },
+    {
+      "id": "elevator_state_change-causes-execute_schedule",
+      "type": "kaos.CauseLink",
+      "source": "elevator_state_change",
+      "target": "execute_schedule"
+    },
+    {
+      "id": "arrival_on_floor-causes-execute_schedule",
+      "type": "kaos.CauseLink",
+      "source": "arrival_on_floor",
+      "target": "execute_schedule"
+    },
+    {
+      "id": "schedule-input-execute_schedule",
+      "type": "kaos.InputLink",
+      "source": "schedule",
+      "target": "execute_schedule"
+    },
+    {
+      "id": "execute_schedule-output-button_light_on_command",
+      "type": "kaos.OutputLink",
+      "source": "execute_schedule",
+      "target": "button_light_on_command"
+    },
+    {
+      "id": "execute_schedule-output-stop_cage_command",
+      "type": "kaos.OutputLink",
+      "source": "execute_schedule",
+      "target": "stop_cage_command"
+    },
+    {
+      "id": "push_button-operationalises-stop_button_used",
+      "type": "kaos.OperationalisationLink",
+      "source": "push_button",
+      "target": "stop_button_used"
+    }
+  ],
+  "display": {},
+  "tool": "dsm3-goals",
+  "metamodelVersion": "1.0",
+  "diagram": {
+    "width": 7535,
+    "height": 616,
+    "name": "Elevator (Respect-IT tutorial)",
+    "customProperties": {
+      "Description": ""
+    }
+  },
+  "metamodel": {
+    "name": "kaosOperations",
+    "elements": [
+      {
+        "kind": "kaosOperations.Operation",
+        "label": "Operation",
+        "category": "node",
+        "pistarType": "kaos.Operation",
+        "size": {
+          "width": 135,
+          "height": 36
+        },
+        "info": {
+          "canBeInnerElement": false,
+          "canBeDependum": false,
+          "canBeOnPaper": true
+        }
+      },
+      {
+        "kind": "kaosOperations.Entity",
+        "label": "Entity",
+        "category": "node",
+        "pistarType": "kaos.Entity",
+        "size": {
+          "width": 135,
+          "height": 36
+        },
+        "info": {
+          "canBeInnerElement": false,
+          "canBeDependum": false,
+          "canBeOnPaper": true
+        }
+      },
+      {
+        "kind": "kaosOperations.Association",
+        "label": "Association",
+        "category": "node",
+        "pistarType": "kaos.Association",
+        "size": {
+          "width": 135,
+          "height": 36
+        },
+        "info": {
+          "canBeInnerElement": false,
+          "canBeDependum": false,
+          "canBeOnPaper": true
+        }
+      },
+      {
+        "kind": "kaosOperations.Event",
+        "label": "Event",
+        "category": "node",
+        "pistarType": "kaos.Event",
+        "size": {
+          "width": 135,
+          "height": 36
+        },
+        "info": {
+          "canBeInnerElement": false,
+          "canBeDependum": false,
+          "canBeOnPaper": true
+        }
+      },
+      {
+        "kind": "kaosOperations.Predicate",
+        "label": "Predicate",
+        "category": "node",
+        "pistarType": "kaos.Predicate",
+        "size": {
+          "width": 135,
+          "height": 36
+        },
+        "info": {
+          "canBeInnerElement": false,
+          "canBeDependum": false,
+          "canBeOnPaper": true
+        }
+      },
+      {
+        "kind": "kaosOperations.Type",
+        "label": "Type",
+        "category": "node",
+        "pistarType": "kaos.Type",
+        "size": {
+          "width": 135,
+          "height": 36
+        },
+        "info": {
+          "canBeInnerElement": false,
+          "canBeDependum": false,
+          "canBeOnPaper": true
+        }
+      }
+    ],
+    "links": [
+      {
+        "kind": "kaosOperations.OperationalisationLink",
+        "label": "Operationalisation",
+        "rules": {
+          "sources": [
+            "kaosOperations.Operation"
+          ],
+          "targets": [
+            "kaos.BehavioralGoal"
+          ],
+          "sameActor": false,
+          "unique": "kind"
+        },
+        "pistarType": "kaos.OperationalisationLink"
+      },
+      {
+        "kind": "kaosOperations.PerformanceLink",
+        "label": "Performance",
+        "rules": {
+          "sources": [
+            "kaos.Agent",
+            "kaos.EnvironmentAgent"
+          ],
+          "targets": [
+            "kaosOperations.Operation"
+          ],
+          "sameActor": false,
+          "unique": "kind"
+        },
+        "pistarType": "kaos.PerformanceLink"
+      },
+      {
+        "kind": "kaosOperations.MonitoringLink",
+        "label": "Monitoring",
+        "rules": {
+          "sources": [
+            "kaos.Agent",
+            "kaos.EnvironmentAgent"
+          ],
+          "targets": [
+            "kaosOperations.Entity",
+            "kaosOperations.Association",
+            "kaosOperations.Event",
+            "kaos.Agent",
+            "kaos.EnvironmentAgent",
+            "kaosOperations.Predicate"
+          ],
+          "sameActor": false,
+          "unique": false,
+          "allowSelf": true
+        },
+        "pistarType": "kaos.MonitoringLink"
+      },
+      {
+        "kind": "kaosOperations.ControlLink",
+        "label": "Control",
+        "rules": {
+          "sources": [
+            "kaos.Agent",
+            "kaos.EnvironmentAgent"
+          ],
+          "targets": [
+            "kaosOperations.Entity",
+            "kaosOperations.Association",
+            "kaosOperations.Event",
+            "kaos.Agent",
+            "kaos.EnvironmentAgent",
+            "kaosOperations.Predicate"
+          ],
+          "sameActor": false,
+          "unique": false,
+          "allowSelf": true
+        },
+        "pistarType": "kaos.ControlLink"
+      },
+      {
+        "kind": "kaosOperations.CauseLink",
+        "label": "Cause",
+        "rules": {
+          "sources": [
+            "kaosOperations.Event"
+          ],
+          "targets": [
+            "kaosOperations.Operation"
+          ],
+          "sameActor": false,
+          "unique": "kind"
+        },
+        "pistarType": "kaos.CauseLink"
+      },
+      {
+        "kind": "kaosOperations.InputLink",
+        "label": "Input",
+        "rules": {
+          "sources": [
+            "kaosOperations.Entity",
+            "kaosOperations.Association",
+            "kaosOperations.Event",
+            "kaos.Agent",
+            "kaos.EnvironmentAgent"
+          ],
+          "targets": [
+            "kaosOperations.Operation"
+          ],
+          "sameActor": false,
+          "unique": "kind"
+        },
+        "pistarType": "kaos.InputLink"
+      },
+      {
+        "kind": "kaosOperations.OutputLink",
+        "label": "Output",
+        "rules": {
+          "sources": [
+            "kaosOperations.Operation"
+          ],
+          "targets": [
+            "kaosOperations.Entity",
+            "kaosOperations.Association",
+            "kaosOperations.Event",
+            "kaos.Agent",
+            "kaos.EnvironmentAgent"
+          ],
+          "sameActor": false,
+          "unique": "kind"
+        },
+        "pistarType": "kaos.OutputLink"
+      },
+      {
+        "kind": "kaosOperations.AssociationLink",
+        "label": "Association",
+        "rules": {
+          "sources": [
+            "kaosOperations.Association"
+          ],
+          "targets": [
+            "kaosOperations.Entity",
+            "kaosOperations.Association",
+            "kaosOperations.Event",
+            "kaos.Agent",
+            "kaos.EnvironmentAgent"
+          ],
+          "sameActor": false,
+          "unique": false
+        },
+        "pistarType": "kaos.AssociationLink"
+      }
+    ]
+  }
+}

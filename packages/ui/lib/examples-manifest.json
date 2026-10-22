@@ -1039,6 +1039,24 @@
     "outputs": []
   },
   {
+    "path": "kaos/elevator",
+    "group": "kaos",
+    "name": "elevator",
+    "form": "file",
+    "dialect": "kaosres",
+    "root": "kaos/elevator",
+    "files": [
+      "README.md",
+      "elevator.expected.md",
+      "elevator.kaos",
+      "elevator.txt",
+      "project.json"
+    ],
+    "models": ["elevator.txt"],
+    "projectResources": {},
+    "outputs": []
+  },
+  {
     "path": "kaos/fire-alarm",
     "group": "kaos",
     "name": "fire-alarm",
