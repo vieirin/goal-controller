@@ -2365,22 +2365,34 @@ model checking; the LTS is a transform engine) holds.
   paper's templates; each agent composes its operations' constraints; the
   system composes the agents; each requirement is an `assert`, encoded with
   ticks by §2.2.3's `Tr`. What isn't translated is a comment in the file.
-- **One tick process per object, not per fluent.** The paper's prose
-  constrains "each fluent to change value at most once between two ticks";
-  the archive groups the water level's two fluents in one process. kaoslts
-  groups an object's attributes, which reproduces the archive's three
-  processes (pump, sump, mine). Logged in reference-defects.md.
+- **One tick process per fluent, as the paper states (rv392's #392
+  review).** The paper's prose constrains "each fluent to change value at
+  most once between two ticks"; the archive instead groups the water
+  level's two fluents (`HighWater`, `LowWater`) in one process
+  (`InterleavingCstr_for_Water`, under the sump object). A first pass
+  (#209) followed the archive's grouping; a counter-model (an object with
+  two independent Boolean attributes, so two independent fluents) showed
+  the archive's reading forbids what the paper's own definition allows in
+  one tick. The oracle outranks the archive's output where the two
+  conflict, so kaoslts now emits one `OnePerTick_<Fluent>` process per
+  fluent (`OnePerTick_HighWater`, `OnePerTick_LowWater`,
+  `OnePerTick_Methane`, `OnePerTick_PumpOn` for the mine pump), logged as
+  an extension to the existing reference-defects.md ASE'08 entry; a unit
+  test (`kaoslts.test.ts`) carries the Robot counter-model (independent
+  `armUp`/`legUp` fluents allowed in one tick).
 - **The oracle is structural.** `mine-pump-lts.expected.csv` (header
   `quantity,id,expected,zip,source,derivation`, a new kind in
   `scripts/kaos-stress/run.cjs`) checks the fluents, the alphabet (the
   archive's nine actions), every constraint's condition, the tick
   processes, each agent's and the system's processes, the asserts and the
   three completeness verdicts; the `zip` column names the archive's
-  counterpart. Two conditions differ on purpose: the seed keeps the paper's
-  printed `aboveHigh` DomPre (¬HighWater ∧ ¬LowWater, and `belowLow`'s
-  mirror), which the archive weakens. The state counts (32, 65) need LTSA,
-  which is not run (no Docker image of it here): they are listed, not
-  reproduced.
+  counterpart. Three rows differ from the archive on purpose, each marked
+  with its reference-defects.md entry: the seed keeps the paper's printed
+  `aboveHigh` DomPre (¬HighWater ∧ ¬LowWater, and `belowLow`'s mirror),
+  which the archive weakens, and (since rv392's review) its three
+  `OnePerTick` processes split the archive's two, per fluent rather than
+  per object. The state counts (32, 65) need LTSA, which is not run (no
+  licence stated for any version, #394): they are listed, not reproduced.
 ### Step 8: anti-models (van Lamsweerde ICSE'04, goal-controller#212)
 
 The owner's request reopened #212 under #196's D1; #196's D2 decided

@@ -15,11 +15,11 @@
  *    its DomPost has a positive (negative) occurrence of. A DomPost that is
  *    no conjunction of fluents defines none, and is said.
  * 3. **Domain preconditions**, `DomPre_<op>`, ASE'08's template; and, for
- *    the KAOS trace semantics (each event at most once between two ticks),
- *    one process per object: the events changing its attributes occur at
- *    most once between two ticks (`OnePerTick_<Object>`; the paper's prose
- *    says per fluent, its models archive groups the water level's two
- *    fluents in one process, as an object here does).
+ *    the KAOS trace semantics, one process per fluent: the events changing
+ *    it occur at most once between two ticks (`OnePerTick_<Fluent>`, ASE'08
+ *    §4 step 3's prose; its models archive instead groups a water level's
+ *    two fluents in one process per object — a documented defect, see
+ *    packages/dialect/docs/reference-defects.md's ASE'08 entry).
  * 4. **Required conditions**, `ReqPre_<op>_For_<Goal>`, `ReqTrig_…`,
  *    `ReqPost_…`, ASE'08's templates.
  * 5. **Composition.** Each agent's processes, those of the operations it
@@ -104,7 +104,7 @@ export type FspConstraint = FspDefinition & {
   condition: string;
 };
 
-/** A step 3 process: an object's events, at most one between two ticks. */
+/** A step 3 process: a fluent's events, at most one between two ticks. */
 export type FspTickProcess = FspDefinition & {
   object: string;
   events: string[];
@@ -365,34 +365,22 @@ export const ltsModel = (model: OperationModel): LtsModel => {
     return constraints;
   };
 
-  // step 3's tick processes: an object's events
-  const objects = new Map<string, { name: string; events: Set<string> }>();
-  for (const fluent of fluents) {
-    const { object, objectName } = fluent.variable;
-    const entry = objects.get(object) ?? {
-      name: objectName,
-      events: new Set(),
+  // step 3's tick processes: a fluent's events
+  const processes: FspTickProcess[] = fluents.map((fluent) => {
+    const events = new Set([...fluent.initiating, ...fluent.terminating]);
+    const process = `OnePerTick_${fluent.name}`;
+    const ordered = [...actionOf.values()].filter((a) => events.has(a));
+    return {
+      name: process,
+      object: fluent.variable.object,
+      events: ordered,
+      owners: [fluent.variable.object],
+      lines: [
+        `${process} = (tick -> Ticked),`,
+        `  Ticked = (tick -> Ticked | {${ordered.join(', ')}} -> tick -> Ticked).`,
+      ],
     };
-    for (const action of [...fluent.initiating, ...fluent.terminating])
-      entry.events.add(action);
-    objects.set(object, entry);
-  }
-  const processes: FspTickProcess[] = [...objects].map(
-    ([object, { name, events }]) => {
-      const process = `OnePerTick_${processName(name)}`;
-      const ordered = [...actionOf.values()].filter((a) => events.has(a));
-      return {
-        name: process,
-        object,
-        events: ordered,
-        owners: [object],
-        lines: [
-          `${process} = (tick -> Ticked),`,
-          `  Ticked = (tick -> Ticked | {${ordered.join(', ')}} -> tick -> Ticked).`,
-        ],
-      };
-    },
-  );
+  });
 
   // step 5: each agent with what it performs alone
   const performerOf = (action: string): OperationAgent | null => {

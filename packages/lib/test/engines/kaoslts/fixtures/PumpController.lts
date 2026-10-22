@@ -7,7 +7,7 @@ fluent LowWater = <belowLow, aboveLow> initially 1
 fluent Methane = <methaneAppears, methaneLeaves>
 fluent PumpOn = <startPump, stopPump>
 
-OnePerTick_Pump = (tick -> Ticked),
+OnePerTick_PumpOn = (tick -> Ticked),
   Ticked = (tick -> Ticked | {startPump, stopPump} -> tick -> Ticked).
 constraint DomPre_startPump = [](tick && ! !PumpOn -> X(!startPump W tick))
 constraint ReqTrig_startPump_For_PumpOnWhenHighWaterAndNoMethane = [](tick && (HighWater && !Methane) && !PumpOn -> X(!tick W startPump))
@@ -17,4 +17,4 @@ constraint DomPre_stopPump = [](tick && !PumpOn -> X(!stopPump W tick))
 constraint ReqPre_stopPump_For_PumpOnWhenHighWaterAndNoMethane = [](tick && ! !(HighWater && !Methane) -> X(!stopPump W tick))
 constraint ReqTrig_stopPump_For_PumpOffWhenMethane = [](tick && Methane && PumpOn -> X(!tick W stopPump))
 constraint ReqTrig_stopPump_For_PumpOffWhenLowWater = [](tick && LowWater && PumpOn -> X(!tick W stopPump))
-minimal ||PumpController = (OnePerTick_Pump || DomPre_startPump || ReqTrig_startPump_For_PumpOnWhenHighWaterAndNoMethane || ReqPre_startPump_For_PumpOffWhenMethane || ReqPre_startPump_For_PumpOffWhenLowWater || DomPre_stopPump || ReqPre_stopPump_For_PumpOnWhenHighWaterAndNoMethane || ReqTrig_stopPump_For_PumpOffWhenMethane || ReqTrig_stopPump_For_PumpOffWhenLowWater).
+minimal ||PumpController = (OnePerTick_PumpOn || DomPre_startPump || ReqTrig_startPump_For_PumpOnWhenHighWaterAndNoMethane || ReqPre_startPump_For_PumpOffWhenMethane || ReqPre_startPump_For_PumpOffWhenLowWater || DomPre_stopPump || ReqPre_stopPump_For_PumpOnWhenHighWaterAndNoMethane || ReqTrig_stopPump_For_PumpOffWhenMethane || ReqTrig_stopPump_For_PumpOffWhenLowWater).
