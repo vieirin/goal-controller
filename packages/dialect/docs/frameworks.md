@@ -2284,3 +2284,83 @@ Lamsweerde's RE'01 "Guided Tour" — over one grammar and one AST (D4 of
   `examples/kaos/**`: 401 formulas across 6 files that have any, all
   parsing with zero Problems and printing back (squashed) byte-identical.
   Results are on #383.
+
+### Step 7 part C: the mine pump's operations, the Req* completeness check and `kaoslts` (goal-controller#209)
+
+The operational layer of KAOS's one model with operations, agent
+interfaces and a machine-produced LTS: Letier and van Lamsweerde's FSE'02
+(the operation model, Defs 1–3, the patterns) and Letier, Kramer, Magee and
+Uchitel's ASE'08 (KAOS2LTSA's five-step derivation), transcribed in
+`docs/papers/letier-fse02-icse02.md`. Results are on #383; D3 of #194 (no
+model checking; the LTS is a transform engine) holds.
+
+- **The seed grows, kaossim's outputs don't change.**
+  `examples/kaos/mine-pump` keeps FSE'04's goals and quantities and adds,
+  re-keyed from ASE'08 Figs 2–3 and §4: the three requirements on
+  PumpController with their formal definitions (`when … then next …`), the
+  controller's `startPump`/`stopPump` with their DomPre/DomPost and one
+  operationalisation per requirement (each ReqPre/ReqTrig for the
+  requirement it names), the environment's six operations on the water
+  level and methane, an `Environment` agent, Monitors/Controls, and the
+  state variables as Boolean attributes of `sump`, `mine` and `pump`. The
+  requirement's name is Figure 2's (`PumpOnWhenHighWaterAndNoMethane`; the
+  other two spellings are reference-defects.md's). The model still opens in
+  kaossim's mode; kaossim's values and its oracle are unchanged (its
+  `selection`, the design's elements, now lists the new goals and agents).
+  The models archive has no licence: nothing is copied from it.
+- **An attribute's initial value: `Initially`.** KAOS2LTSA's fluents have
+  one (`LowWater … initially 1`); KAOS has no place for it, so the `kaos`
+  dialect gains `Initially` on its objects (entities, associations, events,
+  agents), a `pairList` of `name:value` beside `Attributes`, and `.kaos`
+  writes it `initially lowWater : true`, in `attribute`'s form. Unset, an
+  attribute starts false, as a fluent does. Every other model reads and
+  writes as before.
+- **The completeness check decides Immediate Achieve only.** FSE'02's
+  Def. 3 condition 1 ([|R1|], …, [|Rn|] ⊨ G) is decided over the LTL AST
+  (part A) for `C ⇒ ○T` (under `□`, a `∀`, a strong `⇒`/`when … then`; the
+  "After" invariance is the same formula), when C, T and every condition it
+  needs are state formulas: lib's propositional solver
+  (`engines/propositional.ts`) checks the pattern's two premises, the
+  trigger (`C ∧ ¬T ⊨ ⋁ ReqTrig(op, G) ∧ DomPre(op)` over the operations
+  whose DomPost establishes T) and the precondition (no operation whose
+  DomPost may falsify T is permitted where C ∧ T holds), on FSE'02's frame
+  axioms. A refutation is an `incomplete-operationalisation` Problem, an
+  istar-ts `GoalDiagnostic` on the requirement (a missing or too strong
+  trigger) or on the operationalisation's `ReqPre` (a missing or too weak
+  precondition), with the counterexample state. Not decided, and said,
+  never a Problem: Bounded Achieve and "InBetween" invariance (their
+  required conditions need the past operators S and B, which the AST has no
+  node for), the patterns FSE'02 gives no operationalisation for, a
+  condition with a temporal operator, and any refutation that rests on a
+  comparison other than with true or false (`c.pumpSwitch == "On"`): the
+  solver doesn't know an attribute's values exclude each other. The verdicts
+  are kaoslts's `completeness` file; the Problems panel doesn't show them yet
+  (a follow-up issue).
+- **`kaoslts`, a transform engine on the `kaos` dialect.** Its mapper reads
+  goals, agents, operations and objects as the model's elements (no tree)
+  and the operationalisations' required conditions. Its files: the system's
+  FSP (primary, traced line by line to its operations, requirements,
+  objects and agents), one FSP file per agent, each standing alone as LTSA
+  reads one file, and the completeness report. The derivation follows
+  ASE'08 §4: Boolean attributes are fluents (an integer or an enumeration
+  is the analyst's step 1: said, left out); DomPost occurrences define
+  their events; DomPre, ReqPre, ReqTrig and ReqPost are constraints by the
+  paper's templates; each agent composes its operations' constraints; the
+  system composes the agents; each requirement is an `assert`, encoded with
+  ticks by §2.2.3's `Tr`. What isn't translated is a comment in the file.
+- **One tick process per object, not per fluent.** The paper's prose
+  constrains "each fluent to change value at most once between two ticks";
+  the archive groups the water level's two fluents in one process. kaoslts
+  groups an object's attributes, which reproduces the archive's three
+  processes (pump, sump, mine). Logged in reference-defects.md.
+- **The oracle is structural.** `mine-pump-lts.expected.csv` (header
+  `quantity,id,expected,zip,source,derivation`, a new kind in
+  `scripts/kaos-stress/run.cjs`) checks the fluents, the alphabet (the
+  archive's nine actions), every constraint's condition, the tick
+  processes, each agent's and the system's processes, the asserts and the
+  three completeness verdicts; the `zip` column names the archive's
+  counterpart. Two conditions differ on purpose: the seed keeps the paper's
+  printed `aboveHigh` DomPre (¬HighWater ∧ ¬LowWater, and `belowLow`'s
+  mirror), which the archive weakens. The state counts (32, 65) need LTSA,
+  which is not run (no Docker image of it here): they are listed, not
+  reproduced.

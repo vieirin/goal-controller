@@ -1180,6 +1180,7 @@
     "root": "kaos/mine-pump",
     "files": [
       "README.md",
+      "mine-pump-lts.expected.csv",
       "mine-pump.expected.csv",
       "mine-pump.kaos",
       "mine-pump.txt",

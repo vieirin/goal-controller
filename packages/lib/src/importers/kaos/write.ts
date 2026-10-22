@@ -183,12 +183,17 @@ const WRITTEN: Readonly<Record<string, readonly string[]>> = {
     'FormalSpec',
     'Probability',
   ],
-  [KAOS_TYPES.agent]: ['Description', 'Load', 'Attributes'],
-  [KAOS_TYPES.environmentAgent]: ['Description', 'Load', 'Attributes'],
+  [KAOS_TYPES.agent]: ['Description', 'Load', 'Attributes', 'Initially'],
+  [KAOS_TYPES.environmentAgent]: [
+    'Description',
+    'Load',
+    'Attributes',
+    'Initially',
+  ],
   [KAOS_TYPES.operation]: ['Description', 'DomPre', 'DomPost'],
-  [KAOS_TYPES.entity]: ['Description', 'EntityType', 'Attributes'],
-  [KAOS_TYPES.association]: ['Description', 'Attributes'],
-  [KAOS_TYPES.event]: ['Description', 'Frequency', 'Attributes'],
+  [KAOS_TYPES.entity]: ['Description', 'EntityType', 'Attributes', 'Initially'],
+  [KAOS_TYPES.association]: ['Description', 'Attributes', 'Initially'],
+  [KAOS_TYPES.event]: ['Description', 'Frequency', 'Attributes', 'Initially'],
   [KAOS_TYPES.predicate]: ['Description', 'FormalSpec', 'Arguments', 'Default'],
   [KAOS_TYPES.givenType]: ['Description'],
 };
@@ -320,7 +325,8 @@ const isForm = (text: string): text is CountermeasureForm =>
  * An element's operation and object models' keys as the reader's
  * attributes (goal-controller#194): an entity's `type`, a predicate's
  * `argument`s and `default`, an event's `frequency`, an agent's `load`, an
- * operation's `dompre` and `dompost`, an object's `attribute`s.
+ * operation's `dompre` and `dompost`, an object's `attribute`s and their
+ * `initially` values.
  */
 const objectAttributes = (
   name: string,
@@ -329,7 +335,10 @@ const objectAttributes = (
   say: (message: string) => void,
 ): string[] => {
   const body: string[] = [];
-  const pairs = (key: 'Attributes' | 'Arguments', attribute: string) => {
+  const pairs = (
+    key: 'Attributes' | 'Initially' | 'Arguments',
+    attribute: string,
+  ) => {
     for (const pair of pairsOf(text(key)))
       if (pair && isKaosIdentifier(pair.name) && pair.type)
         body.push(`${attribute} ${pair.name} : ${wordText(pair.type)}`);
@@ -366,7 +375,10 @@ const objectAttributes = (
     else if (text('Default'))
       say(`${name}: its Default ${text('Default')} is no bool, not written`);
   }
-  if (ATTRIBUTED.has(type)) pairs('Attributes', 'attribute');
+  if (ATTRIBUTED.has(type)) {
+    pairs('Attributes', 'attribute');
+    pairs('Initially', 'initially');
+  }
   return body;
 };
 

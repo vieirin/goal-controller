@@ -411,6 +411,22 @@ export {
   readKaosModel,
   type KaosdocGoalModel,
 } from './engines/kaosdoc';
+// KAOS's operations as FSP for LTSA, and their completeness (goal-controller#209)
+export {
+  completenessReport,
+  kaosltsEngine,
+  kaosltsEngineMapper,
+  kaosltsGoalModel,
+  kaosltsOutput,
+  ltsModel,
+  operationalisationCompleteness,
+  operationalisationProblems,
+  operationModelOf,
+  type CompletenessVerdict,
+  type KaosltsGoalModel,
+  type LtsModel,
+  type OperationModel,
+} from './engines/kaoslts';
 // and the NFR Framework's label propagation
 export {
   nfrprop,
