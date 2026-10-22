@@ -297,7 +297,10 @@ declare relation [ r ] end`);
     assert.strictEqual(nodeOf(model, 'd').customProperties.Kind, 'invariant');
     assert.strictEqual(nodeOf(model, 'o').type, 'kaos.Entity');
     assert.strictEqual(nodeOf(model, 'r').type, 'kaos.Association');
-    assert.strictEqual(model.diagram.customProperties[KAOS_UNSUPPORTED_KEY], undefined);
+    assert.strictEqual(
+      model.diagram.customProperties[KAOS_UNSUPPORTED_KEY],
+      undefined,
+    );
     assert.ok(
       diagnostics.every(
         (d) =>
