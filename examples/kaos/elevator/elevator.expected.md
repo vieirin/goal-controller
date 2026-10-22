@@ -48,7 +48,6 @@ None.
 | Worn-out components replaced in time | Worn-out components replaced, Elevator system monitored | 2 of 2 |  |  |  |
 | Maintenance program provided | MTBF requirements specified, Maintenance program defined, Maintenance program executed |  |  |  |  |
 | Elevator system monitored | Component wear detected, Component wear reported |  |  |  |  |
-| System protected against fire | Doors locked open when fire alarm is set, All moving elevators stopped as soon as they reach any floor, when a fire alarm is set, Fireproof cage provided, Fireproof equipment provided |  |  |  |  |
 | Efficient elevator system | Moving elevator stopped next floor in case of fire signal, Elevator stopped, Minimize elevator moves, Minimize average waiting time |  |  |  |  |
 
 ## Domain properties
@@ -71,6 +70,7 @@ None.
 | Worn-out components replaced |  | unassigned |
 | Component wear detected |  | unassigned |
 | Component wear reported |  | unassigned |
+| System protected against fire |  | unassigned |
 | Doors locked open when fire alarm is set | Elevator Controller | requirement |
 | All moving elevators stopped as soon as they reach any floor, when a fire alarm is set | Elevator Controller | requirement |
 | Fireproof cage provided | Elevator company | expectation |

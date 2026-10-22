@@ -105,7 +105,6 @@ declare goal [ component_wear_reported ] name "Component wear reported" end
 
 declare goal [ system_protected_against_fire ]
   name "System protected against fire"
-  refinedby doors_locked_open_on_fire_alarm, elevators_stopped_at_nearest_floor_on_fire, fireproof_cage_provided, fireproof_equipment_provided
 end
 
 declare goal [ doors_locked_open_on_fire_alarm ]
@@ -310,7 +309,6 @@ declare operation [ execute_schedule ]
   input schedule
   causedby refresh
   causedby elevator_state_change
-  causedby arrival_on_floor
   output button_light_on_command
   output stop_cage_command
   performedby elevator_controller
@@ -320,4 +318,20 @@ end
 declare operation [ push_button ]
   name "Push button"
   operationalizes stop_button_used
+end
+
+# --- The two state transitions the object model's prose states in words
+# (§3.4, p.26-28), not read off a figure: Door's status attribute and the
+# At association's instances. ---
+
+declare operation [ close_door ]
+  name "CloseDoor"
+  dompre door.status == "Open"
+  dompost door.status == "Close"
+end
+
+declare operation [ leave_floor ]
+  name "LeaveFloor"
+  dompre (c, f) in at
+  dompost not (c, f) in at
 end
