@@ -95,6 +95,11 @@ Prose only, §3.3–3.5 (page and figure numbers as the tutorial has them):
   ignores the operation and object models' kinds, goal-controller#194): no
   Operations, Entities, Associations or Events section exists to gain one.
 
-No `*.expected.csv`: nothing here is quantitative (`scripts/kaos-stress`
-checks import, validation, the round trip and every analysis; its oracle is
-"skip", as the CAIRIS seeds with no probabilities already have it).
+- `elevator.expected.csv`: `scripts/kaos-stress`'s structural oracle
+  (`structure,id,expected,derivation`, goal-controller#210): a count of
+  every element and link kind the model has (the goal and obstacle models'
+  counted beside the operation and object models'), and the triangle's
+  open closures, zero for a consistent model (the responsibility-
+  operationalisation-performance triangle, §3.5 Fig. 30). Nothing here is
+  quantitative, so this is the seed's whole oracle: no probabilities, no
+  selections, no simulated designs.

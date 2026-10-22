@@ -1,0 +1,25 @@
+structure,id,expected,derivation
+element,kaos.BehavioralGoal,28,"the goal and obstacle models' goals, plus the responsibility model's requirements and expectations and the triangle's goals"
+element,kaos.Agent,1,the Elevator Controller
+element,kaos.EnvironmentAgent,2,the Elevator company and the Passenger
+element,kaosObstacles.Obstacle,5,the obstacle model (Figures 33-35, #202)
+element,kaos.RefinementLinkHub,7,one per AND-refinement
+element,kaosObstacles.ObstacleRefinementLinkHub,3,one per obstacle's OR-refinement alternative
+element,kaosOperations.Operation,3,"Reschedule, Execute schedule and Push button"
+element,kaosOperations.Entity,9,"elevator_system, cage, floor, alarm_device, alarm_bell, power_supply, door, schedule and button"
+element,kaosOperations.Association,6,"has_cage, has_floor, has_alarm_bell, has_controller, has_power_supply and at"
+element,kaosOperations.Event,6,"refresh, elevator_state_change, floor_call_button_pushed, arrival_on_floor, button_light_on_command and stop_cage_command"
+link,kaos.RefinementLinkStart,18,the goal model's and the triangle's AND-refinements' children
+link,kaos.RefinementLinkEnd,7,one per refinement hub
+link,kaosObstacles.ObstacleRefinementLinkStart,3,the obstacle model's OR-refinement alternatives
+link,kaosObstacles.ObstacleRefinementLinkEnd,3,one per obstacle refinement hub
+link,kaosObstacles.ObstructionLink,2,direction_unreadable and service_interrupted
+link,kaosObstacles.ResolutionLink,5,the obstacle model's resolutions (#202)
+link,kaos.ResponsibilityAssignment,5,"the two fire requirements, the two fire expectations and the triangle's own"
+link,kaosOperations.PerformanceLink,1,"Execute schedule, performed by the Elevator Controller"
+link,kaosOperations.OperationalisationLink,2,Execute schedule and Push button
+link,kaosOperations.CauseLink,4,Reschedule's one and Execute schedule's three
+link,kaosOperations.InputLink,1,Execute schedule reads Schedule
+link,kaosOperations.OutputLink,3,"Reschedule's Refresh, Execute schedule's two"
+link,kaosOperations.AssociationLink,12,"the Elevator System's five compositions (two ends each) and the At association (two ends)"
+open-closure,-,0,"the triangle is closed: Execute schedule is performed by, and operationalises a requirement of, the agent responsible for it (Fig. 30)"
