@@ -81,6 +81,38 @@ describe('value types: reference, formula, probability (#181)', () => {
     expect(highlightValue(other, 'G (x)')).to.have.length(1);
   });
 
+  it('`symbols.entities` only reads elements of its listed kinds (goal-controller#385)', () => {
+    const ctx: DefinitionContext = {
+      ...context,
+      elements: {
+        ...context.elements,
+        A1: {
+          ...context.elements.A1!,
+          properties: { Attributes: 'pumpSwitch:On|Off' },
+        },
+        G1: {
+          ...context.elements.G1!,
+          properties: { Attributes: 'level:int' },
+        },
+      },
+    };
+    const spec: ValueConfig = {
+      type: 'formula',
+      language: 'ltl',
+      symbols: {
+        entities: { kinds: ['kaos.Agent'], attributes: 'Attributes' },
+      },
+    };
+    expect(valueProblem(spec, 'A1.pumpSwitch == "On"', ctx)).to.equal(null);
+    expect(valueProblem(spec, 'A1.motor == "On"', ctx)).to.equal(
+      'A1 has no attribute motor',
+    );
+    // G1 is a kaos.BehavioralGoal, not listed among `entities.kinds`: not a
+    // symbol source, so an unknown property name on it raises no Problem
+    // (the open world) even though G1 has its own `Attributes` text.
+    expect(valueProblem(spec, 'G1.whatever == 1', ctx)).to.equal(null);
+  });
+
   it('a probability is a decimal or a percentage in [0, 1]', () => {
     const p: ValueConfig = { type: 'probability' };
     for (const text of ['0.8', '.8', '80%', '20.00%', '1', '0'])

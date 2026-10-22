@@ -64,6 +64,36 @@ describe('LTL: quantifiers (the sugar grammar has no symbolic spelling attested,
         { name: 'y', type: 'Block' },
       ]);
   });
+  it('the `.`/`·`/`∙` separator is optional (RE’01’s own quantified formulas never write one, p.5-9, goal-controller#399)', () => {
+    const noSeparator = parsed(
+      '∀ tr: Train, b: Block On(tr, b) ⇒ ◇ On(tr, b2)',
+    );
+    assert.deepStrictEqual(
+      noSeparator,
+      parsed('∀ tr: Train, b: Block · On(tr, b) ⇒ ◇ On(tr, b2)'),
+    );
+    const sugarNoSeparator = parsed('exists x: T p(x)');
+    assert.deepStrictEqual(sugarNoSeparator, parsed('exists x: T . p(x)'));
+  });
+  it('a parenthesized header: `(∀x:T)`/`(∃x:T)`, its body outside the parens (RE’01 p.9’s `◇ (∃ tr: Train) (…)`, goal-controller#399)', () => {
+    const tree = parsed('(∃ amb: Ambulance) Intervention(amb, inc)');
+    assert.strictEqual(tree.kind, 'exists');
+    if (tree.kind === 'exists') {
+      assert.deepStrictEqual(tree.variables, [
+        { name: 'amb', type: 'Ambulance' },
+      ]);
+      assert.deepStrictEqual(tree.body, {
+        kind: 'predicateCall',
+        name: 'Intervention',
+        args: ['amb', 'inc'],
+      });
+    }
+    // still a plain group, and still a relation membership, when the parenthesized content isn't a quantifier header
+    const group = parsed('(a() and b())');
+    assert.strictEqual(group.kind, 'paren');
+    const relation = parsed('(x, y) in R');
+    assert.strictEqual(relation.kind, 'relationMembership');
+  });
 });
 
 describe('LTL: boolean connectives', () => {
@@ -131,6 +161,22 @@ describe('LTL: future temporal operators', () => {
     const symbolic = parsed('◇ a()');
     assert.strictEqual(symbolic.kind, 'eventually');
     assert.strictEqual(surfaceOf(symbolic), 'symbolic');
+  });
+  it('◊ (U+25CA, the glyph the paper transcriptions’ verbatim quotes print) is the same operator as ◇ (U+25C7, goal-controller#399), its glyph as read reproduced by printLtl', () => {
+    const synonym = parsed('◊ a()');
+    const canonical = parsed('◇ a()');
+    assert.strictEqual(synonym.kind, 'eventually');
+    assert.strictEqual(canonical.kind, 'eventually');
+    if (synonym.kind === 'eventually' && canonical.kind === 'eventually') {
+      assert.deepStrictEqual(
+        { ...synonym, glyph: undefined },
+        { ...canonical, glyph: undefined },
+      );
+      assert.strictEqual(synonym.glyph, '◊');
+      assert.strictEqual(canonical.glyph, '◇');
+    }
+    assert.strictEqual(printLtl(synonym), '◊ a()');
+    assert.strictEqual(printLtl(canonical), '◇ a()');
   });
   it('bounded eventually: sugar `, before 2 minutes,` / symbolic `≤`', () => {
     const sugar = parsed('sooner-or-later, before 2 minutes, a()');

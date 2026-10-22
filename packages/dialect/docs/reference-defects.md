@@ -241,7 +241,15 @@ tool.
   contradictory values for `(1 − e)` (0.76 from one row, 0.80 from
   another). Our flood seed documents Table I as not reproducible and
   uses its own computed selections as the oracle instead (#191 part B,
-  #200/#201).
+  #200/#201). Its object model also case-mismatches itself: the
+  thesis's `model2.kaos` (ancailliau/phd-thesis@`6a9f5fd`) declares the
+  predicate `DustyEnvironment` capitalised, then calls it `dustyEnvironment()`
+  in every `formalspec` that uses it — verbatim in the upstream source, not
+  our re-key (#398). `examples/kaos/flood/flood.kaos` keeps this spelling
+  unchanged; the LTL type check's corpus test
+  (`packages/lib/test/importers/kaosLtlTypes.test.ts`) allowlists the one
+  Problem this raises, by file, id and exact message, with a pointer back
+  here.
 - **REJ'13 (the carpooling example, §6.3):** the formula for
   `DropPointNotReachedInTime` is 0.015, which is actually
   `DetourOnPlannedRoad`'s printed rate (1.5%), not

@@ -29,12 +29,12 @@ import { keyedKeyOf } from '../parse.js';
 import { ASSERTION, CALLS, OCL_OPERATIONS, SKIP } from '../catalog.js';
 import { lineId, readLine, readPropertyLine } from './lines.js';
 import {
-  argumentsText,
   fieldPropertyOf,
   MEMBER_REF,
   membersOf,
   memberTypeText,
 } from './values.js';
+import { argumentsText } from '../text.js';
 import {
   LINK_LINE_KEY,
   linkOfLine,

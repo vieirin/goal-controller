@@ -89,7 +89,7 @@ const print = (node: LtlNode): string => {
     case 'eventually':
       return node.surface === 'sugar'
         ? `sooner-or-later${node.bound ? eventuallyBoundClause(node.bound) : ' '}${print(node.expr)}`
-        : `◇${node.bound ? symbolicBoundText(node.bound) : ''} ${print(node.expr)}`;
+        : `${node.glyph ?? '◇'}${node.bound ? symbolicBoundText(node.bound) : ''} ${print(node.expr)}`;
     case 'once':
       return `♦ ${print(node.expr)}`;
     case 'always':

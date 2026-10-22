@@ -18,10 +18,13 @@ import type {
   Bound,
   Comparison,
   ComparisonOperator,
+  Exists,
+  Forall,
   Literal,
   LtlNode,
   PredicateCall,
   RelationMembership,
+  Surface,
   TimeAmount,
   TypedVariable,
   VariableRef,
@@ -135,14 +138,68 @@ class Parser {
       this.isOneOfId('forall') || this.isOneOfSymbol('∀') ? 'forall' : 'exists';
     const surface = sugar ? 'sugar' : 'symbolic';
     this.advance();
+    return this.parseQuantifierTail(kind, surface);
+  }
+
+  /**
+   * The rest of a quantifier once its keyword/symbol is consumed: its typed
+   * variables, then its body — used both by a bare `∀x:T …` (`parseQuantified`)
+   * and by a parenthesized header, `(∀ x:T) body` (RE'01 p.9's `◊ (∃ tr:
+   * Train) (tr.AccCM ≥ 0 ∧ …)`, FSE'04's `∀inc: Incident Reported (inc) ⇒
+   * …`), where the closing `)` ends the header, not the formula — the body
+   * follows it, outside the parens.
+   */
+  private parseQuantifierTail(
+    kind: 'forall' | 'exists',
+    surface: Surface,
+  ): Forall | Exists {
     const variables: TypedVariable[] = [this.parseTypedVariable()];
     while (this.isSymbol(',')) {
       this.advance();
       variables.push(this.parseTypedVariable());
     }
+    // the separator is optional (RE'01's own quantified formulas, p.5-9,
+    // never write one: `∀ tr: Train, b: Block` runs straight into its body
+    // on the next line); the AST carries no record of it either way (as
+    // `printLtl`'s module doc explains, nothing here is a byte-for-byte
+    // document round trip), so a writer always spells one out.
     if (this.isSymbol('.') || this.isSymbol('·') || this.isSymbol('∙'))
       this.advance();
-    else this.fail('Expected "." (or "·"/"∙")');
+    const body = this.parseFormula();
+    return kind === 'forall'
+      ? { kind: 'forall', variables, body, surface }
+      : { kind: 'exists', variables, body, surface };
+  }
+
+  /**
+   * `(∀x:T, y:U)`/`(∃x:T)`: a quantifier's header alone in parens, its body
+   * following outside them — RE'01 p.9's and FSE'04's own bracketing (see
+   * `parseQuantifierTail`). Undefined, rewound: not this shape (a plain
+   * `(…)` group, or a relation membership, `tryParseRelationMembership`'s).
+   */
+  private tryParseParenthesizedQuantifier(): Forall | Exists | undefined {
+    const mark = this.mark();
+    this.advance(); // '('
+    const sugar = this.isOneOfId('forall', 'exists');
+    const symbolic = this.isOneOfSymbol('∀', '∃');
+    if (!sugar && !symbolic) {
+      this.reset(mark);
+      return undefined;
+    }
+    const kind =
+      this.isOneOfId('forall') || this.isOneOfSymbol('∀') ? 'forall' : 'exists';
+    const surface = sugar ? 'sugar' : 'symbolic';
+    this.advance();
+    const variables: TypedVariable[] = [this.parseTypedVariable()];
+    while (this.isSymbol(',')) {
+      this.advance();
+      variables.push(this.parseTypedVariable());
+    }
+    if (!this.isSymbol(')')) {
+      this.reset(mark);
+      return undefined;
+    }
+    this.advance();
     const body = this.parseFormula();
     return kind === 'forall'
       ? { kind: 'forall', variables, body, surface }
@@ -255,11 +312,27 @@ class Parser {
       this.advance();
       return { kind: 'previous', expr: this.parseUnary() };
     }
-    if (this.isOneOfId('sooner-or-later', 'eventually') || this.isSymbol('◇')) {
-      const surface = this.isSymbol('◇') ? 'symbolic' : 'sugar';
+    // ◊ (U+25CA, the glyph the paper transcriptions' verbatim FormalDef
+    // quotes actually print, docs/papers/rt-ltl-re01.md) and ◇ (U+25C7,
+    // this parser's own canonical spelling) are the same operator: PDF
+    // text extraction renders RE'01's "sometime" diamond as either,
+    // depending on the font (the transcriptions note this explicitly).
+    if (
+      this.isOneOfId('sooner-or-later', 'eventually') ||
+      this.isOneOfSymbol('◇', '◊')
+    ) {
+      const symbolic = this.isOneOfSymbol('◇', '◊');
+      const glyph = this.isSymbol('◊') ? '◊' : symbolic ? '◇' : undefined;
+      const surface = symbolic ? 'symbolic' : 'sugar';
       this.advance();
       const bound = this.tryParseEventuallyStyleBound();
-      return { kind: 'eventually', expr: this.parseUnary(), bound, surface };
+      return {
+        kind: 'eventually',
+        expr: this.parseUnary(),
+        bound,
+        surface,
+        glyph,
+      };
     }
     if (this.isSymbol('♦')) {
       this.advance();
@@ -423,6 +496,8 @@ class Parser {
 
   private parseAtom(): LtlNode {
     if (this.isSymbol('(')) {
+      const quantifier = this.tryParseParenthesizedQuantifier();
+      if (quantifier) return quantifier;
       const relation = this.tryParseRelationMembership();
       if (relation) return relation;
       this.advance();

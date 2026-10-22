@@ -178,12 +178,21 @@ export interface Previous {
   readonly expr: LtlNode;
 }
 
-/** `sooner-or-later φ` / `eventually φ`, bounded, `◇ φ`, bounded `◇≤d φ` */
+/**
+ * `sooner-or-later φ` / `eventually φ`, bounded, `◇ φ`, bounded `◇≤d φ`.
+ * `glyph`: which codepoint a symbolic surface was read with, `◇` (U+25C7,
+ * this parser's canonical spelling) or `◊` (U+25CA, the paper
+ * transcriptions' verbatim FormalDef quotes, a PDF font variant of the
+ * same operator, goal-controller#399) — unset for the sugar surface. A
+ * writer reproduces it, not always `◇` (D4: the writer emits what it
+ * read).
+ */
 export interface Eventually {
   readonly kind: 'eventually';
   readonly expr: LtlNode;
   readonly bound?: Bound;
   readonly surface: Surface;
+  readonly glyph?: '◇' | '◊';
 }
 
 /** `♦ φ`: once (past-eventually); no sugar spelling */

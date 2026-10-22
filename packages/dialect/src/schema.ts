@@ -233,9 +233,14 @@ export type ValueConfig =
     }
   /**
    * a sentence of a formal language, tagged with it (`ltl`: KAOS's
-   * `FormalSpec`): read as text, which nothing checks yet
+   * `FormalSpec`): read as text. With `symbols` (goal-controller#385), an
+   * `ltl` formula is type-checked against the model: an unknown predicate,
+   * the wrong arity, an unknown attribute, an unknown relation. None of
+   * `symbols`' categories is declared: the open world, no Problem is ever
+   * raised for that category (most formulas in the wild reference
+   * predicates their model never declares).
    */
-  | { type: 'formula'; language: string }
+  | { type: 'formula'; language: string; symbols?: FormulaSymbols }
   /**
    * a probability, in [0, 1]: a decimal (`0.8`, `.8`) or a percentage
    * (`80%`), kept as written
@@ -282,6 +287,29 @@ export type ValueConfig =
  * type), or any name (`'any'`: its members are declared elsewhere).
  */
 export type MemberSource = { from: string } | 'any';
+
+/**
+ * What an `ltl` formula's type check (goal-controller#385) draws its symbol
+ * table from: the kinds whose elements are the model's predicates, entities
+ * and relations, generic (no framework names go here — the #189 gate). Each
+ * category is independent and optional: a category a dialect doesn't name
+ * here (or whose kind has no elements in a given model) is the open world
+ * for it, so names of that category are never flagged.
+ */
+export type FormulaSymbols = {
+  /** each element's arity: its `arguments` property's pairList length */
+  readonly predicates?: {
+    readonly kind: DialectKind;
+    readonly arguments: string;
+  };
+  /** each element's attributes: the keys of its `attributes` pairList property */
+  readonly entities?: {
+    readonly kinds: readonly DialectKind[];
+    readonly attributes: string;
+  };
+  /** a relation is one of this kind's elements, by id */
+  readonly relations?: { readonly kind: DialectKind };
+};
 
 /**
  * A function an `expression` or an `assertion` may call (`previous(x)`), and

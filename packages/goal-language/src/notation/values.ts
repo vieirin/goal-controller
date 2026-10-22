@@ -17,6 +17,7 @@ import {
   type DefinitionContext,
   type DefinitionContextElement,
   type DialectKind,
+  type FormulaSymbols,
   type FunctionDefinition,
   type MemberSource,
   type PropertyDefinition,
@@ -33,7 +34,8 @@ import {
   type AssertionTree,
   type ExpressionTree,
 } from '../parse.js';
-import { ltlProblem } from '../ltl/index.js';
+import { ltlTypeProblems, parseLtl, type SymbolTable } from '../ltl/index.js';
+import { argumentsText } from '../text.js';
 import { assertionVariables } from './goalNames.js';
 import {
   contextElementOf,
@@ -133,6 +135,47 @@ export const membersOf = (
       (pair) => [pair.name, memberTypeOf(pair.value)] as const,
     ),
   );
+};
+
+/**
+ * The symbol table an `ltl` formula's type check draws on (goal-controller
+ * #385): every element of `symbols.predicates`' kind, by id, with its
+ * `arguments` pairList's arity; every element of one of `symbols.entities`'
+ * `kinds` with its `attributes` pairList set (reusing `membersOf`, not a
+ * second resolver), by id, with its attribute names; every element of
+ * `symbols.relations`' kind, by id. No `symbols`, or no context: every map
+ * empty, the open world for every category.
+ */
+const symbolTableOf = (
+  symbols: FormulaSymbols | undefined,
+  context: DefinitionContext | undefined,
+): SymbolTable => {
+  const predicateArity = new Map<string, number>();
+  const attributesOf = new Map<string, ReadonlySet<string>>();
+  const relations = new Set<string>();
+  if (symbols && context)
+    for (const [ref, element] of Object.entries(context.elements)) {
+      if (symbols.predicates && element.kind === symbols.predicates.kind)
+        predicateArity.set(
+          ref,
+          parseValue(
+            'pairList',
+            element.properties[symbols.predicates.arguments] ?? '',
+          ).value.length,
+        );
+      if (symbols.relations && element.kind === symbols.relations.kind)
+        relations.add(ref);
+      if (
+        symbols.entities &&
+        symbols.entities.kinds.some((kind) => kind === element.kind)
+      ) {
+        const members = membersOf(context, ref, {
+          from: symbols.entities.attributes,
+        });
+        if (members) attributesOf.set(ref, new Set(members.keys()));
+      }
+    }
+  return { predicateArity, attributesOf, relations };
 };
 
 /** A member read: its reference (an id or a name) and its name. */
@@ -277,10 +320,6 @@ const decimalOf = (tree: AssertionTree | null): string | null => {
       return null;
   }
 };
-
-/** `1 argument`, `2 arguments`: what a function takes, in words. */
-export const argumentsText = (n: number) =>
-  `${n} argument${n === 1 ? '' : 's'}`;
 
 /** The first call of an expression to a function not declared, or with another number of arguments. */
 const callProblem = (
@@ -503,8 +542,16 @@ export const valueProblem = (
     }
     case 'text':
       return null;
-    case 'formula':
-      return value.language === 'ltl' ? ltlProblem(text) : null;
+    case 'formula': {
+      if (value.language !== 'ltl') return null;
+      const { value: formula, errors } = parseLtl(text);
+      if (errors.length) return errors[0]!.message;
+      if (!formula) return null;
+      return (
+        ltlTypeProblems(formula, symbolTableOf(value.symbols, context))[0] ??
+        null
+      );
+    }
     case 'ocl': {
       // read leniently: only a character no OCL token matches is wrong
       const [error] = parseValue('ocl', text).errors;
