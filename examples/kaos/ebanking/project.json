@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "dialect": "kaosres",
+  "framework": "kaos",
+  "models": [
+    {
+      "path": "ebanking.txt",
+      "native": {
+        "kaos": "ebanking.kaos"
+      }
+    }
+  ],
+  "projectResources": {},
+  "outputs": []
+}

@@ -1,0 +1,165 @@
+# The e-banking anti-model (van Lamsweerde, ICSE'04), re-keyed structurally
+# from the paper's §2, §3 and §6 (goal-controller#212). See README.md for
+# provenance; no model of this example is publicly available, so there is
+# nothing to re-key from but the paper's own figures and running text.
+
+# --- the primal model: the instantiated confidentiality goal ---
+
+declare goal [ account_number_and_pin_known_by_unauthorized ]
+  name "Avoid [AccountNumber&PinKnownByUnauthorized]"
+  $Type "Avoid"
+  $Category "Confidentiality"
+  formalspec "∀ p: Person, acc: Account · ¬ (Owner(p, acc) ∨ Proxy(p, acc) ∨ Manager(p, acc)) ⇒ ¬ (KnowsV[p] acc.AccNum ∧ KnowsV[p] acc.PIN)"
+end
+
+# --- the anti-model: attacker agents ---
+
+declare agent [ thief ]
+  name "Thief"
+  type malicious
+  # elicited (Table 1, step 2) by "who could benefit from this anti-goal?":
+  # Thief, Hacker, BankQualityAssuranceTeam; only Thief is elaborated
+  # further (§6; lack of space, the paper says)
+end
+
+declare agent [ banking_system ]
+  name "Banking System"
+  # the attackee: the software-to-be whose check-matching operation is the
+  # vulnerability's condition (§4's Common Criteria definition)
+end
+
+# --- the anti-model: the anti-goal AND/OR tree (Fig. 3; Table 1 step 3-4) ---
+
+declare obstacle [ money_stolen_from_bank_accounts ]
+  name "Achieve [MoneyStolenFromBankAccounts]"
+  $Category "AntiGoal"
+  refinedby accounts_attacked, money_taken_from_attacked_accounts, payment_medium_known_by_thief
+end
+
+declare obstacle [ accounts_attacked ]
+  name "Achieve [AccountsAttacked]"
+  $Category "AntiGoal"
+end
+
+declare obstacle [ money_taken_from_attacked_accounts ]
+  name "Achieve [MoneyTakenFromAttackedAccounts]"
+  $Category "AntiGoal"
+end
+
+declare obstacle [ payment_medium_known_by_thief ]
+  name "Achieve [PaymentMediumKnownByThief]"
+  $Category "AntiGoal"
+  # the milestone pattern (Fig. 1, Fig. 2): the three children below
+  refinedby thief_knows_which_bank, thief_knows_account_structure, account_number_and_pin_known_by_thief
+end
+
+declare obstacle [ thief_knows_which_bank ]
+  name "Achieve [ThiefKnowsWhichBank]"
+  $Category "AntiGoal"
+end
+
+declare obstacle [ thief_knows_account_structure ]
+  name "Achieve [ThiefKnowsAccountStructure]"
+  $Category "AntiGoal"
+end
+
+# the initial anti-goal (§6): the negation of the confidentiality goal
+# above, elaborated by regression through the Matching domain property
+declare obstacle [ account_number_and_pin_known_by_thief ]
+  name "Achieve [AccountNumber&PinKnownByThief]"
+  $Category "AntiGoal"
+  formalspec "◊ ∃ p: Person, acc: Account · ¬ (Owner(p, acc) ∨ Proxy(p, acc) ∨ Manager(p, acc)) ∧ KnowsV[p] acc.AccNum ∧ KnowsV[p] acc.PIN"
+  # an OR-refinement into two symmetrical alternatives (regressing through
+  # the Matching association's two domain properties)
+  refinedby pin_known_and_matching_account_number_found
+  refinedby account_number_known_and_matching_pin_found
+end
+
+declare obstacle [ pin_known_and_matching_account_number_found ]
+  name "Achieve [PinKnown&MatchingAccountNumberFound]"
+  $Category "AntiGoal"
+  refinedby pin_known, matching_account_number_found
+end
+
+declare obstacle [ pin_known ]
+  name "Achieve [PinKnown]"
+  $Category "AntiGoal"
+end
+
+declare obstacle [ matching_account_number_found ]
+  name "Achieve [MatchingAccountNumberFound]"
+  $Category "AntiGoal"
+  refinedby account_number_checked_for_pin_match, check_iterated_on_other_account_numbers_if_no_match, repeatable_account_number_check_from_pin
+end
+
+# a terminal anti-goal realizable by the attacker: an anti-requirement
+declare obstacle [ account_number_checked_for_pin_match ]
+  name "Achieve [AccountNumberCheckedForPinMatch]"
+  $Category "AntiGoal"
+  assignedto thief
+end
+
+declare obstacle [ check_iterated_on_other_account_numbers_if_no_match ]
+  name "Achieve [CheckIteratedOnOtherAccountNumbersIfNoMatch]"
+  $Category "AntiGoal"
+  assignedto thief
+end
+
+# a terminal anti-goal realizable by the attackee software: a vulnerability
+# (Common Criteria's definition, §4)
+declare obstacle [ repeatable_account_number_check_from_pin ]
+  name "RepeatableAccountNumberCheckFromPin"
+  $Category "AntiGoal"
+  assignedto banking_system
+  resolvedby [prevention] avoid_repeatable_account_number_check_from_pin
+end
+
+declare obstacle [ account_number_known_and_matching_pin_found ]
+  name "Achieve [AccountNumberKnown&MatchingPinFound]"
+  $Category "AntiGoal"
+  refinedby account_number_known, matching_pin_found
+end
+
+declare obstacle [ account_number_known ]
+  name "Achieve [AccountNumberKnown]"
+  $Category "AntiGoal"
+end
+
+declare obstacle [ matching_pin_found ]
+  name "Achieve [MatchingPinFound]"
+  $Category "AntiGoal"
+  refinedby pin_checked_for_account_number_match, check_iterated_on_other_pins_if_no_match, repeatable_pin_check_from_account_number
+end
+
+declare obstacle [ pin_checked_for_account_number_match ]
+  name "Achieve [PinCheckedForAccountNumberMatch]"
+  $Category "AntiGoal"
+  assignedto thief
+end
+
+declare obstacle [ check_iterated_on_other_pins_if_no_match ]
+  name "Achieve [CheckIteratedOnOtherPinsIfNoMatch]"
+  $Category "AntiGoal"
+  assignedto thief
+end
+
+declare obstacle [ repeatable_pin_check_from_account_number ]
+  name "RepeatablePinCheckFromAccountNumber"
+  $Category "AntiGoal"
+  assignedto banking_system
+  resolvedby [prevention] avoid_repeatable_pin_check_from_account_number
+end
+
+# --- countermeasures: Avoid [Vulnerability] (§5), two new security goals ---
+
+declare goal [ avoid_repeatable_account_number_check_from_pin ]
+  name "Avoid [RepeatableAccountNumberCheckFromPin]"
+  $Type "Avoid"
+  $Category "Confidentiality"
+end
+
+declare goal [ avoid_repeatable_pin_check_from_account_number ]
+  name "Avoid [RepeatablePinCheckFromAccountNumber]"
+  $Type "Avoid"
+  $Category "Confidentiality"
+end

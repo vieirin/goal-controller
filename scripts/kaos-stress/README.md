@@ -27,8 +27,9 @@ documented, not fixed, in
   (`writeKaos`), and the written file reads to the same model
   (`modelRoundTrip`) and the same resources.
 - **analyses**: kaosprop's two analyses, kaosres's three, kaossim's two and
-  kaosexpert's two run without error. All four engines read every `.kaos`,
-  and kaosexpert and kaossim run 2000 and 200 samples here.
+  kaosexpert's two run without error, and kaoslts writes its files. All five
+  engines read every `.kaos`, and kaosexpert and kaossim run 2000 and 200
+  samples here.
 - **oracle**: each row of the seed's `*.expected.csv`, by its header:
   - `id,element,probability,paper,derivation` (kaosprop's):
     - kaosprop's probability within 5e-7;
@@ -78,6 +79,17 @@ documented, not fixed, in
 
     `las-radar.expected.csv`'s values are RADAR's own, run in Docker
     outside the repository (its README).
+  - `quantity,id,expected,zip,source,derivation` (kaoslts's FSP and the
+    completeness check, goal-controller#209; the mine-pump seed's
+    `mine-pump-lts.expected.csv`): the seed's FSP structure as kaoslts
+    spells it, each row exact: `fluents`; a `fluent`'s initiating and
+    terminating events and initial value (`a / b / true`); the `alphabet`;
+    a `constraint`'s condition as FLTL; a tick `process`'s events; an
+    `agent`'s and the `system`'s processes (sorted); an `assert`'s formula;
+    a requirement's `completeness` verdict. `zip` is KAOS2LTSA's
+    counterpart in the paper's models archive (no licence stated: read,
+    not copied), reported beside it. The archive's state counts need LTSA,
+    which isn't run: `expected` `-`, reported, never a failure.
 - **degenerate** (`las`): RE'12's rows under kaosexpert with point
   estimates. Each sample is kaosprop's EPS.
 - **ADS corpus** (goal-controller#191, #201): ADS's `simple.kaos`,

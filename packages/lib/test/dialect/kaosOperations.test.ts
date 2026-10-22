@@ -145,11 +145,13 @@ describe('kaos: the operation and object models (#194)', () => {
     expect(keys(properties['kaosOperations.Entity'])).to.deep.equal([
       'EntityType',
       'Attributes',
+      'Initially',
       'Description',
     ]);
     expect(keys(properties['kaosOperations.Event'])).to.deep.equal([
       'Frequency',
       'Attributes',
+      'Initially',
       'Description',
     ]);
     expect(keys(properties['kaosOperations.Predicate'])).to.deep.equal([
@@ -159,9 +161,11 @@ describe('kaos: the operation and object models (#194)', () => {
       'Description',
     ]);
     expect(keys(properties['kaos.Agent'])).to.deep.equal([
+      'Type',
       'Description',
       'Load',
       'Attributes',
+      'Initially',
     ]);
     for (const key of ['DomPre', 'DomPost'])
       expect(

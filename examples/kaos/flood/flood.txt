@@ -619,6 +619,7 @@
       "text": "Depth Sensor",
       "type": "kaos.Agent",
       "customProperties": {
+        "Type": "",
         "Description": ""
       },
       "x": 200,
@@ -629,6 +630,7 @@
       "text": "Ultrasound Sensor",
       "type": "kaos.Agent",
       "customProperties": {
+        "Type": "",
         "Description": ""
       },
       "x": 520,
@@ -639,6 +641,7 @@
       "text": "VoiceWarner",
       "type": "kaos.Agent",
       "customProperties": {
+        "Type": "",
         "Description": ""
       },
       "x": 1640,
@@ -649,6 +652,7 @@
       "text": "Flooding Detection System",
       "type": "kaos.Agent",
       "customProperties": {
+        "Type": "",
         "Description": ""
       },
       "x": 1160,
@@ -659,6 +663,7 @@
       "text": "camera",
       "type": "kaos.Agent",
       "customProperties": {
+        "Type": "",
         "Description": ""
       },
       "x": 520,
@@ -669,6 +674,7 @@
       "text": "cameraSpeedModule",
       "type": "kaos.Agent",
       "customProperties": {
+        "Type": "",
         "Description": ""
       },
       "x": 840,
@@ -679,6 +685,7 @@
       "text": "SMSWarner",
       "type": "kaos.Agent",
       "customProperties": {
+        "Type": "",
         "Description": ""
       },
       "x": 1480,
@@ -689,6 +696,7 @@
       "text": "EmailWarner",
       "type": "kaos.Agent",
       "customProperties": {
+        "Type": "",
         "Description": ""
       },
       "x": 1800,

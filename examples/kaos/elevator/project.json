@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "dialect": "kaosres",
+  "framework": "kaos",
+  "models": [
+    {
+      "path": "elevator.txt",
+      "native": {
+        "kaos": "elevator.kaos"
+      }
+    }
+  ],
+  "projectResources": {},
+  "outputs": []
+}

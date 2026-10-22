@@ -5,6 +5,7 @@ import {
   godaGoalModel,
   godaOutput,
   kaosdocOutput,
+  kaosltsOutput,
   istardtAnalysisModel,
   istardtOutput,
   initLogger,
@@ -143,6 +144,11 @@ export const transform = (
       const parseResult = GoalModel.parseForKaosdoc(modelJson);
       if (!parseResult.success) throw new Error(parseResult.error);
       ({ files } = kaosdocOutput(parseResult.goalModel, { modelName }));
+    } else if (engine === 'kaoslts') {
+      // KAOS's operations as FSP read the model's elements and links (#209)
+      const parseResult = GoalModel.parseForKaoslts(modelJson);
+      if (!parseResult.success) throw new Error(parseResult.error);
+      ({ files } = kaosltsOutput(parseResult.goalModel, { modelName }));
     } else if (engine === 'istardt') {
       // iStar-DT reads the model as a graph: its effects, conditions and
       // precedences are links and kinds goal-tree's tree doesn't keep (#125)

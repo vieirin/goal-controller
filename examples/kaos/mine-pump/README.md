@@ -1,4 +1,4 @@
-# Mine pump, FSE'04's probabilistic layer
+# Mine pump: FSE'04's quantities, ASE'08's operations
 
 The mine pump control system as Letier and van Lamsweerde restate it with
 quantitative goals in *Reasoning about Partial Goal Satisfaction for
@@ -46,12 +46,52 @@ FSE'04 only, re-keyed from its text; nothing else:
   only, without a name or a target. The words are kept as their
   definitions.
 
-The structural mine pump (operations, agents, interfaces, KAOS2LTSA) is
-#194's (step 7). It grows this file: the same file, the operations
-round's keys beside kaossim's.
+## The operational layer (goal-controller#209)
+
+The same file grows the structural mine pump of Letier, Kramer, Magee and
+Uchitel, *Deriving Event-Based Transition Systems from Goal-Oriented
+Requirements Models* (ASE Journal 15(2), 2008; "ASE'08"), on Letier and van
+Lamsweerde's operation model, *Deriving Operational Software Specifications
+from System Goals* (FSE'02). Re-keyed from their text, as transcribed in
+`docs/papers/letier-fse02-icse02.md` (§2.3–2.5, §3.4–3.5):
+
+- **The three requirements on PumpController** (ASE'08 Fig. 2), their
+  definitions in the paper's words, their FormalDef in KAOSTools' words
+  (`[] (HighWater ∧ ¬Methane -> X PumpOn)` is `when sump.highWater and not
+  mine.methane then next pump.pumpOn`), each assigned to PumpController.
+- **startPump and stopPump** (Fig. 3): DomPre, DomPost, and an
+  operationalisation of each requirement with the ReqTrig or ReqPre the
+  figure gives it.
+- **The environment's operations** (§4, step 2): aboveHigh as printed
+  (DomPre ¬HighWater ∧ ¬LowWater), belowHigh, aboveLow and belowLow "in a
+  similar way", and methaneAppears and methaneLeaves, whose names are the
+  paper's fluent definition's; all performed by an `Environment` agent (the
+  paper names none).
+- **The state variables** HighWater, LowWater, Methane and PumpOn as Boolean
+  attributes of the objects they describe (`sump`, `mine`, `pump`), the
+  sump's LowWater initially true (`initially lowWater : true`), and the
+  agents' Monitors and Controls over them.
+
+The requirement's name is spelled three ways across the sources; Figure 2's,
+the one it is declared with, is kept (`packages/dialect/docs/
+reference-defects.md`, ASE'08). The paper's models archive
+(`KAOS2LTSA-ASEJ-Models.zip`) states no licence: nothing is copied from it,
+it is read as the oracle only.
+
+The goals FSE'04 quantifies are unchanged, and so are kaossim's values.
 
 ## Files
 
-- `mine-pump.kaos`: the project's native file. It opens in kaossim's mode.
+- `mine-pump.kaos`: the project's native file. It opens in kaossim's mode;
+  kaoslts (KAOS LTS) reads it too.
 - `mine-pump.txt`: the model, `mine-pump.kaos` read.
-- `mine-pump.expected.csv`: the oracle (`scripts/kaos-stress`).
+- `mine-pump.expected.csv`: kaossim's oracle (`scripts/kaos-stress`).
+- `mine-pump-lts.expected.csv`: kaoslts's: the structure of its FSP against
+  KAOS2LTSA's mine pump in the archive (fluents, the nine actions, each
+  constraint's condition, the tick processes, the agents and the system,
+  the asserts), and FSE'02's completeness result for the three
+  requirements. Two conditions differ from the archive on purpose (the
+  archive weakens aboveHigh's and belowLow's DomPre, a reference defect);
+  the archive's state counts (32, 65) need LTSA and are listed, not
+  reproduced.
+

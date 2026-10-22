@@ -49,7 +49,9 @@
  *   (KAOSTools has neither): an operation's `dompre` and `dompost`,
  *   `performedby a`, `input e`, `output e`, `causedby [delay = "…"] ev`,
  *   `operationalizes g` and its required conditions `reqpre [g] f`,
- *   `reqtrig [g] f`, `reqpost [g] f`; an event's `frequency`; an agent's
+ *   `reqtrig [g] f`, `reqpost [g] f`; an event's `frequency`; an
+ *   object's `initially name : value`, its attribute's initial value
+ *   (goal-controller#209, KAOS2LTSA's fluent `initially`); an agent's
  *   `load`, `attribute`s, and `monitors` and `controls`, each an
  *   object's attribute (`sump.highWater`, FSE'02) or a predicate
  *   (KAOSTools'). A model with any declares the kinds in its
@@ -267,6 +269,7 @@ export const identifierOf = (text: string, fallback: string) => {
 /** The operation and object models' attributes (goal-controller#194), each read on its kinds. */
 const OBJECT_ATTRIBUTES = [
   'attribute',
+  'initially',
   'argument',
   'default',
   'frequency',
@@ -379,6 +382,11 @@ const defaultsOf = (type: string): [string, string][] => {
     case KAOS_TYPES.domainProperty:
       return [
         ['Kind', ''],
+        ['Description', ''],
+      ];
+    case KAOS_TYPES.agent:
+      return [
+        ['Type', ''],
         ['Description', ''],
       ];
     default:
@@ -636,12 +644,7 @@ export const readKaos = (
           }
           if (agentType === 'malicious') {
             element.environment = false;
-            say(
-              where,
-              'info',
-              `${element.key}: a malicious agent, read as an agent (KAOS's anti-models have no kind of their own)`,
-              at(attribute),
-            );
+            element.props.set('Type', 'malicious');
             return;
           }
         }
@@ -679,7 +682,7 @@ export const readKaos = (
         }
         break;
       case 'assignedto':
-        if (isGoal(word)) {
+        if (isGoal(word) || word === 'obstacle') {
           const agents = refs(attribute, false, true);
           const quantities = quantitiesOf(attribute, false);
           if (
@@ -785,12 +788,18 @@ export const readKaos = (
         break;
       // the operation and object models (goal-controller#194)
       case 'attribute':
+      case 'initially':
       case 'argument': {
         const pair =
-          (name === 'attribute' ? hasAttributes(word) : word === 'predicate') &&
+          (name === 'argument' ? word === 'predicate' : hasAttributes(word)) &&
           pairOf(attribute);
         if (pair) {
-          const key = name === 'attribute' ? 'Attributes' : 'Arguments';
+          const key =
+            name === 'attribute'
+              ? 'Attributes'
+              : name === 'initially'
+                ? 'Initially'
+                : 'Arguments';
           const before = element.props.get(key);
           element.props.set(key, before ? `${before}, ${pair}` : pair);
           return;

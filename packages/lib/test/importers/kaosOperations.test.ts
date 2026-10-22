@@ -78,6 +78,7 @@ describe('readKaos: the operation and object models (#194)', () => {
       Attributes: 'highWater:bool, level:waterLevel',
     });
     assert.deepStrictEqual(nodeOf(model, 'controller').customProperties, {
+      Type: '',
       Description: '',
       Load: 'one switch per tick',
       Attributes: 'pumpSwitch:On|Off',
@@ -258,6 +259,37 @@ declare relation [ r ] link [*] o end`);
       text!.includes('declare entity [ o ]\n  attribute a : bool\nend'),
     );
     assert.ok(text!.includes('declare association [ r ]\n  link [*] o\nend'));
+  });
+
+  it('reads an object’s initial values (`initially name : value`, #209) as its Initially, and writes them back', () => {
+    const { model, diagnostics } = readText(
+      `declare entity [ sump ] attribute lowWater : bool initially lowWater : true end
+declare agent [ a ] attribute on : bool initially on : false end
+declare goal [ g ] initially x : true end`,
+    );
+    assert.strictEqual(
+      nodeOf(model, 'sump').customProperties.Initially,
+      'lowWater:true',
+    );
+    assert.strictEqual(
+      nodeOf(model, 'a').customProperties.Initially,
+      'on:false',
+    );
+    // a goal has no attributes: kept as written
+    assert.deepStrictEqual(
+      diagnostics.map((d) => d.message),
+      [
+        'initially of g: kept as written, not read (not in this form on a goal)',
+      ],
+    );
+    const { text } = writeKaos(model, { modelName: 'm' });
+    assert.ok(
+      text!.includes(
+        'declare entity [ sump ]\n  attribute lowWater : bool\n  initially lowWater : true\nend',
+      ),
+      text!,
+    );
+    assert.ok(text!.includes('  initially on : false\n'), text!);
   });
 
   it('places an operation below the requirement it operationalises, a loose predicate below the model', () => {

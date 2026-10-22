@@ -1039,6 +1039,36 @@
     "outputs": []
   },
   {
+    "path": "kaos/ebanking",
+    "group": "kaos",
+    "name": "ebanking",
+    "form": "file",
+    "dialect": "kaosres",
+    "root": "kaos/ebanking",
+    "files": ["README.md", "ebanking.kaos", "ebanking.txt", "project.json"],
+    "models": ["ebanking.txt"],
+    "projectResources": {},
+    "outputs": []
+  },
+  {
+    "path": "kaos/elevator",
+    "group": "kaos",
+    "name": "elevator",
+    "form": "file",
+    "dialect": "kaosres",
+    "root": "kaos/elevator",
+    "files": [
+      "README.md",
+      "elevator.expected.md",
+      "elevator.kaos",
+      "elevator.txt",
+      "project.json"
+    ],
+    "models": ["elevator.txt"],
+    "projectResources": {},
+    "outputs": []
+  },
+  {
     "path": "kaos/fire-alarm",
     "group": "kaos",
     "name": "fire-alarm",
@@ -1180,6 +1210,7 @@
     "root": "kaos/mine-pump",
     "files": [
       "README.md",
+      "mine-pump-lts.expected.csv",
       "mine-pump.expected.csv",
       "mine-pump.kaos",
       "mine-pump.txt",

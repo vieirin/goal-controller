@@ -154,3 +154,112 @@ describe('kaosdoc: obstacles (#181)', () => {
     assert.strictEqual(sectionOf(documentOf(seed), 'Obstacles'), undefined);
   });
 });
+
+describe('kaosdoc: threats, anti-goals ridden on the obstacle machinery (van Lamsweerde ICSE’04, #212)', () => {
+  const las = readFileSync('test/dialect/fixtures/kaos-las.txt', 'utf8');
+  const sectionOf = (doc: string, heading: string) =>
+    doc.split(`\n## ${heading}\n\n`)[1]?.split('\n\n## ')[0];
+  const AMBULANCE_LOST = 'ambulance_lost';
+
+  /** `las` with an obstacle’s Category set to AntiGoal and an agent assigned to it */
+  const antiModel = (agentType: string) => {
+    const json = JSON.parse(las);
+    for (const orphan of json.orphans)
+      if (orphan.id === AMBULANCE_LOST)
+        orphan.customProperties = {
+          ...orphan.customProperties,
+          Category: 'AntiGoal',
+        };
+    json.orphans.push({
+      id: 'thief',
+      text: 'Thief',
+      type: 'kaos.Agent',
+      x: 0,
+      y: 0,
+      ...(agentType && { customProperties: { Type: agentType } }),
+    });
+    json.links.push({
+      id: 'r1',
+      type: 'kaos.ResponsibilityAssignment',
+      source: 'thief',
+      target: AMBULANCE_LOST,
+    });
+    return JSON.stringify(json);
+  };
+
+  it('a leaf anti-goal assigned to a malicious agent is an anti-requirement', () => {
+    assert.strictEqual(
+      sectionOf(documentOf(antiModel('malicious')), 'Threats'),
+      [
+        '| Anti-goal | Obstructs | Assigned to | As |',
+        '| --- | --- | --- | --- |',
+        '| Ambulance Lost |  | Thief | anti-requirement |',
+      ].join('\n'),
+    );
+  });
+
+  it('assigned to a plain (attackee) agent, it is a vulnerability', () => {
+    assert.strictEqual(
+      sectionOf(documentOf(antiModel('')), 'Threats'),
+      [
+        '| Anti-goal | Obstructs | Assigned to | As |',
+        '| --- | --- | --- | --- |',
+        '| Ambulance Lost |  | Thief | vulnerability |',
+      ].join('\n'),
+    );
+  });
+
+  it('unassigned, it is just an anti-goal (an interior node of the attacker’s own tree)', () => {
+    const json = JSON.parse(las);
+    for (const orphan of json.orphans)
+      if (orphan.id === AMBULANCE_LOST)
+        orphan.customProperties = {
+          ...orphan.customProperties,
+          Category: 'AntiGoal',
+        };
+    assert.strictEqual(
+      sectionOf(documentOf(JSON.stringify(json)), 'Threats'),
+      [
+        '| Anti-goal | Obstructs | Assigned to | As |',
+        '| --- | --- | --- | --- |',
+        '| Ambulance Lost |  |  | anti-goal |',
+      ].join('\n'),
+    );
+  });
+
+  it('has no Threats section without an AntiGoal obstacle', () => {
+    assert.strictEqual(sectionOf(documentOf(las), 'Threats'), undefined);
+  });
+});
+
+describe('kaosdoc: the Elevator tutorial seed, operations side (#210)', () => {
+  const elevator = readFileSync(
+    '../../examples/kaos/elevator/elevator.txt',
+    'utf8',
+  );
+  const expected = readFileSync(
+    '../../examples/kaos/elevator/elevator.expected.md',
+    'utf8',
+  );
+
+  it('writes the same document as committed next to the seed', () => {
+    assert.strictEqual(
+      kaosdocDocument(kaosdocGoalModel(readKaosModel(elevator)), {
+        title: 'elevator',
+      }),
+      expected,
+    );
+  });
+
+  it('has no section for operations or objects: its mapper ignores kaosOperations kinds (D3 of #195)', () => {
+    const document = kaosdocDocument(
+      kaosdocGoalModel(readKaosModel(elevator)),
+      { title: 'elevator' },
+    );
+    for (const heading of ['Operations', 'Entities', 'Associations', 'Events'])
+      assert.ok(
+        !document.includes(`## ${heading}`),
+        `unexpected section ${heading}`,
+      );
+  });
+});

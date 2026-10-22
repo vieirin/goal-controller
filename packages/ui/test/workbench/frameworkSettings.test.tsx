@@ -98,6 +98,7 @@ describe('the mode lists by framework (#171)', () => {
     fireEvent.click(screen.getByRole('radio', { name: 'KAOS' }));
     expect(cards()).toEqual([
       'kaosdoc',
+      'kaoslts',
       'kaosprop',
       'kaosexpert',
       'kaosres',
@@ -122,6 +123,7 @@ describe('the mode lists by framework (#171)', () => {
     await screen.findByRole('dialog');
     expect(cards()).toEqual([
       'kaosdoc',
+      'kaoslts',
       'kaosprop',
       'kaosexpert',
       'kaosres',

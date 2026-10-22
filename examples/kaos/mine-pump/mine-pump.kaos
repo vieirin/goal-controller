@@ -1,4 +1,4 @@
-@title "Mine pump, FSE'04's probabilistic layer"
+@title "Mine pump: FSE'04's quantities, ASE'08's operations"
 
 # Letier and van Lamsweerde, "Reasoning about Partial Goal Satisfaction for
 # Requirements and Design Engineering", SIGSOFT'04/FSE-12, pp. 53-62
@@ -9,7 +9,7 @@
 # one goal it quantifies, Achieve [WaterAlarmIffCriticalWaterLevel], with its
 # two quality variables, its two objective functions (Min, targets 10^-4 and
 # 10^-3) and their PCTL instances. The structural mine pump (operations,
-# agents, interfaces) is #194's (step 7), which grows this file.
+# agents, interfaces) follows it, below the FSE'04 goals (#209).
 #
 # What FSE'04 doesn't print, so this seed doesn't have:
 # - a refinement: the goals "contribute" to the Avoid goals (§3.2 H2, §4.3),
@@ -60,4 +60,159 @@ end
 declare goal [ alarm_when_mine_overflowed ]
   name "AlarmWhenMineOverflowed"
   definition "FSE'04 §4.3: see PumpOnWhenHighWater."
+end
+
+# The operational layer (goal-controller#209): Letier, Kramer, Magee and
+# Uchitel, "Deriving Event-Based Transition Systems from Goal-Oriented
+# Requirements Models", ASE Journal 15(2), 2008 (ASE'08), §2 and §4, on
+# Letier and van Lamsweerde's FSE'02 operation model (§2.1.4, §3, §4), re-keyed
+# from their text (docs/papers/letier-fse02-icse02.md, §2.3-2.5 and §3.4-3.5):
+# - the three requirements on PumpController (ASE'08 Fig. 2), their
+#   FormalDef in KAOSTools' words: `[] (HighWater ∧ ¬Methane -> X PumpOn)` is
+#   `when … then next …`;
+# - PumpController's operations startPump and stopPump with their domain
+#   and required conditions (Fig. 3), one operationalisation per
+#   requirement, each set of ReqPre/ReqTrig for the requirement it names;
+# - the environment's operations on the water level (§4, step 2: aboveHigh
+#   as printed, belowHigh, aboveLow and belowLow "in a similar way") and on
+#   methane (methaneAppears, methaneLeaves: their names are the paper's
+#   fluent definition's, their conditions the step 2 rule's);
+# - the state variables HighWater, LowWater, Methane and PumpOn as the Boolean
+#   attributes of the objects they describe, LowWater initially true.
+#
+# The requirement's name is spelled three ways across the sources: Figure 2's,
+# PumpOnWhenHighWaterAndNoMethane, the one it is declared with, is kept; the
+# other two are packages/dialect/docs/reference-defects.md's (ASE'08).
+# Nothing here is copied from the paper's models archive (no licence stated):
+# kaoslts's FSP is compared with it by structure, in mine-pump-lts.expected.csv.
+
+declare goal [ pump_on_when_high_water_and_no_methane ]
+  name "Maintain [PumpOnWhenHighWaterAndNoMethane]"
+  definition "If the water level is above high and there is no methane, then at the next time unit the pump must be on."
+  formalspec when sump.highWater and not mine.methane then next pump.pumpOn
+  assignedto pump_controller
+end
+
+declare goal [ pump_off_when_methane ]
+  name "Maintain [PumpOffWhenMethane]"
+  definition "If there is methane in the mine, the pump must be off within the next time unit."
+  formalspec when mine.methane then next not pump.pumpOn
+  assignedto pump_controller
+end
+
+declare goal [ pump_off_when_low_water ]
+  name "Maintain [PumpOffWhenLowWater]"
+  definition "If the water is below the low level, the pump must be off within the next time unit."
+  formalspec when sump.lowWater then next not pump.pumpOn
+  assignedto pump_controller
+end
+
+declare agent [ pump_controller ]
+  name "PumpController"
+  monitors sump.highWater, sump.lowWater, mine.methane
+  controls pump.pumpOn
+end
+
+declare agent [ environment ]
+  name "Environment"
+  type environment
+  controls sump.highWater, sump.lowWater, mine.methane
+end
+
+declare entity [ sump ]
+  name "Sump"
+  type environment
+  attribute highWater : bool
+  attribute lowWater : bool
+  initially lowWater : true
+end
+
+declare entity [ mine ]
+  name "Mine"
+  type environment
+  attribute methane : bool
+end
+
+declare entity [ pump ]
+  name "Pump"
+  type shared
+  attribute pumpOn : bool
+end
+
+declare operation [ start_pump ]
+  name "startPump"
+  dompre not pump.pumpOn
+  dompost pump.pumpOn
+  performedby pump_controller
+  input sump, mine
+  output pump
+  operationalizes pump_on_when_high_water_and_no_methane
+  reqtrig [pump_on_when_high_water_and_no_methane] sump.highWater and not mine.methane
+  operationalizes pump_off_when_methane
+  reqpre [pump_off_when_methane] not mine.methane
+  operationalizes pump_off_when_low_water
+  reqpre [pump_off_when_low_water] not sump.lowWater
+end
+
+declare operation [ stop_pump ]
+  name "stopPump"
+  dompre pump.pumpOn
+  dompost not pump.pumpOn
+  performedby pump_controller
+  input sump, mine
+  output pump
+  operationalizes pump_on_when_high_water_and_no_methane
+  reqpre [pump_on_when_high_water_and_no_methane] not (sump.highWater and not mine.methane)
+  operationalizes pump_off_when_methane
+  reqtrig [pump_off_when_methane] mine.methane
+  operationalizes pump_off_when_low_water
+  reqtrig [pump_off_when_low_water] sump.lowWater
+end
+
+declare operation [ above_high ]
+  name "aboveHigh"
+  dompre not sump.highWater and not sump.lowWater
+  dompost sump.highWater
+  performedby environment
+  output sump
+end
+
+declare operation [ below_high ]
+  name "belowHigh"
+  dompre sump.highWater
+  dompost not sump.highWater
+  performedby environment
+  output sump
+end
+
+declare operation [ above_low ]
+  name "aboveLow"
+  dompre sump.lowWater
+  dompost not sump.lowWater
+  performedby environment
+  output sump
+end
+
+declare operation [ below_low ]
+  name "belowLow"
+  dompre not sump.highWater and not sump.lowWater
+  dompost sump.lowWater
+  performedby environment
+  output sump
+end
+
+declare operation [ methane_appears ]
+  name "methaneAppears"
+  dompre not mine.methane
+  dompost mine.methane
+  performedby environment
+  output mine
+end
+
+declare operation [ methane_leaves ]
+  name "methaneLeaves"
+  dompre mine.methane
+  dompost not mine.methane
+  performedby environment
+  output mine
 end

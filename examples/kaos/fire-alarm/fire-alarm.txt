@@ -517,6 +517,7 @@
       "text": "SmokeSensor",
       "type": "kaos.Agent",
       "customProperties": {
+        "Type": "",
         "Description": ""
       },
       "x": 200,
@@ -527,6 +528,7 @@
       "text": "HeatSensor",
       "type": "kaos.Agent",
       "customProperties": {
+        "Type": "",
         "Description": ""
       },
       "x": 840,
@@ -537,6 +539,7 @@
       "text": "DetectionSystem",
       "type": "kaos.Agent",
       "customProperties": {
+        "Type": "",
         "Description": ""
       },
       "x": 1320,
@@ -557,6 +560,7 @@
       "text": "FireControlUnit",
       "type": "kaos.Agent",
       "customProperties": {
+        "Type": "",
         "Description": ""
       },
       "x": 2600,
@@ -567,6 +571,7 @@
       "text": "NotificationSystem",
       "type": "kaos.Agent",
       "customProperties": {
+        "Type": "",
         "Description": ""
       },
       "x": 2280,

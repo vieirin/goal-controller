@@ -29,6 +29,7 @@ export default function ModelDiagram() {
     case 'kaos':
     case 'nfr':
     case 'kaosdoc':
+    case 'kaoslts':
     case 'kaosprop':
     case 'kaosexpert':
     case 'kaosres':

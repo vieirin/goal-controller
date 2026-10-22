@@ -318,6 +318,7 @@
       "text": "Despatcher",
       "type": "kaos.Agent",
       "customProperties": {
+        "Type": "",
         "Description": "Despatcher is the person at the call center dealing \n                with urgent calls and ambulance mobilization."
       },
       "x": 520,
@@ -328,6 +329,7 @@
       "text": "Ambulance Staff",
       "type": "kaos.Agent",
       "customProperties": {
+        "Type": "",
         "Description": "Ambulance Staff contains the ambulance driver and the paramedic(s)."
       },
       "x": 1800,
@@ -338,6 +340,7 @@
       "text": "ADS",
       "type": "kaos.Agent",
       "customProperties": {
+        "Type": "",
         "Description": "Automated despatching system"
       },
       "x": 200,

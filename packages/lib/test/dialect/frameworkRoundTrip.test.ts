@@ -31,7 +31,7 @@ describe('frameworks: the examples (#171)', () => {
     expect(EXAMPLES.length).to.be.greaterThan(20);
     expect(
       EXAMPLES.filter(({ file }) => frameworkOf(file) !== 'istar-2.0'),
-    ).to.have.length(20);
+    ).to.have.length(22);
     for (const { file, model } of EXAMPLES) {
       expect(frameworkOfModel(model), file).to.equal(frameworkOf(file));
       expect(recordedFramework(model), file).to.equal(null);

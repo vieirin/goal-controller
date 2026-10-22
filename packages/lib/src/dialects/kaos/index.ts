@@ -119,11 +119,35 @@ export const KAOS_VOCABULARIES = {
    */
   Type: ['Achieve', 'Cease', 'Maintain', 'Avoid', 'Optimize', 'softgoal'],
   /**
-   * a goal's category: van Lamsweerde and Letier, TSE 26(10) 2000, the goal
-   * categories its obstacle categories come from (Non-satisfaction,
-   * Non-information, Inaccuracy, Hazard, Threat)
+   * a goal's category: van Lamsweerde and Letier, TSE 26(10) 2000
+   * (Satisfaction, Information, Accuracy, Safety, Security), with van
+   * Lamsweerde ICSE'04 §3's SecurityGoal subclasses added for a Security
+   * goal (Confidentiality, Integrity, Availability, Privacy,
+   * Authentication, Non-repudiation; goal-controller#212) — the paper has
+   * no further taxonomy under them, so they sit beside TSE'00's five
+   * rather than nested
    */
-  Category: ['Satisfaction', 'Information', 'Accuracy', 'Safety', 'Security'],
+  Category: [
+    'Satisfaction',
+    'Information',
+    'Accuracy',
+    'Safety',
+    'Security',
+    'Confidentiality',
+    'Integrity',
+    'Availability',
+    'Privacy',
+    'Authentication',
+    'Non-repudiation',
+  ],
+  /**
+   * an agent's type: van Lamsweerde ICSE'04 §4 (goal-controller#212), the
+   * one value malicious marks (an attacker, as distinct from a software
+   * or environment agent, kept on the `environment` structural field, not
+   * here); KAOSTools' `type malicious` already exists in the grammar
+   * (goal-controller#181 PR F), read with a diagnostic until now
+   */
+  AgentType: ['malicious'],
   /**
    * a goal's priority, an ordinal: no KAOS source fixes its levels (the
    * book's and DSM3's are free), so three, highest first
@@ -153,7 +177,18 @@ export const KAOS_VOCABULARIES = {
   /**
    * an obstacle's category: van Lamsweerde and Letier, TSE'00, one per goal
    * category it obstructs (Satisfaction, Information, Accuracy, Safety,
-   * Security)
+   * Security), with van Lamsweerde ICSE'04's AntiGoal added
+   * (goal-controller#212, #196 D2): the smaller of the two changes
+   * considered (a new element kind alongside Obstacle, or this value) —
+   * logged on #189. It marks every obstacle in an attacker's anti-goal
+   * AND/OR tree (root to leaf, van Lamsweerde ICSE'04 §4 Table 1 step 4),
+   * not only its leaves; kaosdoc's Threats section reads a leaf's
+   * responsible agent (`kaos.ResponsibilityAssignment`, extended to an
+   * obstacle source) to tell an anti-requirement (a malicious agent's)
+   * from a vulnerability (the attackee's), the same way it already tells
+   * a requirement from an expectation. kaosprop (and every obstacle
+   * propagation it does) reads Category nowhere, so this is unchanged for
+   * every existing model.
    */
   ObstacleCategory: [
     'Non-satisfaction',
@@ -161,6 +196,7 @@ export const KAOS_VOCABULARIES = {
     'Inaccuracy',
     'Hazard',
     'Threat',
+    'AntiGoal',
   ],
   /**
    * a resolution's strategy: van Lamsweerde and Letier, TSE'00, §6's
@@ -285,6 +321,18 @@ const REFINEMENT = [
   REFINEMENT_FIELDS.Status,
   REFINEMENT_FIELDS.Tactic,
 ] as const;
+
+/**
+ * an agent's type (van Lamsweerde ICSE'04 §4, goal-controller#212): empty,
+ * or malicious (an attacker). Not an istar-ts schema property (DSM3's
+ * KAOS has no agent properties beyond Description), so it isn't wrapped
+ * in `schemaProperties`.
+ */
+const AGENT_TYPE = vocabulary(
+  'AgentType',
+  'whether it is an attacker (malicious), rather than a plain agent',
+  'Type',
+);
 
 const CONFLICT_FIELDS = schemaProperties(
   conflictProperties.shape as KaosConflictProperties,
@@ -523,6 +571,16 @@ const ATTRIBUTES = property.pairList('Attributes', 'text', {
 });
 
 /**
+ * Its attributes' values in the initial state, each name:value
+ * (`LowWater:true`): KAOS2LTSA's fluent `initially` (ASE'08 §2.2.2), on the
+ * attribute it bounds (goal-controller#209). An attribute without one starts
+ * false, as a fluent does.
+ */
+const INITIALLY = property.pairList('Initially', 'text', {
+  help: 'its attributes’ values in the initial state, each name:value (LowWater:true); unset, false',
+});
+
+/**
  * an ltl formula of the operation model (FSE'02 §2.1.4), type-checked
  * against the operation and object models (goal-controller#385)
  */
@@ -548,12 +606,14 @@ const ENTITY_PROPERTIES = [
     'EntityType',
   ),
   ATTRIBUTES,
+  INITIALLY,
   DESCRIPTION,
 ] as const;
 
 const EVENT_PROPERTIES = [
   text('Frequency', 'how often it occurs (Objectiver’s Frequency)'),
   ATTRIBUTES,
+  INITIALLY,
   DESCRIPTION,
 ] as const;
 
@@ -579,6 +639,7 @@ const AGENT_PROPERTIES = [
     'how much of its capacity its operations take (Objectiver’s Load)',
   ),
   ATTRIBUTES,
+  INITIALLY,
 ] as const;
 
 /** a monitoring's or a control's attribute: an object's, by `object.attribute` (D2) */
@@ -599,14 +660,14 @@ export const kaos = defineDialect({
   properties: {
     'kaos.BehavioralGoal': GOAL,
     'kaos.Softgoal': GOAL,
-    'kaos.Agent': AGENT_PROPERTIES,
+    'kaos.Agent': [AGENT_TYPE, ...AGENT_PROPERTIES],
     'kaos.EnvironmentAgent': AGENT_PROPERTIES,
     'kaos.DomainProperty': DOMAIN_PROPERTY,
     'kaosObstacles.Obstacle': OBSTACLE,
     [KAOS_REFINEMENT_HUB]: REFINEMENT,
     [OPERATION]: OPERATION_PROPERTIES,
     [ENTITY]: ENTITY_PROPERTIES,
-    [ASSOCIATION]: [ATTRIBUTES, DESCRIPTION],
+    [ASSOCIATION]: [ATTRIBUTES, INITIALLY, DESCRIPTION],
     [EVENT]: EVENT_PROPERTIES,
     [PREDICATE]: PREDICATE_PROPERTIES,
     'kaosOperations.Type': [DESCRIPTION],
@@ -625,6 +686,7 @@ export const kaos = defineDialect({
     'Default',
     'Load',
     'Attributes',
+    'Initially',
   ],
   indent: '  ',
   refinements: {

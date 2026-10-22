@@ -17,7 +17,8 @@
  * - **roundtrip**: written back (`writeKaos`, with its resources) and read
  *   again, the same model and the same resources;
  * - **analyses**: kaosprop's analyses, kaosres's, kaossim's and
- *   kaosexpert's (all read every `.kaos`), run without error;
+ *   kaosexpert's, and kaoslts's files (all read every `.kaos`), run without
+ *   error;
  * - **oracle**: the seed's `*.expected.csv`, each row against what the
  *   engine computes (below).
  *
@@ -70,6 +71,19 @@
  *     generations).
  *   `expected` `-`: a number the paper prints and the seed can't
  *   reproduce, reported, never a failure.
+ *
+ * - `quantity,id,expected,zip,source,derivation` (kaoslts's FSP and the
+ *   completeness check, goal-controller#209): the seed's operation model
+ *   through kaoslts (`ltsModel`), each row a part of its structure, as
+ *   kaoslts spells it: `fluents` (their names), a `fluent`'s initiating and
+ *   terminating events and initial value (`a b / c / true`), the
+ *   `alphabet`, a `constraint`'s condition as FLTL, a tick `process`'s
+ *   events, an `agent`'s and the `system`'s processes (sorted), an
+ *   `assert`'s formula, and a requirement's `completeness` verdict
+ *   (`complete`, `incomplete`, `undecided`). `zip` is what KAOS2LTSA's
+ *   mine pump (its models archive) has in its place, reported beside it;
+ *   `expected` `-`: a number the archive or the paper prints that needs
+ *   LTSA (a state count), reported, never a failure.
  *
  * The corpus (goal-controller#191, #201): ADS's simple.kaos and
  * validation-model.kaos, and las.kaos with obstacles.kaos and
@@ -536,6 +550,122 @@ const simOracle = (modelText, resources, rows) => {
         textual || got === undefined
           ? (got ?? null)
           : Number(Number(got).toFixed(6)),
+      status: ok ? 'pass' : 'fail',
+      ...(!ok && { problems: [`${got} is not ${row.expected}`] }),
+    };
+  });
+};
+
+/** kaoslts's rows (goal-controller#209): the structure of its FSP, and each requirement's completeness. */
+const ltsOracle = (modelText, rows) => {
+  const operations = lib.operationModelOf(
+    lib.kaosltsGoalModel(lib.readKaosModel(modelText)),
+  );
+  const lts = lib.ltsModel(operations);
+  const verdicts = lib.operationalisationCompleteness(operations);
+  const sorted = (names) => [...names].sort().join(' ');
+  const constraints = [
+    ...lts.agents.flatMap((agent) => agent.constraints),
+    ...lts.shared.constraints,
+  ];
+  const processes = [
+    ...lts.agents.flatMap((agent) => agent.processes),
+    ...lts.shared.processes,
+  ];
+  const parts = (holder) =>
+    sorted([...holder.processes, ...holder.constraints].map((d) => d.name));
+  const found = (what, id, item) => {
+    if (!item) throw new Error(`no ${what} ${id}`);
+    return item;
+  };
+  const value = ({ quantity, id }) => {
+    switch (quantity) {
+      case 'fluents':
+        return sorted(lts.fluents.map((f) => f.name));
+      case 'fluent': {
+        const f = found(
+          quantity,
+          id,
+          lts.fluents.find((x) => x.name === id),
+        );
+        return `${f.initiating.join(' ')} / ${f.terminating.join(' ')} / ${f.initially}`;
+      }
+      case 'alphabet':
+        return sorted(lts.alphabet);
+      case 'constraint':
+        return found(
+          quantity,
+          id,
+          constraints.find((c) => c.name === id),
+        ).condition;
+      case 'process':
+        return sorted(
+          found(
+            quantity,
+            id,
+            processes.find((p) => p.name === id),
+          ).events,
+        );
+      case 'agent':
+        return parts(
+          found(
+            quantity,
+            id,
+            lts.agents.find((a) => a.name === id),
+          ),
+        );
+      case 'system':
+        return sorted([
+          ...lts.agents
+            .filter((a) => a.constraints.length || a.processes.length)
+            .map((a) => a.name),
+          ...[...lts.shared.processes, ...lts.shared.constraints].map(
+            (d) => d.name,
+          ),
+        ]);
+      case 'assert':
+        return found(
+          quantity,
+          id,
+          lts.asserts.find((a) => a.name === id),
+        )
+          .lines.join(' ')
+          .replace(/^assert \S+ = /, '');
+      case 'completeness':
+        return found(
+          quantity,
+          id,
+          verdicts.find((v) => v.requirement === id),
+        ).status;
+      default:
+        throw new Error(`unknown quantity ${quantity}`);
+    }
+  };
+  return rows.map((row) => {
+    const base = {
+      quantity: row.quantity,
+      id: row.id,
+      expected: row.expected,
+      paper: row.zip,
+      data: row.source,
+    };
+    if (row.expected.trim() === '-')
+      return { ...base, got: null, status: 'skip' };
+    let got;
+    try {
+      got = value(row);
+    } catch (error) {
+      return {
+        ...base,
+        got: null,
+        status: 'fail',
+        problems: [errorText(error)],
+      };
+    }
+    const ok = got === row.expected;
+    return {
+      ...base,
+      got,
       status: ok ? 'pass' : 'fail',
       ...(!ok && { problems: [`${got} is not ${row.expected}`] }),
     };
@@ -1035,6 +1165,11 @@ const checkSeed = (name) => {
         return { status: 'fail', detail: `kaosexpert ${id}: ${out.error}` };
       ran.push(`kaosexpert ${id}: ${out.result.cases.length} case(s)`);
     }
+    const lts = lib.kaosltsOutput(
+      lib.kaosltsGoalModel(lib.readKaosModel(modelText)),
+      { modelName: entry.path },
+    );
+    ran.push(`kaoslts: ${lts.files.length} file(s)`);
     return { status: 'pass', detail: ran.join('; ') };
   });
   const oracleFiles = fs
@@ -1044,7 +1179,9 @@ const checkSeed = (name) => {
   for (const file of oracleFiles) {
     const csv = readCsv(fs.readFileSync(path.join(dir, file), 'utf8'));
     if (!csv.length) continue;
-    if ('objective' in csv[0])
+    if ('zip' in csv[0])
+      rows.push(...ltsOracle(modelText, csv).map((r) => ({ file, ...r })));
+    else if ('objective' in csv[0])
       rows.push(
         ...simOracle(modelText, committed, csv).map((r) => ({ file, ...r })),
       );
