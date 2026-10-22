@@ -178,6 +178,52 @@ describe('LTL: future temporal operators', () => {
     assert.strictEqual(printLtl(synonym), '◊ a()');
     assert.strictEqual(printLtl(canonical), '◇ a()');
   });
+  it('a bare (unparenthesized) quantifier as a unary operator’s operand (goal-controller#404; examples/kaos/ebanking/ebanking.kaos’s own shape)', () => {
+    const tree = parsed(
+      '◊ ∃ p: Person, acc: Account · ¬ (Owner(p, acc) ∨ Proxy(p, acc) ∨ Manager(p, acc)) ∧ KnowsV[p] acc.AccNum ∧ KnowsV[p] acc.PIN',
+    );
+    assert.strictEqual(tree.kind, 'eventually');
+    if (tree.kind === 'eventually') {
+      assert.strictEqual(tree.expr.kind, 'exists');
+      if (tree.expr.kind === 'exists')
+        assert.deepStrictEqual(tree.expr.variables, [
+          { name: 'p', type: 'Person' },
+          { name: 'acc', type: 'Account' },
+        ]);
+    }
+    // the same shape under every unary operator, not just ◊
+    assert.strictEqual(parsed('not ∃ x: T · p(x)').kind, 'not');
+    assert.strictEqual(parsed('always ∀ x: T · p(x)').kind, 'always');
+  });
+  it("a bare quantifier's body extends as far right as possible: `◊ ∃ p: P · A(p) ∧ B(p)` is `◊(∃p · (A(p) ∧ B(p)))`, not `(◊∃p · A(p)) ∧ B(p)`", () => {
+    const tree = parsed('◊ ∃ p: P · A(p) ∧ B(p)');
+    assert.strictEqual(tree.kind, 'eventually');
+    if (tree.kind !== 'eventually') return;
+    assert.strictEqual(tree.expr.kind, 'exists');
+    if (tree.expr.kind !== 'exists') return;
+    assert.deepStrictEqual(tree.expr.body, {
+      kind: 'and',
+      left: { kind: 'predicateCall', name: 'A', args: ['p'] },
+      right: { kind: 'predicateCall', name: 'B', args: ['p'] },
+      surface: 'symbolic',
+    });
+    // the same greedy extension where the quantifier is itself what a
+    // binary operator's `left` computes down to (`parseAnd`'s/`parseOr`'s
+    // `left = parseUnary()`, which the quantifier is now reachable from):
+    // `not`'s operand swallows the whole `∧`, so the outer node is `not`,
+    // not `and`.
+    const underNot = parsed('not ∃ p: P · A(p) ∧ B(p)');
+    assert.strictEqual(underNot.kind, 'not');
+    if (underNot.kind !== 'not') return;
+    assert.strictEqual(underNot.expr.kind, 'exists');
+    if (underNot.expr.kind !== 'exists') return;
+    assert.deepStrictEqual(underNot.expr.body, {
+      kind: 'and',
+      left: { kind: 'predicateCall', name: 'A', args: ['p'] },
+      right: { kind: 'predicateCall', name: 'B', args: ['p'] },
+      surface: 'symbolic',
+    });
+  });
   it('bounded eventually: sugar `, before 2 minutes,` / symbolic `≤`', () => {
     const sugar = parsed('sooner-or-later, before 2 minutes, a()');
     assert.strictEqual(sugar.kind, 'eventually');

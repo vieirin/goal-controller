@@ -2365,16 +2365,11 @@ arity, an unknown attribute, an unknown relation.
   raises one. Its `KNOWN_DEFECTS` allowlist is keyed by file, element
   id.key and the exact message (not by id alone, across every file) so a
   new Problem on the same id elsewhere, or a changed message, still fails
-  it. Two corpus defects this step unmasked, filed rather than fixed (not
+  it. One corpus defect this step unmasked, filed rather than fixed (not
   #385's to touch): `examples/kaos/flood/flood.kaos` declares predicate
   `DustyEnvironment` but every `formalspec` calls `dustyEnvironment()`,
   verbatim in the upstream thesis source (#398, a reference defect,
-  `dialect/docs/reference-defects.md`); `examples/kaos/ebanking/
-  ebanking.kaos` (merged to main while #401 was in flight, #212) writes a
-  bare quantifier as a unary operator's operand (`◊ ∃ p: Person, acc:
-  Account · …`), which the parser's parenthesized-header fix (#399,
-  below) doesn't cover — a goal-language parser gap, #404. Results are on
-  #383.
+  `dialect/docs/reference-defects.md`). Results are on #383.
 - **`examples/kaos/las-quantitative/las-quantitative.kaos`'s
   `ambulance_intervention` formula (#399) had three causes, all parser
   bugs, not an object-model gap — this step's corpus test found it, #211's
@@ -2396,6 +2391,22 @@ arity, an unknown attribute, an unknown relation.
     was read with, so `printLtl` reproduces it as read rather than always
     `◇` (D4: the writer emits what it read). Tests:
     `goal-language/test/ltl/operators.test.ts`.
+- **`examples/kaos/ebanking/ebanking.kaos` (#212, merged to main while
+  #401 was in flight) writes a *bare* quantifier as a unary operator's
+  operand, `◊ ∃ p: Person, acc: Account · …` — no parens around the
+  header, unlike #399's RE'01 p.9 example — which #399's
+  `tryParseParenthesizedQuantifier` fix didn't cover (goal-controller
+  #404).** `parseQuantified` (the top of the precedence chain) and
+  `parseUnary` (every unary operator's operand, and a binary operator's
+  left side, which bottoms out there) now share one
+  `tryParseBareQuantifier`: a bare `∀`/`∃` is accepted wherever either
+  was reached, not only at the formula's very top. This only adds
+  acceptance (any token sequence that already parsed keeps the same
+  tree, since `tryParseBareQuantifier` returns `undefined` — tried,
+  rewinds nothing, falls through — whenever the next token isn't
+  `∀`/`∃`/`forall`/`exists`). Test:
+  `goal-language/test/ltl/operators.test.ts`, the exact ebanking shape
+  under `◊`, `not` and `always`. `KNOWN_DEFECTS`' ebanking entry is gone.
 
 ### Step 7 part C: the mine pump's operations, the Req* completeness check and `kaoslts` (goal-controller#209)
 

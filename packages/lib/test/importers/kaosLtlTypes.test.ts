@@ -67,22 +67,12 @@ type KnownDefect = {
  *   capitalisation but every `formalspec` calls `dustyEnvironment()`
  *   (goal-controller#398, a reference defect of the upstream source:
  *   docs/reference-defects.md).
- * - ebanking.kaos's `account_number_and_pin_known_by_thief` writes a bare
- *   (unparenthesized) quantifier as a unary operator's operand (`◊ ∃ p:
- *   Person, acc: Account · …`), which the LTL parser doesn't accept yet —
- *   only a parenthesized quantifier header does (goal-controller#399's
- *   fix); a goal-language parser gap, goal-controller#404, not #385's.
  */
 const KNOWN_DEFECTS: readonly KnownDefect[] = [
   {
     file: join('flood', 'flood.kaos'),
     key: 'dusty_environment.FormalSpec',
     message: 'dustyEnvironment is not a declared predicate',
-  },
-  {
-    file: join('ebanking', 'ebanking.kaos'),
-    key: 'account_number_and_pin_known_by_thief.FormalSpec',
-    message: 'Expected a name, a number, a string or "("',
   },
 ];
 
