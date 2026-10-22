@@ -41,6 +41,24 @@ describe('the metamodel extension', () => {
   });
 });
 
+describe('the metamodel extension: where a node may be (#194)', () => {
+  it('carries a kind’s info, which a framework without actors needs (on the paper)', () => {
+    const onPaper = {
+      canBeInnerElement: false,
+      canBeDependum: false,
+      canBeOnPaper: true,
+    };
+    const extension: ExtensionDefinition = {
+      ...dialect,
+      elements: [{ kind: 'toyish.Box', category: 'node', info: onPaper }],
+      links: [],
+    };
+    expect(metamodelExtensionOf(extension).elements).to.deep.equal([
+      { kind: 'toyish.Box', category: 'node', info: onPaper },
+    ]);
+  });
+});
+
 describe('profiles', () => {
   it('resolves stereotypes through groupers, by kind name', () => {
     for (const kind of ['istar.Agent', 'istar.Role'])

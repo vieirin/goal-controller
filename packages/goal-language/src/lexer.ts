@@ -70,8 +70,20 @@ const idRulesOf = (own: readonly string[]): IdRules => {
    */
   const rt = rules([
     ...literal(...ID_PREFIXES),
+    // longest first, as idPrefixPattern: `AS` before a dialect's `A`
+    // (goal-controller#194), whose shorter match a WORD would beat
     ...(own.length
-      ? [['ID_PREFIX', new RegExp(own.map(escaped).join('|'))] as const]
+      ? [
+          [
+            'ID_PREFIX',
+            new RegExp(
+              [...own]
+                .sort((a, b) => b.length - a.length)
+                .map(escaped)
+                .join('|'),
+            ),
+          ] as const,
+        ]
       : []),
     ...literal('[', ']', ':', '@', '|', '?', '+', '#', ';', '->'),
     ...literal(',', '^', '&', '~', '!', '(', ')', '*', ...CALL_NAMES),
