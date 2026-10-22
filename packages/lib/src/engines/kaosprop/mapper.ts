@@ -6,10 +6,8 @@
  * dialect reads as set, as written (goal-controller#187).
  */
 import { parsePistar } from '@istar-ts/core';
-import {
-  KAOS_OBSTACLES,
-  KAOS_REFINEMENT_HUB,
-} from '@istar-ts/dsm3-kaos/metamodel';
+import { KAOS_REFINEMENT_HUB } from '@istar-ts/dsm3-kaos/metamodel';
+import { KAOS_MODEL } from '../../dialects/kaos/metamodel';
 import { linkPropertyKeys } from '@goal-controller/dialect';
 import {
   createEngineMapper,
@@ -19,6 +17,10 @@ import {
   type NodeOf,
 } from '@goal-controller/goal-tree';
 import { analysisViewOf, type AnalysisModel } from '../analysis';
+import {
+  KAOS_OPERATION_KINDS,
+  KAOS_OPERATION_LINKS,
+} from '../../dialects/kaos';
 import { kaosprop } from './definition';
 
 export const kaospropLinkKeys = linkPropertyKeys(kaosprop);
@@ -112,7 +114,11 @@ export const kaospropEngineMapper = createEngineMapper({
       ],
       mapProps: written,
     }),
+    // the operation and object models' (goal-controller#194), as written
+    entry({ kinds: KAOS_OPERATION_LINKS, mapProps: written }),
   ],
+  // the operation and object models' nodes: the model's elements, no tree's
+  ignore: KAOS_OPERATION_KINDS,
 });
 
 export type KaospropGoalModel = ModelOf<typeof kaospropEngineMapper>;
@@ -126,6 +132,6 @@ export const kaospropAnalysisModel = <EK extends string, LK extends string>(
     fromEntries: true,
   });
 
-/** A KAOS model's piStar text, read with KAOS and its obstacle analysis. */
+/** A KAOS model's piStar text, read with KAOS, its obstacle analysis and its operation and object models (goal-controller#194). */
 export const readKaosObstacleModel = (text: string) =>
-  parsePistar(text, { metamodel: KAOS_OBSTACLES });
+  parsePistar(text, { metamodel: KAOS_MODEL });

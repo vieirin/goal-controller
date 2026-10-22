@@ -32,6 +32,7 @@
  * with an RSR (RE'15's violation diagram, Table III).
  */
 import type { Distribution } from '@goal-controller/dialect';
+import { readProperties } from '@goal-controller/goal-language';
 import { Bdd, FALSE, TRUE, type BddNode } from '../../numeric/bdd';
 import {
   complementOf,
@@ -39,11 +40,11 @@ import {
   type Continuous,
 } from '../../numeric/distributions';
 import { seededRandom, type Random } from '../../numeric/random';
+import { distributionOfSamples } from '../../numeric/samples';
 import {
   viewValues,
   type AnalysisCase,
   type AnalysisContext,
-  type AnalysisDistribution,
   type AnalysisElement,
   type AnalysisModel,
   type AnalysisResult,
@@ -57,7 +58,7 @@ import { kaosexpert } from './definition';
 import { readCalibrations, readExperts } from './resources';
 
 const GOAL_KINDS = new Set(['kaos.BehavioralGoal', 'kaos.Softgoal']);
-const OBSTACLE = 'kaosObstacles.Obstacle';
+const OBSTACLE = 'kaosObstacles.Obstacle' as const;
 const DOMAIN_PROPERTY = 'kaos.DomainProperty';
 const CASE_DRIVEN = new Set(['case-driven', 'case']);
 
@@ -73,9 +74,6 @@ export const DEFAULT_EXPERT_OPTIONS: ExpertOptions = {
   seed: 1,
   weighting: 're15',
 };
-
-/** The quantile levels a goal's distribution is reported at. */
-export const REPORTED_QUANTILES = [0.05, 0.25, 0.5, 0.75, 0.95];
 
 const optionsOf = (context?: AnalysisContext): ExpertOptions => {
   const given = context?.options ?? {};
@@ -166,14 +164,17 @@ export const expertAnalysis = (
   const leafIds = model.elements
     .filter((e) => e.kind === OBSTACLE && !(hubs.get(e.id)?.length ?? 0))
     .map((e) => e.id);
+  // each expert's estimate, by its id (`Probability[e1]`, goal-controller#354)
   const keyedOf = (id: string) => {
-    const values = valuesOf('element', elements.get(id)!);
+    const { values, keyed } = readProperties(
+      kaosexpert,
+      { element: OBSTACLE },
+      elements.get(id)!.properties,
+    );
     const own = new Map<string, Distribution>();
-    for (const [key, value] of Object.entries(values)) {
-      const keyed = /^Probability\[(.+)\]$/.exec(key);
-      if (keyed && value) own.set(keyed[1]!, value as Distribution);
-    }
-    return { own, plain: (values.Probability as Distribution | null) ?? null };
+    for (const [expert, value] of keyed.Probability ?? [])
+      if (value) own.set(expert, value);
+    return { own, plain: values.Probability ?? null };
   };
   const declared = experts.experts.map((e) => ({
     id: e.id,
@@ -481,12 +482,6 @@ export const simulate = (
   return out;
 };
 
-/** A sample's quantile (the order statistic at ⌈p·n⌉, as the samples are sorted). */
-const quantileOf = (sorted: Float64Array, p: number) =>
-  sorted[
-    Math.min(sorted.length - 1, Math.max(0, Math.ceil(p * sorted.length) - 1))
-  ]!;
-
 /** SU(p): the share of the samples below p (§III.B; VU is SU at the RSR). */
 export const satisfactionUncertainty = (samples: Float64Array, p: number) => {
   let below = 0;
@@ -504,33 +499,6 @@ export const uncertaintySpread = (samples: Float64Array, rsr: number) => {
       k++;
     }
   return k ? Math.sqrt(sum / k) : 0;
-};
-
-/** The samples as a distribution: quantiles, mean, a histogram of 20 bins over their range. */
-export const distributionOfSamples = (
-  samples: Float64Array,
-): AnalysisDistribution => {
-  const sorted = Float64Array.from(samples).sort();
-  const min = sorted[0]!;
-  const max = sorted[sorted.length - 1]!;
-  const bins = 20;
-  const shares = Array.from({ length: bins }, () => 0);
-  for (const x of sorted) {
-    const i =
-      max > min
-        ? Math.min(bins - 1, Math.floor(((x - min) / (max - min)) * bins))
-        : 0;
-    shares[i]! += 1 / sorted.length;
-  }
-  return {
-    quantiles: REPORTED_QUANTILES.map((p) => ({
-      p,
-      value: quantileOf(sorted, p),
-    })),
-    mean: sorted.reduce((a, b) => a + b, 0) / sorted.length,
-    samples: sorted.length,
-    histogram: { min, max, shares },
-  };
 };
 
 const round = (n: number, digits = 4) =>

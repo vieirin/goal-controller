@@ -1,13 +1,20 @@
 /**
  * The generic value types a framework's dialect types its keys with
  * (goal-controller#181): a `reference` names one element of its kinds, a
- * `formula` is text in a tagged language that nothing checks yet, a
+ * `formula` is text in a tagged language — `ltl` is RT-LTL, parsed and
+ * checked (goal-controller#211); any other tag is unchecked text — a
  * `probability` is a decimal or a percentage in [0, 1]. A bad value is a
  * problem; the value stays as written.
  */
 import type { DefinitionContext, ValueConfig } from '@goal-controller/dialect';
 import { expect } from 'chai';
-import { highlightValue, readProperties, valueProblem } from '../src/index.js';
+import {
+  highlightValue,
+  readProperties,
+  referenceMemberProblem,
+  referenceParts,
+  valueProblem,
+} from '../src/index.js';
 
 const context: DefinitionContext = {
   elements: {
@@ -21,7 +28,7 @@ const context: DefinitionContext = {
 describe('value types: reference, formula, probability (#181)', () => {
   const anchor: ValueConfig = {
     type: 'reference',
-    kinds: ['kaos.BehavioralGoal', 'kaos.Softgoal'],
+    target: { kinds: ['kaos.BehavioralGoal', 'kaos.Softgoal'] },
   };
 
   it('a reference names one element of its kinds', () => {
@@ -55,10 +62,55 @@ describe('value types: reference, formula, probability (#181)', () => {
     expect(valueProblem(anchor, '')).to.equal(null);
   });
 
-  it('a formula is text in its language, which nothing checks yet', () => {
+  it('a formula tagged `ltl` is RT-LTL, either surface (goal-controller#211); other languages are unchecked text', () => {
     const spec: ValueConfig = { type: 'formula', language: 'ltl' };
-    expect(valueProblem(spec, 'G (Incident -> F<=11 Resolved)')).to.equal(null);
-    expect(highlightValue(spec, 'G (x)')).to.have.length(1);
+    expect(
+      valueProblem(
+        spec,
+        'when incidentReported() then sooner-or-later ambulanceOnScene()',
+      ),
+    ).to.equal(null);
+    expect(valueProblem(spec, 'Incident ⇒ ◇ Resolved')).to.equal(null);
+    expect(valueProblem(spec, 'when incidentReported() then')).to.not.equal(
+      null,
+    );
+    const other: ValueConfig = { type: 'formula', language: 'prism' };
+    expect(valueProblem(other, 'G (Incident -> F<=11 Resolved)')).to.equal(
+      null,
+    );
+    expect(highlightValue(other, 'G (x)')).to.have.length(1);
+  });
+
+  it('`symbols.entities` only reads elements of its listed kinds (goal-controller#385)', () => {
+    const ctx: DefinitionContext = {
+      ...context,
+      elements: {
+        ...context.elements,
+        A1: {
+          ...context.elements.A1!,
+          properties: { Attributes: 'pumpSwitch:On|Off' },
+        },
+        G1: {
+          ...context.elements.G1!,
+          properties: { Attributes: 'level:int' },
+        },
+      },
+    };
+    const spec: ValueConfig = {
+      type: 'formula',
+      language: 'ltl',
+      symbols: {
+        entities: { kinds: ['kaos.Agent'], attributes: 'Attributes' },
+      },
+    };
+    expect(valueProblem(spec, 'A1.pumpSwitch == "On"', ctx)).to.equal(null);
+    expect(valueProblem(spec, 'A1.motor == "On"', ctx)).to.equal(
+      'A1 has no attribute motor',
+    );
+    // G1 is a kaos.BehavioralGoal, not listed among `entities.kinds`: not a
+    // symbol source, so an unknown property name on it raises no Problem
+    // (the open world) even though G1 has its own `Attributes` text.
+    expect(valueProblem(spec, 'G1.whatever == 1', ctx)).to.equal(null);
   });
 
   it('a probability is a decimal or a percentage in [0, 1]', () => {
@@ -122,7 +174,13 @@ describe('value types: distribution, and keyed properties (#190)', () => {
   it('a keyed property reads each name’s value by its key on disk (`Probability[e1]`)', () => {
     const dialect = {
       properties: {
-        obstacle: [{ key: 'Probability', value: estimate, keyed: 'expert' }],
+        obstacle: [
+          {
+            key: 'Probability',
+            value: estimate,
+            keyed: { resource: 'expert' },
+          },
+        ],
       },
     } as const;
     const { values, text } = readProperties(
@@ -149,5 +207,124 @@ describe('value types: distribution, and keyed properties (#190)', () => {
       'Probability[e1]',
       'Probability[e2]',
     ]);
+  });
+});
+
+describe('value types: a reference with a member (#194)', () => {
+  const gauge: ValueConfig = {
+    type: 'reference',
+    target: { kinds: ['toy.Tank', 'toy.Pump'] },
+    members: { from: 'Parts' },
+  };
+  const tanks: DefinitionContext = {
+    elements: {
+      T1: {
+        kind: 'toy.Tank',
+        children: [],
+        properties: { Parts: 'level:number, full:bool' },
+      },
+      P1: { kind: 'toy.Pump', children: [], properties: {} },
+      R1: { kind: 'toy.Room', children: [], properties: {} },
+    },
+    variables: [],
+  };
+  const definition = {
+    properties: {
+      'toy.Tank': [
+        {
+          key: 'Parts',
+          value: { type: 'pairList', value: 'text' },
+          help: 'its parts',
+        },
+      ],
+      'toy.Pump': [
+        {
+          key: 'Parts',
+          value: { type: 'pairList', value: 'text' },
+          help: 'its parts',
+        },
+      ],
+    },
+  } as const;
+
+  it('splits its name and its member at the last dot before a name (an id’s own dots are its)', () => {
+    expect(referenceParts(gauge, 'T1.level')).to.deep.equal({
+      ref: 'T1',
+      member: 'level',
+    });
+    expect(referenceParts(gauge, ' tank_a.full ')).to.deep.equal({
+      ref: 'tank_a',
+      member: 'full',
+    });
+    expect(referenceParts(gauge, 'T1.1')).to.deep.equal({
+      ref: 'T1.1',
+      member: null,
+    });
+    expect(referenceParts(gauge, 'T1')).to.deep.equal({
+      ref: 'T1',
+      member: null,
+    });
+    // without members, all of it is the name
+    const plain: ValueConfig = { type: 'reference', target: { kinds: [] } };
+    expect(referenceParts(plain, 'T1.level')).to.deep.equal({
+      ref: 'T1.level',
+      member: null,
+    });
+  });
+
+  it('names a member its element declares, as an assertion’s member (#137)', () => {
+    expect(valueProblem(gauge, 'T1.level', tanks, definition)).to.equal(null);
+    expect(valueProblem(gauge, 'T1', tanks, definition)).to.equal(null);
+    expect(valueProblem(gauge, 'T1.volume', tanks, definition)).to.equal(
+      'T1 has no member volume (its members: level, full)',
+    );
+    expect(valueProblem(gauge, 'P1.level', tanks, definition)).to.equal(
+      'P1 has no member level (it declares none)',
+    );
+    // its name's problems first: no element, or one of another kind
+    expect(valueProblem(gauge, 'T2.level', tanks, definition)).to.equal(
+      'T2 is not an element of this model',
+    );
+    expect(valueProblem(gauge, 'R1.level', tanks, definition)).to.equal(
+      'R1 is a toy.Room, not a toy.Tank or toy.Pump',
+    );
+    // by its piStar id too
+    expect(
+      valueProblem(
+        gauge,
+        'tank_a.full',
+        { ...tanks, iStarIds: { tank_a: 'T1' } },
+        definition,
+      ),
+    ).to.equal(null);
+  });
+
+  it('reads as the element and its member', () => {
+    const { values } = readProperties(
+      { properties: { 'toy.Gauge': [{ key: 'Of', value: gauge, help: '' }] } },
+      { element: 'toy.Gauge' },
+      { Of: 'T1.level' },
+    );
+    expect(values).to.deep.equal({ Of: { id: 'T1', member: 'level' } });
+  });
+
+  it('is checked on any element a lookup finds (a model’s, not a view’s)', () => {
+    const lookup = (ref: string) =>
+      ref === 'tank_a'
+        ? { kind: 'toy.Tank', properties: { Parts: 'level:number' } }
+        : undefined;
+    expect(
+      referenceMemberProblem(gauge, 'tank_a.level', lookup, definition),
+    ).to.equal(null);
+    expect(
+      referenceMemberProblem(gauge, 'tank_a.full', lookup, definition),
+    ).to.equal('tank_a has no member full (its members: level)');
+    // no member, or no element: nothing to say here (danglingName's)
+    expect(
+      referenceMemberProblem(gauge, 'tank_a', lookup, definition),
+    ).to.equal(null);
+    expect(referenceMemberProblem(gauge, 'x.y', lookup, definition)).to.equal(
+      null,
+    );
   });
 });

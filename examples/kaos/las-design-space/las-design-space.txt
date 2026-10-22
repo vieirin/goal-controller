@@ -1,0 +1,762 @@
+{
+  "actors": [],
+  "orphans": [
+    {
+      "id": "ambulance_intervention",
+      "text": "Achieve [Ambulance Intervention]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": "For every urgent call reporting an incident, there should be an ambulance at the incident scene within 14 minutes after receiving the first call.",
+        "QualityVariable[ResponseTime]": "Time",
+        "SampleSpace[ResponseTime]": "Incident",
+        "QualityDefinition[ResponseTime]": "the duration in seconds between the start of the first call reporting the incident and the arrival of the first ambulance at the incident scene.",
+        "QualityVariable[IncidentDropped]": "Boolean",
+        "SampleSpace[IncidentDropped]": "Incident",
+        "QualityDefinition[IncidentDropped]": "true of reported incidents for which no ambulance ever arrives at the incident scene",
+        "Objective[14MinResponseRate]": "ResponseTime <= 14 * 60",
+        "Modal[14MinResponseRate]": "Max",
+        "Target[14MinResponseRate]": "95%",
+        "Objective[8MinResponseRate]": "ResponseTime <= 8 * 60",
+        "Modal[8MinResponseRate]": "Max",
+        "Target[8MinResponseRate]": "50%"
+      },
+      "x": 1960,
+      "y": 80
+    },
+    {
+      "id": "ambulance_mobilised",
+      "text": "Achieve [Ambulance Mobilised]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": "An ambulance be mobilised to an incident within 3 minutes after the first call and the mobilised ambulance is less than 11 minutes away from the incident.",
+        "QualityVariable[MobilisationTime]": "Time",
+        "QualityDefinition[MobilisationTime]": "the time it takes to mobilize the first ambulance",
+        "QualityVariable[MobilisationDistance]": "Time",
+        "QualityDefinition[MobilisationDistance]": "the time-distance between the mobilised ambulance and the incident location",
+        "QualityVariable[NoAmbulanceMobilised]": "Boolean",
+        "QualityVariable[WrongMobilisationDestination]": "Boolean"
+      },
+      "x": 1800,
+      "y": 180
+    },
+    {
+      "id": "mobilised_ambulance_intervention",
+      "text": "Achieve [Mobilised Ambulance Intervention]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": "Once an ambulance is mobilised for an incident location it will reach that location without delay.",
+        "QualityVariable[AmbulanceDelay]": "Time",
+        "QualityDefinition[AmbulanceDelay]": "the difference between the mobilisation distance and the actual time taken by the ambulance to reach the incident location",
+        "Distribution[AmbulanceDelay]": "normal[0, 120]",
+        "QualityVariable[AmbulanceInterventionFailure]": "Boolean"
+      },
+      "x": 3880,
+      "y": 180
+    },
+    {
+      "id": "incident_form_encoded",
+      "text": "Achieve [Incident Form Encoded]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": "",
+        "QualityVariable[CallTakingTime]": "Time",
+        "QualityDefinition[CallTakingTime]": "the time it takes to fill in the incident form after the start of the first call"
+      },
+      "x": 40,
+      "y": 280
+    },
+    {
+      "id": "ambulance_mobilised_based_on_incident_form",
+      "text": "Achieve [Ambulance Mobilised Based on Incident Form]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": "",
+        "QualityVariable[AmbulanceMobilisationTimeAfterFormEncoding]": "Time",
+        "QualityVariable[DistanceMobilisedAmbulance]": "Time"
+      },
+      "x": 2280,
+      "y": 280
+    },
+    {
+      "id": "ambulance_allocated_based_on_incident_form",
+      "text": "Achieve [Ambulance Allocated Based on Incident Form]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": "",
+        "QualityVariable[AllocationTime]": "Time",
+        "QualityVariable[DistanceAllocatedAmbulance]": "Time",
+        "QualityDefinition[DistanceAllocatedAmbulance]": "the time-distance between the incident location and the ambulance allocated to the incident"
+      },
+      "x": 1960,
+      "y": 380
+    },
+    {
+      "id": "allocated_on_form_and_info",
+      "text": "Achieve [Ambulance Allocated Based on Incident Form and Ambulance Info]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 840,
+      "y": 480
+    },
+    {
+      "id": "accurate_ambulance_info",
+      "text": "Achieve [Accurate Ambulance Info]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": ""
+      },
+      "x": 1480,
+      "y": 480
+    },
+    {
+      "id": "allocated_ambulance_mobilised",
+      "text": "Achieve [Allocated Ambulance Mobilised]",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": "",
+        "QualityVariable[MobilisationCommunicationTime]": "Time"
+      },
+      "x": 3240,
+      "y": 380
+    },
+    {
+      "id": "ambulances_deployed",
+      "text": "Ambulances deployed (RE'11 §IV.D's fifth decision point)",
+      "type": "kaos.BehavioralGoal",
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "",
+        "Stability": "",
+        "Description": "",
+        "QualityVariable[NbAmbulances]": "Number"
+      },
+      "x": 2120,
+      "y": 480
+    },
+    {
+      "id": "option_1_1",
+      "text": "Option 1.1. Current paper-based",
+      "type": "kaos.Agent",
+      "customProperties": {
+        "Type": "",
+        "Description": ""
+      },
+      "x": 200,
+      "y": 280
+    },
+    {
+      "id": "option_1_2",
+      "text": "Option 1.2. Computer-based call taking",
+      "type": "kaos.Agent",
+      "customProperties": {
+        "Type": "",
+        "Description": ""
+      },
+      "x": 360,
+      "y": 280
+    },
+    {
+      "id": "option_1_3",
+      "text": "Option 1.3. Automated Call Location",
+      "type": "kaos.Agent",
+      "customProperties": {
+        "Type": "",
+        "Description": ""
+      },
+      "x": 520,
+      "y": 280
+    },
+    {
+      "id": "option_1_4",
+      "text": "Option 1.4. Computer-based + automated location",
+      "type": "kaos.Agent",
+      "customProperties": {
+        "Type": "",
+        "Description": ""
+      },
+      "x": 680,
+      "y": 280
+    },
+    {
+      "id": "option_2_1",
+      "text": "Option 2.1. Current Radio-based",
+      "type": "kaos.Agent",
+      "customProperties": {
+        "Type": "",
+        "Description": ""
+      },
+      "x": 3400,
+      "y": 380
+    },
+    {
+      "id": "option_2_2",
+      "text": "Option 2.2. MDT- System A",
+      "type": "kaos.Agent",
+      "customProperties": {
+        "Type": "",
+        "Description": ""
+      },
+      "x": 3560,
+      "y": 380
+    },
+    {
+      "id": "option_2_3",
+      "text": "Option 2.3. MDT- System B",
+      "type": "kaos.Agent",
+      "customProperties": {
+        "Type": "",
+        "Description": ""
+      },
+      "x": 3720,
+      "y": 380
+    },
+    {
+      "id": "option_3_1",
+      "text": "Option 3.1. Current radio and paper-based",
+      "type": "kaos.Agent",
+      "customProperties": {
+        "Type": "",
+        "Description": ""
+      },
+      "x": 1640,
+      "y": 480
+    },
+    {
+      "id": "option_3_2",
+      "text": "Option 3.2. Automated Vehicle Location (A)",
+      "type": "kaos.Agent",
+      "customProperties": {
+        "Type": "",
+        "Description": ""
+      },
+      "x": 1800,
+      "y": 480
+    },
+    {
+      "id": "option_3_3",
+      "text": "Option 3.3. Automated Vehicle Location (B)",
+      "type": "kaos.Agent",
+      "customProperties": {
+        "Type": "",
+        "Description": ""
+      },
+      "x": 1960,
+      "y": 480
+    },
+    {
+      "id": "option_4_1",
+      "text": "Option 4.1. Current paper-based",
+      "type": "kaos.Agent",
+      "customProperties": {
+        "Type": "",
+        "Description": ""
+      },
+      "x": 1000,
+      "y": 480
+    },
+    {
+      "id": "option_4_2",
+      "text": "Option 4.2. Interactive Allocation",
+      "type": "kaos.Agent",
+      "customProperties": {
+        "Type": "",
+        "Description": ""
+      },
+      "x": 1160,
+      "y": 480
+    },
+    {
+      "id": "option_4_3",
+      "text": "Option 4.3. Fully Automated Allocation",
+      "type": "kaos.Agent",
+      "customProperties": {
+        "Type": "",
+        "Description": ""
+      },
+      "x": 1320,
+      "y": 480
+    },
+    {
+      "id": "option_5_1",
+      "text": "100 ambulances",
+      "type": "kaos.Agent",
+      "customProperties": {
+        "Type": "",
+        "Description": ""
+      },
+      "x": 2280,
+      "y": 480
+    },
+    {
+      "id": "option_5_2",
+      "text": "120 ambulances",
+      "type": "kaos.Agent",
+      "customProperties": {
+        "Type": "",
+        "Description": ""
+      },
+      "x": 2440,
+      "y": 480
+    },
+    {
+      "id": "option_5_3",
+      "text": "140 ambulances",
+      "type": "kaos.Agent",
+      "customProperties": {
+        "Type": "",
+        "Description": ""
+      },
+      "x": 2600,
+      "y": 480
+    },
+    {
+      "id": "option_5_4",
+      "text": "160 ambulances",
+      "type": "kaos.Agent",
+      "customProperties": {
+        "Type": "",
+        "Description": ""
+      },
+      "x": 2760,
+      "y": 480
+    },
+    {
+      "id": "option_5_5",
+      "text": "180 ambulances",
+      "type": "kaos.Agent",
+      "customProperties": {
+        "Type": "",
+        "Description": ""
+      },
+      "x": 2920,
+      "y": 480
+    },
+    {
+      "id": "option_5_6",
+      "text": "200 ambulances",
+      "type": "kaos.Agent",
+      "customProperties": {
+        "Type": "",
+        "Description": ""
+      },
+      "x": 3080,
+      "y": 480
+    }
+  ],
+  "dependencies": [],
+  "links": [
+    {
+      "hub": {
+        "id": "ambulance_intervention-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": "",
+          "Equation[ResponseTime]": "MobilisationTime + MobilisationDistance + AmbulanceDelay",
+          "BooleanEquation[IncidentDropped]": "NoAmbulanceMobilised | WrongMobilisationDestination | AmbulanceInterventionFailure"
+        },
+        "x": 2458,
+        "y": 138
+      },
+      "starts": [
+        {
+          "id": "ambulance_intervention-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "ambulance_mobilised",
+          "target": "ambulance_intervention-refinement-1"
+        },
+        {
+          "id": "ambulance_intervention-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "mobilised_ambulance_intervention",
+          "target": "ambulance_intervention-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "ambulance_intervention-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "ambulance_intervention-refinement-1",
+        "target": "ambulance_intervention"
+      }
+    },
+    {
+      "hub": {
+        "id": "ambulance_mobilised-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        },
+        "x": 1538,
+        "y": 238
+      },
+      "starts": [
+        {
+          "id": "ambulance_mobilised-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "incident_form_encoded",
+          "target": "ambulance_mobilised-refinement-1"
+        },
+        {
+          "id": "ambulance_mobilised-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "ambulance_mobilised_based_on_incident_form",
+          "target": "ambulance_mobilised-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "ambulance_mobilised-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "ambulance_mobilised-refinement-1",
+        "target": "ambulance_mobilised"
+      }
+    },
+    {
+      "hub": {
+        "id": "ambulance_mobilised_based_on_incident_form-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        },
+        "x": 2498,
+        "y": 338
+      },
+      "starts": [
+        {
+          "id": "ambulance_mobilised_based_on_incident_form-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "ambulance_allocated_based_on_incident_form",
+          "target": "ambulance_mobilised_based_on_incident_form-refinement-1"
+        },
+        {
+          "id": "ambulance_mobilised_based_on_incident_form-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "allocated_ambulance_mobilised",
+          "target": "ambulance_mobilised_based_on_incident_form-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "ambulance_mobilised_based_on_incident_form-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "ambulance_mobilised_based_on_incident_form-refinement-1",
+        "target": "ambulance_mobilised_based_on_incident_form"
+      }
+    },
+    {
+      "hub": {
+        "id": "ambulance_allocated_based_on_incident_form-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        },
+        "x": 1778,
+        "y": 438
+      },
+      "starts": [
+        {
+          "id": "ambulance_allocated_based_on_incident_form-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "allocated_on_form_and_info",
+          "target": "ambulance_allocated_based_on_incident_form-refinement-1"
+        },
+        {
+          "id": "ambulance_allocated_based_on_incident_form-refinement-1-2",
+          "type": "kaos.RefinementLinkStart",
+          "source": "accurate_ambulance_info",
+          "target": "ambulance_allocated_based_on_incident_form-refinement-1"
+        },
+        {
+          "id": "ambulance_allocated_based_on_incident_form-refinement-1-3",
+          "type": "kaos.RefinementLinkStart",
+          "source": "ambulances_deployed",
+          "target": "ambulance_allocated_based_on_incident_form-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "ambulance_allocated_based_on_incident_form-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "ambulance_allocated_based_on_incident_form-refinement-1",
+        "target": "ambulance_allocated_based_on_incident_form"
+      }
+    },
+    {
+      "id": "option_1_1-assigned-incident_form_encoded",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "option_1_1",
+      "target": "incident_form_encoded",
+      "customProperties": {
+        "SysRef": "1.1",
+        "Distribution[CallTakingTime]": "exponential[60]"
+      }
+    },
+    {
+      "id": "option_1_2-assigned-incident_form_encoded",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "option_1_2",
+      "target": "incident_form_encoded",
+      "customProperties": {
+        "SysRef": "1.2",
+        "Distribution[CallTakingTime]": "exponential[40]"
+      }
+    },
+    {
+      "id": "option_1_3-assigned-incident_form_encoded",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "option_1_3",
+      "target": "incident_form_encoded",
+      "customProperties": {
+        "SysRef": "1.3",
+        "Distribution[CallTakingTime]": "exponential[45]"
+      }
+    },
+    {
+      "id": "option_1_4-assigned-incident_form_encoded",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "option_1_4",
+      "target": "incident_form_encoded",
+      "customProperties": {
+        "SysRef": "1.4",
+        "Distribution[CallTakingTime]": "exponential[30]"
+      }
+    },
+    {
+      "id": "option_4_1-assigned-allocated_on_form_and_info",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "option_4_1",
+      "target": "allocated_on_form_and_info",
+      "customProperties": {
+        "SysRef": "4.1",
+        "Distribution[AllocationTime]": "exponential[60]"
+      }
+    },
+    {
+      "id": "option_4_2-assigned-allocated_on_form_and_info",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "option_4_2",
+      "target": "allocated_on_form_and_info",
+      "customProperties": {
+        "SysRef": "4.2"
+      }
+    },
+    {
+      "id": "option_4_3-assigned-allocated_on_form_and_info",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "option_4_3",
+      "target": "allocated_on_form_and_info",
+      "customProperties": {
+        "SysRef": "4.3"
+      }
+    },
+    {
+      "id": "option_3_1-assigned-accurate_ambulance_info",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "option_3_1",
+      "target": "accurate_ambulance_info",
+      "customProperties": {
+        "SysRef": "3.1"
+      }
+    },
+    {
+      "id": "option_3_2-assigned-accurate_ambulance_info",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "option_3_2",
+      "target": "accurate_ambulance_info",
+      "customProperties": {
+        "SysRef": "3.2"
+      }
+    },
+    {
+      "id": "option_3_3-assigned-accurate_ambulance_info",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "option_3_3",
+      "target": "accurate_ambulance_info",
+      "customProperties": {
+        "SysRef": "3.3"
+      }
+    },
+    {
+      "id": "option_2_1-assigned-allocated_ambulance_mobilised",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "option_2_1",
+      "target": "allocated_ambulance_mobilised",
+      "customProperties": {
+        "SysRef": "2.1",
+        "Distribution[MobilisationCommunicationTime]": "exponential[60]"
+      }
+    },
+    {
+      "id": "option_2_2-assigned-allocated_ambulance_mobilised",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "option_2_2",
+      "target": "allocated_ambulance_mobilised",
+      "customProperties": {
+        "SysRef": "2.2"
+      }
+    },
+    {
+      "id": "option_2_3-assigned-allocated_ambulance_mobilised",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "option_2_3",
+      "target": "allocated_ambulance_mobilised",
+      "customProperties": {
+        "SysRef": "2.3"
+      }
+    },
+    {
+      "id": "option_5_1-assigned-ambulances_deployed",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "option_5_1",
+      "target": "ambulances_deployed",
+      "customProperties": {
+        "SysRef": "5.1",
+        "Distribution[NbAmbulances]": "100"
+      }
+    },
+    {
+      "id": "option_5_2-assigned-ambulances_deployed",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "option_5_2",
+      "target": "ambulances_deployed",
+      "customProperties": {
+        "SysRef": "5.2",
+        "Distribution[NbAmbulances]": "120"
+      }
+    },
+    {
+      "id": "option_5_3-assigned-ambulances_deployed",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "option_5_3",
+      "target": "ambulances_deployed",
+      "customProperties": {
+        "SysRef": "5.3",
+        "Distribution[NbAmbulances]": "140"
+      }
+    },
+    {
+      "id": "option_5_4-assigned-ambulances_deployed",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "option_5_4",
+      "target": "ambulances_deployed",
+      "customProperties": {
+        "SysRef": "5.4",
+        "Distribution[NbAmbulances]": "160"
+      }
+    },
+    {
+      "id": "option_5_5-assigned-ambulances_deployed",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "option_5_5",
+      "target": "ambulances_deployed",
+      "customProperties": {
+        "SysRef": "5.5",
+        "Distribution[NbAmbulances]": "180"
+      }
+    },
+    {
+      "id": "option_5_6-assigned-ambulances_deployed",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "option_5_6",
+      "target": "ambulances_deployed",
+      "customProperties": {
+        "SysRef": "5.6",
+        "Distribution[NbAmbulances]": "200"
+      }
+    }
+  ],
+  "display": {},
+  "tool": "dsm3-goals",
+  "metamodelVersion": "1.0",
+  "diagram": {
+    "width": 4175,
+    "height": 616,
+    "name": "London Ambulance design space (RE'11)",
+    "customProperties": {
+      "Description": ""
+    }
+  }
+}

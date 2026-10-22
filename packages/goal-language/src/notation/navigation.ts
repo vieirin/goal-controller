@@ -9,12 +9,12 @@ import {
   actorPropertiesOf,
   linkLinesOf,
   linkPropertiesOf,
-  propertyOf,
   valueOf,
   type AnyDialect,
   type DefinitionContext,
   type ValueConfig,
 } from '@goal-controller/dialect';
+import { propertyOf } from './properties.js';
 import { highlightValue } from './highlight.js';
 import { ACTOR_LINE_KEY, actorNames, readActorLine } from './actorLine.js';
 import { ownerOf } from './completion.js';
@@ -26,12 +26,12 @@ import {
 } from './linkLine.js';
 import { isEnabled } from './reading.js';
 import {
-  argumentsText,
   fieldPropertyOf,
   MEMBER_REF,
   membersOf,
   memberTypeText,
 } from './values.js';
+import { argumentsText } from '../text.js';
 import { readLine, type ElementReading, type Span } from './lines.js';
 
 type Definition = Pick<

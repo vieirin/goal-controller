@@ -17,9 +17,38 @@ export const KAOS_DECLARATIONS = {
   domainhypothesis: 'kaos.DomainProperty',
   domhyp: 'kaos.DomainProperty', // KAOSTools short name (#344)
   agent: 'kaos.Agent',
+  // the operation and object models (goal-controller#194): KAOSTools'
+  // entities (or objects), associations (or relations), predicates and
+  // types (`EntityDeclareParser.cs` …), and our operations and events
+  // (KAOSTools has none)
+  operation: 'kaos.Operation',
+  entity: 'kaos.Entity',
+  object: 'kaos.Entity',
+  association: 'kaos.Association',
+  relation: 'kaos.Association',
+  event: 'kaos.Event',
+  predicate: 'kaos.Predicate',
+  type: 'kaos.Type',
 } as const;
 
 export type KaosDeclarationKind = keyof typeof KAOS_DECLARATIONS;
+
+/** The declarations of the operation and object models (goal-controller#194). */
+export const KAOS_OBJECT_DECLARATIONS = [
+  'operation',
+  'entity',
+  'object',
+  'association',
+  'relation',
+  'event',
+  'predicate',
+  'type',
+] as const satisfies readonly KaosDeclarationKind[];
+
+export const isObjectDeclaration = (
+  kind: KaosDeclarationKind,
+): kind is (typeof KAOS_OBJECT_DECLARATIONS)[number] =>
+  (KAOS_OBJECT_DECLARATIONS as readonly string[]).includes(kind);
 
 export const isKaosDeclaration = (kind: string): kind is KaosDeclarationKind =>
   Object.hasOwn(KAOS_DECLARATIONS, kind);
@@ -41,6 +70,33 @@ export const KAOS_TYPES = {
   obstruction: 'kaos.ObstructionLink',
   resolution: 'kaos.ResolutionLink',
   assignment: 'kaos.ResponsibilityAssignment',
+  conflict: 'kaos.Conflict',
+  // the operation and object models' (goal-controller#194)
+  operation: 'kaos.Operation',
+  entity: 'kaos.Entity',
+  association: 'kaos.Association',
+  event: 'kaos.Event',
+  predicate: 'kaos.Predicate',
+  givenType: 'kaos.Type',
+  operationalisation: 'kaos.OperationalisationLink',
+  performance: 'kaos.PerformanceLink',
+  monitoring: 'kaos.MonitoringLink',
+  control: 'kaos.ControlLink',
+  cause: 'kaos.CauseLink',
+  input: 'kaos.InputLink',
+  output: 'kaos.OutputLink',
+  associationLink: 'kaos.AssociationLink',
+} as const;
+
+/**
+ * An operation's required conditions for a requirement (FSE'02 §2.1.4), by
+ * the attribute that writes each (`reqtrig [g] …`, ours: KAOSTools has no
+ * operations)
+ */
+export const REQUIRED_CONDITIONS = {
+  reqpre: 'ReqPre',
+  reqtrig: 'ReqTrig',
+  reqpost: 'ReqPost',
 } as const;
 
 /**

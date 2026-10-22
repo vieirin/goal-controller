@@ -67,7 +67,13 @@ Declaration:
     ('=' initialValue=(INTEGER | IDENT))? '}';
 
 PropertyLine:
-    key=KEY value=VALUE?;
+    key=PropertyKey value=VALUE?;
+
+// a property line's key: a property's (`Probability`), or a keyed property's
+// for one name of its target (`Probability[e1]`, goal-controller#354), what
+// the dialect's `keyed` says it names; read on its own too (a key on disk)
+PropertyKey:
+    key=KEY ('[' name=KEYED_NAME ']')?;
 
 // ---------------------------------------------------------------------------
 // The RT notation: the catalog's operators, with a fixed precedence (tightest
@@ -224,7 +230,7 @@ Reach:
     REACH number=NumberValue REACH bool=BoolValue REACH text=TextValue
     REACH enum=EnumValue REACH refList=RefListValue REACH pairList=PairListValue
     REACH ocl=OclValue REACH expression=ExpressionValue
-    REACH nameList=NameListValue;
+    REACH nameList=NameListValue REACH propertyKey=PropertyKey;
 
 // ---------------------------------------------------------------------------
 // The vocabulary (GoalLexer makes the tokens)
@@ -243,6 +249,8 @@ terminal TEXT: /[^\s<>{}=](?:[^\r\n<>{}=]*[^\s<>{}=])?/;
 // a declaration's words, a pair's name
 terminal IDENT: /[A-Za-z_][A-Za-z0-9_]*/;
 terminal KEY: /[A-Za-z][A-Za-z0-9_]*/;
+// a keyed key's name (`e1`, `8MinRespRate`, `G1.2`): anything but spaces and brackets
+terminal KEYED_NAME: /[^\s\[\]]+/;
 // a property line's value, or a text/enum value: the rest of the line, trimmed
 terminal VALUE: /[^\s](?:[^\r\n]*[^\s])?/;
 // the assertion language

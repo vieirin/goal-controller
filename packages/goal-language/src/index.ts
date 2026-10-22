@@ -2,6 +2,7 @@
 // catalog is also `@goal-controller/goal-language/catalog`, without the parser.
 export * from './catalog.js';
 export * from './parse.js';
+export * from './ltl/index.js';
 // the value types and their members (goal-controller#188)
 export {
   asAssertion,

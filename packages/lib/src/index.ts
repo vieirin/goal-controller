@@ -236,6 +236,22 @@ export {
   writeKaos,
   type KaosReadOptions,
 } from './importers/kaos';
+// CAIRIS's model files (goal-controller#192): one KAOS model per environment
+export {
+  CAIRIS_ENGINE,
+  CAIRIS_ENVIRONMENT_KEY,
+  CAIRIS_UNSUPPORTED_KEY,
+  cairisEnvironmentOf,
+  cairisObstacleProbabilities,
+  environmentSlug as cairisEnvironmentSlug,
+  importCairis,
+  isCairisModel,
+  readCairis,
+  readCairisDocument,
+  type CairisDiagramProperties,
+  type CairisDocument,
+  type CairisEnvironmentModel,
+} from './importers/cairis';
 // Tropos4AS (goal-controller#136): its definition, kinds, checks, scenarios,
 // the goal lifecycle of AAMAS 2009 as an analysis, and TAOM4E's importer
 export {
@@ -357,7 +373,23 @@ export {
 } from './engines/edgeFamily';
 export { istar4RationalAgents } from './dialects/pistarExt';
 // the frameworks' dialects (goal-controller#171)
-export { kaos } from './dialects/kaos';
+export {
+  kaos,
+  kaosOperations,
+  KAOS_OPERATION_KINDS,
+  KAOS_OPERATION_LINKS,
+  OBJECT_MODEL_SYMBOLS,
+} from './dialects/kaos';
+// vocabulary profiles of the KAOS dialects (goal-controller#192): CAIRIS's
+export {
+  CAIRIS_VOCABULARIES,
+  dialectForModel,
+  vocabularyProfileOf,
+  withVocabularyProfile,
+  VOCABULARY_KEY,
+  VOCABULARY_PROFILES,
+  type VocabularyProfile,
+} from './dialects/kaos/profiles';
 export { nfr } from './dialects/nfr';
 // One object per engine (goal-controller#124): what the workbench registers
 export * from './engines/engine';
@@ -380,6 +412,22 @@ export {
   readKaosModel,
   type KaosdocGoalModel,
 } from './engines/kaosdoc';
+// KAOS's operations as FSP for LTSA, and their completeness (goal-controller#209)
+export {
+  completenessReport,
+  kaosltsEngine,
+  kaosltsEngineMapper,
+  kaosltsGoalModel,
+  kaosltsOutput,
+  ltsModel,
+  operationalisationCompleteness,
+  operationalisationProblems,
+  operationModelOf,
+  type CompletenessVerdict,
+  type KaosltsGoalModel,
+  type LtsModel,
+  type OperationModel,
+} from './engines/kaoslts';
 // and the NFR Framework's label propagation
 export {
   nfrprop,
@@ -424,8 +472,8 @@ export {
   type Weighting,
 } from './engines/kaosexpert';
 export { kaosexpertEngine } from './engines/kaosexpert/engine';
-// countermeasures (goal-controller#191 part A): kaosres's dialect and the
-// transformations; the selection engine is part B's
+// countermeasures (goal-controller#191): kaosres's dialect, the
+// transformations (part A), the selection and the engine (part B)
 export {
   applyCountermeasures,
   applyCountermeasuresToView,
@@ -435,8 +483,16 @@ export {
   integrationOf,
   kaosModelOfView,
   kaosres,
+  kaosresAnalyses,
+  kaosresAnalysisModel,
+  kaosresEngineMapper,
+  kaosresOptions,
   kaosresView,
   obstructs,
+  runSelection,
+  selectCountermeasures,
+  selectionOptionsOf,
+  DEFAULT_SELECTION_OPTIONS,
   STRATEGY_INTEGRATIONS,
   type AppliedCountermeasure,
   type ApplyOptions,
@@ -448,7 +504,44 @@ export {
   type KaosModel,
   type ResolutionScope,
   type ResolutionStrategy,
+  type CountermeasureGoal,
+  type Selection,
+  type SelectionOptions,
+  type SelectionResult,
+  type SelectionSemantics,
 } from './engines/kaosres';
+export { kaosresEngine } from './engines/kaosres/engine';
+// quantitative goals (goal-controller#193): kaossim's dialect, its model,
+// designs, simulation and design-space search, and the engine
+export {
+  DEFAULT_SIM_OPTIONS,
+  enumerateDesigns,
+  exhaustiveSearch,
+  kaossim,
+  kaossimAnalyses,
+  kaossimAnalysisModel,
+  kaossimEngineMapper,
+  kaossimOptions,
+  nsga2Search,
+  paretoFront,
+  quantitativeModel,
+  readDesigns,
+  runDesignSpace,
+  runSimulation,
+  searchDesigns,
+  simOptionsOf,
+  simulateDesign,
+  type Design,
+  type DesignChoice,
+  type DesignRun,
+  type ObjectiveFunction,
+  type ObjectiveValue,
+  type QualityVariable,
+  type QuantitativeModel,
+  type SearchOptions,
+  type SearchResult,
+} from './engines/kaossim';
+export { kaossimEngine } from './engines/kaossim/engine';
 // the numeric back-end (goal-controller#190): distributions, BDDs, a seeded generator
 export { Bdd } from './numeric/bdd';
 export {
@@ -460,6 +553,7 @@ export {
   type Continuous,
 } from './numeric/distributions';
 export { seededRandom, type Random } from './numeric/random';
+export { normalCdf, normalQuantile } from './numeric/special';
 
 // Logger
 export type { LoggerReport } from './engines/edge/logger/logger';

@@ -1,0 +1,856 @@
+{
+  "actors": [],
+  "orphans": [
+    {
+      "id": "anonymisation_guidelines",
+      "text": "Anonymisation guidelines",
+      "type": "kaos.BehavioralGoal",
+      "x": 40,
+      "y": 80,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Interview data",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "Anonymisation guidelines shall comply with the MRC guidelines for secure data handlinig and anonymisation.",
+        "RequirementType": "Functional",
+        "RequirementPriority": "1",
+        "Label": "1",
+        "Reference": "Clinical data",
+        "ReferenceType": "asset",
+        "Rationale": "None"
+      }
+    },
+    {
+      "id": "anonymised_data",
+      "text": "Anonymised data",
+      "type": "kaos.BehavioralGoal",
+      "x": 200,
+      "y": 80,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Interview data",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "Anonymised clinical data shall not contain: patient name, date of birth, hospital identifier, and doctor identifier.",
+        "RequirementType": "Security",
+        "RequirementPriority": "1",
+        "Label": "2",
+        "Reference": "Clinical data",
+        "ReferenceType": "asset",
+        "Rationale": "None"
+      }
+    },
+    {
+      "id": "truststores",
+      "text": "Truststores",
+      "type": "kaos.BehavioralGoal",
+      "x": 360,
+      "y": 80,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Interview data",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "Java Truststores shall be used for server-side NeuroGrid certificate verification.",
+        "RequirementType": "Functional",
+        "RequirementPriority": "2",
+        "Label": "1",
+        "Reference": "User certificate",
+        "ReferenceType": "asset",
+        "Rationale": "None"
+      }
+    },
+    {
+      "id": "certificate_storage",
+      "text": "Certificate storage",
+      "type": "kaos.BehavioralGoal",
+      "x": 520,
+      "y": 80,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Certificate replay Misuse Case",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "NeuroGrid digital certificates shall not be stored on a machine accessible from the public internet.",
+        "RequirementType": "Functional",
+        "RequirementPriority": "1",
+        "Label": "2",
+        "Reference": "User certificate",
+        "ReferenceType": "asset",
+        "Rationale": "Hacking a weakly defined machine can give an attacker access to NeuroGrid and any authorised data sets."
+      }
+    },
+    {
+      "id": "incorrect_access_response",
+      "text": "Incorrect access response",
+      "type": "kaos.BehavioralGoal",
+      "x": 680,
+      "y": 80,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Interview data",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "Data requests sent from an account with incorrect access permissions shall be sent a 'no data received' message.",
+        "RequirementType": "Security",
+        "RequirementPriority": "1",
+        "Label": "3",
+        "Reference": "User certificate",
+        "ReferenceType": "asset",
+        "Rationale": "Do not want attackers to know if they have valid access permissions or not."
+      }
+    },
+    {
+      "id": "user_certificate_addressability",
+      "text": "User certificate addressability",
+      "type": "kaos.BehavioralGoal",
+      "x": 840,
+      "y": 80,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Goal Model",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "Attempts to login to the NeuroGrid portal with credentials not possible from any other machine beyond that the user certificate was installed for.",
+        "Stability": "",
+        "Description": "User certificates shall be extended such that these are only usable from designated network addresses.",
+        "RequirementType": "Functional",
+        "RequirementPriority": "1",
+        "Label": "4",
+        "Reference": "User certificate",
+        "ReferenceType": "asset",
+        "Rationale": "Provide defence in depth if a root certificate is compromised."
+      }
+    },
+    {
+      "id": "dataset_policy",
+      "text": "Dataset policy",
+      "type": "kaos.BehavioralGoal",
+      "x": 1000,
+      "y": 80,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Interview data",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "Access to a NeuroGrid data-set shall be governed by an access control policy.",
+        "RequirementType": "Functional",
+        "RequirementPriority": "1",
+        "Label": "1",
+        "Reference": "Access Control Policy",
+        "ReferenceType": "asset",
+        "Rationale": "Need to determine which users can do what."
+      }
+    },
+    {
+      "id": "access_sponsor",
+      "text": "Access sponsor",
+      "type": "kaos.BehavioralGoal",
+      "x": 1160,
+      "y": 80,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Interview data",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "Requests for NeuroGrid access shall be authorised by the nominated clinical exemplar sponsor.",
+        "RequirementType": "Operational",
+        "RequirementPriority": "1",
+        "Label": "2",
+        "Reference": "Access Control Policy",
+        "ReferenceType": "asset",
+        "Rationale": "None"
+      }
+    },
+    {
+      "id": "sponsor_clearance",
+      "text": "Sponsor clearance",
+      "type": "kaos.BehavioralGoal",
+      "x": 1320,
+      "y": 80,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Background material",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "Clearance shall be granted by the exemplar sponsor before a user is provided access to a NeuroGrid data set.",
+        "RequirementType": "Security",
+        "RequirementPriority": "1",
+        "Label": "3",
+        "Reference": "Access Control Policy",
+        "ReferenceType": "asset",
+        "Rationale": "None"
+      }
+    },
+    {
+      "id": "guest_workflow_submission",
+      "text": "Guest workflow submission",
+      "type": "kaos.BehavioralGoal",
+      "x": 1480,
+      "y": 80,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Interview data",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "Guest users shall not be able to submit NeuroGrid workflows.",
+        "RequirementType": "Functional",
+        "RequirementPriority": "1",
+        "Label": "2",
+        "Reference": "Guest Certificate",
+        "ReferenceType": "asset",
+        "Rationale": "None"
+      }
+    },
+    {
+      "id": "guest_node_restriction",
+      "text": "Guest node restriction",
+      "type": "kaos.BehavioralGoal",
+      "x": 1640,
+      "y": 80,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Interview data",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "Guests Certificate may be restricted to data nodes where access has been explicitly granted.",
+        "RequirementType": "Security",
+        "RequirementPriority": "1",
+        "Label": "1",
+        "Reference": "Guest Certificate",
+        "ReferenceType": "asset",
+        "Rationale": "None"
+      }
+    },
+    {
+      "id": "webdav_client",
+      "text": "WebDAV client",
+      "type": "kaos.BehavioralGoal",
+      "x": 1800,
+      "y": 80,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Interview data",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "NeuroGrid data folders shall be accessible to authorised users via a WebDAV client.",
+        "RequirementType": "Functional",
+        "RequirementPriority": "1",
+        "Label": "1",
+        "Reference": "WebDAV Collection",
+        "ReferenceType": "asset",
+        "Rationale": "None"
+      }
+    },
+    {
+      "id": "webdav_folder_retention",
+      "text": "WebDAV folder retention",
+      "type": "kaos.BehavioralGoal",
+      "x": 1960,
+      "y": 80,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Interview data",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "WebDAV folders shall be retained on a NeuroGrid data node for 24 hours after its initial creation.",
+        "RequirementType": "Functional",
+        "RequirementPriority": "1",
+        "Label": "4",
+        "Reference": "WebDAV Collection",
+        "ReferenceType": "asset",
+        "Rationale": "None"
+      }
+    },
+    {
+      "id": "folder_visibility",
+      "text": "Folder visibility",
+      "type": "kaos.BehavioralGoal",
+      "x": 2120,
+      "y": 80,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Interview data",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "WebDAV folder names shall be viewable from any WebDAV client.",
+        "RequirementType": "Portability",
+        "RequirementPriority": "1",
+        "Label": "2",
+        "Reference": "WebDAV Collection",
+        "ReferenceType": "asset",
+        "Rationale": "None"
+      }
+    },
+    {
+      "id": "folder_permissions",
+      "text": "Folder permissions",
+      "type": "kaos.BehavioralGoal",
+      "x": 2280,
+      "y": 80,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Interview data",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "WebDAV folders viewed from an account without correct access permissions shall be shown an empty folder.",
+        "RequirementType": "Security",
+        "RequirementPriority": "1",
+        "Label": "3",
+        "Reference": "WebDAV Collection",
+        "ReferenceType": "asset",
+        "Rationale": "Do not want attackers to know if they have valid access permissions or not."
+      }
+    },
+    {
+      "id": "meta_data_query",
+      "text": "Meta-data query",
+      "type": "kaos.BehavioralGoal",
+      "x": 2440,
+      "y": 80,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Interview data",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "Meta-data query results shall be directly downloadable or stored locally on the NeuroGrid node.",
+        "RequirementType": "Functional",
+        "RequirementPriority": "2",
+        "Label": "1",
+        "Reference": "Grid meta-data",
+        "ReferenceType": "asset",
+        "Rationale": "None"
+      }
+    },
+    {
+      "id": "https_data_transfer",
+      "text": "HTTPS data transfer",
+      "type": "kaos.BehavioralGoal",
+      "x": 2600,
+      "y": 80,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Interview data",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "Each NeuroGrid data request from the NeuroGrid portal shall be transmitted using https.",
+        "RequirementType": "Functional",
+        "RequirementPriority": "1",
+        "Label": "1",
+        "Reference": "Portal",
+        "ReferenceType": "asset",
+        "Rationale": "None"
+      }
+    },
+    {
+      "id": "encrypted_data_transfer",
+      "text": "Encrypted data transfer",
+      "type": "kaos.BehavioralGoal",
+      "x": 2760,
+      "y": 80,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Validation session.",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "If any given packet is sniffed, no plaintext data is read.",
+        "Stability": "",
+        "Description": "All data transmission within NeuroGrid shall be encrypted and signed.",
+        "RequirementType": "Functional",
+        "RequirementPriority": "1",
+        "Label": "2",
+        "Reference": "Portal",
+        "ReferenceType": "asset",
+        "Rationale": "Safeguard confidentiality and integrity."
+      }
+    },
+    {
+      "id": "completion_email",
+      "text": "Completion email",
+      "type": "kaos.BehavioralGoal",
+      "x": 3080,
+      "y": 80,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Goal Model",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "Email acknowledgement received after a simple job completes.",
+        "Stability": "",
+        "Description": "When data analysis is complete, an email shall be sent to the workflow submitter informing him of the result.",
+        "RequirementType": "Functional",
+        "RequirementPriority": "3",
+        "Label": "1",
+        "Reference": "Workflow",
+        "ReferenceType": "asset",
+        "Rationale": "Useful reminder for submitters."
+      }
+    },
+    {
+      "id": "api_data_transfer",
+      "text": "API data transfer",
+      "type": "kaos.BehavioralGoal",
+      "x": 3240,
+      "y": 80,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Interview data",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "Data shall be uploadable or downloadable via a Java API",
+        "RequirementType": "Functional",
+        "RequirementPriority": "1",
+        "Label": "2",
+        "Reference": "Workflow",
+        "ReferenceType": "asset",
+        "Rationale": "None"
+      }
+    },
+    {
+      "id": "infrastructure_knowledge",
+      "text": "Infrastructure knowledge",
+      "type": "kaos.DomainProperty",
+      "x": 3400,
+      "y": 80,
+      "customProperties": {
+        "Kind": "Hypothesis",
+        "Description": "NeuroGrid API users have a working knowledge of the NeuroGrid infrastructure, and the security mechanisms used by it.",
+        "Source": "Shamal Faily"
+      }
+    },
+    {
+      "id": "physical_infrastructure_security",
+      "text": "Physical infrastructure security",
+      "type": "kaos.DomainProperty",
+      "x": 3560,
+      "y": 80,
+      "customProperties": {
+        "Kind": "Hypothesis",
+        "Description": "The NeuroGrid server nodes are physically secure.",
+        "Source": "Shamal Faily"
+      }
+    },
+    {
+      "id": "non_federated_access_control",
+      "text": "Non-federated access control",
+      "type": "kaos.DomainProperty",
+      "x": 3720,
+      "y": 80,
+      "customProperties": {
+        "Kind": "Invariant",
+        "Description": "Access Control Policies are non-federated, although they appear to be.",
+        "Source": "Shamal Faily"
+      }
+    },
+    {
+      "id": "inter_process_data_transmission",
+      "text": "Inter-process data transmission",
+      "type": "kaos.Obstacle",
+      "x": 3880,
+      "y": 80,
+      "customProperties": {
+        "Description": "Workflow transfers data to a hand-off process or workflow",
+        "FormalSpec": "",
+        "Category": "Vulnerability",
+        "Source": "Shamal Faily"
+      }
+    },
+    {
+      "id": "workflow_workflow_data_transfer",
+      "text": "Workflow-Workflow data transfer",
+      "type": "kaos.Obstacle",
+      "x": 3880,
+      "y": 180,
+      "customProperties": {
+        "Description": "Workflow exchanges data with another workflow.",
+        "FormalSpec": "",
+        "Category": "Confidentiality_Threat",
+        "Source": "Shamal Faily"
+      }
+    },
+    {
+      "id": "workflow_ipc",
+      "text": "Workflow IPC",
+      "type": "kaos.Obstacle",
+      "x": 4040,
+      "y": 180,
+      "customProperties": {
+        "Description": "Workflow exchanges data with other machine or network processes.",
+        "FormalSpec": "",
+        "Category": "Integrity_Threat",
+        "Source": "Shamal Faily"
+      }
+    },
+    {
+      "id": "guest_workflow_submissions",
+      "text": "Guest workflow submissions",
+      "type": "kaos.Obstacle",
+      "x": 1480,
+      "y": 180,
+      "customProperties": {
+        "Description": "Guest users are able to submit workflows to NeuroGrid for processing.",
+        "FormalSpec": "",
+        "Category": "Accountability_Threat",
+        "Source": "Shamal Faily"
+      }
+    },
+    {
+      "id": "insecure_internal_data_transmission",
+      "text": "Insecure internal data transmission",
+      "type": "kaos.Obstacle",
+      "x": 2760,
+      "y": 180,
+      "customProperties": {
+        "Description": "Data transmission within NeuroGrid is not encrypted or signed.",
+        "FormalSpec": "",
+        "Category": "Integrity_Threat",
+        "Source": "Shamal Faily"
+      }
+    },
+    {
+      "id": "unencrypted_data_transmission",
+      "text": "Unencrypted data transmission",
+      "type": "kaos.Obstacle",
+      "x": 2760,
+      "y": 280,
+      "customProperties": {
+        "Description": "Data transmission within NeuroGrid is not encrypted.",
+        "FormalSpec": "",
+        "Category": "Confidentiality_Threat",
+        "Source": "Shamal Faily"
+      }
+    },
+    {
+      "id": "unsigned_data_transmission",
+      "text": "Unsigned data transmission",
+      "type": "kaos.Obstacle",
+      "x": 2920,
+      "y": 280,
+      "customProperties": {
+        "Description": "Data transmission within NeuroGrid is unsigned.",
+        "FormalSpec": "",
+        "Category": "Integrity_Threat",
+        "Source": "Shamal Faily"
+      }
+    },
+    {
+      "id": "data_consumer",
+      "text": "Data Consumer",
+      "type": "kaos.Agent",
+      "x": 4200,
+      "y": 80,
+      "customProperties": {
+        "Description": "Uses NeuroGrid data",
+        "RoleType": "Stakeholder",
+        "ShortCode": "DCON"
+      }
+    },
+    {
+      "id": "data_provider",
+      "text": "Data Provider",
+      "type": "kaos.Agent",
+      "x": 4360,
+      "y": 80,
+      "customProperties": {
+        "Description": "Supplies data to NeuroGrid",
+        "RoleType": "Stakeholder",
+        "ShortCode": "DPRO"
+      }
+    },
+    {
+      "id": "social_engineer",
+      "text": "Social Engineer",
+      "type": "kaos.Agent",
+      "x": 4520,
+      "y": 80,
+      "customProperties": {
+        "Description": "Uses human frailty to access computational resources.",
+        "RoleType": "Stakeholder",
+        "ShortCode": "SENG"
+      }
+    },
+    {
+      "id": "certificate_authority",
+      "text": "Certificate Authority",
+      "type": "kaos.Agent",
+      "x": 4680,
+      "y": 80,
+      "customProperties": {
+        "Description": "Authorises access requests for NeuroGrid and responsible for day-to-day administration.",
+        "RoleType": "Stakeholder",
+        "ShortCode": "CA"
+      }
+    },
+    {
+      "id": "hacker",
+      "text": "Hacker",
+      "type": "kaos.Agent",
+      "x": 4840,
+      "y": 80,
+      "customProperties": {
+        "Description": "Professional or semi-professional hacker",
+        "RoleType": "Attacker",
+        "ShortCode": "AKR"
+      }
+    },
+    {
+      "id": "researcher",
+      "text": "Researcher",
+      "type": "kaos.Agent",
+      "x": 5000,
+      "y": 80,
+      "customProperties": {
+        "Description": "Uses and supplies data to NeuroGrid",
+        "RoleType": "Stakeholder",
+        "ShortCode": "RCHR"
+      }
+    },
+    {
+      "id": "developer",
+      "text": "Developer",
+      "type": "kaos.Agent",
+      "x": 5160,
+      "y": 80,
+      "customProperties": {
+        "Description": "Develops NeuroGrid applications based on the provided NeuroGrid API and services.",
+        "RoleType": "Stakeholder",
+        "ShortCode": "DEV"
+      }
+    },
+    {
+      "id": "sysadmin",
+      "text": "Sysadmin",
+      "type": "kaos.Agent",
+      "x": 5320,
+      "y": 80,
+      "customProperties": {
+        "Description": "Responsible for day-to-day administration of NeuroGrid, including authorisation of access requests.",
+        "RoleType": "Stakeholder",
+        "ShortCode": "SYSADMIN"
+      }
+    }
+  ],
+  "dependencies": [],
+  "links": [
+    {
+      "id": "insecure_internal_data_transmission-obstructs-encrypted_data_transfer",
+      "type": "kaos.ObstructionLink",
+      "source": "insecure_internal_data_transmission",
+      "target": "encrypted_data_transfer",
+      "customProperties": {
+        "Rationale": "None."
+      }
+    },
+    {
+      "id": "guest_workflow_submissions-obstructs-guest_workflow_submission",
+      "type": "kaos.ObstructionLink",
+      "source": "guest_workflow_submissions",
+      "target": "guest_workflow_submission",
+      "customProperties": {
+        "Rationale": "None"
+      }
+    },
+    {
+      "hub": {
+        "id": "inter_process_data_transmission-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 3938,
+        "y": 138
+      },
+      "starts": [
+        {
+          "id": "inter_process_data_transmission-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "workflow_workflow_data_transfer",
+          "target": "inter_process_data_transmission-refinement-1",
+          "customProperties": {
+            "Rationale": "None"
+          }
+        }
+      ],
+      "end": {
+        "id": "inter_process_data_transmission-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "inter_process_data_transmission-refinement-1",
+        "target": "inter_process_data_transmission"
+      }
+    },
+    {
+      "hub": {
+        "id": "inter_process_data_transmission-refinement-2",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 4018,
+        "y": 138
+      },
+      "starts": [
+        {
+          "id": "inter_process_data_transmission-refinement-2-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "workflow_ipc",
+          "target": "inter_process_data_transmission-refinement-2",
+          "customProperties": {
+            "Rationale": "None"
+          }
+        }
+      ],
+      "end": {
+        "id": "inter_process_data_transmission-refinement-2-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "inter_process_data_transmission-refinement-2",
+        "target": "inter_process_data_transmission"
+      }
+    },
+    {
+      "hub": {
+        "id": "insecure_internal_data_transmission-refinement-1",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 2818,
+        "y": 238
+      },
+      "starts": [
+        {
+          "id": "insecure_internal_data_transmission-refinement-1-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "unencrypted_data_transmission",
+          "target": "insecure_internal_data_transmission-refinement-1",
+          "customProperties": {
+            "Rationale": "None"
+          }
+        }
+      ],
+      "end": {
+        "id": "insecure_internal_data_transmission-refinement-1-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "insecure_internal_data_transmission-refinement-1",
+        "target": "insecure_internal_data_transmission"
+      }
+    },
+    {
+      "hub": {
+        "id": "insecure_internal_data_transmission-refinement-2",
+        "type": "kaos.ObstacleRefinementLinkHub",
+        "x": 2898,
+        "y": 238
+      },
+      "starts": [
+        {
+          "id": "insecure_internal_data_transmission-refinement-2-1",
+          "type": "kaos.ObstacleRefinementLinkStart",
+          "source": "unsigned_data_transmission",
+          "target": "insecure_internal_data_transmission-refinement-2",
+          "customProperties": {
+            "Rationale": "None"
+          }
+        }
+      ],
+      "end": {
+        "id": "insecure_internal_data_transmission-refinement-2-end",
+        "type": "kaos.ObstacleRefinementLinkEnd",
+        "source": "insecure_internal_data_transmission-refinement-2",
+        "target": "insecure_internal_data_transmission"
+      }
+    },
+    {
+      "id": "sysadmin-assigned-webdav_folder_retention",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "sysadmin",
+      "target": "webdav_folder_retention"
+    },
+    {
+      "id": "sysadmin-assigned-folder_permissions",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "sysadmin",
+      "target": "folder_permissions"
+    }
+  ],
+  "display": {},
+  "tool": "dsm3-goals",
+  "metamodelVersion": "1.0",
+  "diagram": {
+    "width": 5615,
+    "height": 416,
+    "name": "NeuroGrid-Core Technology",
+    "customProperties": {
+      "Description": "Neurogrid Infrastructure operations.",
+      "vocabulary": "cairis",
+      "cairisProject": "NeuroGrid data transfer",
+      "cairisEnvironment": "Core Technology",
+      "cairisUnsupported": "<manual_association from_name=\"Prevent Unauthorised Certificate Access\" from_dim=\"response\" to_name=\"PreventUnauthorised Certificate Access\" to_dim=\"goal\" />"
+    }
+  }
+}

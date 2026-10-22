@@ -8,6 +8,7 @@
 import type {
   ProjectResourceContext,
   ProjectResourceDefinition,
+  ResourceEntry,
 } from '@goal-controller/dialect';
 import type {
   ParsedResource,
@@ -73,25 +74,24 @@ export const parseResources = (
   return parsed;
 };
 
-/** Each parsed resource kind's names: its symbols', every category's (a keyed property's names, goal-controller#190). */
-export const resourceNames = (
+/** Each parsed resource kind's entries, where it lists them (a keyed property's names, goal-controller#190, #354). */
+export const resourceEntries = (
   parsed: ParsedResources,
-): Record<string, string[]> =>
+): Record<string, readonly ResourceEntry[]> =>
   Object.fromEntries(
-    Object.entries(parsed).map(([kind, { symbols }]) => [
-      kind,
-      Object.values(symbols).flatMap((list) => list.map((s) => s.name)),
-    ]),
+    Object.entries(parsed).flatMap(([kind, { entries }]) =>
+      entries ? [[kind, entries]] : [],
+    ),
   );
 
-/** What the language gets of the parsed resources: symbols and data, by kind. */
+/** What the language gets of the parsed resources: symbols, data and entries, by kind. */
 export const resourcesContext = (
   parsed: ParsedResources,
 ): Record<string, ProjectResourceContext> =>
   Object.fromEntries(
-    Object.entries(parsed).map(([kind, { symbols, data }]) => [
+    Object.entries(parsed).map(([kind, { symbols, data, entries }]) => [
       kind,
-      { symbols, data },
+      { symbols, data, ...(entries && { entries }) },
     ]),
   );
 

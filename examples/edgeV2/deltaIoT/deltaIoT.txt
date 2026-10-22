@@ -1,0 +1,580 @@
+{
+  "actors": [
+    {
+      "id": "7bb5fa1a-1ecb-4e6d-a7ff-008e3c5160a8",
+      "text": "DeltaIoT",
+      "type": "istar.Actor",
+      "x": 20,
+      "y": 20,
+      "customProperties": {
+        "Description": "DeltaIoT LoRa network (Weyns and Iftikhar, ActivFORMS, arXiv 1908.11179)"
+      },
+      "nodes": [
+        {
+          "id": "3c5d314f-16e0-4226-a805-3175390c434a",
+          "text": "G0: Deliver sensor data to the gateway [G1#G2]",
+          "type": "istar.Goal",
+          "x": 679.9147990919928,
+          "y": 51.965919636797096,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "04c978fe-5f50-4301-99b7-958a1c9f4245",
+          "text": "G1: Keep packet loss low [G3->G4]",
+          "type": "istar.Goal",
+          "x": 374,
+          "y": 158,
+          "customProperties": {
+            "Description": "",
+            "type": "maintain",
+            "maintain": "R4<=10",
+            "assertion": "networkActive"
+          }
+        },
+        {
+          "id": "fb4fa2c1-69b7-44b5-bd61-0161b23d209f",
+          "text": "G2: Relay data within the latency bound [G11;G12]",
+          "type": "istar.Goal",
+          "x": 1050,
+          "y": 160,
+          "customProperties": {
+            "Description": "",
+            "type": "maintain",
+            "maintain": "R5<5",
+            "assertion": "r3Enabled"
+          }
+        },
+        {
+          "id": "dd560575-4794-4a74-b5b0-ad601ab0a2e3",
+          "text": "G3: Configure energy-efficient links [G5#G6]",
+          "type": "istar.Goal",
+          "x": 196,
+          "y": 256,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "9131543e-eff1-43ff-9816-d8783dea10e5",
+          "text": "G4: Apply failsafe configuration",
+          "type": "istar.Goal",
+          "x": 620,
+          "y": 267,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "27c57d8b-e965-4d60-9a23-7e63230ab3b4",
+          "text": "G5: Set transmission power [G7|G8]",
+          "type": "istar.Goal",
+          "x": 120,
+          "y": 380,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "f48cf6ce-9161-490a-8e7c-05f8217439c2",
+          "text": "G6: Distribute packets to parents [G9|G10]",
+          "type": "istar.Goal",
+          "x": 400,
+          "y": 369,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "14dc77ff-9d6c-413c-bc92-f1891a274d13",
+          "text": "G7: Low transmission power",
+          "type": "istar.Goal",
+          "x": 40,
+          "y": 490,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "bdc53e51-eb18-4aa7-a5cb-f8278417e32a",
+          "text": "G8: Power fitted to link SNR",
+          "type": "istar.Goal",
+          "x": 200,
+          "y": 490,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "de1f8983-a89c-48fc-a620-a47cdb5a9b26",
+          "text": "G9: Single parent",
+          "type": "istar.Goal",
+          "x": 340,
+          "y": 490,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "ae9258db-5dd4-433f-9331-f6cde5958a61",
+          "text": "G10: Split across parents",
+          "type": "istar.Goal",
+          "x": 480,
+          "y": 490,
+          "customProperties": {
+            "Description": "",
+            "assertion": "twoParents"
+          }
+        },
+        {
+          "id": "101614f7-6d5d-4e23-8f02-d1233ea02695",
+          "text": "G11: Collect sensor readings",
+          "type": "istar.Goal",
+          "x": 960,
+          "y": 270,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "11e38e13-98e7-433e-880b-6d7cc5393f50",
+          "text": "G12: Forward packets to the gateway",
+          "type": "istar.Goal",
+          "x": 1140,
+          "y": 270,
+          "customProperties": {
+            "Description": ""
+          }
+        },
+        {
+          "id": "b4cb1553-0d47-4803-8aef-8e221f6011af",
+          "text": "T1: Lower transmission power",
+          "type": "istar.Task",
+          "x": 40,
+          "y": 600,
+          "customProperties": {
+            "Description": "",
+            "cost": "1",
+            "utility": "1",
+            "assertion": "R3>3 & R0>0"
+          }
+        },
+        {
+          "id": "a0b9ad0c-f25f-4d19-b552-5225bdea1271",
+          "text": "T2: Raise power until link SNR is non-negative",
+          "type": "istar.Task",
+          "x": 179.91479909199273,
+          "y": 587,
+          "customProperties": {
+            "Description": "",
+            "cost": "3",
+            "utility": "3",
+            "assertion": "R3<=3 & R0<15"
+          }
+        },
+        {
+          "id": "d15d4ff4-fca2-4be1-94bc-8a4b4d39dde3",
+          "text": "T3: Send all packets to one parent",
+          "type": "istar.Task",
+          "x": 340,
+          "y": 602,
+          "customProperties": {
+            "Description": "",
+            "cost": "1",
+            "utility": "1",
+            "assertion": "R2<=5"
+          }
+        },
+        {
+          "id": "89759ff4-1691-437e-9a5d-d54fe8e5544d",
+          "text": "T4: Split packets across parents in steps",
+          "type": "istar.Task",
+          "x": 525.5264553914832,
+          "y": 603.6780267877343,
+          "customProperties": {
+            "Description": "",
+            "cost": "2",
+            "utility": "2",
+            "assertion": "R1>0"
+          }
+        },
+        {
+          "id": "01c45c8d-aebc-4ac0-b433-95653e9a3227",
+          "text": "T5: Set maximum power and duplicate packets",
+          "type": "istar.Task",
+          "x": 618.6609866061328,
+          "y": 368.98295981839857,
+          "customProperties": {
+            "Description": "",
+            "cost": "6",
+            "utility": "4"
+          }
+        },
+        {
+          "id": "dc9f76f3-baa0-45f4-be3f-8225303a3302",
+          "text": "T6: Read RFID motion and temperature sensors",
+          "type": "istar.Task",
+          "x": 907.778477639181,
+          "y": 363,
+          "customProperties": {
+            "Description": "",
+            "cost": "1"
+          }
+        },
+        {
+          "id": "5f7b5fd8-34f0-4bae-91ce-cb1909f0faf8",
+          "text": "T7: Forward packets over multi-hop links",
+          "type": "istar.Task",
+          "x": 1121.74618751414,
+          "y": 361.2538124858599,
+          "customProperties": {
+            "Description": "",
+            "cost": "1"
+          }
+        },
+        {
+          "id": "143f1ed3-6e6b-427f-81b3-0039f441de11",
+          "text": "R0: Transmission power",
+          "type": "istar.Resource",
+          "x": 250,
+          "y": 700,
+          "customProperties": {
+            "Description": "",
+            "type": "int",
+            "initialValue": "15",
+            "lowerBound": "0",
+            "upperBound": "15"
+          }
+        },
+        {
+          "id": "1aadb617-5cd7-42b1-a876-714f51af9635",
+          "text": "R1: Distribution factor step",
+          "type": "istar.Resource",
+          "x": 420,
+          "y": 700,
+          "customProperties": {
+            "Description": "",
+            "type": "int",
+            "initialValue": "5",
+            "lowerBound": "0",
+            "upperBound": "5"
+          }
+        },
+        {
+          "id": "4a448252-c67b-4709-9fe1-8e137625b9e9",
+          "text": "R2: Traffic load",
+          "type": "istar.Resource",
+          "x": 590,
+          "y": 700,
+          "customProperties": {
+            "Description": "",
+            "type": "int",
+            "initialValue": "5",
+            "lowerBound": "0",
+            "upperBound": "10"
+          }
+        },
+        {
+          "id": "b1e5ae28-6166-400e-9225-bf48432aa7c7",
+          "text": "R3: Link SNR margin",
+          "type": "istar.Resource",
+          "x": 80,
+          "y": 700,
+          "customProperties": {
+            "Description": "",
+            "type": "int",
+            "initialValue": "5",
+            "lowerBound": "0",
+            "upperBound": "20"
+          }
+        },
+        {
+          "id": "3ec1c6c2-d72d-4290-b15e-bc6c1514d96f",
+          "text": "R4: Packet loss",
+          "type": "istar.Resource",
+          "x": 1000,
+          "y": 500,
+          "customProperties": {
+            "Description": "",
+            "type": "int",
+            "initialValue": "8",
+            "lowerBound": "0",
+            "upperBound": "100"
+          }
+        },
+        {
+          "id": "6f614ec2-274d-45c2-ad68-35023eb207b7",
+          "text": "R5: Latency",
+          "type": "istar.Resource",
+          "x": 1160,
+          "y": 500,
+          "customProperties": {
+            "Description": "",
+            "type": "int",
+            "initialValue": "2",
+            "lowerBound": "0",
+            "upperBound": "100"
+          }
+        }
+      ]
+    }
+  ],
+  "orphans": [],
+  "dependencies": [],
+  "links": [
+    {
+      "id": "0e0352ef-9626-4e72-9a60-5f37f1b3f4e0",
+      "type": "istar.AndRefinementLink",
+      "source": "04c978fe-5f50-4301-99b7-958a1c9f4245",
+      "target": "3c5d314f-16e0-4226-a805-3175390c434a"
+    },
+    {
+      "id": "4df7404f-ddbd-4272-8c6c-e0d805b9c91c",
+      "type": "istar.AndRefinementLink",
+      "source": "fb4fa2c1-69b7-44b5-bd61-0161b23d209f",
+      "target": "3c5d314f-16e0-4226-a805-3175390c434a"
+    },
+    {
+      "id": "8cc6e68b-67bc-4a1a-ba92-bf28805f6ffe",
+      "type": "istar.AndRefinementLink",
+      "source": "27c57d8b-e965-4d60-9a23-7e63230ab3b4",
+      "target": "dd560575-4794-4a74-b5b0-ad601ab0a2e3"
+    },
+    {
+      "id": "f0b62355-59f1-44a8-b554-7e4ff2348996",
+      "type": "istar.AndRefinementLink",
+      "source": "f48cf6ce-9161-490a-8e7c-05f8217439c2",
+      "target": "dd560575-4794-4a74-b5b0-ad601ab0a2e3"
+    },
+    {
+      "id": "53e5eeb2-0c4a-4698-8b12-1a3fe18f46c9",
+      "type": "istar.AndRefinementLink",
+      "source": "b4cb1553-0d47-4803-8aef-8e221f6011af",
+      "target": "14dc77ff-9d6c-413c-bc92-f1891a274d13"
+    },
+    {
+      "id": "cbf9ab27-4460-411b-910d-40b9a45cffbd",
+      "type": "istar.AndRefinementLink",
+      "source": "a0b9ad0c-f25f-4d19-b552-5225bdea1271",
+      "target": "bdc53e51-eb18-4aa7-a5cb-f8278417e32a"
+    },
+    {
+      "id": "083092c4-f6be-4895-ac11-851e8a062dd3",
+      "type": "istar.AndRefinementLink",
+      "source": "d15d4ff4-fca2-4be1-94bc-8a4b4d39dde3",
+      "target": "de1f8983-a89c-48fc-a620-a47cdb5a9b26"
+    },
+    {
+      "id": "c6818056-45f2-4397-baa8-6f04a8171125",
+      "type": "istar.AndRefinementLink",
+      "source": "89759ff4-1691-437e-9a5d-d54fe8e5544d",
+      "target": "ae9258db-5dd4-433f-9331-f6cde5958a61"
+    },
+    {
+      "id": "a22feec1-0a60-4f14-98c4-f3916a2d4410",
+      "type": "istar.AndRefinementLink",
+      "source": "01c45c8d-aebc-4ac0-b433-95653e9a3227",
+      "target": "9131543e-eff1-43ff-9816-d8783dea10e5"
+    },
+    {
+      "id": "5b0ca2ef-71d1-4536-81a3-29a830a7e870",
+      "type": "istar.AndRefinementLink",
+      "source": "101614f7-6d5d-4e23-8f02-d1233ea02695",
+      "target": "fb4fa2c1-69b7-44b5-bd61-0161b23d209f"
+    },
+    {
+      "id": "129c40fe-3ff5-452d-82fc-155a7db4a7f1",
+      "type": "istar.AndRefinementLink",
+      "source": "11e38e13-98e7-433e-880b-6d7cc5393f50",
+      "target": "fb4fa2c1-69b7-44b5-bd61-0161b23d209f"
+    },
+    {
+      "id": "eba5e754-cc08-4b23-aa8f-1dcb1d0fbde7",
+      "type": "istar.AndRefinementLink",
+      "source": "dc9f76f3-baa0-45f4-be3f-8225303a3302",
+      "target": "101614f7-6d5d-4e23-8f02-d1233ea02695"
+    },
+    {
+      "id": "1a9ed486-5f47-41f9-a540-71918d36591e",
+      "type": "istar.AndRefinementLink",
+      "source": "5f7b5fd8-34f0-4bae-91ce-cb1909f0faf8",
+      "target": "11e38e13-98e7-433e-880b-6d7cc5393f50"
+    },
+    {
+      "id": "383c9b89-542a-4dfc-aac0-c0dbdf3f75a5",
+      "type": "istar.OrRefinementLink",
+      "source": "9131543e-eff1-43ff-9816-d8783dea10e5",
+      "target": "04c978fe-5f50-4301-99b7-958a1c9f4245"
+    },
+    {
+      "id": "8b86207a-12f6-49e4-b2f0-342cbc3631b7",
+      "type": "istar.OrRefinementLink",
+      "source": "14dc77ff-9d6c-413c-bc92-f1891a274d13",
+      "target": "27c57d8b-e965-4d60-9a23-7e63230ab3b4"
+    },
+    {
+      "id": "62de34c7-e052-4f33-9925-a0110a40fc40",
+      "type": "istar.OrRefinementLink",
+      "source": "bdc53e51-eb18-4aa7-a5cb-f8278417e32a",
+      "target": "27c57d8b-e965-4d60-9a23-7e63230ab3b4"
+    },
+    {
+      "id": "6f1c6900-7cc1-47b0-a82d-8e02a15c341f",
+      "type": "istar.OrRefinementLink",
+      "source": "de1f8983-a89c-48fc-a620-a47cdb5a9b26",
+      "target": "f48cf6ce-9161-490a-8e7c-05f8217439c2"
+    },
+    {
+      "id": "aa89bb04-a8af-40b9-a5d0-dcbc7a6af7e2",
+      "type": "istar.OrRefinementLink",
+      "source": "ae9258db-5dd4-433f-9331-f6cde5958a61",
+      "target": "f48cf6ce-9161-490a-8e7c-05f8217439c2"
+    },
+    {
+      "id": "07b72f8f-ee93-44f9-99cb-e823f0c05fb5",
+      "type": "istar.OrRefinementLink",
+      "source": "dd560575-4794-4a74-b5b0-ad601ab0a2e3",
+      "target": "04c978fe-5f50-4301-99b7-958a1c9f4245"
+    },
+    {
+      "id": "0aa32c1b-74d3-4259-aa8f-5e462a09f792",
+      "type": "istar.NeededByLink",
+      "source": "143f1ed3-6e6b-427f-81b3-0039f441de11",
+      "target": "b4cb1553-0d47-4803-8aef-8e221f6011af"
+    },
+    {
+      "id": "518d5f8a-4ade-4265-a64d-e39f458fcbc0",
+      "type": "istar.NeededByLink",
+      "source": "143f1ed3-6e6b-427f-81b3-0039f441de11",
+      "target": "a0b9ad0c-f25f-4d19-b552-5225bdea1271"
+    },
+    {
+      "id": "b2aaf831-913b-441e-a640-2657fd5d016b",
+      "type": "istar.NeededByLink",
+      "source": "143f1ed3-6e6b-427f-81b3-0039f441de11",
+      "target": "01c45c8d-aebc-4ac0-b433-95653e9a3227"
+    },
+    {
+      "id": "27d9fe19-2271-4ab3-a31a-930e28c14f6e",
+      "type": "istar.NeededByLink",
+      "source": "1aadb617-5cd7-42b1-a876-714f51af9635",
+      "target": "d15d4ff4-fca2-4be1-94bc-8a4b4d39dde3"
+    },
+    {
+      "id": "68f65fb5-e270-46f5-b546-86b2ffd1ffbf",
+      "type": "istar.NeededByLink",
+      "source": "1aadb617-5cd7-42b1-a876-714f51af9635",
+      "target": "89759ff4-1691-437e-9a5d-d54fe8e5544d"
+    },
+    {
+      "id": "f0f5d0a0-f4e1-48a3-a182-ebed7f60db31",
+      "type": "istar.NeededByLink",
+      "source": "1aadb617-5cd7-42b1-a876-714f51af9635",
+      "target": "01c45c8d-aebc-4ac0-b433-95653e9a3227"
+    },
+    {
+      "id": "d502ee3e-72e1-4849-8767-67b11bbd57b7",
+      "type": "istar.NeededByLink",
+      "source": "4a448252-c67b-4709-9fe1-8e137625b9e9",
+      "target": "d15d4ff4-fca2-4be1-94bc-8a4b4d39dde3"
+    },
+    {
+      "id": "645dd1e4-73e4-47e2-bf92-257db38be43e",
+      "type": "istar.NeededByLink",
+      "source": "4a448252-c67b-4709-9fe1-8e137625b9e9",
+      "target": "89759ff4-1691-437e-9a5d-d54fe8e5544d"
+    },
+    {
+      "id": "dcc7fe93-6a14-4e80-b440-dc8d49ebcb22",
+      "type": "istar.NeededByLink",
+      "source": "4a448252-c67b-4709-9fe1-8e137625b9e9",
+      "target": "dc9f76f3-baa0-45f4-be3f-8225303a3302"
+    },
+    {
+      "id": "73771b89-bbe0-4601-a9aa-8dafe04a7646",
+      "type": "istar.NeededByLink",
+      "source": "b1e5ae28-6166-400e-9225-bf48432aa7c7",
+      "target": "b4cb1553-0d47-4803-8aef-8e221f6011af"
+    },
+    {
+      "id": "f3947921-e9ac-4a00-8882-608d7375dcec",
+      "type": "istar.NeededByLink",
+      "source": "b1e5ae28-6166-400e-9225-bf48432aa7c7",
+      "target": "a0b9ad0c-f25f-4d19-b552-5225bdea1271"
+    },
+    {
+      "id": "81ed8677-a937-4c58-b580-337271f9d0e1",
+      "type": "istar.NeededByLink",
+      "source": "3ec1c6c2-d72d-4290-b15e-bc6c1514d96f",
+      "target": "5f7b5fd8-34f0-4bae-91ce-cb1909f0faf8"
+    },
+    {
+      "id": "57b3561f-fc0e-4d6e-839a-60bd9f7aa27a",
+      "type": "istar.NeededByLink",
+      "source": "6f614ec2-274d-45c2-ad68-35023eb207b7",
+      "target": "5f7b5fd8-34f0-4bae-91ce-cb1909f0faf8"
+    }
+  ],
+  "display": {
+    "fb4fa2c1-69b7-44b5-bd61-0161b23d209f": {
+      "backgroundColor": "#5AEEFA"
+    },
+    "3c5d314f-16e0-4226-a805-3175390c434a": {
+      "width": 130,
+      "height": 68
+    },
+    "04c978fe-5f50-4301-99b7-958a1c9f4245": {
+      "width": 136,
+      "height": 37,
+      "backgroundColor": "#5AEEFA"
+    },
+    "dd560575-4794-4a74-b5b0-ad601ab0a2e3": {
+      "width": 144,
+      "height": 49
+    },
+    "9131543e-eff1-43ff-9816-d8783dea10e5": {
+      "width": 131,
+      "height": 38
+    },
+    "f48cf6ce-9161-490a-8e7c-05f8217439c2": {
+      "width": 142,
+      "height": 46
+    },
+    "a0b9ad0c-f25f-4d19-b552-5225bdea1271": {
+      "width": 136,
+      "height": 49
+    },
+    "d15d4ff4-fca2-4be1-94bc-8a4b4d39dde3": {
+      "width": 139,
+      "height": 34
+    },
+    "89759ff4-1691-437e-9a5d-d54fe8e5544d": {
+      "width": 160,
+      "height": 35
+    },
+    "01c45c8d-aebc-4ac0-b433-95653e9a3227": {
+      "width": 191,
+      "height": 43
+    },
+    "dc9f76f3-baa0-45f4-be3f-8225303a3302": {
+      "width": 177,
+      "height": 78
+    },
+    "5f7b5fd8-34f0-4bae-91ce-cb1909f0faf8": {
+      "width": 132,
+      "height": 73
+    }
+  },
+  "tool": "pistar.2.1.0",
+  "istar": "2.0",
+  "saveDate": "Wed, 21 Oct 2026 13:30:00 GMT",
+  "diagram": {
+    "width": 1400,
+    "height": 800,
+    "customProperties": {
+      "Description": "",
+      "engine": "edgev2"
+    }
+  }
+}

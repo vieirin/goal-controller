@@ -4,9 +4,10 @@
  * line, or one value of a predefined type.
  */
 import type { ParseResult } from 'langium';
-import type {
-  AssertionPrefix,
-  NotationDefinition,
+import {
+  keyedKey,
+  type AssertionPrefix,
+  type NotationDefinition,
 } from '@goal-controller/dialect';
 import {
   EXPRESSION,
@@ -35,6 +36,7 @@ import type {
   OclValue,
   PairListValue,
   PlainDocument,
+  PropertyKey,
   RefListValue,
   NameListValue,
   RtExpr,
@@ -525,7 +527,7 @@ export const parseDocument = (
         ? {
             kind: 'property',
             line: lineOf(line),
-            key: line.key,
+            key: propertyKeyText(line.key),
             value: line.value ?? '',
           }
         : { kind: 'element', line: lineOf(line), ...toElementLine(line) },
@@ -729,6 +731,36 @@ export const parseCondition = (
     ? (root.prefix.replace(/[ \t]+/, ' ') as AssertionPrefix)
     : null;
   return { value: { prefix, tree: toAssertionTree(root.expr) }, errors };
+};
+
+/** A property line's key as stored: its own (`Probability`), or a keyed key (`Probability[e1]`). */
+export const propertyKeyText = (key: PropertyKey | undefined): string =>
+  key?.name === undefined
+    ? (key?.key ?? '')
+    : keyedKey(key.key ?? '', key.name);
+
+const keyedKeys = new Map<string, { key: string; name: string } | null>();
+
+/**
+ * A keyed key on disk, read by the grammar (its PropertyKey, goal-controller#354):
+ * `Probability[e1]` is `Probability` keyed by `e1`; null for a property's
+ * own key, and for any text that isn't a key.
+ */
+export const keyedKeyOf = (
+  text: string,
+): { key: string; name: string } | null => {
+  if (!text.includes('[')) return null;
+  const known = keyedKeys.get(text);
+  if (known !== undefined) return known;
+  const { root, errors } = parse<PropertyKey>('propertyKey', text);
+  const read =
+    !errors.length && root.key && root.name !== undefined
+      ? { key: root.key, name: root.name }
+      : null;
+  // keys are a model's few: the cache is cleared rather than grown without end
+  if (keyedKeys.size > 10_000) keyedKeys.clear();
+  keyedKeys.set(text, read);
+  return read;
 };
 
 /**

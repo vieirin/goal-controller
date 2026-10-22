@@ -14,6 +14,7 @@ import { useWorkbench } from '../../WorkbenchContext';
 import { Button } from '../../ui';
 import NotationEditor from '../definition/NotationEditor';
 import { LanguageSupportContext } from '../definition/useLanguageSupport';
+import { useProfiledDefinition } from './useProfiledDefinition';
 
 /**
  * A KAOS or NFR model as its framework's lines (goal-controller#171): each
@@ -26,14 +27,16 @@ import { LanguageSupportContext } from '../definition/useLanguageSupport';
  */
 export default function FrameworkNotationView({
   mode,
-  definition = FRAMEWORK_DIALECTS[mode],
+  definition: given = FRAMEWORK_DIALECTS[mode],
 }: {
   mode: FrameworkMode;
   /** the dialect its lines are read in: its framework's, or its engine's (nfrprop's labels) */
   definition?: AnyDialect;
 }) {
   const wb = useWorkbench();
-  const { text } = wb;
+  const { text, projectResources } = wb;
+  // with the vocabulary profile the model records (a CAIRIS model's, #192)
+  const definition = useProfiledDefinition(given, text);
   // the last view read stays while the model is being fixed
   const last = useRef<GoalView | null>(null);
   const tree = useMemo(() => {
@@ -45,9 +48,15 @@ export default function FrameworkNotationView({
     return last.current;
   }, [text, definition]);
   const support = useContext(LanguageSupportContext)(mode, definition);
+  // with the project's resources: the entries a keyed key names
+  // (`Probability[e1]`, goal-controller#354), checked and completed
   useEffect(() => {
-    if (tree) support.setContext(contextFromView(definition, tree, []));
-  }, [tree, support, definition]);
+    if (tree)
+      support.setContext({
+        ...contextFromView(definition, tree, []),
+        ...(projectResources && { projectResources }),
+      });
+  }, [tree, support, definition, projectResources]);
   // DSM3's own files name no element with an id: one click gives them theirs
   const withIds = useMemo(
     () => withFrameworkIds(text, definition),

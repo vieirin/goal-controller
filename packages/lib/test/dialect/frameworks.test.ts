@@ -18,7 +18,7 @@ import {
   type AnyDialect,
   type ValueConfig,
 } from '@goal-controller/dialect';
-import { kaos, nfr } from '../../src';
+import { kaos, nfr, OBJECT_MODEL_SYMBOLS } from '../../src';
 import { parseModel } from '../../../ui/lib/workbench/dialects';
 import { frameworkProblems } from '../../../ui/lib/workbench/frameworkProblems';
 import { serializeModel } from '../../../ui/lib/workbench/pistar';
@@ -85,6 +85,13 @@ describe('frameworks: the kaos and nfr dialects (#171)', () => {
       'kaos.EnvironmentAgent': 'A',
       'kaos.DomainProperty': 'DP',
       'kaosObstacles.Obstacle': 'O',
+      // the operation and object models (goal-controller#194)
+      'kaosOperations.Operation': 'OP',
+      'kaosOperations.Entity': 'EN',
+      'kaosOperations.Association': 'AS',
+      'kaosOperations.Event': 'EV',
+      'kaosOperations.Predicate': 'PR',
+      'kaosOperations.Type': 'TY',
     });
     expect(
       Object.fromEntries(
@@ -131,7 +138,11 @@ describe('frameworks: the kaos and nfr dialects (#171)', () => {
     const formalSpec = kaos.properties['kaos.DomainProperty'].find(
       (p) => p.key === 'FormalSpec',
     )!.value;
-    expect(formalSpec).to.deep.equal({ type: 'formula', language: 'ltl' });
+    expect(formalSpec).to.deep.equal({
+      type: 'formula',
+      language: 'ltl',
+      symbols: OBJECT_MODEL_SYMBOLS,
+    });
   });
 
   it('types the keys with a vocabulary, one source each, and FormalSpec as a formula (#181)', () => {
@@ -165,11 +176,21 @@ describe('frameworks: the kaos and nfr dialects (#171)', () => {
         'Accuracy',
         'Safety',
         'Security',
+        'Confidentiality',
+        'Integrity',
+        'Availability',
+        'Privacy',
+        'Authentication',
+        'Non-repudiation',
       ],
       Source: { type: 'text' },
       Priority: ['', 'high', 'medium', 'low'],
       Issue: { type: 'text' },
-      FormalSpec: { type: 'formula', language: 'ltl' },
+      FormalSpec: {
+        type: 'formula',
+        language: 'ltl',
+        symbols: OBJECT_MODEL_SYMBOLS,
+      },
       FitCriterion: { type: 'text' },
       Stability: { type: 'text' },
       Description: { type: 'text' },
@@ -212,10 +233,25 @@ describe('frameworks: the DSM3 seeds (#171)', () => {
   it('read with their frameworks’ roots, and write back byte for byte, as every KAOS and NFR example does (#181’s too)', () => {
     expect(MODELS.kaos.map((s) => s.file)).to.deep.equal([
       'examples/kaos/ambulance/ambulance.txt',
+      'examples/kaos/cairis-acme-water-day/cairis-acme-water-day.txt',
+      'examples/kaos/cairis-acme-water-night/cairis-acme-water-night.txt',
+      'examples/kaos/cairis-balkan-rail-balkan-rail-corprate-hq/cairis-balkan-rail-balkan-rail-corprate-hq.txt',
+      'examples/kaos/cairis-balkan-rail-central-station/cairis-balkan-rail-central-station.txt',
+      'examples/kaos/cairis-balkan-rail-model/cairis-balkan-rail-model.txt',
+      'examples/kaos/cairis-neurogrid-core-technology/cairis-neurogrid-core-technology.txt',
+      'examples/kaos/cairis-neurogrid-psychosis/cairis-neurogrid-psychosis.txt',
+      'examples/kaos/cairis-neurogrid-stroke/cairis-neurogrid-stroke.txt',
       'examples/kaos/carpooling/carpooling.txt',
+      'examples/kaos/ebanking/ebanking.txt',
+      'examples/kaos/elevator/elevator.txt',
       'examples/kaos/fire-alarm/fire-alarm.txt',
+      'examples/kaos/flood/flood.txt',
       'examples/kaos/kaos-welcome.txt',
       'examples/kaos/las/las.txt',
+      'examples/kaos/las-design-space/las-design-space.txt',
+      'examples/kaos/las-quantitative/las-quantitative.txt',
+      'examples/kaos/las-radar/las-radar.txt',
+      'examples/kaos/mine-pump/mine-pump.txt',
       'examples/kaos/mooring/mooring.txt',
     ]);
     for (const mode of ['kaos', 'nfr'] as const)
@@ -354,7 +390,7 @@ describe('frameworks: the Notation view of a KAOS or NFR model (#171)', () => {
         .map((d) => d.message);
     // an iStar prefix: read as an id, of no KAOS kind
     expect(added('T1: A task')).to.deep.equal([
-      "T is no prefix of KAOS's: its elements are G…, A…, DP…, O…",
+      "T is no prefix of KAOS's: its elements are G…, A…, DP…, O…, OP…, EN…, AS…, EV…, PR…, TY…",
     ]);
     // another framework's: no id at all in KAOS (a property line, here
     // under the agent above it)
@@ -597,7 +633,10 @@ describe('frameworks: the KAOS obstacle analysis (#181)', () => {
             key: 'Anchor',
             value: {
               when: { key: 'ResolutionType', equals: 'mitigation' },
-              matching: { type: 'reference', kinds: ['kaos.BehavioralGoal'] },
+              matching: {
+                type: 'reference',
+                target: { kinds: ['kaos.BehavioralGoal'] },
+              },
               otherwise: { type: 'text' },
             },
             help: '',

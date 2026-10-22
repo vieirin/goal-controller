@@ -14,7 +14,6 @@ import {
   linkLinesOf,
   linkPropertiesOf,
   type PropertyDefinition,
-  propertyOf,
   valueOf,
   type DefinitionContext,
   type AnyDialect,
@@ -23,16 +22,19 @@ import {
   type ResourceSymbol,
   type WithNotation,
   type ValueConfig,
+  type Target,
 } from '@goal-controller/dialect';
+import { propertyOf } from './properties.js';
+import { keyedKeyOf } from '../parse.js';
 import { ASSERTION, CALLS, OCL_OPERATIONS, SKIP } from '../catalog.js';
 import { lineId, readLine, readPropertyLine } from './lines.js';
 import {
-  argumentsText,
   fieldPropertyOf,
   MEMBER_REF,
   membersOf,
   memberTypeText,
 } from './values.js';
+import { argumentsText } from '../text.js';
 import {
   LINK_LINE_KEY,
   linkOfLine,
@@ -412,10 +414,15 @@ export const completionsAt = (
       ],
     };
   }
-  // a property line's value: what its property's type refers to
-  const valued = /^(\s*)([A-Za-z][A-Za-z0-9_]*)[ \t]+/.exec(before);
+  // a property line's value: what its property's type refers to; a keyed
+  // key's (`Probability[e1]`, goal-controller#354) as its property's
+  const valued = /^(\s*)([A-Za-z][A-Za-z0-9_]*(?:\[[^\s[\]]+\])?)[ \t]+/.exec(
+    before,
+  );
+  // a keyed key's name being typed: `Probability[e`
+  const naming = /^\s*([A-Za-z][A-Za-z0-9_]*)\[([^\s[\]]*)$/.exec(before);
   const onKey = before.trim() === word;
-  if (!onKey && !valued) return null;
+  if (!onKey && !valued && !naming) return null;
   // without ids (goal-controller#138), an element's line is one that takes a
   // position: a key is typed on a line past the elements' (or a blank one)
   const ids = hasIds(definition);
@@ -448,6 +455,17 @@ export const completionsAt = (
   const element = owner ? context.elements[owner] : undefined;
   const owned = element && definition.elements[element.kind];
   if (!element || !owned || owned.declares) return null;
+  if (naming) {
+    const property = definition.properties[element.kind]?.find(
+      (p) => p.key === naming[1] && p.keyed !== undefined,
+    );
+    return property?.keyed
+      ? {
+          from: pos - naming[2]!.length,
+          options: targetNames(property.keyed, property.key, context),
+        }
+      : null;
+  }
   if (!onKey && valued) {
     const property = propertyOf(definition, element.kind, valued[2]!);
     // an engine-owned server completes the value
@@ -517,6 +535,11 @@ export const fieldCompletionsAt = (
       }));
   if (value.type === 'refList')
     return { from, options: ids(refListKinds(value)) };
+  if (value.type === 'reference')
+    return {
+      from: text.length - text.trimStart().length,
+      options: targetNames(value.target, '', context),
+    };
   if (value.type === 'enum')
     return {
       from: text.length - text.trimStart().length,
@@ -572,6 +595,49 @@ export const fieldCompletionsAt = (
   if (value.type === 'ocl')
     return oclCompletions(value, text, pos, context, elementId);
   return null;
+};
+
+/**
+ * The names a target has (goal-controller#354), as completion offers them:
+ * its kinds' elements' ids, its project resource's entries' ids, or the
+ * names the model writes under the keyed property `key`, each once.
+ */
+const targetNames = (
+  target: Target,
+  key: string,
+  context: DefinitionContext,
+): Completion[] => {
+  if ('kinds' in target)
+    return Object.entries(context.elements)
+      .filter(([, element]) =>
+        (target.kinds as readonly string[]).includes(element.kind),
+      )
+      .map(([id, element]) => ({
+        label: element.id ?? id,
+        type: 'variable' as const,
+        detail: element.kind,
+      }));
+  if ('resource' in target)
+    return (context.projectResources?.[target.resource]?.entries ?? []).map(
+      (entry) => ({
+        label: entry.id,
+        type: 'variable' as const,
+        detail: entry.name,
+      }),
+    );
+  const written = new Set(
+    Object.values(context.elements).flatMap((element) =>
+      Object.keys(element.properties).flatMap((stored) => {
+        const read = keyedKeyOf(stored);
+        return read?.key === key ? [read.name] : [];
+      }),
+    ),
+  );
+  return [...written].map((name) => ({
+    label: name,
+    type: 'variable' as const,
+    detail: `written under ${key}`,
+  }));
 };
 
 /** A value's functions, each inserted with a placeholder per argument: `previous(${1})`. */

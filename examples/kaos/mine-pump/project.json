@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "dialect": "kaossim",
+  "framework": "kaos",
+  "models": [
+    {
+      "path": "mine-pump.txt",
+      "native": {
+        "kaos": "mine-pump.kaos"
+      }
+    }
+  ],
+  "projectResources": {},
+  "outputs": []
+}

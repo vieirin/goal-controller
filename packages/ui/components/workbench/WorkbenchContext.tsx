@@ -9,6 +9,11 @@ import {
 } from '@/lib/workbench/engineDialects';
 import type { Analysis, LoggerReport } from '@goal-controller/lib';
 import {
+  cairisEnvironmentSlug,
+  dialectForModel,
+  readCairis,
+} from '@goal-controller/lib';
+import {
   createContext,
   useCallback,
   useContext,
@@ -61,6 +66,7 @@ import {
   indexedDbHandles,
   memoryStore,
   modelText,
+  importedProjectFiles,
   nativeProjectFiles,
   nativeSlots,
   openProject as readProject,
@@ -375,6 +381,12 @@ export type Workbench = {
    * model, goal-controller#181) waits in `frameworkSwitch` as a model file does
    */
   openNativeFile: (fileName: string, text: string) => Promise<void>;
+  /**
+   * a CAIRIS model file opened (goal-controller#192): the project of its
+   * environments' KAOS models, one each, in the browser; the first opens. A
+   * switch of framework waits in `frameworkSwitch`, as a native file's does
+   */
+  openCairisFile: (fileName: string, text: string) => Promise<void>;
 
   // structure
   tree: GoalView | null;
@@ -1137,6 +1149,55 @@ function WorkbenchState({
       };
       // a model of another framework than the open one's waits for a yes (#171, #181)
       if (mismatched(fileName, files[model]!, open)) return;
+      await open();
+    },
+    [openProject, mismatched],
+  );
+  const openCairisFile = useCallback(
+    async (fileName: string, text: string) => {
+      const baseName = fileName.replace(/\.[^.]*$/, '') || fileName;
+      const { models, diagnostics } = readCairis(text, {
+        modelName: baseName,
+      });
+      const read = models.flatMap(({ environment, result }) =>
+        result.model
+          ? [
+              {
+                path: `${baseName}-${cairisEnvironmentSlug(environment)}.txt`,
+                model: result,
+              },
+            ]
+          : [],
+      );
+      if (!read.length)
+        throw new Error(
+          `Not a model CAIRIS's importer reads: ${
+            diagnostics
+              .filter((d) => d.severity === 'error')
+              .map((d) => d.message)
+              .join('; ') || 'no environment'
+          }`,
+        );
+      // its mode's native files (kaosprop's `.kaos`) are not the source's: none
+      const { files, first } = importedProjectFiles(
+        read,
+        'kaos',
+        Object.keys(
+          nativeDeclarationsOf(read[0]!.model.dialectRecord.engine) ?? {},
+        ),
+      );
+      const open = async () => {
+        // kept in the browser; where it has no private file system, in memory
+        const store = await opfsProjects()
+          .then((taken) => importFiles(files, freeName(baseName, taken)))
+          .catch(() => memoryStore(files, { kind: 'file', name: fileName }));
+        openProject(await readProject(store, PROJECT_OPTIONS), {
+          setup: true,
+          model: first,
+        });
+      };
+      // a KAOS model over another framework's waits for a yes (#171)
+      if (mismatched(fileName, files[first]!, open)) return;
       await open();
     },
     [openProject, mismatched],
@@ -2173,8 +2234,15 @@ function WorkbenchState({
         ? FRAMEWORK_DIALECTS[dialect]
         : null
       : (frameworkEditorOf(engine)?.definition ?? null);
+    // with the vocabulary profile the model records (a CAIRIS model's, #192)
     if (framework && parsed.istar)
-      list.push(...frameworkProblems(parsed.istar, framework));
+      list.push(
+        ...frameworkProblems(
+          parsed.istar,
+          dialectForModel(framework, parsed.istar),
+          projectResources,
+        ),
+      );
     // piStar mode: only whether the file parses; the engine checks do not apply
     if (pistar) return list;
     // the checks of iStar's notations: none in another framework
@@ -2282,6 +2350,7 @@ function WorkbenchState({
     openFile,
     openArchive,
     openNativeFile,
+    openCairisFile,
     openRecent,
     project,
     openFolder,

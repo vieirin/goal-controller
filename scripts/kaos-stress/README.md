@@ -1,4 +1,4 @@
-# KAOS stress test (goal-controller#190)
+# KAOS stress test (goal-controller#190, #192)
 
 Checks every KAOS seed (`examples/kaos/<seed>/`, a project whose native file
 is a `.kaos`) through lib's built `out/` only, and compares each seed's
@@ -9,19 +9,26 @@ pnpm stress:kaos                            # builds lib, then runs everything
 node scripts/kaos-stress/run.cjs --strict   # fail on any seed's failure
 ```
 
+Defects found in the oracle tools these seeds run against (CAIRIS,
+RADAR, KAOSTools) and in the published papers/models themselves are
+documented, not fixed, in
+[`packages/dialect/docs/reference-defects.md`](../../packages/dialect/docs/reference-defects.md).
+
 ## Checks
 
 - **import**: the `.kaos` reads (`kaosNativeFile`), and:
   - its model is the committed `<seed>.txt`, byte for byte;
-  - its resources (kaosexpert's `experts.json` and `calibrations.json`)
-    are the committed files;
-  - it opens in the project's mode (`kaosprop` or `kaosexpert`).
+  - its resources (kaosexpert's `experts.json` and `calibrations.json`,
+    kaossim's `designs.json`) are the committed files;
+  - it opens in the project's mode (`kaosprop`, `kaosexpert`, `kaosres` or
+    `kaossim`).
 - **validate**: istar-ts validates the model (`validateModel`: none).
 - **roundtrip**: the model is written back with its resources
   (`writeKaos`), and the written file reads to the same model
   (`modelRoundTrip`) and the same resources.
-- **analyses**: kaosprop's two analyses and kaosexpert's two run without
-  error. Both engines read every `.kaos`, and kaosexpert runs 2000
+- **analyses**: kaosprop's two analyses, kaosres's three, kaossim's two and
+  kaosexpert's two run without error, and kaoslts writes its files. All five
+  engines read every `.kaos`, and kaosexpert and kaossim run 2000 and 200
   samples here.
 - **oracle**: each row of the seed's `*.expected.csv`, by its header:
   - `id,element,probability,paper,derivation` (kaosprop's):
@@ -48,8 +55,78 @@ node scripts/kaos-stress/run.cjs --strict   # fail on any seed's failure
     Each is checked within its tolerance, the run being 100 000 samples
     with seed 1. A row whose `expected` is `-` is a number the paper prints
     and the seed can't reproduce: reported, never a failure.
+  - `quantity,selection,goal,expected,tolerance,options,derivation`
+    (kaosres's countermeasure selection, goal-controller#191; the flood
+    seed's): a selection, its countermeasure goals joined by `+` (`none`
+    for the empty one), run with `options` (`semantics=kaostools`,
+    `scope=model`, `limit=n`; SEAMS'17's rules by default):
+    - `ESR` of `goal` within `tolerance`, `cost`, and `flags` (`safe` or
+      `not safe`, `consistent` or `inconsistent`, `cost-optimal`);
+    - of the run (`selection` `-`): `minimal cost` (`none`: no safe
+      selection), `chosen` (the chosen selections, ` | `), `candidates`,
+      `evaluated`, `exact` (`yes`/`no`).
+  - `quantity,design,objective,expected,tolerance,paper,source,derivation`
+    (kaossim's quantitative goals, goal-controller#193; the las-quantitative,
+    las-design-space, las-radar and mine-pump seeds): `design` is a
+    `designs.json` id, or `model` for the model as it is, simulated at
+    100 000 samples, seed 1:
+    - `value`: the objective's value within `tolerance`;
+    - `unresolved`: the variables it lacks (any order);
+    - `target`, `current`: as the model reads them;
+    - of the design space (`design` `-`): `designs`, how many there are;
+      `pareto`, the exhaustive front (` | `, sorted); `pareto nsga2`,
+      seeded NSGA-II's.
+
+    `las-radar.expected.csv`'s values are RADAR's own, run in Docker
+    outside the repository (its README).
+  - `quantity,id,expected,zip,source,derivation` (kaoslts's FSP and the
+    completeness check, goal-controller#209; the mine-pump seed's
+    `mine-pump-lts.expected.csv`): the seed's FSP structure as kaoslts
+    spells it, each row exact: `fluents`; a `fluent`'s initiating and
+    terminating events and initial value (`a / b / true`); the `alphabet`;
+    a `constraint`'s condition as FLTL; a tick `process`'s events; an
+    `agent`'s and the `system`'s processes (sorted); an `assert`'s formula;
+    a requirement's `completeness` verdict. `zip` is KAOS2LTSA's
+    counterpart in the paper's models archive (no licence stated: read,
+    not copied), reported beside it. The archive's state counts need LTSA,
+    which isn't run: `expected` `-`, reported, never a failure.
 - **degenerate** (`las`): RE'12's rows under kaosexpert with point
   estimates. Each sample is kaosprop's EPS.
+- **ADS corpus** (goal-controller#191, #201): ADS's `simple.kaos`,
+  `validation-model.kaos`, and `las.kaos` with `obstacles.kaos` and
+  `resolutions.kaos` (goal-language's test fixtures, MIT), selected as
+  `ads.expected.csv` says, in the selection format with a `model` column.
+  The option `estimates=ambulance` puts each leaf obstacle at its experts'
+  combined mean (kaosexpert over the ambulance seed's five experts): the
+  field run, about 20 s (4096 selections).
+
+- **CAIRIS** (goal-controller#192): the `cairis-*` seeds have no native
+  file. Each is one environment of a CAIRIS exemplar (lib's fixtures,
+  `packages/lib/test/importers/fixtures/cairis`, Apache 2.0), as
+  `cairis-seeds.cjs` lists them and writes them. For these seeds:
+  - **import** reads the exemplar, and the seed's model is that
+    environment's, byte for byte;
+  - **roundtrip** is the model's JSON written back by istar-ts (D4: no
+    CAIRIS writer);
+  - **analyses** are kaosprop's;
+  - **oracle** reads a seed's `*.expected.csv`, as
+    `id,element,cairis,kaosprop,rule,derivation`. Each obstacle's CAIRIS
+    value must match `cairis-oracle.csv` (CAIRIS in Docker, by
+    `cairis-oracle.sh`) and lib's restatement of CAIRIS's rule
+    (`cairisObstacleProbabilities`), both within 1e-6. Its kaosprop value
+    must match within 5e-7. `rule` is `agree` exactly where the two values
+    are equal; otherwise it says why they differ (`and-from-0`, `or-sum`).
+
+  Only ACME Water/Day has probabilities in the source. The other seeds say
+  "no probabilities in the source: not an oracle" (a skip). The synthetic
+  cross-check (`synthetic.xml`, `synthetic.expected.csv`, in the fixtures)
+  runs beside them as `CAIRIS synthetic`. To make CAIRIS's numbers again
+  (Docker only):
+
+  ```sh
+  F=packages/lib/test/importers/fixtures/cairis
+  scripts/kaos-stress/cairis-oracle.sh $F/synthetic.xml $F/ACME_Water.xml > $F/cairis-oracle.csv
+  ```
 
 Results go to `.cache/kaos/results/`: `SUMMARY.md` (one row per seed, then
 every oracle row) and one JSON per seed.

@@ -13,6 +13,7 @@ import { gunzipSync, strFromU8 } from '../../../../ui/node_modules/fflate';
 import {
   EMBEDDED_KEY,
   exportArchive,
+  importedProjectFiles,
   importFiles,
   ManifestError,
   modelText,
@@ -61,6 +62,57 @@ const opened = async (fileName: string, text: string) => {
   const store = await importFiles(files, 'house', fakeDirectory('root', tree));
   return { project: await openProject(store, OPTIONS), files, tree };
 };
+
+describe('another tool’s file opened as several models: their project, with none of their dialect’s native files (#192)', () => {
+  it('lists each model, the first opening, each opting out of the dialect’s native files (null): no slot', async () => {
+    const read = (name: string) => ({
+      model: { actors: [], orphans: [], diagram: { name } },
+      dialectRecord: { engine: 'chores', projectResources: {} },
+      diagnostics: [],
+    });
+    const { files, manifest, first } = importedProjectFiles(
+      [
+        { path: 'house-day.txt', model: read('day') },
+        { path: 'house-night.txt', model: read('night') },
+      ],
+      'kaos',
+      Object.keys(choresDialect.nativeFiles),
+    );
+    expect(first).to.equal('house-day.txt');
+    expect(manifest.models).to.deep.equal([
+      { path: 'house-day.txt', native: { chores: null, board: null } },
+      { path: 'house-night.txt', native: { chores: null, board: null } },
+    ]);
+    // read back: the opt-out survives, and no native file is looked for
+    expect(parseManifest(JSON.parse(files[PROJECT_FILE]!))).to.deep.equal(
+      manifest,
+    );
+    const tree: Tree = {};
+    const store = await importFiles(
+      files,
+      'house',
+      fakeDirectory('root', tree),
+    );
+    const project = await openProject(store, OPTIONS);
+    expect(project.models.map((m) => m.path)).to.deep.equal([
+      'house-day.txt',
+      'house-night.txt',
+    ]);
+    expect(project.natives).to.deep.equal([]);
+  });
+
+  it('refuses no model, and a native entry that is neither a path nor null', () => {
+    expect(() => importedProjectFiles([])).to.throw('No model to open');
+    expect(() =>
+      parseManifest({
+        version: 1,
+        models: [{ path: 'm.txt', native: { board: 3 } }],
+        projectResources: {},
+        outputs: [],
+      }),
+    ).to.throw(ManifestError);
+  });
+});
 
 describe('a native file opened: its project (#143)', () => {
   it('makes the project of the model beside the file, project.json listing both', async () => {

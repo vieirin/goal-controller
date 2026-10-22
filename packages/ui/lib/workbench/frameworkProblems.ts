@@ -6,17 +6,33 @@
  * `incomplete-hub`), anchored on the link or the hub; each link whose
  * label isn't one its dialect's `linkLabels` lists (an NFR contribution's);
  * and goal-controller#181's: a link of a `leafTargets` kind onto a refined
- * element (a KAOS obstacle obstructing a refined goal), and a `reference`
- * value naming no element of its kinds (a resolution's `Anchor`).
+ * element (a KAOS obstacle obstructing a refined goal), and a name that
+ * resolves to nothing of its target (goal-controller#354): a `reference`
+ * value naming no element of its kinds (a resolution's `Anchor`), a keyed
+ * key naming no entry of its resource (an expert's `Probability[e9]`);
+ * goal-controller#194's: a `reference`'s member its element doesn't declare
+ * (a KAOS monitoring's `sump.dirty`), and a chain of the dialect's
+ * `closures` the model leaves open (KAOS's responsibility,
+ * operationalisation and performance triangle, goal-controller#210).
  */
 import { validateModel } from '@istar-ts/core';
-import { refinementsOf } from '@goal-controller/goal-tree';
+import { openClosures, refinementsOf } from '@goal-controller/goal-tree';
 import {
+  danglingName,
   enumOptionOf,
   valueOf,
   type AnyDialect,
+  type ProjectResourceContext,
   type PropertyDefinition,
+  type Target,
+  type TargetScope,
+  type ValueConfig,
 } from '@goal-controller/dialect';
+import {
+  keyedKeyOf,
+  referenceMemberProblem,
+  referenceParts,
+} from '@goal-controller/goal-language';
 import type { AnyModel } from '@goal-controller/lib';
 import type { Problem } from './types';
 
@@ -34,12 +50,21 @@ export const frameworkProblems = (
     Partial<
       Pick<
         AnyDialect,
-        'framework' | 'refinements' | 'leafTargets' | 'properties' | 'links'
+        | 'framework'
+        | 'refinements'
+        | 'leafTargets'
+        | 'closures'
+        | 'properties'
+        | 'links'
+        | 'projectResources'
       >
     >,
+  /** the project's resources, parsed (their entries are what a keyed key may name) */
+  resources?: Readonly<Record<string, ProjectResourceContext>>,
 ): Problem[] => [
   ...leafTargetProblems(model, definition),
-  ...referenceProblems(model, definition),
+  ...closureProblems(model, definition),
+  ...referenceProblems(model, definition, resources),
   ...enumValueProblems(model, definition),
   ...validateModel(model).map((issue): Problem => ({
     severity: 'error',
@@ -92,6 +117,28 @@ const leafTargetProblems = (
     }));
 };
 
+/**
+ * Each chain of the dialect's `closures` the model leaves open
+ * (goal-controller#210), on its first link: its message with the three
+ * elements' texts.
+ */
+const closureProblems = (
+  model: AnyModel,
+  definition: Pick<AnyDialect, 'name'> & Partial<Pick<AnyDialect, 'closures'>>,
+): Problem[] =>
+  openClosures(model, definition).map(
+    ({ closure, first, start, via, end }) => ({
+      severity: closure.severity,
+      source: definition.name,
+      elementId: first.id,
+      code: 'open-closure',
+      message: closure.message
+        .replaceAll('{start}', quoted(model, start))
+        .replaceAll('{via}', quoted(model, via))
+        .replaceAll('{end}', quoted(model, end)),
+    }),
+  );
+
 /** The element a reference names: by its piStar id, or the id its text starts with (`G1: …`). */
 const referenced = (model: AnyModel, value: string) =>
   model.elements.get(value) ??
@@ -107,24 +154,65 @@ const textsOf = (properties: Readonly<Record<string, unknown>> | undefined) =>
     ),
   );
 
-/** The `reference` properties of a list (an element kind's, a link kind's), as an owner's properties make them. */
-const referencesOf = (
+/** A `reference` value's config. */
+type ReferenceConfig = Extract<ValueConfig, { type: 'reference' }>;
+
+/**
+ * What an owner's properties name (goal-controller#354): each `reference`
+ * value's one name (without its member, goal-controller#194), and each
+ * keyed key's name (`Probability[e1]`), with the target it is one of; a
+ * reference's config and text, for its member.
+ */
+const namesOf = (
   list: readonly PropertyDefinition[] | undefined,
   properties: Readonly<Record<string, string>>,
-) =>
-  (list ?? []).flatMap((property) => {
+): {
+  key: string;
+  name: string;
+  target: Target;
+  reference?: { config: ReferenceConfig; text: string };
+}[] => [
+  ...(list ?? []).flatMap((property) => {
     const value = valueOf(property, properties);
-    return value.type === 'reference'
-      ? [{ key: property.key, kinds: value.kinds }]
+    const text = properties[property.key]?.trim();
+    return value.type === 'reference' && text
+      ? [
+          {
+            key: property.key,
+            name: referenceParts(value, text).ref,
+            target: value.target,
+            reference: { config: value, text },
+          },
+        ]
       : [];
-  });
+  }),
+  ...Object.keys(properties).flatMap((key) => {
+    const keyed = keyedKeyOf(key);
+    const property = keyed && list?.find((p) => p.key === keyed.key && p.keyed);
+    return keyed && property?.keyed
+      ? [{ key, name: keyed.name, target: property.keyed }]
+      : [];
+  }),
+];
 
-/** Each `reference` value, on an element or a link, that names no element of its kinds. */
+/**
+ * Each name, on an element or a link, that resolves to nothing of its target
+ * (goal-controller#354): a `reference` naming no element of its kinds (a
+ * resolution's `Anchor`), a keyed key naming no entry of its resource
+ * (kaosexpert's `Probability[e9]`, where the project's experts are read);
+ * and a reference's member its element doesn't declare (goal-controller#194,
+ * `unknown-member`: a monitoring's `sump.dirty`).
+ */
 const referenceProblems = (
   model: AnyModel,
   definition: Pick<AnyDialect, 'name'> &
-    Partial<Pick<AnyDialect, 'properties' | 'links'>>,
+    Partial<Pick<AnyDialect, 'properties' | 'links' | 'projectResources'>>,
+  resources: Readonly<Record<string, ProjectResourceContext>> = {},
 ): Problem[] => {
+  const scope: TargetScope = {
+    kindOf: (id) => referenced(model, id)?.kind,
+    entriesOf: (resource) => resources[resource]?.entries,
+  };
   const owners = [
     ...[...model.elements.values()].map((element) => ({
       owner: element,
@@ -135,30 +223,53 @@ const referenceProblems = (
       list: definition.links?.[link.kind],
     })),
   ];
-  return owners.flatMap(({ owner, list }) => {
-    const properties = textsOf(owner.customProperties);
-    return referencesOf(list, properties).flatMap(
-      ({ key, kinds }): Problem[] => {
-        const value = properties[key]?.trim();
-        if (!value) return [];
-        const element = referenced(model, value);
-        if (element && (kinds as readonly string[]).includes(element.kind))
-          return [];
-        return [
-          {
-            severity: 'error',
-            source: definition.name,
-            elementId: owner.id,
-            key,
-            code: 'dangling-reference',
-            message: element
-              ? `${key}: ${value} is a ${element.kind}, not a ${kinds.join(' or ')}`
-              : `${key}: ${value} is not an element of this model`,
-          },
-        ];
-      },
+  // a member's element, as a member reads it: its kind and its texts
+  const memberElement = (ref: string) => {
+    const element = referenced(model, ref);
+    return (
+      element && {
+        kind: element.kind,
+        properties: textsOf(element.customProperties),
+      }
     );
-  });
+  };
+  const kinds = definition.properties && {
+    properties: definition.properties,
+  };
+  return owners.flatMap(({ owner, list }) =>
+    namesOf(list, textsOf(owner.customProperties)).flatMap(
+      ({ key, name, target, reference }): Problem[] => {
+        const dangling = danglingName(
+          target,
+          name,
+          scope,
+          definition.projectResources,
+        );
+        const member =
+          !dangling && reference
+            ? referenceMemberProblem(
+                reference.config,
+                reference.text,
+                memberElement,
+                kinds,
+              )
+            : null;
+        const problem = dangling ?? member;
+        return problem
+          ? [
+              {
+                severity: 'error',
+                source: definition.name,
+                elementId: owner.id,
+                key,
+                code: dangling ? 'dangling-reference' : 'unknown-member',
+                message: `${key}: ${problem}`,
+              },
+            ]
+          : [];
+      },
+    ),
+  );
 };
 
 /**

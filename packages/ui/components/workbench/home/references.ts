@@ -186,12 +186,36 @@ export const SECTION_REFERENCES: Readonly<
     {
       text: 'A. Cailliau, A. van Lamsweerde. Runtime monitoring and resolution of probabilistic obstacles to system goals. SEAMS 2017.',
       url: 'https://doi.org/10.1109/SEAMS.2017.5',
-      examples: ['kaos/ambulance'],
+      examples: ['kaos/ambulance', 'kaos/flood'],
+    },
+    // anti-models: malicious agents, anti-goals, vulnerabilities,
+    // epistemic operators (goal-controller#212, re-keyed structurally from
+    // the paper's §2, §3 and §6; no model of this example is public)
+    {
+      text: 'A. van Lamsweerde. Elaborating security requirements by construction of intentional anti-models. ICSE 2004.',
+      url: 'https://doi.org/10.1109/ICSE.2004.1317437',
+      examples: ['kaos/ebanking'],
     },
     {
       text: 'M. Sabetzadeh, D. Falessi, L. Briand, S. Di Alesio, D. McGeorge, V. Åhjem, J. Borg. Combining Goal Models, Expert Elicitation, and Probabilistic Simulation for Qualification of New Technology. HASE 2011 (Fig. 2, re-keyed as far as it prints; Sec. V withholds the elicited quantities, goal-controller#199).',
       url: 'https://doi.org/10.1109/HASE.2011.25',
       examples: ['kaos/mooring'],
+    },
+    // quantitative goals (goal-controller#193)
+    {
+      text: "E. Letier, A. van Lamsweerde. Reasoning about partial goal satisfaction for requirements and design engineering. SIGSOFT'04/FSE-12 (the London Ambulance's Fig. 1, Fig. 3 and Table 3, and §3.2–3.3's mine pump, re-keyed as far as it prints; goal-controller#206, #208).",
+      url: 'https://doi.org/10.1145/1029894.1029905',
+      examples: ['kaos/las-quantitative', 'kaos/mine-pump'],
+    },
+    {
+      text: "W. Heaven, E. Letier. Simulating and optimising design decisions in quantitative goal models. RE'11 (Fig. 1–2 and its five decision points, re-keyed as far as it prints; goal-controller#207).",
+      url: 'https://doi.org/10.1109/RE.2011.6051653',
+      examples: ['kaos/las-design-space'],
+    },
+    {
+      text: "UCL-badass/radar: RADAR's London Ambulance model, docs/LAS.rdr at 53272ca (used with the owner's approval; the repository states no licence), with the report's sign of its risk objective (goal-controller#207).",
+      url: 'https://github.com/UCL-badass/radar/blob/53272ca8d45052b37344ac8f070252c8ac6994b8/docs/LAS.rdr',
+      examples: ['kaos/las-radar'],
     },
     {
       text: 'ancailliau/KAOSTools: KAOSTools and its London Ambulance model, las.kaos (MIT).',
@@ -208,6 +232,51 @@ export const SECTION_REFERENCES: Readonly<
       text: "ancailliau/phd-thesis: A. Cailliau's fire-alarm model, running-examples-others/firesystem.kaos at 6a9f5fd (used with the owner's approval; the repository states no licence).",
       url: 'https://github.com/ancailliau/phd-thesis/blob/6a9f5fd81ac0be560d30803f04702d23d5622893/running-examples-others/firesystem.kaos',
       examples: ['kaos/fire-alarm'],
+    },
+    // SEAMS'17's flood detection system (goal-controller#191, #200)
+    {
+      text: "ancailliau/phd-thesis: A. Cailliau's flood detection model, running-example-fds/model2.kaos at 6a9f5fd (used with the owner's approval; the repository states no licence).",
+      url: 'https://github.com/ancailliau/phd-thesis/blob/6a9f5fd81ac0be560d30803f04702d23d5622893/running-example-fds/model2.kaos',
+      examples: ['kaos/flood'],
+    },
+    {
+      text: 'ancailliau/FloodingSimulator: the flood detection model with its conflicts, FloodingSimulator/Model.kaos at ef6db9f (MIT).',
+      url: 'https://github.com/ancailliau/FloodingSimulator/blob/ef6db9fd8ac0e0a038c2006f4633ace84c41b725/FloodingSimulator/Model.kaos',
+      examples: ['kaos/flood'],
+    },
+    // the CAIRIS corpus (goal-controller#192): its exemplars, one model per environment
+    {
+      text: 'S. Faily. Designing Usable and Secure Software with IRIS and CAIRIS. Springer, 2018.',
+      url: 'https://doi.org/10.1007/978-3-319-75493-2',
+      examples: [
+        'kaos/cairis-acme-water-day',
+        'kaos/cairis-acme-water-night',
+        'kaos/cairis-balkan-rail-balkan-rail-corprate-hq',
+        'kaos/cairis-balkan-rail-central-station',
+        'kaos/cairis-balkan-rail-model',
+        'kaos/cairis-neurogrid-core-technology',
+        'kaos/cairis-neurogrid-psychosis',
+        'kaos/cairis-neurogrid-stroke',
+      ],
+    },
+    {
+      text: 'cairis-platform/cairis: CAIRIS and its exemplars NeuroGrid, ACME Water and Balkan Rail, examples/exemplars at 44cc57d (Apache 2.0).',
+      url: 'https://github.com/cairis-platform/cairis/tree/44cc57ddd08fb41a8d028411ec712847eefc9be5/examples/exemplars',
+      examples: [
+        'kaos/cairis-acme-water-day',
+        'kaos/cairis-acme-water-night',
+        'kaos/cairis-balkan-rail-balkan-rail-corprate-hq',
+        'kaos/cairis-balkan-rail-central-station',
+        'kaos/cairis-balkan-rail-model',
+        'kaos/cairis-neurogrid-core-technology',
+        'kaos/cairis-neurogrid-psychosis',
+        'kaos/cairis-neurogrid-stroke',
+      ],
+    },
+    // the Elevator tutorial's responsibility, object and operation models (goal-controller#210)
+    {
+      text: 'Respect-IT sa. A KAOS Tutorial. Version 1.0, 18 October 2007 (§3.3–3.5, the Elevator case study’s responsibility, object and operation models, re-keyed from its prose; no licence stated).',
+      examples: ['kaos/elevator'],
     },
   ],
   nfr: [

@@ -376,6 +376,27 @@
     "outputs": []
   },
   {
+    "path": "edgeV2/deltaIoT",
+    "group": "edgeV2",
+    "name": "deltaIoT",
+    "form": "file",
+    "dialect": "edgev2",
+    "root": "edgeV2/deltaIoT",
+    "files": [
+      "README.md",
+      "deltaIoT.txt",
+      "project.json",
+      "props/deltaIoT.props",
+      "variables.json"
+    ],
+    "models": ["deltaIoT.txt"],
+    "projectResources": {
+      "variables": "variables.json",
+      "properties": ["props/deltaIoT.props"]
+    },
+    "outputs": []
+  },
+  {
     "path": "edgeV2/experiments/10-minimalMaintainResource",
     "group": "edgeV2",
     "name": "experiments/10-minimalMaintainResource",
@@ -887,6 +908,119 @@
     "outputs": []
   },
   {
+    "path": "kaos/cairis-acme-water-day",
+    "group": "kaos",
+    "name": "cairis-acme-water-day",
+    "form": "file",
+    "dialect": "kaosprop",
+    "root": "kaos/cairis-acme-water-day",
+    "files": [
+      "README.md",
+      "cairis-acme-water-day.expected.csv",
+      "cairis-acme-water-day.txt",
+      "project.json"
+    ],
+    "models": ["cairis-acme-water-day.txt"],
+    "projectResources": {},
+    "outputs": []
+  },
+  {
+    "path": "kaos/cairis-acme-water-night",
+    "group": "kaos",
+    "name": "cairis-acme-water-night",
+    "form": "file",
+    "dialect": "kaosprop",
+    "root": "kaos/cairis-acme-water-night",
+    "files": ["README.md", "cairis-acme-water-night.txt", "project.json"],
+    "models": ["cairis-acme-water-night.txt"],
+    "projectResources": {},
+    "outputs": []
+  },
+  {
+    "path": "kaos/cairis-balkan-rail-balkan-rail-corprate-hq",
+    "group": "kaos",
+    "name": "cairis-balkan-rail-balkan-rail-corprate-hq",
+    "form": "file",
+    "dialect": "kaosprop",
+    "root": "kaos/cairis-balkan-rail-balkan-rail-corprate-hq",
+    "files": [
+      "README.md",
+      "cairis-balkan-rail-balkan-rail-corprate-hq.txt",
+      "project.json"
+    ],
+    "models": ["cairis-balkan-rail-balkan-rail-corprate-hq.txt"],
+    "projectResources": {},
+    "outputs": []
+  },
+  {
+    "path": "kaos/cairis-balkan-rail-central-station",
+    "group": "kaos",
+    "name": "cairis-balkan-rail-central-station",
+    "form": "file",
+    "dialect": "kaosprop",
+    "root": "kaos/cairis-balkan-rail-central-station",
+    "files": [
+      "README.md",
+      "cairis-balkan-rail-central-station.txt",
+      "project.json"
+    ],
+    "models": ["cairis-balkan-rail-central-station.txt"],
+    "projectResources": {},
+    "outputs": []
+  },
+  {
+    "path": "kaos/cairis-balkan-rail-model",
+    "group": "kaos",
+    "name": "cairis-balkan-rail-model",
+    "form": "file",
+    "dialect": "kaosprop",
+    "root": "kaos/cairis-balkan-rail-model",
+    "files": ["README.md", "cairis-balkan-rail-model.txt", "project.json"],
+    "models": ["cairis-balkan-rail-model.txt"],
+    "projectResources": {},
+    "outputs": []
+  },
+  {
+    "path": "kaos/cairis-neurogrid-core-technology",
+    "group": "kaos",
+    "name": "cairis-neurogrid-core-technology",
+    "form": "file",
+    "dialect": "kaosprop",
+    "root": "kaos/cairis-neurogrid-core-technology",
+    "files": [
+      "README.md",
+      "cairis-neurogrid-core-technology.txt",
+      "project.json"
+    ],
+    "models": ["cairis-neurogrid-core-technology.txt"],
+    "projectResources": {},
+    "outputs": []
+  },
+  {
+    "path": "kaos/cairis-neurogrid-psychosis",
+    "group": "kaos",
+    "name": "cairis-neurogrid-psychosis",
+    "form": "file",
+    "dialect": "kaosprop",
+    "root": "kaos/cairis-neurogrid-psychosis",
+    "files": ["README.md", "cairis-neurogrid-psychosis.txt", "project.json"],
+    "models": ["cairis-neurogrid-psychosis.txt"],
+    "projectResources": {},
+    "outputs": []
+  },
+  {
+    "path": "kaos/cairis-neurogrid-stroke",
+    "group": "kaos",
+    "name": "cairis-neurogrid-stroke",
+    "form": "file",
+    "dialect": "kaosprop",
+    "root": "kaos/cairis-neurogrid-stroke",
+    "files": ["README.md", "cairis-neurogrid-stroke.txt", "project.json"],
+    "models": ["cairis-neurogrid-stroke.txt"],
+    "projectResources": {},
+    "outputs": []
+  },
+  {
     "path": "kaos/carpooling",
     "group": "kaos",
     "name": "carpooling",
@@ -901,6 +1035,36 @@
       "project.json"
     ],
     "models": ["carpooling.txt"],
+    "projectResources": {},
+    "outputs": []
+  },
+  {
+    "path": "kaos/ebanking",
+    "group": "kaos",
+    "name": "ebanking",
+    "form": "file",
+    "dialect": "kaosres",
+    "root": "kaos/ebanking",
+    "files": ["README.md", "ebanking.kaos", "ebanking.txt", "project.json"],
+    "models": ["ebanking.txt"],
+    "projectResources": {},
+    "outputs": []
+  },
+  {
+    "path": "kaos/elevator",
+    "group": "kaos",
+    "name": "elevator",
+    "form": "file",
+    "dialect": "kaosres",
+    "root": "kaos/elevator",
+    "files": [
+      "README.md",
+      "elevator.expected.md",
+      "elevator.kaos",
+      "elevator.txt",
+      "project.json"
+    ],
+    "models": ["elevator.txt"],
     "projectResources": {},
     "outputs": []
   },
@@ -928,6 +1092,24 @@
     "outputs": []
   },
   {
+    "path": "kaos/flood",
+    "group": "kaos",
+    "name": "flood",
+    "form": "file",
+    "dialect": "kaosres",
+    "root": "kaos/flood",
+    "files": [
+      "README.md",
+      "flood.expected.csv",
+      "flood.kaos",
+      "flood.txt",
+      "project.json"
+    ],
+    "models": ["flood.txt"],
+    "projectResources": {},
+    "outputs": []
+  },
+  {
     "path": "kaos/kaos-welcome.txt",
     "group": "kaos",
     "name": "kaos-welcome.txt",
@@ -943,7 +1125,7 @@
     "group": "kaos",
     "name": "las",
     "form": "file",
-    "dialect": "kaosprop",
+    "dialect": "kaosres",
     "root": "kaos/las",
     "files": [
       "README.md",
@@ -953,6 +1135,88 @@
       "project.json"
     ],
     "models": ["las.txt"],
+    "projectResources": {},
+    "outputs": []
+  },
+  {
+    "path": "kaos/las-design-space",
+    "group": "kaos",
+    "name": "las-design-space",
+    "form": "file",
+    "dialect": "kaossim",
+    "root": "kaos/las-design-space",
+    "files": [
+      "README.md",
+      "designs.json",
+      "las-design-space.expected.csv",
+      "las-design-space.kaos",
+      "las-design-space.txt",
+      "project.json"
+    ],
+    "models": ["las-design-space.txt"],
+    "projectResources": {
+      "design": "designs.json"
+    },
+    "outputs": []
+  },
+  {
+    "path": "kaos/las-quantitative",
+    "group": "kaos",
+    "name": "las-quantitative",
+    "form": "file",
+    "dialect": "kaossim",
+    "root": "kaos/las-quantitative",
+    "files": [
+      "README.md",
+      "designs.json",
+      "las-quantitative.expected.csv",
+      "las-quantitative.kaos",
+      "las-quantitative.txt",
+      "project.json"
+    ],
+    "models": ["las-quantitative.txt"],
+    "projectResources": {
+      "design": "designs.json"
+    },
+    "outputs": []
+  },
+  {
+    "path": "kaos/las-radar",
+    "group": "kaos",
+    "name": "las-radar",
+    "form": "file",
+    "dialect": "kaossim",
+    "root": "kaos/las-radar",
+    "files": [
+      "README.md",
+      "designs.json",
+      "las-radar.expected.csv",
+      "las-radar.kaos",
+      "las-radar.txt",
+      "project.json"
+    ],
+    "models": ["las-radar.txt"],
+    "projectResources": {
+      "design": "designs.json"
+    },
+    "outputs": []
+  },
+  {
+    "path": "kaos/mine-pump",
+    "group": "kaos",
+    "name": "mine-pump",
+    "form": "file",
+    "dialect": "kaossim",
+    "root": "kaos/mine-pump",
+    "files": [
+      "README.md",
+      "mine-pump-lts.expected.csv",
+      "mine-pump.expected.csv",
+      "mine-pump.kaos",
+      "mine-pump.txt",
+      "project.json"
+    ],
+    "models": ["mine-pump.txt"],
     "projectResources": {},
     "outputs": []
   },

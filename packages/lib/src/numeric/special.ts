@@ -3,7 +3,8 @@
  * gamma function, the regularised incomplete beta and gamma functions and
  * their inverses, as Numerical Recipes (Press et al., 3rd ed., §6.1–6.4)
  * computes them. What the Beta and PERT distributions' inverse CDFs and
- * Cooke's calibration score (a χ² tail) need; no numeric library.
+ * Cooke's calibration score (a χ² tail) need, and the normal distribution's
+ * CDF and quantile (goal-controller#193); no numeric library.
  */
 
 const LANCZOS = [
@@ -119,9 +120,14 @@ export const invBetaInc = (p: number, a: number, b: number): number => {
   return x;
 };
 
-/** P(a, x), the regularised lower incomplete gamma function (NR §6.2: series, or continued fraction). */
-export const gammaP = (a: number, x: number): number => {
-  if (x <= 0) return 0;
+/**
+ * P(a, x) and Q(a, x) = 1 − P(a, x), the regularised incomplete gamma
+ * functions (NR §6.2: the series below a + 1, where P is direct; the
+ * continued fraction above, where Q is), each without the other's
+ * cancellation in its tail.
+ */
+const gammaPQ = (a: number, x: number): { p: number; q: number } => {
+  if (x <= 0) return { p: 0, q: 1 };
   const gln = lnGamma(a);
   if (x < a + 1) {
     let ap = a;
@@ -133,7 +139,8 @@ export const gammaP = (a: number, x: number): number => {
       sum += del;
       if (Math.abs(del) < Math.abs(sum) * EPS) break;
     }
-    return sum * Math.exp(-x + a * Math.log(x) - gln);
+    const p = sum * Math.exp(-x + a * Math.log(x) - gln);
+    return { p, q: 1 - p };
   }
   let b = x + 1 - a;
   let c = 1 / FPMIN;
@@ -151,7 +158,62 @@ export const gammaP = (a: number, x: number): number => {
     h *= del;
     if (Math.abs(del - 1) <= EPS) break;
   }
-  return 1 - Math.exp(-x + a * Math.log(x) - gln) * h;
+  const q = Math.exp(-x + a * Math.log(x) - gln) * h;
+  return { p: 1 - q, q };
+};
+
+/** P(a, x), the regularised lower incomplete gamma function (NR §6.2). */
+export const gammaP = (a: number, x: number): number => gammaPQ(a, x).p;
+
+/**
+ * Φ(x), the standard normal CDF (goal-controller#193): ½(1 + erf(x/√2)),
+ * erf(z) = P(½, z²) (NR §6.2.2), from Q's side below 0 so the lower tail
+ * keeps its precision.
+ */
+export const normalCdf = (x: number): number => {
+  const { p, q } = gammaPQ(0.5, (x * x) / 2);
+  return x < 0 ? q / 2 : (1 + p) / 2;
+};
+
+// Acklam's rational approximation of Φ⁻¹ (relative error 1.15e-9), each
+// result then refined by one Halley step on Φ
+const ACKLAM_A = [
+  -3.969683028665376e1, 2.209460984245205e2, -2.759285104469687e2,
+  1.38357751867269e2, -3.066479806614716e1, 2.506628277459239,
+];
+const ACKLAM_B = [
+  -5.447609879822406e1, 1.615858368580409e2, -1.556989798598866e2,
+  6.680131188771972e1, -1.328068155288572e1,
+];
+const ACKLAM_C = [
+  -7.784894002430293e-3, -3.223964580411365e-1, -2.400758277161838,
+  -2.549732539343734, 4.374664141464968, 2.938163982698783,
+];
+const ACKLAM_D = [
+  7.784695709041462e-3, 3.224671290700398e-1, 2.445134137142996,
+  3.754408661907416,
+];
+const horner = (coefficients: readonly number[], x: number) =>
+  coefficients.reduce((sum, c) => sum * x + c, 0);
+
+/** Φ⁻¹(u), the standard normal quantile, u in (0, 1); ∓∞ at 0 and 1. */
+export const normalQuantile = (u: number): number => {
+  if (u <= 0) return -Infinity;
+  if (u >= 1) return Infinity;
+  const low = 0.02425;
+  let x: number;
+  if (u < low || u > 1 - low) {
+    const q = Math.sqrt(-2 * Math.log(u < low ? u : 1 - u));
+    const tail = horner(ACKLAM_C, q) / (horner(ACKLAM_D, q) * q + 1);
+    x = u < low ? tail : -tail;
+  } else {
+    const q = u - 0.5;
+    const r = q * q;
+    x = (horner(ACKLAM_A, r) * q) / (horner(ACKLAM_B, r) * r + 1);
+  }
+  const e = normalCdf(x) - u;
+  const step = e * Math.sqrt(2 * Math.PI) * Math.exp((x * x) / 2);
+  return x - step / (1 + (x * step) / 2);
 };
 
 /** The χ² distribution's CDF with `dof` degrees of freedom at x (0 for x ≤ 0). */

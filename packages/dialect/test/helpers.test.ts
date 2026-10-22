@@ -180,6 +180,27 @@ describe('property', () => {
     ).to.deep.equal({ type: 'ocl', declaredBy: ['Controls'] });
   });
 
+  it("puts a reference's target and members in its value (#194)", () => {
+    expect(
+      property.reference(
+        'Gauge',
+        { kinds: ['toy.Tank'] },
+        { members: { from: 'Parts' }, help: 'h' },
+      ),
+    ).to.deep.equal({
+      key: 'Gauge',
+      value: {
+        type: 'reference',
+        target: { kinds: ['toy.Tank'] },
+        members: { from: 'Parts' },
+      },
+      help: 'h',
+    });
+    expect(
+      property.reference('Of', { kinds: ['toy.Tank'] }, { help: 'h' }).value,
+    ).to.deep.equal({ type: 'reference', target: { kinds: ['toy.Tank'] } });
+  });
+
   it('takes a conditional value as written', () => {
     const value = {
       when: { key: 'type', equals: 'int' },

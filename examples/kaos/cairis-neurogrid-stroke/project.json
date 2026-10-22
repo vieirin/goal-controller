@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "dialect": "kaosprop",
+  "framework": "kaos",
+  "models": [
+    {
+      "path": "cairis-neurogrid-stroke.txt",
+      "native": {
+        "kaos": null
+      }
+    }
+  ],
+  "projectResources": {},
+  "outputs": []
+}

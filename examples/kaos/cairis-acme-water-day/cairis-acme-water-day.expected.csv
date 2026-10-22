@@ -1,0 +1,26 @@
+# The field cross-check (goal-controller#192): ACME Water's environment Day, whose obstacles carry CAIRIS's probabilities (the file's),
+# under CAIRIS's obstacleProbability (column cairis: packages/lib/test/importers/fixtures/cairis/cairis-oracle.csv, from
+# scripts/kaos-stress/cairis-oracle.sh in Docker) and kaosprop's RE'12 rules (column kaosprop, this seed). Not a published oracle: no source
+# prints these numbers. rule: agree, or where they differ, why: and-from-0 (CAIRIS's AND product starts from 0), or-sum (CAIRIS sums an OR).
+id,element,cairis,kaosprop,rule,derivation
+accessible_equipment,Accessible equipment,0.8,0.8,agree,"its estimate, 0.8 in the file"
+crafted_packets,Crafted packets,0.1,0.1,agree,"its estimate, 0.1 in the file"
+dll_preloading,DLL preloading,0,0,agree,"its estimate, 0 in the file"
+desktop_installation,Desktop installation,0,0,agree,"its estimate, 0 in the file"
+exposed_ict_cabinets,Exposed ICT cabinets,0.5,0.5,agree,"its estimate, 0.5 in the file"
+incomplete_firewall_rule_set,Incomplete firewall rule-set,0.4,0.4,agree,"its estimate, 0.4 in the file"
+malicious_remote_installation,Malicious remote installation,0,0,agree,"its estimate, 0 in the file"
+malware_application,Malware application,0,0,agree,"OR of Malicious remote installation (0), Desktop installation (0), DLL preloading (0) by CAIRIS: it sums, 0; RE'12 combines the alternatives as a noisy-or: 1 − (1 − 0) × (1 − 0) × (1 − 0) = 0"
+redundant_application,Redundant application,0,0,agree,"its estimate, 0 in the file"
+scanning_software_disabled,Scanning software disabled,0.8,0.8,agree,"its estimate, 0.8 in the file"
+scanning_software_not_installed,Scanning software not installed,0.1,0.1,agree,"OR of Software incompatibility (0.1) by CAIRIS: it sums, 0.1; RE'12 combines the alternatives as a noisy-or: 1 − (1 − 0.1) = 0.1"
+software_incompatibility,Software incompatibility,0.1,0.1,agree,"its estimate, 0.1 in the file"
+surplus_equipment,Surplus equipment,0,0.48,and-from-0,"AND of Accessible equipment (0.8) and Unsanitised equipment (0.6): RE'12 multiplies, 0.48; CAIRIS's product starts from 0 (andProb default 0), 0"
+ubiquitous_identity_data,Ubiquitous identity data,0.5,0.5,agree,"its estimate, 0.5 in the file"
+unavailable_software_repository,Unavailable software repository,0,0,agree,"a use case exception CAIRIS makes an obstacle of, at 0.0; kaosprop: a leaf with no estimate, 0"
+undetected_malicious_traffic,Undetected malicious traffic,0.5,0.46,or-sum,"OR of Crafted packets (0.1) and Incomplete firewall rule-set (0.4) by CAIRIS: it sums, 0.5; RE'12 combines the alternatives as a noisy-or: 1 − (1 − 0.1) × (1 − 0.4) = 0.46"
+unsanitised_equipment,Unsanitised equipment,0.6,0.6,agree,"its estimate, 0.6 in the file"
+unscanned_media,Unscanned media,0.9,0.82,or-sum,"OR of Scanning software disabled (0.8) and Scanning software not installed (0.1) by CAIRIS: it sums, 0.9; RE'12 combines the alternatives as a noisy-or: 1 − (1 − 0.8) × (1 − 0.1) = 0.82"
+unused_pc_application,Unused PC application,0,0,agree,"OR of Malware application (0) and Redundant application (0) by CAIRIS: it sums, 0; RE'12 combines the alternatives as a noisy-or: 1 − (1 − 0) × (1 − 0) = 0"
+vendor_passwords_unchanged,Vendor passwords unchanged,0.7,0.7,agree,"its estimate, 0.7 in the file"
+zero_day_threat_exploit,Zero-day threat exploit,0.1,0.1,agree,"its estimate, 0.1 in the file"

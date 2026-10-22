@@ -78,11 +78,13 @@ const TARGET_IDS: readonly ConversionTarget[] = [
 export default function ModelSettingsModal() {
   const wb = useWorkbench();
   const setup = wb.settingsDialog === 'setup';
-  // how well the model suits each engine (as in the Convert dialog)
+  // how well the model suits each engine (as in the Convert dialog); an
+  // empty model (a new one, or settings reopened right after) conforms to
+  // every engine vacuously, so its checks are held back
   const conformity = useEngineConformity(
     wb.text,
     TARGET_IDS,
-    !wb.text.trim(),
+    isEmptyModel(wb.text),
     projectFrameworkOf(wb.project, wb.modelPath ?? undefined),
   );
   const [draft, setDraft] = useState<ModelSettings>(wb.settings);
@@ -292,6 +294,7 @@ export default function ModelSettingsModal() {
                         <ConformityStatus
                           status={conformity.statusOf(engine.id)}
                           warnings={conformity.warningsOf(engine.id)}
+                          detail={conformity.detailOf(engine.id)}
                         />
                       )}
                     </label>
@@ -340,6 +343,7 @@ export default function ModelSettingsModal() {
                         <ConformityStatus
                           status={conformity.statusOf(dialect.id)}
                           warnings={conformity.warningsOf(dialect.id)}
+                          detail={conformity.detailOf(dialect.id)}
                         />
                       )}
                     </label>

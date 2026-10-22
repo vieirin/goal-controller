@@ -81,7 +81,10 @@ export const KNOWN_PROPERTIES: Record<
   tropos4as: definedKeys(ENGINE_DIALECTS.tropos4as),
   cgm: definedKeys(ENGINE_DIALECTS.cgm),
   kaosdoc: frameworkKeys(FRAMEWORK_ENGINE_DIALECTS.kaosdoc),
+  kaoslts: frameworkKeys(FRAMEWORK_ENGINE_DIALECTS.kaoslts),
   kaosprop: frameworkKeys(FRAMEWORK_ENGINE_DIALECTS.kaosprop),
   kaosexpert: frameworkKeys(FRAMEWORK_ENGINE_DIALECTS.kaosexpert),
+  kaosres: frameworkKeys(FRAMEWORK_ENGINE_DIALECTS.kaosres),
+  kaossim: frameworkKeys(FRAMEWORK_ENGINE_DIALECTS.kaossim),
   nfrprop: frameworkKeys(FRAMEWORK_ENGINE_DIALECTS.nfrprop),
 };

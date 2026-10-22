@@ -745,6 +745,7 @@
       "text": "Public",
       "type": "kaos.Agent",
       "customProperties": {
+        "Type": "",
         "Description": ""
       },
       "x": 200,
@@ -755,6 +756,7 @@
       "text": "Ambulance Staff",
       "type": "kaos.Agent",
       "customProperties": {
+        "Type": "",
         "Description": ""
       },
       "x": 9000,
@@ -765,6 +767,7 @@
       "text": "Operator",
       "type": "kaos.Agent",
       "customProperties": {
+        "Type": "",
         "Description": ""
       },
       "x": 520,
@@ -775,6 +778,7 @@
       "text": "CAD",
       "type": "kaos.Agent",
       "customProperties": {
+        "Type": "",
         "Description": ""
       },
       "x": 2280,
@@ -785,6 +789,7 @@
       "text": "AVLS",
       "type": "kaos.Agent",
       "customProperties": {
+        "Type": "",
         "Description": ""
       },
       "x": 4520,
@@ -795,6 +800,7 @@
       "text": "MDT",
       "type": "kaos.Agent",
       "customProperties": {
+        "Type": "",
         "Description": ""
       },
       "x": 1480,
@@ -805,6 +811,7 @@
       "text": "Communication Infrastructure",
       "type": "kaos.Agent",
       "customProperties": {
+        "Type": "",
         "Description": ""
       },
       "x": 1800,
@@ -815,6 +822,7 @@
       "text": "Printer",
       "type": "kaos.Agent",
       "customProperties": {
+        "Type": "",
         "Description": ""
       },
       "x": 3240,

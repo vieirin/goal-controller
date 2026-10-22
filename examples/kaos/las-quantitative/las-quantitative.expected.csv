@@ -1,0 +1,19 @@
+# The oracle of FSE'04's quantitative London Ambulance model (Letier and van Lamsweerde, SIGSOFT'04/FSE-12, Fig. 1, Fig. 3, §3-§5, Table 3; goal-controller#206), checked by scripts/kaos-stress with kaossim.
+# FSE'04 prints Table 3's parameters as means only, from "plausible (but fictitious) estimations for some of the important parameters", computed with Mathematica: the seed has every printed input and nothing else, kaossim reports each objective unresolved with the variables it lacks (checked below), and Table 3's values and §5.1's sensitivity are listed as not reproducible, each naming what is missing. The engine's numeric oracle is lib's synthetic tests (test/engines/kaossim, closed forms).
+quantity,design,objective,expected,tolerance,paper,source,derivation
+target,paper-based,8MinRespRate,0.5,0,50%,FSE'04 §3.1,as read
+current,paper-based,8MinRespRate,0.35,0,35%,FSE'04 §3.1,as read
+target,paper-based,14MinRespRate,0.95,0,95%,FSE'04 §3.1,as read
+current,paper-based,14MinRespRate,0.8,0,80 %,FSE'04 §3.1,as read
+designs,-,-,8,0,3,FSE'04 Fig. 1 and Table 3,"two OR-assignments (call taking, allocation) and one OR-refinement (radio or MDT mobilization): 2 × 2 × 2 designs, Table 3's three systems among them"
+unresolved,paper-based,8MinRespRate,AmbIntervFailure MobilizationTime DistMobilizedAmbulance AmbFailureDetectionTime,,,FSE'04 §4.3,"the paper-based system has §5.1's AmbDelay and CallTakingTime; §4.3's ResponseTime also needs MobilizationTime and DistMobilizedAmbulance, whose equations are not printed, AmbIntervFailure (no printed equation from P(MobFailureForAvAmb), P(FalseAvailability)) and AmbFailureDetectionTime (Table 3's MobFailureDetectionTime: a mean only)"
+unresolved,s1,8MinRespRate,AmbIntervFailure MobilizationTime DistMobilizedAmbulance AmbDelay AmbFailureDetectionTime,,,FSE'04 §4.3,the same and AmbDelay (§5.1 gives the paper-based system's only)
+unresolved,s2,14MinRespRate,AmbIntervFailure MobilizationTime DistMobilizedAmbulance AmbDelay AmbFailureDetectionTime,,,FSE'04 §4.3,the same as S1
+value,paper-based,8MinRespRate,-,,30%,FSE'04 Table 3,"not reproducible: inputs not printed: the distribution families of AllocationTime, AllocationDistError, MobilizationTime (Table 3's) and MobFailureDetectionTime; the city size L and the number of truly available ambulances of §4.1's DistAllocatedAmbInfo; the equations of MobilizationTime, DistMobilizedAmbulance and AmbIntervFailure"
+value,paper-based,14MinRespRate,-,,84%,FSE'04 Table 3,not reproducible: inputs not printed: the same
+value,s1,8MinRespRate,-,,47%,FSE'04 Table 3,"not reproducible: inputs not printed: the same, and CallTakingTime's distribution on screen (mean 50 s) and AmbDelay's in S1"
+value,s1,14MinRespRate,-,,93%,FSE'04 Table 3,not reproducible: inputs not printed: the same as S1's 8-minute rate
+value,s2,8MinRespRate,-,,52%,FSE'04 Table 3,not reproducible: inputs not printed: the same as S1's
+value,s2,14MinRespRate,-,,95%,FSE'04 Table 3,not reproducible: inputs not printed: the same as S1's
+value,s2-obstacles,8MinRespRate,-,,45%,FSE'04 §5.1,"not reproducible: inputs not printed: S2's, and how P(FalseAvailability), P(FalseUnavailability) and P(MobFailureForAvAmb) enter the equations (§5.1 gives the increased probabilities, 5%, 10% and 10%)"
+value,s2-obstacles,14MinRespRate,-,,90%,FSE'04 §5.1,not reproducible: inputs not printed: the same

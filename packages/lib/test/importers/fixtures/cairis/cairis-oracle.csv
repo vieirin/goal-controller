@@ -1,0 +1,47 @@
+# CAIRIS's obstacleProbability (cairis/sql/procs.sql) per environment, run in Docker by
+# scripts/kaos-stress/cairis-oracle.sh packages/lib/test/importers/fixtures/cairis/synthetic.xml packages/lib/test/importers/fixtures/cairis/ACME_Water.xml
+# (mysql:8.0 and shamalfaily/cairis, pinned by digest in the script). Obstacles CAIRIS gives no value in an environment are left out.
+file,environment,obstacle,cairis
+synthetic.xml,"Synthetic","S1 A",0.5
+synthetic.xml,"Synthetic","S1 B",0.4
+synthetic.xml,"Synthetic","S1 Top",0.0
+synthetic.xml,"Synthetic","S1b A",0.5
+synthetic.xml,"Synthetic","S1b B",0.4
+synthetic.xml,"Synthetic","S1b Top",0.1
+synthetic.xml,"Synthetic","S2 A",0.5
+synthetic.xml,"Synthetic","S2 B",0.4
+synthetic.xml,"Synthetic","S2 Top",0.9
+synthetic.xml,"Synthetic","S3 A",0.7
+synthetic.xml,"Synthetic","S3 B",0.6
+synthetic.xml,"Synthetic","S3 Top",1.3
+synthetic.xml,"Synthetic","S4 A",0.5
+synthetic.xml,"Synthetic","S4 B",0.4
+synthetic.xml,"Synthetic","S4 C",0.3
+synthetic.xml,"Synthetic","S4 Top",0.3
+synthetic.xml,"Synthetic","S5 A",0.1
+synthetic.xml,"Synthetic","S5 B",0.3
+synthetic.xml,"Synthetic","S5 C",0.2
+synthetic.xml,"Synthetic","S5 M",0.4
+synthetic.xml,"Synthetic","S5 Top",0.6
+synthetic.xml,"Synthetic","S6 Leaf",0.25
+ACME_Water.xml,"Day","Accessible equipment",0.8
+ACME_Water.xml,"Day","Crafted packets",0.1
+ACME_Water.xml,"Day","DLL preloading",0.0
+ACME_Water.xml,"Day","Desktop installation",0.0
+ACME_Water.xml,"Day","Exposed ICT cabinets",0.5
+ACME_Water.xml,"Day","Incomplete firewall rule-set",0.4
+ACME_Water.xml,"Day","Malicious remote installation",0.0
+ACME_Water.xml,"Day","Malware application",0.0
+ACME_Water.xml,"Day","Redundant application",0.0
+ACME_Water.xml,"Day","Scanning software disabled",0.8
+ACME_Water.xml,"Day","Scanning software not installed",0.1
+ACME_Water.xml,"Day","Software incompatibility",0.1
+ACME_Water.xml,"Day","Surplus equipment",0.0
+ACME_Water.xml,"Day","Ubiquitous identity data",0.5
+ACME_Water.xml,"Day","Unavailable software repository",0.0
+ACME_Water.xml,"Day","Undetected malicious traffic",0.5
+ACME_Water.xml,"Day","Unsanitised equipment",0.6
+ACME_Water.xml,"Day","Unscanned media",0.9
+ACME_Water.xml,"Day","Unused PC application",0.0
+ACME_Water.xml,"Day","Vendor passwords unchanged",0.7
+ACME_Water.xml,"Day","Zero-day threat exploit",0.1

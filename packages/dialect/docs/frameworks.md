@@ -446,7 +446,10 @@ dispatching corpus (ADS) bring obstacle analysis, a textual KAOS and
 RE'12's quantities. The work is split into three layers: istar-ts owns the
 structure (istar-ts#20), the `kaos` dialect owns the vocabularies, and an
 engine's dialect (`kaosprop`) owns its quantities. Results and the attempts
-log are in #182.
+log are in #182. Defects found along the way in the reference tools
+(CAIRIS, RADAR, KAOSTools) and in the published papers/models themselves
+are gathered in [`reference-defects.md`](reference-defects.md), rather
+than fixed or reported upstream.
 
 ### PR E: framework dialects extend their root; the typed `kaos` dialect
 
@@ -1366,7 +1369,10 @@ log are on #353.
 - **Anchors.**
   - An `Anchor` resolves by id, then by a goal's name.
   - Without one, the keep schema anchors on the goal the obstacle's tree
-    obstructs, and substitution anchors on that goal's parent. The goal is
+    obstructs, and substitution anchors on that goal's parent. Since part
+    B, a strong mitigation anchors on that goal's parent too (TSE'00
+    §6.3.2's "some parent goal G' of G"), and is refused when the goal is a
+    root or has several parents. The goal is
     found in the model as given, so a second countermeasure for the same
     obstacle finds the anchor the first one found. When it is not one goal,
     the countermeasure is refused: "set its Anchor".
@@ -1422,6 +1428,703 @@ log are on #353.
 - **D3 unchanged.** Runtime monitoring and activation, SEAMS'17 §IV–V and
   §VII, are out of scope. That is the KAOS version of the SA-BSN loop
   (Vein 6's runtime with GODA formulas, #93, #97).
+
+### Step 4 part B: countermeasure selection (goal-controller#191, #200, #201)
+
+SEAMS'17 §VI.B–C's selection, over part A's transformations: the `kaosres`
+engine, the flood seed, ADS's files. Results and the attempts log are on
+#353; changes to D1–D4 on #189.
+
+- **The definitions, as SEAMS'17 gives them** (§VI.B–C, p. 6–7; D4):
+  - "A *safe* selection of countermeasures is a set of countermeasures
+    that, once integrated, guarantees that the monitored satisfaction rate
+    of the high-level goals is greater than their respective RDS."
+  - "A selection of countermeasures must be *consistent*; conflicting
+    countermeasures shall not be selected together: {CMi, CMj, Dom} ⊭
+    false for i≠j."
+  - "The resolution cost of a selection is the sum of the costs associated
+    with the selected countermeasures."
+  - "A selection is *cost-optimal* if no other selection increases the
+    probability of satisfaction of the high-level goal without increasing
+    the resolution cost."
+  - "The selection of most appropriate countermeasures is defined as the
+    one having the lowest resolution cost such that the satisfaction rate
+    for the high-level goals is maximized while being safe, consistent, and
+    cost-optimal."
+  - §VI.C: the selection "amounts to solving two optimization problems,
+    namely, finding the minimal cost for guaranteeing the RDS of the
+    high-level goals; finding the selection that maximizes the
+    satisfaction rate of the high-level goals given this cost". Both by
+    the "naive approach … O(2ⁿ) where n is the number of countermeasures".
+  - §V: "Multiple ones are handled by use of a weighted sum combining goal
+    satisfaction rates, where the weights capture goal priorities."
+  - The thesis, ch. 7: "If no selection guarantees the goal's required
+    satisfaction rate, the selection that maximizes the satisfaction rate
+    of the high-level goals is picked."
+- **Decisions, implementing those as written** (`engines/kaosres/selection.ts`):
+  - **A countermeasure is a countermeasure goal**, with every resolution
+    link it is the source of. Table I selects goals, and its costs count
+    Achieve [LocalsWarnedBy…Email…], which resolves two obstacles, once.
+    KAOSTools' optimiser does the same (`ResolvingGoalIdentifier`).
+  - **Cost:** a countermeasure's `Cost` when the model sets any (the
+    largest of its links': one goal is deployed once), unset 0; when the
+    model sets none, 1 each, so a selection costs the number of its
+    countermeasures, as ADS's and KAOSTools' optimisers take it and as
+    Table I's costs are (below).
+  - **The high-level goals are the goals with an RSR.** Safe: each one's
+    ESR is greater than its RSR (strictly, "greater than"). With none, the
+    roots (no countermeasure goal) are maximised and nothing is required.
+    With several, their ESRs' mean is maximised: §V's weighted sum with
+    equal weights, since the `kaos` dialect's `Priority` is free text.
+  - **Consistent, on our IR: a Conflict link is KAOS's conflict,
+    `{G1, G2, Dom} ⊨ false`.** A selection is inconsistent when a Conflict
+    joins two of its goals (the paper's pairs), or one of its goals and a
+    goal its variant still has in use (reachable from the model's roots or
+    from the selection). The second half reads `Dom` as what the
+    integrated model keeps. It is what the flood files need: their
+    conflicts pair a countermeasure with an original goal (Camera with
+    UltrasoundSpeedAccurate). Table I's fifth column agrees: it selects
+    Camera together with CameraSpeedAccurate. A conflict among more than
+    two goals is no link (below).
+  - **Cost-optimal is among the consistent selections**, those the
+    definition can compare.
+  - **The chosen selection** is §VI.C's two problems in order: the minimal
+    cost of a safe and consistent selection, then the largest satisfaction
+    at that cost. Ties are all chosen; the first, in the model's order,
+    is drawn. When none is safe, the most satisfying consistent one at
+    the lowest cost, labelled "Best, none safe".
+  - **The search is §VI.C's naive one, bounded.** Selections are evaluated
+    in the order of their cost (a heap over the countermeasures sorted by
+    cost: every subset once, in non-decreasing cost), the empty one first,
+    at most `limit` of them (an engine option, default 4096 = 2¹²).
+    - With 2ⁿ within the limit, every selection is evaluated: the safe,
+      consistent and cost-optimal ones are complete.
+    - Past it, the search stops once the cost level of the first safe
+      selection is complete. The chosen one is then exact (§VI.C's two
+      problems need nothing costlier), and the result says so.
+    - At the limit before that, the result says the chosen one is the best
+      of those evaluated, not §VI.C's.
+  - **KAOSTools' rules, as an option** (`semantics: 'kaostools'`, the
+    owner's call): its `NaiveCountermeasureSelectionOptimizer` at 05a5125
+    differs from the paper three ways, all reproduced:
+    - no consistency check: conflicts are not read;
+    - only non-empty selections are candidates, the empty one counting
+      only for the minimal cost (`GetMinimalCost` returns 0 when the model
+      as it is meets the RDS);
+    - with the minimal cost 0 or none safe, the most satisfying over every
+      non-empty selection, every tie kept (`GetOptimalSelections` filters
+      by cost only when the minimal cost is positive).
+
+    With a positive minimal cost, `GetOptimalSelections` pools every
+    selection costing no more than it, safe or not, and keeps the most
+    satisfying. For KAOSTools' one root goal (`--root`) a cheaper selection
+    is unsafe, its rate at most the RSR, so it never wins. With several
+    high-level goals (their mean, which KAOSTools has no notion of) an
+    unsafe one could: kaosres pools only the safe ones (#367's review,
+    rv367; its counter-model is a test under both rules). The chosen case
+    is labelled "Best, none safe" only when no selection is safe.
+  - **Scope stays `anchor`**: Table I can't decide it (below). On the flood
+    files every countermeasure is a substitution, which the scope doesn't
+    touch; `model` is an engine option.
+- **Part A, amended.**
+  - **Strong mitigation's default anchor** (#355's review): with no Anchor,
+    a strong mitigation anchors on the obstructed goal's parent, TSE'00
+    §6.3.2's "some parent goal G' of G". It is refused, "set its Anchor",
+    when the goal is a root or has several parents. Before, it anchored on
+    the goal itself, as a weak mitigation does.
+  - **A goal that substitutes for two obstacles** (the flood's Email, for
+    Voice Network Overloaded and GSM Network Down): its second resolution
+    finds itself already in the anchor's refinement, and is applied as
+    such, with nothing left to do. It used to be refused ("obstructs no
+    sub-goal").
+- **`.kaos`.**
+  - **`declare constraint [ c ] conflict a, b end`** (KAOSTools' older
+    syntax, the flood model's) is read as a Conflict link between the two
+    goals, and written back so. A constraint's name has no place on a
+    link (an info says so). A conflict among three or more goals means
+    `{a, b, c, Dom} ⊨ false`, which no pair of links says: it is kept as
+    written, with a warning. Any other constraint is kept as before.
+  - **A file with resolutions opens in kaosres's mode** (kaosres has
+    kaosprop's two analyses and the selection); one with experts still in
+    kaosexpert's. KAOSTools' `las.kaos` (one resolution) now opens in
+    kaosres's mode: its seed's project says so.
+- **The engine.** `kaosres` is registered under KAOS beside kaosprop and
+  kaosexpert. Its analyses: *Countermeasure selection*, then kaosprop's
+  *Obstacle and goal probabilities* and *Critical obstacle combinations*
+  on the same view (the model's properties as written: the resolution
+  keys reach the selection). The selection's cases:
+  - one per selection evaluated, at most 256: the chosen first, then the
+    safe and cost-optimal ones, the other safe ones, the other
+    cost-optimal ones, the rest;
+  - each case's values are its variant's EPS and probabilities on the
+    model's elements. Its selection is what the variant keeps in use: the
+    goals the roots and the countermeasures reach, the obstacle trees
+    below them, their agents, the resolutions selected. The canvas dims
+    the rest (the goals substituted, the countermeasures not selected);
+  - its summary: the cost, each high-level goal's ESR against its RSR,
+    safe, consistent (or the conflicts it breaks), cost-optimal, and any
+    resolution not applied. The first case's says how far the search went.
+
+  Options: `scope` (anchor, model), `semantics` (seams17, kaostools),
+  `limit`.
+- **The flood model, found (#200).** SEAMS'17's Table I is not ADS's: its
+  goals are the paper's running example, a flood detection system. Two
+  versions of that model are published:
+  - **`ancailliau/FloodingSimulator`** (MIT, © 2016 Antoine Cailliau),
+    `FloodingSimulator/Model.kaos` at ef6db9f (2016-08-24), deleted in
+    3744438: the goals, obstacles and `resolvedby (substitution[…])`, and
+    three `declare constraint … conflict`. No probability.
+  - **`ancailliau/phd-thesis`** (no licence; used with the owner's
+    approval), `running-example-fds/model2.kaos` at 6a9f5fd (2017-09-22),
+    the thesis's ch. 7 running example: the same model in the bracket
+    syntax, with leaf `probability`s (Dusty Environment .1, False Echo .08,
+    Radar Sensor Broken .2, Ultrasound Sensor Broken .4, Noisy Image .05,
+    Voice Network Overloaded .15; Distortion and GSM Network Down none),
+    the root's `rsr .65`, and the conflicts commented out.
+
+  The seed `examples/kaos/flood` is model2.kaos as written, with
+  FloodingSimulator's three constraints (the owner's call, option (a)).
+  Nothing is added: the Email goal's blank name stays blank,
+  SpeedAcquiredEvery10SecondsByUltrasound stays a goal that resolves
+  nothing, and the emergency countermeasure stays commented out.
+- **Table I is not reproducible** (#200's oracle):
+
+  | Table I column | 1 | 2 | 3 | 4 | 5 |
+  | --- | --- | --- | --- | --- | --- |
+  | selection | — | SMS, Ultrasound 10 s | Email, Ultrasound 10 s | Email, Emergency | Email, Camera, Emergency, CameraSpeedAccurate |
+  | ESR printed | .52 | .68 | .72 | .81 | .77 |
+  | cost printed | 0 | 2 | 2 | 2 | 4 |
+
+  - Its leaf rates were monitored at runtime at an unstated moment, and
+    are printed nowhere. With the thesis's estimates the root is .8 × .6 ×
+    .85 = .408, not .523; the paper's RDS is 80 %, the files' .65.
+  - Two of its six countermeasures resolve nothing in either file:
+    LocalsWarnedWhenRiskImminentAndEmergencySituation's obstacle
+    (`LowAcquisitionRateInEmergency`, `eps .1`) is commented out, and
+    SpeedAcquiredEvery10SecondsByUltrasound has no `resolvedby`.
+  - Its figures fit no one set of leaf rates under the files' structure
+    (the root an AND of four leaf goals):
+    - column 4 (Email + Emergency) = .81 gives (1−a)(1−b) = .81, a and b
+      the radar's and the ultrasound's obstacles;
+    - §VI.A's "SMS at 1 → 61.6 %" then gives (1−e) = .616 / .81 = .76;
+    - §VI.A's "Emergency: 52.3 → 65.4 %" gives (1−e) = .523 / .654 = .80,
+      and predicts .81 × .523 / .616 = .688, not .654.
+  - Two things Table I does fix: **cost is the number of countermeasure
+    goals** (columns 2–4 cost 2 with two goals each, Email's two
+    resolutions counting once), and **the sixth row (CameraSpeedAccurate),
+    lost in the OCR, is 0 0 0 0 1**, the only way column 5 costs 4.
+
+  What the seed gives instead, its oracle (`flood.expected.csv`, every
+  number derived by hand, "no published oracle"):
+
+  | Selection | Cost | ESR | Flags |
+  | --- | --- | --- | --- |
+  | none | 0 | .408 | consistent, cost-optimal |
+  | Camera | 1 | .646 | inconsistent (cst11: UltrasoundSpeedAccurate still in use) |
+  | SMS, or Email | 1 | .48 | consistent, cost-optimal |
+  | Camera + CameraSpeedAccurate | 2 | .646 | consistent, cost-optimal |
+  | Camera + SMS, or + Email | 2 | .76 | safe, inconsistent (cst11) |
+  | **Camera + CameraSpeedAccurate + SMS**, or + Email | 3 | .76 | **safe, consistent, cost-optimal: chosen** |
+
+  The minimal cost is 3, all 16 selections evaluated. GSM Network Down has
+  no estimate, so SMS and Email tie.
+- **KAOSTools as second oracle.** CMSelector at 05a5125 built with `mcs`
+  under Mono 6.12 in Docker (amd64), in /tmp, nothing committed.
+  - **Flood** (the thesis's model2.kaos): "Satisfaction Rate without
+    countermeasures: 0.408", "Minimal cost to guarantee RSR: 2", optimal
+    {Camera, SMS} and {Camera, Email} at 0.76, 6 safe of 15. kaosres
+    under `semantics: 'kaostools'` gives exactly these (the CSV's rows);
+    under SEAMS'17's rules the minimal cost is 3, because Camera alone
+    breaks cst11.
+  - **ADS:** 05a5125 can't parse ADS's files (anonymous nested obstacles;
+    #343's finding). ADS's three files written by our writer, with each
+    leaf at its experts' combined mean and 10 of the countermeasure goals
+    (the leaf weakening left out: KAOSTools refuses it,
+    ANCHOR_NO_REFINEMENT), and the anchors our default gives
+    (05a5125 requires one on every `resolvedby`, #366). Both find no
+    selection safe. KAOSTools' root is 0.403 % unresolved and 1.388 % at
+    best; ours 0.117 % and 1.386 %. The difference is the propagation, not
+    the selection: kaosexpert's BDD with the same point estimates gives
+    KAOSTools' 0.0040271564838259 exactly. kaosprop's RE'12 rules treat
+    a leaf obstacle shared by several trees as independent on each path;
+    the BDD counts it once (#365).
+- **#201: neither `simple.kaos` nor `validation-model.kaos` is Table I's
+  file**: Table I is the flood example's. Both propagate under kaosprop
+  and select under kaosres (`scripts/kaos-stress/ads.expected.csv`):
+
+  | File | Goals, obstacles | Countermeasures | Selections | Chosen |
+  | --- | --- | --- | --- | --- |
+  | `simple.kaos` | 19, 183 | 3 (3 more commented out) | 8, all evaluated | none: no leaf has an estimate, every goal is at 100 %, over every RSR (0, .8) |
+  | `validation-model.kaos` | 44, 15 | 0 | 1 | none: no RSR |
+
+  Neither file has a point estimate, so neither result says anything about
+  the system.
+- **Where the search stops scaling.** Its size is 2ⁿ in the number of
+  countermeasure goals, not of obstacles: simple.kaos's 183 obstacles are
+  3 countermeasures, 8 selections, 40 ms. One evaluation (a copy of the
+  model, the integration, the propagation) takes about 5 ms on ADS's
+  155-element model (node, host). So 4096 selections take about 20 s.
+  ADS's 29 countermeasure goals (2²⁹ selections) would take about 85
+  years, and so would KAOSTools' naive optimiser: under Mono it evaluated
+  ADS's 10-countermeasure cut's 1023 selections in 4.5 s. Past the limit
+  only the cost order makes the answer exact, and only when a safe
+  selection is cheap.
+- **ADS's field run** (resolutions.kaos's 33 resolutions, 29 countermeasure
+  goals, with the ambulance model). It is in the corpus CSV, not in the
+  ambulance seed's: that seed is RE'15's model, without resolutions.kaos
+  (RE'15: no countermeasure), and opens in kaosexpert's mode.
+  - As the files are, every leaf is 0 (their estimates are per expert,
+    which kaosprop doesn't read): 100 %, the empty selection is safe.
+  - With each leaf at its experts' combined mean (kaosexpert over the
+    ambulance seed's five experts), the root is 0.117 %. The 4096
+    cheapest selections (every one of cost 3 or less) find none safe; the
+    best is the weakening of Achieve [Mobilized Ambulance Intervention]
+    with Obesity Ambulance When Required and Assign Destination Hospital,
+    2.78 %. All 29 together give 9.24 %, far under 95 %, as RE'15's VU
+    100 % says.
+- **D3 unchanged**: no runtime monitoring or activation.
+
+### Step 5: the CAIRIS corpus (goal-controller#192, #203, #204, #205)
+
+CAIRIS (S. Faily, *Designing Usable and Secure Software with IRIS and
+CAIRIS*, Springer 2018; `cairis-platform/cairis` at `44cc57d`, Apache 2.0)
+stores KAOS goal and obstacle models in XML (`<cairis_model>`, DTD
+`-//CAIRIS//DTD MODEL 1.0//EN`). It enforces enumerations, and a goal's or
+an obstacle's definition, category and priority are per environment. Its
+three exemplars are lib's fixtures (`test/importers/fixtures/cairis`, with
+CAIRIS's LICENSE) and eight seeds. Results and the attempts log are on #368;
+D-decisions on #189.
+
+- **The importer** (`importers/cairis`): `readCairis(text)` returns one KAOS
+  model per environment (D2), `<model>-<environment>`. The environment and
+  the project's name are on the diagram (`cairisEnvironment`,
+  `cairisProject`, typed as `CairisDiagramProperties`). The models are in
+  kaosprop's mode, with obstacle probabilities as `Probability`.
+
+  | CAIRIS | Model |
+  | --- | --- |
+  | `goal` with a `goal_environment` for E | `kaos.BehavioralGoal` with E's `definition` (`Description`), `category` (`Type`: the goal's pattern, Achieve … React), `priority` (`Priority`), `fit_criterion`, `issue`, concerns (`Concern`); `originator` its `Source` |
+  | `obstacle` with an `obstacle_environment` for E | `kaos.Obstacle` with E's `definition`, `category` (`Category`), `probability` (`Probability`, kaosprop's) and its `rationale` (`Rationale`) |
+  | `requirement` | a `kaos.BehavioralGoal` leaf (D3); `type`, `priority`, `label`, `reference`, `reference_type`, `rationale` as text keys (`RequirementType`, `RequirementPriority`, …) |
+  | `domainproperty`, `role` | `kaos.DomainProperty` (`Kind` its type), `kaos.Agent` (`RoleType`, `ShortCode`) |
+  | `and` | one refinement of the goal (or obstacle) by all its `and` children, in E |
+  | `or` | one refinement per child: alternatives |
+  | `obstruct`, `resolve`, `responsible`, `conflict` | an obstruction, a resolution (untyped: CAIRIS has no strategy), a responsibility assignment, a conflict |
+  | `manual_association` requirement → role | a responsibility assignment, wherever both are |
+  | a use case step's `exception` against a goal | the obstacle CAIRIS makes of it on import (`addUseCaseStepException`), obstructing that goal, with no probability (CAIRIS's default 0.0 isn't written) |
+
+  - A link's `rationale` is its `Rationale`, and `alternative_id = 1` is a
+    leg's `Alternative = Yes`. CAIRIS's propagation doesn't read
+    `alternative_id`.
+  - Every `ref_type` is mapped or reported. An association whose end is no
+    KAOS element (a task, a use case, a vulnerability, a threat), or whose
+    end the file doesn't declare, is kept as written in the diagram's
+    `cairisUnsupported`, with a warning. So are a role dependency and a
+    manual association to a response. Balkan Rail has one such association:
+    its subgoal name is cut at 50 characters ("…information confident").
+  - What else the file has (assets, threats, vulnerabilities, risks,
+    personas, use cases, countermeasures, data flows) is counted in an info
+    diagnostic. Nothing is dropped silently.
+- **Where the project's elements go.** Requirements, domain properties and
+  roles have no environment in CAIRIS. Each is in the environments whose
+  associations name it (a requirement also where its asset, by its
+  `security_property`s, or its environment is). An element nothing
+  situates is in every environment, and the import says which.
+- **D1, the vocabulary: the `cairis` profile** (`dialects/kaos/profiles.ts`).
+  Read verbatim against the `kaos` dialect, the seeds drown in Problems:
+  - every goal's `Priority` (`High`, not `high`);
+  - every obstacle's `Category` (`Vulnerability`, `Confidentiality_Threat`:
+    TSE'00 has five, CAIRIS sixteen);
+  - every domain property's `Kind` (`Hypothesis`);
+  - the security patterns' `Type` (`Prevent`, `Detect`).
+
+  In ACME Water/Day that is all 78 goals and all 21 obstacles; NeuroGrid's
+  seeds and Balkan Rail/Model are the same. Only Balkan Rail's two
+  requirement-only seeds have none. So, as D1 of #192 allows, a **vocabulary profile** gives
+  the same keys a second logged source: goals.dtd's enumerations, Type
+  (14), Priority (3), obstacle Category (16) and Kind (2). It also declares
+  the text keys the importer writes beyond `kaos`'s. A model records its
+  profile (`diagram.customProperties.vocabulary = cairis`), and the
+  importer writes it. Every KAOS mode reads such a model with it
+  (`dialectForModel`): the workbench's Problems, conformity, the Notation
+  view and the inspector. A value outside goals.dtd is still a Problem, and
+  a model without a profile reads exactly as before. The seeds' Problems
+  with the profile are only the source's five obstructions of refined
+  goals (ACME Water/Day 1, NeuroGrid Psychosis and Stroke 2 each), a
+  warning as KAOSTools' are. `kaos`'s own vocabularies are unchanged.
+- **D3, as implemented:** CAIRIS's requirement `type` and `priority` are
+  `RequirementType` and `RequirementPriority`, not `Type` and `Priority`.
+  Those keys are a goal's pattern and priority, with their own
+  vocabularies, so a requirement's `Functional` or `1` would be a Problem
+  under either source.
+- **D4:** there is no CAIRIS writer. A seed is its model's JSON, byte for
+  byte as the importer writes it, and istar-ts writes it back the same.
+- **The seeds** (`examples/kaos/cairis-<exemplar>-<environment>`, made by
+  `scripts/kaos-stress/cairis-seeds.cjs`, pinned by lib's tests and
+  `stress:kaos`):
+  - NeuroGrid: psychosis, stroke, core-technology;
+  - ACME Water: day, night;
+  - Balkan Rail: model, balkan-rail-corprate-hq, central-station.
+
+  Balkan Rail's goals are all in environment Model. Its other two
+  environments hold only requirements, situated by their assets.
+- **The oracle, reframed.** NeuroGrid and Balkan Rail give no obstacle a
+  probability, so CAIRIS's propagation over them is all 0: no oracle, and
+  their seeds' READMEs say so. ACME Water's environment Day does give one
+  to its 20 obstacles (10 of them non-zero, each with a rationale; the
+  scout had it as none). It is the field cross-check.
+  - `cairis-oracle.csv` holds CAIRIS's own `obstacleProbability`, run in
+    Docker by `scripts/kaos-stress/cairis-oracle.sh` (mysql:8.0 and
+    CAIRIS's image, pinned by digest).
+  - `cairisObstacleProbabilities` restates CAIRIS's rule and gives each of
+    the 43 numbers exactly. The rule is AND × and OR +, summed, raised to
+    the obstacle's own probability, and **the AND product starts from 0**
+    (`andProb float default 0`, never set to 1).
+  - Against kaosprop's RE'12 rules, each row is `agree` or attributed:
+    - **synthetic** (`synthetic.xml`, ours, tests only): an AND gives 0 (or
+      the obstacle's own 0.1) where RE'12 gives 0.2; an OR gives 0.9 where
+      RE'12 gives 0.7, and **1.3** (above 1, no clamp) where it gives 0.88;
+      AND and OR on one obstacle give 0.3 where RE'12 gives 0.44; nested
+      ORs give 0.4 → 0.6 where RE'12 gives 0.37 → 0.496.
+    - **ACME Water/Day**: 18 of 21 agree. Surplus equipment is 0 vs 0.48
+      (the AND). Unscanned media is 0.9 vs 0.82, and Undetected malicious
+      traffic 0.5 vs 0.46 (the OR). No sum exceeds 1 there.
+  - CAIRIS's AND defect is reported to the owner, not to CAIRIS's tracker.
+- **#205: one model per environment, for good** (logged on #189).
+  - The test (`cairis.test.ts`) shows that the union of a file's
+    environment models loses nothing: every goal's and obstacle's
+    per-environment values, every requirement, domain property and role,
+    and every association, as a link or kept as written.
+  - Per-context values on one model would serve almost nothing in the
+    corpus. Of NeuroGrid's 22 goals, all in two environments, 2 differ in
+    a value (a priority, an issue, a definition). None of its 10 shared
+    obstacles differs. ACME Water and Balkan Rail share no goal between
+    environments.
+  - What differs is structure: which elements and refinements an
+    environment has (20 of NeuroGrid's 77 associations are in one
+    environment only). A model per environment states that directly.
+  - `cgm`'s contexts are on links: a refinement holds or not in a context,
+    and variants are enumerated per context (#152). They would cover the
+    refinements but not the per-context values. They would also need every
+    KAOS engine to enumerate per environment, which no engine asks for.
+  - Hub contexts are not built. Revisit when a model shares most of its
+    elements across environments with diverging values, or when an
+    analysis across environments is asked.
+- **In the workbench.** The Open dialog takes `.xml`, and a file is
+  CAIRIS's by its content (the DOCTYPE or `<cairis_model>`), whatever its
+  name. Opening one makes the project of its environments' models, in
+  kaosprop's mode, and the first one opens. A CAIRIS file isn't a model to
+  add to a project. The seeds are on Home under KAOS, citing the book and
+  the repository at its commit.
+- **No `.kaos` for a CAIRIS model.** Every model of a kaosprop project would
+  get a `.kaos` slot, and a missing one is written from the model.
+  KAOSTools' syntax can't carry CAIRIS's keys, so the writer would report
+  hundreds of them. It isn't the source either: there is no CAIRIS writer
+  (D4). So a model entry may opt out of a native format: `"native": {
+  "kaos": null }` in project.json means no slot, and none is looked for or
+  written (`ModelEntry.native`, `nativeSlots`). A CAIRIS project's models
+  and the seeds opt out of their mode's native files.
+
+### Step 6: quantitative goals, simulation and design-space search (goal-controller#193, #206, #207, #208)
+
+Letier and van Lamsweerde's partial goal satisfaction (FSE'04) simulated as
+Heaven and Letier simulate it (RE'11): the `kaossim` engine. Results and the
+attempts log are on #369. D1's encoding is logged on #189 ("#193 D1").
+
+- **D1: its own dialect, over kaosprop's** (`engines/kaossim/definition.ts`).
+  Every key is keyed by a name the model writes, `Key[name]` on disk, the
+  form kaosexpert's `Probability[e1]` already has. It needs one generic
+  schema change: `keyed: { names: 'written' }`, keyed by any name, with no
+  resource listing the names. The inspector has no field per such name
+  yet; the keys stay native-file and Notation lines.
+  - On a goal:
+    - `QualityVariable[v]`: its sort, `Time` (seconds), `Boolean` or
+      `Number`. FSE'04 §3.1 gives a variable a name, a sort and a
+      definition. RE'11's `Incident → Time` is sample space `Incident`,
+      sort `Time`;
+    - `SampleSpace[v]` and `QualityDefinition[v]`, both text;
+    - `Distribution[v]`: a leaf variable's estimate in every design;
+    - an objective function: `Objective[o]` (an assertion; the objective is
+      its probability) or `Mean[o]` (an expression; its expectation), with
+      `Modal[o]` (Max, Min), `Target[o]` / `Current[o]` (probabilities) and
+      `ObjectiveSpec[o]`, its PCTL definition (a `formula` tagged `pctl`,
+      §3.3, which nothing checks yet). A mean objective has no target this
+      round, because `number` reads no `%` or exponent.
+  - On a refinement's hub:
+    - `Equation[v]`: an expression over variables, with `if(c, a, b)`,
+      `min` and `max`. A Boolean is 0 or 1;
+    - `BooleanEquation[v]`: an assertion over variables;
+    - `Distribution[v]`: FSE'04 §4.1's equation "in terms of probability
+      distribution functions".
+
+    The equations are on the refinement, not the variable, because "in case
+    of alternative goal refinements different refinement equations must be
+    defined for each alternative" (FSE'04 §4.1). They are read by the goal
+    language's expression and assertion readers (#120); there is no second
+    parser.
+  - On a responsibility assignment: `SysRef` and `Distribution[v]`, the
+    responsible agent's estimate.
+- **D2: options and designs.** A goal with several refinements, or several
+  responsibility assignments, is a decision point. Its options are their
+  `SysRef`s (RE'11 §II: "Options correspond to the system reference
+  attribute attached to goal refinements, responsibility assignments"). A
+  design is a project resource (`designs.json`, kind `design`). It picks one
+  option per decision point it reaches, which is #152's selection shape, and
+  it may `set` leaf estimates (FSE'04 §5.1's what-if). With no designs
+  listed, the simulation runs every design, at most 256.
+- **D3: shared back-end.**
+  - The shared `distribution` type gains `exponential[mean]` and
+    `normal[μ, σ]`, over the reals only. `exponential` takes its **mean**:
+    RE'11's `Exp(60)` is "mean varies from 60 seconds to 30 seconds", as
+    Matlab's `exprnd(mu)` takes it.
+  - `numeric/special` gains Φ (through the incomplete gamma, from Q's side
+    in the lower tail) and Φ⁻¹ (Acklam's approximation with one Halley
+    step).
+  - `distributionOfSamples` moved from kaosexpert to `numeric/samples`;
+    kaosexpert re-exports it.
+- **The simulation** (`simulation.ts`) is RE'11 §III.A's procedure:
+  - a design keeps one alternative per decision point, from the roots
+    down;
+  - each variable has one definition in the design. With none it is
+    **unresolved**, and so is every objective depending on it: no number,
+    and the leaves it lacks are listed;
+  - N samples, each leaf drawn independently (FSE'04 §4.3's assumption)
+    and once per sample (§III.A's Gsim);
+  - equations are evaluated element-wise;
+  - objectives use the frequentist reading, with their standard error.
+
+  A Boolean leaf's estimate is its probability of being true: a value, or
+  a distribution of it (a draw, then a Bernoulli draw). Draws are seeded per
+  variable, from its name and the run's seed. Designs therefore share a
+  leaf's draws (common random numbers), and Pareto comparisons are not
+  noise.
+- **The search, D5** (`search.ts`): a design dominates another when it is
+  at least as good on every objective and better on one; a Min objective
+  counts negated (RE'11 §IV.A). There are two methods:
+  - **every design**, the oracle: an odometer over the decision points, at
+    most `limit` designs. Step 4's cost-ordered heap doesn't apply, because
+    designs carry no cost order;
+  - **NSGA-II** (Deb et al. 2002), seeded. A chromosome is one gene per
+    decision point (RE'11 §IV.C: crossovers between decision points, so
+    every child is a valid design). It uses binary tournaments on rank and
+    crowding, uniform crossover, a mutation of 1/M per gene, and one copy
+    per design in P ∪ Q. The result is the last population's first front.
+    On a synthetic 4 × 3 × 3 × 3 × 6 = 648-design space (RE'11's shape),
+    it reaches the exhaustive front at population 40 and 60 generations
+    (`test/engines/kaossim/kaossim.test.ts`).
+- **`.kaos`.** KAOSTools has no quantitative syntax, so these attributes are
+  ours:
+  - on a goal: `qualityvariable [v] Time`, `samplespace [v] "…"`,
+    `qualitydefinition [v] "…"`, `distribution [v] exponential[60]`,
+    `objective ["8MinRespRate"] "…"`, `mean [o] "…"`,
+    `objectivespec [o] "…"`, `modal [o] Max`,
+    `target [o] 50%`, `current [o] 35%`;
+  - on a refinement: `refinedby [milestone, sysref = "1.2", T = "A + B"] a, b`.
+    A `v = "…"` that reads as a distribution is `Distribution[v]`; any other
+    is `BooleanEquation[v]` when v is declared Boolean, and `Equation[v]`
+    otherwise;
+  - on an assignment: `assignedto [sysref = "4.3", A = "exponential[5]"] agent`.
+
+  A file with any of these opens in kaossim's mode (after kaosexpert's,
+  before kaosres's). The writer writes a refinement's `SysRef` now, for
+  every dialect, with an info diagnostic that KAOSTools doesn't read it.
+
+- **The seeds and their oracles (the owner's decision: A plus B, #189).**
+  - **A.** `examples/kaos/las-quantitative` (FSE'04, #206) and
+    `examples/kaos/las-design-space` (RE'11, #207) re-key only what the
+    papers print. Every unprinted input is marked in the `.kaos`.
+    - kaossim reports each objective unresolved, naming what it lacks.
+    - Their `expected.csv` list Table 3 (30 / 47 / 52 %, 84 / 93 / 95 %),
+      §5.1's sensitivity (45 / 90 %) and RE'11's 61 / 97 / 73 % as "not
+      reproducible: inputs not printed", each with its missing inputs.
+    - The engine's numeric oracle is `test/engines/kaossim` (closed forms).
+      On RE'11's structure with synthetic values, the exhaustive search over
+      its 648 designs and seeded NSGA-II reach the same 19-design front
+      (`designSpace.test.ts`).
+    - `examples/kaos/mine-pump` (#208) re-keys FSE'04's targets and PCTL
+      instances, and claims no value.
+    - FSE'04 and RE'11 are two seeds, not one: their variables, structure and
+      fifth decision point differ, and merging them would invent
+      correspondences.
+  - **B.** `examples/kaos/las-radar` re-keys RADAR's `LAS.rdr` (UCL-badass/radar
+    `docs/LAS.rdr` at 53272ca, used with the owner's approval, no licence).
+    RADAR (sbusari/RADAR e0a4503, run in Docker) is the design-by-design
+    oracle.
+    - RADAR has no goals. Each variable is a goal's quality variable, each
+      equation is on the declaring goal's refinement, and each decision is an
+      OR-assignment per option, with SysRef `<decision>: <option>`.
+    - `normalci[a, b]` joins the shared distribution type: RADAR's 90 %
+      interval, σ = (b − a)/3.29.
+- **D4, as run.**
+  - The seed takes the report's sign, `Pr(ResponseTime > 14*60)`.
+  - The report's numbers are the file's sign's. RADAR's CLI prints 0
+    decimals, so "Risk = 0" was rounding. With the file's sign, Risk is
+    0.12–0.14 and the shortlist is 6 or 4 (RADAR is unseeded and the
+    designs are within noise of each other); the report's 5 are a subset.
+  - The report's text also gives the distance from location as
+    `normalCI(10000,100000)` where the file, which produced its numbers, has
+    `triangular(10000, 50000, 100000)`.
+  - With the report's sign, RADAR and kaossim agree on all 648 designs
+    within 4σ (worst 1.2σ) and on the single Pareto-optimal design. With the
+    file's sign, they agree within 4σ (worst 1.1σ), and the exhaustive front
+    is RADAR's 6.
+
+### Step 7: operations and objects (goal-controller#194)
+
+The part of KAOS that leads to code (Letier and van Lamsweerde, FSE'02 and
+ICSE'02; transcribed in `docs/papers/letier-fse02-icse02.md`): operations
+with their domain and required conditions, agents' interfaces, and the
+object model those reference. Items 1–2 of #194 (the formula parser is
+#211, the completeness check and the LTS output #209, the Elevator seed
+#210). Results are on #383; the decisions are logged on #189.
+
+- **The kinds are the `kaos` dialect's own extension, not istar-ts's**
+  (the owner's decision on #189, 2026-10-21; it departs from D1's
+  "structure is istar-ts's" for this model only). `kaosOperations` extends
+  the KAOS root as PR E allows: `Operation` (`OP`), `Entity` (`EN`),
+  `Association` (`AS`), `Event` (`EV`), and KAOSTools' `Predicate` (`PR`)
+  and `Type` (`TY`, its given types), each on the paper and saved as
+  `kaos.<Name>` (`pistarType`), as obstacles are. Its links, each saved as
+  `kaos.<Name>`:
+
+  | Link | From → to | Its keys |
+  | --- | --- | --- |
+  | `OperationalisationLink` | an operation → a requirement (a behavioural goal) | `ReqPre`, `ReqTrig`, `ReqPost` (`ltl` formulas) |
+  | `PerformanceLink` | an agent → an operation | — |
+  | `MonitoringLink`, `ControlLink` | an agent → an object or a predicate (itself too) | `Monitors` / `Controls` |
+  | `CauseLink` | an event → an operation | `Delay` |
+  | `InputLink` / `OutputLink` | an object → an operation / an operation → an object | — |
+  | `AssociationLink` | an association → an object | `Multiplicity`, `Role` |
+
+  The objects are entities, associations, events and agents (FSE'02
+  §2.1.2, the tutorial's §3.4). A monitoring or a control names one
+  attribute, so it is not unique between an agent and an object, and an
+  agent may monitor or control its own (FSE'02's
+  `PumpController.PumpSwitch`).
+- **Keys, one source each:**
+
+  | Key | On | Type | Source |
+  | --- | --- | --- | --- |
+  | `DomPre`, `DomPost` | operations | `formula`, `ltl` | FSE'02 §2.1.4 (the tutorial's figures name them, unreadable) |
+  | `ReqPre`, `ReqTrig`, `ReqPost` | operationalisations | `formula`, `ltl` | FSE'02 §2.1.4: on the link, one set per requirement (`ReqTrig for G`) |
+  | `Attributes` | entities, associations, events, agents | `pairList`, `name:type` | FSE'02's `Has PumpSwitch: {On, Off}`; KAOSTools' `attribute name : type` |
+  | `EntityType` | entities | software, environment, shared | KAOSTools' `EntityTypeAttributeParser.cs` |
+  | `Arguments`, `FormalSpec`, `Default` | predicates | `pairList`, `formula`, `bool` | KAOSTools' `PredicateDeclareParser.cs` |
+  | `Monitors`, `Controls` | monitorings, controls | `reference` with members | FSE'02's `Monitors PumpController.HighWaterFlag` (D2) |
+  | `Multiplicity`, `Role` | association links | text | KAOSTools' `Link` (`Multiplicity`, `Role`; its parser reads the first); FSE'02's `card 0:1` |
+  | `Frequency` | events | text | the tutorial's figures name it (unreadable); kept free text |
+  | `Delay` | causes | text | the tutorial's figures name it (unreadable); kept free text |
+  | `Load` | agents | text | the tutorial's figures name it (unreadable); kept free text |
+
+  The tutorial's figures have no text layer, so the last three are logged
+  as kept keys: free text until a readable source types them.
+- **Attributes are one `pairList`, not keyed properties.** `Attribute[name]
+  = type` would fit the `Key[name]` form, but #137's member resolution reads
+  an element's members from a pairList (`MemberSource`'s `{ from }`), so a
+  pairList reuses it as it is, and the inspector edits it as one value. A
+  type is `bool`, `int`/`number`, the values (`On|Off`), or a type's name
+  (`waterLevel`); checking a type's name against the model's types is
+  #211's.
+- **D2: `Monitors` and `Controls` are a `reference` with a member.** The
+  generic change: a `reference` may declare `members` (as an assertion's
+  and an expression's do), and is then written `object.attribute`
+  (`sump.highWater`). `referenceParts` splits it at its last dot before a
+  name (an id's own dots, `T1.1`, are the id's). Its name resolves as any
+  reference's (`danglingName`, by key, piStar id or the id its text gives),
+  and its member through #137's `memberProblem`: `referenceMemberProblem`
+  gives it the element its lookup finds, so the Notation view (a context's
+  elements) and the Problems panel (the model's) check it with the same
+  function. A member its object doesn't declare is `unknown-member`; a name
+  that is no object, `dangling-reference`. A name alone (KAOSTools'
+  `monitors p`, a predicate) is a reference to the element as a whole. A
+  reference reads into `{ id, member }`.
+- **The triangle is a declared closure.** The generic change: a framework's
+  dialect may declare `closures`, link chains a third link must close
+  (`path: [first, second]`, `closedBy`, a severity and a message with
+  `{start}`, `{via}`, `{end}`). goal-tree's `openClosures` finds the open
+  ones; the Problems panel reports each on its first link (`open-closure`).
+  The `kaos` dialect declares one: performance then operationalisation,
+  closed by a responsibility assignment, an error (FSE'02's inter-model
+  consistency; the tutorial's §3.5, Fig. 30: a requirement is "closed" when
+  the triangle is established). No code in the core packages knows KAOS.
+- **A model of these kinds declares them in its file.** The importer writes
+  the extension (`metamodelExtensionOf`, which now keeps each kind's `info`
+  and its kinds' literal types) as the model's `"metamodel"` block, as a
+  GRL model declares GRL's. A model without them gets no block and is
+  written as before, byte for byte. The workbench reads a non-iStar
+  framework's model with its block applied (`declaresKinds`), as it reads a
+  `fileKinds` engine's. lib reads one with `KAOS_MODEL` (KAOS, its obstacle
+  analysis and the extension, its kinds typed): the KAOS engines' readers,
+  and the countermeasure engine's view of a model. Their mappers `ignore` the
+  new kinds (the model's elements, no tree's) and map the new links as
+  written; their outputs on the existing seeds are unchanged.
+- **`.kaos`, in KAOSTools' grammar where it has one** (its parsers,
+  ancailliau/KAOSTools @`6a25d84`, MIT): `declare entity` (or `object`) with
+  `attribute name : type`, `type software|environment|shared`; `declare
+  association` (or `relation`) with `link [0, 1] target` (two bounds are
+  `0..1`) and our `link [1] role : target`; `declare predicate` with
+  `argument a : t`, `formalspec`, `default`; `declare type`. KAOSTools has
+  no operations or events, so these are ours, in its attribute style:
+
+  ```
+  declare operation [ switch_pump_on ]
+    dompre controller.pumpSwitch != "On"
+    dompost controller.pumpSwitch == "On"
+    performedby controller
+    input sump
+    output controller
+    causedby [delay = "1 tick"] high_water_detected
+    operationalizes pump_on_when_high_water
+    reqtrig [pump_on_when_high_water] sump.highWater == true
+  end
+  declare event [ high_water_detected ] frequency "once a minute" end
+  declare agent [ controller ] load "…" monitors sump.highWater controls controller.pumpSwitch end
+  ```
+
+  A required condition names its requirement as a parameter, and makes the
+  operationalisation when no `operationalizes` does. A formula's text is
+  kept as read (#211 parses it). What an attribute names and nothing
+  declares is made, of the kind it implies (an agent, an entity, an event, a
+  goal; a monitored name alone a predicate), and said. An entity's `isa`,
+  an untyped `attribute`, and a form the reader doesn't know are kept as
+  written, as before. A predicate or a type nothing links is laid out in
+  rows below the model, not as a root beside it.
+- **The corpus.** Every `.kaos` file reads to the same model and writes the
+  same text as before but `examples/kaos/flood/flood.kaos`: its 18
+  `declare predicate`s were kept text and are Predicate nodes now, so
+  `flood.txt` is regenerated (the nodes, the block, two rows below the
+  model; no other node moves) and the writer writes them in the model's
+  order. The round trip stays structural with a fixed point, as PR F
+  defined it. The countermeasure selection's outputs on it are unchanged.
+- **A fix the prefixes needed.** The goal language's lexer read a dialect's
+  own prefixes in their declaration order, so `A` shadowed `AS` (and `O`,
+  `OP`): the line `AS1: …` didn't read. They are tried longest first now,
+  as `idPrefixPattern` already ordered them.
+- **The fixture.** `packages/lib/test/importers/fixtures/kaos/
+  pump-operations.kaos` re-keys the structure of FSE'02's mine pump in our
+  own names: it reads, lints clean, and writes back byte for byte but its
+  comments.
+- **The Elevator seed (goal-controller#210).** `examples/kaos/elevator`
+  adds the tutorial's responsibility, object and operation models (§3.3–
+  3.5) to `kaosres`'s obstacle-model fixture (§3.6, #202, Figures 33–35,
+  reused byte for byte, a test asserts it): agents, entities, associations,
+  events and operations from the tutorial's *prose* (the figures have no
+  text layer, D1 above), with the triangle's worked example (Fig. 30,
+  Execute schedule performed by and responsible to the Elevator Controller)
+  and a mutation test that breaks it. `Multiplicity`, `Frequency`, `Delay`
+  and `Load` are left unset throughout: none has a value in the tutorial's
+  text, only in its figures. kaosdoc's document for the seed has the same
+  sections as every other KAOS seed's: the operation and object models'
+  kinds aren't among them, so none of this seed's content gains a new one
+  (D3 of #195). **#195 stays open**: its own scope is the tutorial's full
+  goal model (~25 goals, a conflict, expectations per agent) as kaosdoc's
+  document oracle; #210 only adds the triangle's few goals the operations
+  side needs, not that model, so `elevator.expected.md` here is not that
+  oracle. `scripts/kaos-stress`'s oracle for it is structural
+  (`elevator.expected.csv`, `structure,id,expected,derivation`): a count
+  of every element and link kind (the operation and object models' beside
+  the goal and obstacle models'), and the triangle's open closures
+  (`openClosures`), zero for a consistent model.
 
 ### Models typed by their framework (goal-controller#185)
 
@@ -1528,3 +2231,384 @@ log are on #353.
   they differ); one clicked opens in its own framework: its entry's mode,
   else its framework's mode, so its palette. The left model's edits stay in
   the project in memory and in Recent, as an open model's always have.
+
+### Step 7 part A: FormalSpec → LTL, a parser and an AST for the `formula` value (goal-controller#211)
+
+One AST for a `formula` value tagged `ltl` (`kaos`'s `FormalSpec`,
+`kaosres`'s `Condition`), goal-language's `src/ltl/` (not lib's: an LTL
+value isn't KAOS-specific, so it sits beside the other generic value
+readers, `src/parse.ts`'s). Two surface syntaxes write it — a word-based
+sugar (`when … then sooner-or-later …`) and the symbolic RT-LTL of van
+Lamsweerde's RE'01 "Guided Tour" — over one grammar and one AST (D4 of
+#194); which surface a node was read with is recorded on the node
+(`Surface`), so a writer reproduces it. The paper transcription is
+`docs/papers/rt-ltl-re01.md`.
+
+- **Provenance, since RE'01 itself prints no operator table** (the
+  transcription's finding, §1–2 and §8): `◇`, `W`, `o`/next, the one
+  bounded `■≤0.5 sec` example and plain `⇒` are attested in the paper's
+  own formulas; the rest of the operator set `goal-controller#211`'s
+  issue text lists (`●`, `♦`, unbounded `□`/`■`, bounded `◇≤d`/`□≤d`,
+  `@P`, strong `⇒`, `⇔`) is the standard KAOS real-time LTL set, not this
+  paper's. The sugar surface is `ancailliau/KAOSTools`'s grammar (MIT),
+  `Parsing/Parsers/GoalModelParser.peg` (289 lines; transcription §7, one
+  row per construct with its grammar line numbers) — every operator it has
+  a spelling for, plus `release` (dual of until; not attested in RE'01,
+  kept since a sugar corpus may use it).
+- **Right-associative by construction, like the source grammar.** The
+  sugar grammar's binary rules recurse their right-hand side to the top
+  (`Formula`), not to the next tighter level; the parser mirrors this
+  exactly (`src/ltl/parser.ts`'s module doc) rather than precedence-climb,
+  since a different shape would silently diverge from the oracle grammar
+  on anything past two operators deep.
+- **A hand-written tokenizer and recursive-descent parser, not a Langium
+  rule.** `formula` is a schema-level value (a `ValueConfig` tagged with a
+  language, `dialect/src/schema.ts`), not one of goal-language's generic
+  `ValueType`s the shared Langium grammar parses (`assertion`, `ocl`, …);
+  it has no lexer start, so there is nothing for a Langium rule to plug
+  into without widening that machinery for one value tag. `src/ltl/lexer.ts`
+  tokenizes both surfaces alike (an identifier, matching the sugar
+  grammar's own name terminal, so `sooner-or-later` is one token).
+- **The checker is a parser, not (yet, at this step) a validator against
+  the object model** (D3 of #194: no model checking this round). `ltlProblem`
+  (`src/ltl/index.ts`) is wired into the `formula` value's check for tag `ltl`
+  (`src/notation/values.ts`): a syntax error is a Problem, never a parse
+  failure — the text is written back unchanged either way, as every other
+  value type's is. The well-formedness check against a model's predicates
+  and attributes (gt194's object model, items 1–2) is a hook,
+  `ltlTypeProblems(formula, symbols)`, left unimplemented (always no
+  Problems) until a follow-up PR wires a real `SymbolTable` in — part B,
+  below (goal-controller#385).
+- **Epistemic operators (`Knows`/`Belief`, ICSE'04, #212): built, "Step
+  8" below.** The grammar's shape (one node per operator, a `Unary`-level
+  parsing slot) left room, as expected: an agent-indexed unary operator
+  fits beside `Next`/`Always` without reshaping the rest.
+- **Two details are the writer's own choice, unattested anywhere in the
+  sources**: the quantifier's symbolic separator `·`/`∙` (no oracle spells
+  a symbolic `forall`/`exists` out), and `@P` binding to the innermost
+  atom rather than a whole formula (RE'01 uses it only on a dotted
+  attribute comparison, p.6's example, never on a compound formula, so
+  there is nothing to attest a wider binding against).
+- **No actual document round trip is at stake.** A `formula` value's text
+  is stored and written back verbatim regardless of this AST (as `ocl`
+  and `text` values are); `src/ltl/print.ts`'s `printLtl` exists only to
+  prove the AST is faithful (parse, print, re-parse, compare), and
+  normalizes internal whitespace to one space doing it — the corpus wraps
+  a `formalspec` over several indented lines, and `kaosFormulaText`
+  (`src/formats/kaos/index.ts`) already turns each such gap into one
+  space it cannot tell apart from a deliberate one, so a parser-and-printer
+  pair cannot reproduce the file's original bytes either. The corpus test
+  (`goal-language/test/ltl/corpus.test.ts`) additionally squashes
+  whitespace touching `( ) , .` before comparing, for the same reason.
+- **The oracle: every `formalspec` in the MIT corpora.** ADS's six models
+  and KAOSTools' own `las.kaos` (`goal-language/test/fixtures/kaos`) and
+  `examples/kaos/**`: 401 formulas across 6 files that have any, all
+  parsing with zero Problems and printing back (squashed) byte-identical.
+  Results are on #383.
+
+### Step 7 part B: FormalSpec → LTL, type-checked against the object model (goal-controller#385)
+
+`ltlTypeProblems(formula, symbols)` (`src/ltl/index.ts`) wired into the
+`formula` value's `ltl` check (`src/notation/values.ts`'s `formula` case):
+once a formula parses, it is walked against a `SymbolTable` (every
+predicate's arity, every entity's attributes, every declared relation, each
+keyed by id) for four Problem kinds — an unknown predicate, the wrong
+arity, an unknown attribute, an unknown relation.
+
+- **No framework names in goal-language or dialect src (#189's gate).**
+  What feeds the symbol table is data on the `formula` value itself
+  (`FormulaSymbols`, `dialect/src/schema.ts`): the kind whose elements are
+  predicates (with the pairList property its arity is counted from), the
+  *kinds* whose elements are entities (with the pairList property their
+  attributes are read from, reusing `membersOf`/`memberProblem`, #137 — no
+  second resolver), and the kind whose elements are relations. `entities`
+  names a list, not one kind, and `symbolTableOf`
+  (`goal-language/src/notation/values.ts`) enforces it by checking each
+  element's kind against the list before reading its attributes — an id of
+  an unlisted kind is never a symbol source, even if it happens to have the
+  same attributes property set (a review finding on #401: the field used
+  to be declared, singular, and silently ignored, so every element's
+  attributes were folded in regardless of kind). The `kaos` dialect
+  (`lib/src/dialects/kaos/index.ts`) is the only one that sets `symbols` so
+  far (`OBJECT_MODEL_SYMBOLS`, on every `ltl` `formula`: a goal's, a domain
+  property's and an obstacle's `FormalSpec`, an operation's
+  `DomPre`/`DomPost`, an operationalisation link's
+  `ReqPre`/`ReqTrig`/`ReqPost`, a predicate's own `FormalSpec`); its
+  `entities.kinds` is `OBJECTS` — entity, association, event and the two
+  agent kinds (FSE'02 §2.1.2's objects, whose attributes a formula
+  legitimately reaches, FSE'02's `PumpController.PumpSwitch`) —
+  deliberately not every kind the dialect has (a goal's or an obstacle's
+  own properties are not formula symbols). `kaosres`'s `Condition` (a
+  different engine's `ltl` value, `lib/src/engines/kaosres/definition.ts`)
+  sets none, so it keeps today's "always no Problems" behaviour unchanged.
+- **The open world, decided per category.** A category `symbols` doesn't
+  name, or whose kind(s) have no element in a given model, never raises a
+  Problem for it — most formulas in the corpus call predicates their model
+  never declares (ADS, `las.kaos`; neither declares predicate elements at
+  all), so they stay clean. The rule is literal for predicates and
+  relations (their map/set is checked only when non-empty); for an
+  attribute access `ref.attr`, `ref` is in the table only when its element
+  is one of `entities.kinds` and has the configured attributes property
+  set — anything else (a wrong kind, or no such id) is simply not in the
+  table, so it is never flagged, with no separate category gate needed.
+- **No variable binding.** A formula's `x.attr`/`p(x)` names are read
+  literally against the symbol table's ids (`sump.highWater`, KAOSTools'
+  `declare entity [ sump ]`): a `forall`/`exists`-bound or predicate
+  `argument`-bound name (`high_water`'s own `s.highWater`, bound by its
+  `argument s : sump`, not by the formula's own text) resolves to nothing
+  in the table and is silently skipped — completeness over bound variables
+  is #209's, not this step's.
+- **The oracle: the mine pump fixture and every `examples/kaos/**.kaos`
+  with a declared object model, zero type Problems** (`lib/test/importers/
+  kaosLtlTypes.test.ts`), through the same `valueProblem` path
+  `propertyErrors` and the Problems panel use; a mutated attribute name
+  raises one. Its `KNOWN_DEFECTS` allowlist is keyed by file, element
+  id.key and the exact message (not by id alone, across every file) so a
+  new Problem on the same id elsewhere, or a changed message, still fails
+  it. One corpus defect this step unmasked, filed rather than fixed (not
+  #385's to touch): `examples/kaos/flood/flood.kaos` declares predicate
+  `DustyEnvironment` but every `formalspec` calls `dustyEnvironment()`,
+  verbatim in the upstream thesis source (#398, a reference defect,
+  `dialect/docs/reference-defects.md`). Results are on #383.
+- **`examples/kaos/las-quantitative/las-quantitative.kaos`'s
+  `ambulance_intervention` formula (#399) had three causes, all parser
+  bugs, not an object-model gap — this step's corpus test found it, #211's
+  LTL corpus test never had, since it reads only ADS and `las.kaos`, not
+  `examples/kaos/**` (noted on #383):**
+  - its quantifier is written with no `.`/`·`/`∙` separator before the
+    body (RE'01 p.5-9's own formulas do this too) — the separator is now
+    optional wherever that stays unambiguous (`goal-language/src/ltl/
+    parser.ts`).
+  - its quantifier header is parenthesised, `(∀x:T) …`, the header alone
+    in parens with the body following outside (RE'01 p.9's
+    `◇ (∃ tr: Train) (…)`) — a new `tryParseParenthesizedQuantifier`.
+  - it writes `◊` (U+25CA), which this parser's lexer only recognized as
+    `◇` (U+25C7): PDF text extraction renders RE'01's "sometime" diamond as
+    either depending on the font (the paper transcriptions,
+    `docs/papers/rt-ltl-re01.md`, note this explicitly, and use `◊`
+    verbatim 16 times to `◇`'s 5, all in prose). `◊` is now a parser-level
+    synonym of `◇`; `Eventually.glyph` records which one a symbolic surface
+    was read with, so `printLtl` reproduces it as read rather than always
+    `◇` (D4: the writer emits what it read). Tests:
+    `goal-language/test/ltl/operators.test.ts`.
+- **`examples/kaos/ebanking/ebanking.kaos` (#212, merged to main while
+  #401 was in flight) writes a *bare* quantifier as a unary operator's
+  operand, `◊ ∃ p: Person, acc: Account · …` — no parens around the
+  header, unlike #399's RE'01 p.9 example — which #399's
+  `tryParseParenthesizedQuantifier` fix didn't cover (goal-controller
+  #404).** `parseQuantified` (the top of the precedence chain) and
+  `parseUnary` (every unary operator's operand, and a binary operator's
+  left side, which bottoms out there) now share one
+  `tryParseBareQuantifier`: a bare `∀`/`∃` is accepted wherever either
+  was reached, not only at the formula's very top. This only adds
+  acceptance (any token sequence that already parsed keeps the same
+  tree, since `tryParseBareQuantifier` returns `undefined` — tried,
+  rewinds nothing, falls through — whenever the next token isn't
+  `∀`/`∃`/`forall`/`exists`). Test:
+  `goal-language/test/ltl/operators.test.ts`, the exact ebanking shape
+  under `◊`, `not` and `always`. `KNOWN_DEFECTS`' ebanking entry is gone.
+
+### Step 7 part C: the mine pump's operations, the Req* completeness check and `kaoslts` (goal-controller#209)
+
+The operational layer of KAOS's one model with operations, agent
+interfaces and a machine-produced LTS: Letier and van Lamsweerde's FSE'02
+(the operation model, Defs 1–3, the patterns) and Letier, Kramer, Magee and
+Uchitel's ASE'08 (KAOS2LTSA's five-step derivation), transcribed in
+`docs/papers/letier-fse02-icse02.md`. Results are on #383; D3 of #194 (no
+model checking; the LTS is a transform engine) holds.
+
+- **The seed grows, kaossim's outputs don't change.**
+  `examples/kaos/mine-pump` keeps FSE'04's goals and quantities and adds,
+  re-keyed from ASE'08 Figs 2–3 and §4: the three requirements on
+  PumpController with their formal definitions (`when … then next …`), the
+  controller's `startPump`/`stopPump` with their DomPre/DomPost and one
+  operationalisation per requirement (each ReqPre/ReqTrig for the
+  requirement it names), the environment's six operations on the water
+  level and methane, an `Environment` agent, Monitors/Controls, and the
+  state variables as Boolean attributes of `sump`, `mine` and `pump`. The
+  requirement's name is Figure 2's (`PumpOnWhenHighWaterAndNoMethane`; the
+  other two spellings are reference-defects.md's). The model still opens in
+  kaossim's mode; kaossim's values and its oracle are unchanged (its
+  `selection`, the design's elements, now lists the new goals and agents).
+  The models archive has no licence: nothing is copied from it.
+- **An attribute's initial value: `Initially`.** KAOS2LTSA's fluents have
+  one (`LowWater … initially 1`); KAOS has no place for it, so the `kaos`
+  dialect gains `Initially` on its objects (entities, associations, events,
+  agents), a `pairList` of `name:value` beside `Attributes`, and `.kaos`
+  writes it `initially lowWater : true`, in `attribute`'s form. Unset, an
+  attribute starts false, as a fluent does. Every other model reads and
+  writes as before.
+- **The completeness check decides Immediate Achieve only.** FSE'02's
+  Def. 3 condition 1 ([|R1|], …, [|Rn|] ⊨ G) is decided over the LTL AST
+  (part A) for `C ⇒ ○T` (under `□`, a `∀`, a strong `⇒`/`when … then`; the
+  "After" invariance is the same formula), when C, T and every condition it
+  needs are state formulas: lib's propositional solver
+  (`engines/propositional.ts`) checks the pattern's two premises, the
+  trigger (`C ∧ ¬T ⊨ ⋁ ReqTrig(op, G) ∧ DomPre(op)` over the operations
+  whose DomPost establishes T) and the precondition (no operation whose
+  DomPost may falsify T is permitted where C ∧ T holds), on FSE'02's frame
+  axioms. A refutation is an `incomplete-operationalisation` Problem, an
+  istar-ts `GoalDiagnostic` on the requirement (a missing or too strong
+  trigger) or on the operationalisation's `ReqPre` (a missing or too weak
+  precondition), with the counterexample state. Not decided, and said,
+  never a Problem: Bounded Achieve and "InBetween" invariance (their
+  required conditions need the past operators S and B, which the AST has no
+  node for), the patterns FSE'02 gives no operationalisation for, a
+  condition with a temporal operator, and any refutation that rests on a
+  comparison other than with true or false (`c.pumpSwitch == "On"`): the
+  solver doesn't know an attribute's values exclude each other. The verdicts
+  are kaoslts's `completeness` file; the Problems panel doesn't show them yet
+  (a follow-up issue).
+- **`kaoslts`, a transform engine on the `kaos` dialect.** Its mapper reads
+  goals, agents, operations and objects as the model's elements (no tree)
+  and the operationalisations' required conditions. Its files: the system's
+  FSP (primary, traced line by line to its operations, requirements,
+  objects and agents), one FSP file per agent, each standing alone as LTSA
+  reads one file, and the completeness report. The derivation follows
+  ASE'08 §4: Boolean attributes are fluents (an integer or an enumeration
+  is the analyst's step 1: said, left out); DomPost occurrences define
+  their events; DomPre, ReqPre, ReqTrig and ReqPost are constraints by the
+  paper's templates; each agent composes its operations' constraints; the
+  system composes the agents; each requirement is an `assert`, encoded with
+  ticks by §2.2.3's `Tr`. What isn't translated is a comment in the file.
+- **One tick process per fluent, as the paper states (rv392's #392
+  review).** The paper's prose constrains "each fluent to change value at
+  most once between two ticks"; the archive instead groups the water
+  level's two fluents (`HighWater`, `LowWater`) in one process
+  (`InterleavingCstr_for_Water`, under the sump object). A first pass
+  (#209) followed the archive's grouping; a counter-model (an object with
+  two independent Boolean attributes, so two independent fluents) showed
+  the archive's reading forbids what the paper's own definition allows in
+  one tick. The oracle outranks the archive's output where the two
+  conflict, so kaoslts now emits one `OnePerTick_<Fluent>` process per
+  fluent (`OnePerTick_HighWater`, `OnePerTick_LowWater`,
+  `OnePerTick_Methane`, `OnePerTick_PumpOn` for the mine pump), logged as
+  an extension to the existing reference-defects.md ASE'08 entry; a unit
+  test (`kaoslts.test.ts`) carries the Robot counter-model (independent
+  `armUp`/`legUp` fluents allowed in one tick).
+- **The oracle is structural.** `mine-pump-lts.expected.csv` (header
+  `quantity,id,expected,zip,source,derivation`, a new kind in
+  `scripts/kaos-stress/run.cjs`) checks the fluents, the alphabet (the
+  archive's nine actions), every constraint's condition, the tick
+  processes, each agent's and the system's processes, the asserts and the
+  three completeness verdicts; the `zip` column names the archive's
+  counterpart. Three rows differ from the archive on purpose, each marked
+  with its reference-defects.md entry: the seed keeps the paper's printed
+  `aboveHigh` DomPre (¬HighWater ∧ ¬LowWater, and `belowLow`'s mirror),
+  which the archive weakens, and (since rv392's review) its three
+  `OnePerTick` processes split the archive's two, per fluent rather than
+  per object. The state counts (32, 65) need LTSA, which is not run (no
+  licence stated for any version, #394): they are listed, not reproduced.
+### Step 8: anti-models (van Lamsweerde ICSE'04, goal-controller#212)
+
+The owner's request reopened #212 under #196's D1; #196's D2 decided
+anti-models ride on the obstacle machinery, not a parallel tree. This
+section settles the two points #196 left open, logged on #189.
+
+- **AntiGoal: a kind, or an `ObstacleCategory` value — the Category
+  wins.** A new element kind (`kaosObstacles.AntiGoal`, parallel to
+  `Obstacle`) would need its own properties, links, importer cases and
+  kaosdoc entry, and every engine that switches on an obstacle's kind
+  would need to learn the new one. The dialect's `ObstacleCategory`
+  vocabulary (goal-controller#181) already exists on every obstacle for
+  exactly this purpose — naming what kind of thing it is — so it gains one
+  value, `AntiGoal` (van Lamsweerde & Letier TSE'00's own five,
+  `Non-satisfaction`/`Non-information`/`Inaccuracy`/`Hazard`/`Threat`,
+  stay as they are; `AntiGoal` is ICSE'04's addition, orthogonal to them).
+  `kaosprop`, `kaosres`, `kaossim` and `kaosexpert` read every obstacle the
+  same regardless of its Category, so every existing model (and engine
+  test) is unaffected; only `kaosdoc`'s new "Threats" section reads it.
+  `AntiGoal` marks every node of an anti-goal AND/OR tree, root to leaf
+  (ICSE'04 Table 1 step 4), not only its terminals: the paper itself calls
+  intermediate nodes like `PaymentMediumKnownByThief` anti-goals too.
+- **Anti-requirement vs. vulnerability: the terminal anti-goal's
+  responsible agent, not a further value or kind.** ICSE'04 §4: "the
+  former [an anti-goal realizable by the attacker] are anti-requirements
+  assigned to the attacker whereas the latter are vulnerabilities assigned
+  to the attackee." This is exactly `kaos.ResponsibilityAssignment`
+  (goal-controller#181's link from a goal to an agent, which already
+  tells a requirement from an expectation by the agent's kind), extended
+  to also accept an obstacle as its source. No dialect or link-list change
+  was needed for this: `kaos.ResponsibilityAssignment` is the base KAOS
+  metamodel's own link, declared with no endpoint-kind restriction and no
+  properties schema in `@istar-ts/dsm3-kaos`; `istar-ts`'s `validateModel`
+  accepts an obstacle source (checked directly: a model with one validates
+  with no Problems, goal-controller#212's tests). The importer's
+  `assignedto` case (`packages/lib/src/importers/kaos/read.ts`) and the
+  writer's generic per-link-kind loop (`write.ts`, already keyed by link
+  kind, not source kind) needed one condition each to accept
+  `word === 'obstacle'` alongside a goal's.
+- **Malicious agents: the diagnostic becomes a value, not a kind.**
+  KAOSTools' `type malicious` (goal-controller#181 PR F) read as a plain
+  `kaos.Agent` with an info diagnostic, discarding the distinction. The
+  `kaos` dialect's agent vocabulary gains `Type` (its own vocabulary,
+  `AgentType`, one value `malicious`; the key is `Type`, shared with a
+  goal's own `Type` key, each dialect-typed independently) — the
+  importer now sets it instead of discarding the fact, and the diagnostic
+  is gone where `malicious` is now a valid, lossless read. Software vs.
+  environment agent stays the structural `environment` field, as it was;
+  a malicious agent reads as a (non-environment) `kaos.Agent`, per the
+  existing behaviour.
+- **SecurityGoal subclasses: six more `Category` values.** ICSE'04 §3
+  lists the `SecurityGoal` meta-class's subclasses exactly: Confidentiality,
+  Integrity, Availability, Privacy, Authentication, Non-repudiation. They
+  sit beside TSE'00's five Category values on the same goal property
+  (`Satisfaction`/`Information`/`Accuracy`/`Safety`/`Security`): the paper
+  gives no further taxonomy under them (no sub-sub-classes), so nesting
+  would invent structure the source doesn't have.
+- **`Knows`/`Belief`/`KnowsV`: two AST node kinds, one extra flag — not
+  three nodes.** ICSE'04 §2 defines `KnowsV ag (v) ≡ ∃x : Knows ag (x =
+  v)` and uses both `Knows` and `KnowsV` directly in its formulas (never
+  expanding `KnowsV` away), so both need to parse as written, not just the
+  defined-from form. `Knows` (`goal-language/src/ltl/ast.ts`) carries an
+  `asValue` flag distinguishing `KnowsV` from plain `Knows`, rather than a
+  third node kind, since the two share every other field (`agent`,
+  `expr`, `surface`) and differ only in which keyword was read. `Belief`
+  is its own node (no value form in the paper). Both are agent-indexed
+  unary operators, parsed at the same `parseUnary` level as `Next` and
+  `Always` — exactly the slot frameworks.md's "Step 7 part A" left open
+  for them.
+  - **The `[ag]` subscript spelling is unattested on both surfaces, by
+    design.** The paper's own PDF-to-text extraction prints the
+    subscript with inconsistent spacing ("Knows ag (P)", "KnowsVp
+    (acc.PIN)", "KnowsV p (acc.Acc#)" — three spacings for the same
+    construct), so there is no one glyph sequence to mirror the way
+    other operators mirror RE'01's. `[ag]` was chosen because it matches
+    a convention the KAOS dialects already use for a keyed value
+    (`Probability[e1]`, goal-controller#190) rather than inventing an
+    unrelated one; a sugar spelling (`knows [ag]`, `knows-value [ag]`,
+    `believes [ag]`) uses the same bracket, since KAOSTools' own sugar
+    grammar has no epistemic construct to take a spelling from.
+  - **Neither surface exists in KAOSTools' native `.kaos` grammar**
+    (`packages/goal-language/src/formats/kaos/kaos.langium`'s `Formula`
+    rule, which mirrors the PEG exactly and has no symbolic spelling for
+    anything, let alone an agent-indexed operator). A `formalspec` using
+    `Knows`/`Belief`/`KnowsV` therefore reads and writes as a quoted
+    string (the existing `StringAtom` fallback for "a FormalSpec that is
+    no \[native\] formula"), exactly as any other symbolic-surface
+    formula in a `.kaos` file would — the ebanking seed's two such
+    formulas round-trip this way.
+- **kaosdoc's "Threats" section** mirrors "Requirements and expectations"
+  exactly: one row per `AntiGoal`-category obstacle (in the model's
+  obstacle order), its `Obstructs` (any `ObstructionLink`, as the
+  Obstacles section already reads it), its responsible agent(s), and
+  `anti-goal` (no agent — an interior node of the attacker's own tree),
+  `anti-requirement` (a malicious agent), `vulnerability` (an attackee
+  agent) or `shared` (both) by the same logic that table already has.
+  Every existing kaosdoc snapshot (`kaos-welcome.expected.md`, the LAS
+  Obstacles-section test) is untouched: neither has an `AntiGoal`
+  obstacle, so the new section never appears for them.
+- **The seed**: `examples/kaos/ebanking`, re-keyed structurally from
+  ICSE'04 §2, §3 and §6 (no machine-readable model of this example
+  exists); provenance and the mapping above's rationale are in its
+  `README.md`. It opens in kaosres's mode (it has `resolvedby`
+  annotations), round-trips through `.kaos`, and `stress:kaos` checks it
+  with no numeric oracle (`oracle: skip`) — the oracle is the paper's
+  anti-model tree, reproduced structurally and asserted directly in
+  `packages/lib/test/engines/kaosdoc/kaosdoc.test.ts`'s Threats-section
+  tests.
+
+Out of scope, parked per #196 D1: #213 (RELAX) and #214 (SysML/KAOS). The
+formula type check against the object model (goal-controller#385, "Step 7
+part B" above) and #194's operations/objects are separate work this step
+doesn't touch.

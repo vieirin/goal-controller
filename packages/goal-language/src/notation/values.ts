@@ -11,11 +11,13 @@ import {
   linkPropertiesOf,
   probabilityOf,
   readDistribution,
-  propertyOf,
+  danglingName,
   valueOf,
   type AnyDialect,
   type DefinitionContext,
+  type DefinitionContextElement,
   type DialectKind,
+  type FormulaSymbols,
   type FunctionDefinition,
   type MemberSource,
   type PropertyDefinition,
@@ -32,7 +34,16 @@ import {
   type AssertionTree,
   type ExpressionTree,
 } from '../parse.js';
+import { ltlTypeProblems, parseLtl, type SymbolTable } from '../ltl/index.js';
+import { argumentsText } from '../text.js';
 import { assertionVariables } from './goalNames.js';
+import {
+  contextElementOf,
+  propertyIn,
+  propertyOf,
+  referenceParts,
+  targetScopeOf,
+} from './properties.js';
 
 const kindOf = (context: DefinitionContext | undefined, id: string) =>
   context?.elements[id]?.kind;
@@ -63,10 +74,12 @@ export const fieldPropertyOf = (
   if (!owner) return null;
   const property = element
     ? propertyOf(definition, owner.kind, key)
-    : (link
-        ? linkPropertiesOf(definition, owner.kind)
-        : actorPropertiesOf(definition, owner.kind)
-      ).find((p) => p.key === key);
+    : propertyIn(
+        link
+          ? linkPropertiesOf(definition, owner.kind)
+          : actorPropertiesOf(definition, owner.kind),
+        key,
+      );
   return property
     ? {
         on: element ? 'element' : link ? 'link' : 'actor',
@@ -124,6 +137,47 @@ export const membersOf = (
   );
 };
 
+/**
+ * The symbol table an `ltl` formula's type check draws on (goal-controller
+ * #385): every element of `symbols.predicates`' kind, by id, with its
+ * `arguments` pairList's arity; every element of one of `symbols.entities`'
+ * `kinds` with its `attributes` pairList set (reusing `membersOf`, not a
+ * second resolver), by id, with its attribute names; every element of
+ * `symbols.relations`' kind, by id. No `symbols`, or no context: every map
+ * empty, the open world for every category.
+ */
+const symbolTableOf = (
+  symbols: FormulaSymbols | undefined,
+  context: DefinitionContext | undefined,
+): SymbolTable => {
+  const predicateArity = new Map<string, number>();
+  const attributesOf = new Map<string, ReadonlySet<string>>();
+  const relations = new Set<string>();
+  if (symbols && context)
+    for (const [ref, element] of Object.entries(context.elements)) {
+      if (symbols.predicates && element.kind === symbols.predicates.kind)
+        predicateArity.set(
+          ref,
+          parseValue(
+            'pairList',
+            element.properties[symbols.predicates.arguments] ?? '',
+          ).value.length,
+        );
+      if (symbols.relations && element.kind === symbols.relations.kind)
+        relations.add(ref);
+      if (
+        symbols.entities &&
+        symbols.entities.kinds.some((kind) => kind === element.kind)
+      ) {
+        const members = membersOf(context, ref, {
+          from: symbols.entities.attributes,
+        });
+        if (members) attributesOf.set(ref, new Set(members.keys()));
+      }
+    }
+  return { predicateArity, attributesOf, relations };
+};
+
 /** A member read: its reference (an id or a name) and its name. */
 type MemberUse = { ref: string; member: string };
 
@@ -160,6 +214,31 @@ const memberProblem = (
   return members.has(member)
     ? null
     : `${ref} has no member ${member} (${members.size ? `its members: ${[...members.keys()].join(', ')}` : 'it declares none'})`;
+};
+
+/**
+ * What is wrong with the member a `reference` names (`sump.dirty`,
+ * goal-controller#194), as with an assertion's (memberProblem): the named
+ * element (`elementOf` finds it) declares none, or none of that name. Null
+ * when it names no member, or no element (its name's problem,
+ * `danglingName`).
+ */
+export const referenceMemberProblem = (
+  value: Extract<ValueConfig, { type: 'reference' }>,
+  text: string,
+  elementOf: (
+    ref: string,
+  ) => Pick<DefinitionContextElement, 'kind' | 'properties'> | undefined,
+  definition?: Pick<AnyDialect, 'properties'>,
+): string | null => {
+  const { ref, member } = referenceParts(value, text);
+  const element = member === null ? undefined : elementOf(ref);
+  if (member === null || !element) return null;
+  const context: DefinitionContext = {
+    elements: { [ref]: { ...element, children: [] } },
+    variables: [],
+  };
+  return memberProblem(value, { ref, member }, context, definition);
 };
 
 /** A declared member's type, when its element has one of that name. */
@@ -242,10 +321,6 @@ const decimalOf = (tree: AssertionTree | null): string | null => {
   }
 };
 
-/** `1 argument`, `2 arguments`: what a function takes, in words. */
-export const argumentsText = (n: number) =>
-  `${n} argument${n === 1 ? '' : 's'}`;
-
 /** The first call of an expression to a function not declared, or with another number of arguments. */
 const callProblem = (
   tree: ExpressionTree,
@@ -312,8 +387,12 @@ export const valueProblem = (
   value: ValueConfig,
   text: string,
   context?: DefinitionContext,
-  /** its definition: whether a kind declares members (`members.from`) */
-  definition?: Pick<AnyDialect, 'properties'>,
+  /**
+   * its definition: whether a kind declares members (`members.from`), its
+   * project resources' labels
+   */
+  definition?: Pick<AnyDialect, 'properties'> &
+    Partial<Pick<AnyDialect, 'projectResources'>>,
 ): string | null => {
   if (!text.trim()) return null;
   // a list of conditions (goal-controller#232): the first part's problem
@@ -427,24 +506,31 @@ export const valueProblem = (
       return error ? error.message : null;
     }
     case 'reference': {
-      const id = text.trim();
+      // its name, and the member after it when it reads members (`sump.highWater`)
+      const { ref: id } = referenceParts(value, text);
       // an imported model names an element by its piStar id, which no
-      // grammar reads; any other reference is one id, as the grammar reads
+      // grammar reads; any other element's is one id, as the grammar reads
       // a refList's
-      let key = context?.iStarIds?.[id];
-      if (key === undefined) {
+      if ('kinds' in value.target && context?.iStarIds?.[id] === undefined) {
         const read = parseValue('refList', id);
         if (read.errors.length || read.value.length !== 1)
           return `An element's id (G1), not ${id}`;
-        key = read.value[0]!;
       }
       if (!context) return null;
-      const kind =
-        kindOf(context, key) ?? kindOf(context, context.named?.[key] ?? '');
-      if (!kind) return `${id} is not an element of this model`;
-      return (value.kinds as readonly string[]).includes(kind)
-        ? null
-        : `${id} is a ${kind}, not a ${value.kinds.join(' or ')}`;
+      return (
+        danglingName(
+          value.target,
+          id,
+          targetScopeOf(context),
+          definition?.projectResources,
+        ) ??
+        referenceMemberProblem(
+          value,
+          text,
+          (ref) => contextElementOf(context, ref),
+          definition,
+        )
+      );
     }
     case 'probability':
       return probabilityOf(text) === null
@@ -455,8 +541,17 @@ export const valueProblem = (
       return 'error' in read ? read.error : null;
     }
     case 'text':
-    case 'formula':
       return null;
+    case 'formula': {
+      if (value.language !== 'ltl') return null;
+      const { value: formula, errors } = parseLtl(text);
+      if (errors.length) return errors[0]!.message;
+      if (!formula) return null;
+      return (
+        ltlTypeProblems(formula, symbolTableOf(value.symbols, context))[0] ??
+        null
+      );
+    }
     case 'ocl': {
       // read leniently: only a character no OCL token matches is wrong
       const [error] = parseValue('ocl', text).errors;

@@ -245,6 +245,50 @@ describe('kaosres: the anchoring schema (prevention, reduction, mitigation, rest
     near(eps(variant.model, 'root'), 0.63, 'Root');
   });
 
+  it('strong mitigation with no Anchor: anchored on the obstructed goal’s parent (TSE’00 §6.3.2), as with Root given', () => {
+    const variant = applied(modelOf('resolvedby [strong_mitigation] cm'));
+    valid(variant);
+    assert.deepStrictEqual(variant.applied[0]!.at, ['root']);
+    assert.deepStrictEqual(childrenOf(variant.model, 'root'), [
+      ['root-unless-lost', 'cm'],
+    ]);
+    near(eps(variant.model, 'root'), 0.63, 'Root');
+  });
+
+  it('strong mitigation with no Anchor: refused when the obstructed goal has no parent, or several', () => {
+    // an obstacle to Root, a root
+    const root = applied(
+      modelOf(
+        '',
+        `override goal [ root ] obstructedby root_fails end
+declare obstacle [ root_fails ] name "Root Fails" probability 0.1 resolvedby [strong_mitigation] cm end`,
+      ),
+    );
+    assert.deepStrictEqual(
+      root.problems.map((p) => [p.severity, p.message]),
+      [
+        [
+          'error',
+          "cm resolving root_fails isn't applied: a strong mitigation ensures a parent goal of root (TSE'00 §6.3.2), and it has none: set its Anchor",
+        ],
+      ],
+    );
+    // A a sub-goal of Root and of Other
+    const shared = applied(
+      modelOf(
+        'resolvedby [strong_mitigation] cm',
+        'declare goal [ other ] name "Achieve [Other]" refinedby a end',
+      ),
+    );
+    assert.deepStrictEqual(
+      shared.problems.map((p) => p.message),
+      [
+        "cm resolving lost isn't applied: a strong mitigation ensures a parent goal of a (TSE'00 §6.3.2), and it has 2 (root, other): set its Anchor",
+      ],
+    );
+    assert.deepStrictEqual(shared.applied, []);
+  });
+
   it('below the anchor only: a goal outside it that Lost obstructs still sees Lost; with the model scope it doesn’t', () => {
     const model = modelOf(
       'resolvedby [prevention:a] cm',

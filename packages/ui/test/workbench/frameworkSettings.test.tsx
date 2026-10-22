@@ -96,7 +96,15 @@ describe('the mode lists by framework (#171)', () => {
     ]);
     // KAOS: its engines (PR D, #181), then its modelling mode
     fireEvent.click(screen.getByRole('radio', { name: 'KAOS' }));
-    expect(cards()).toEqual(['kaosdoc', 'kaosprop', 'kaosexpert', 'kaos']);
+    expect(cards()).toEqual([
+      'kaosdoc',
+      'kaoslts',
+      'kaosprop',
+      'kaosexpert',
+      'kaosres',
+      'kaossim',
+      'kaos',
+    ]);
     // no conformity for the empty iStar model the KAOS one replaces
     expect(screen.queryByText(/has problems|accepts the model/)).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Start working' }));
@@ -113,7 +121,15 @@ describe('the mode lists by framework (#171)', () => {
       }),
     );
     await screen.findByRole('dialog');
-    expect(cards()).toEqual(['kaosdoc', 'kaosprop', 'kaosexpert', 'kaos']);
+    expect(cards()).toEqual([
+      'kaosdoc',
+      'kaoslts',
+      'kaosprop',
+      'kaosexpert',
+      'kaosres',
+      'kaossim',
+      'kaos',
+    ]);
     // not a choice: the model has elements
     expect(screen.queryByRole('radiogroup', { name: 'Framework' })).toBeNull();
     expect(

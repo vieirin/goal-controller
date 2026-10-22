@@ -1,0 +1,213 @@
+{
+  "actors": [],
+  "orphans": [
+    {
+      "id": "data_handling_policy",
+      "text": "Data handling policy",
+      "type": "kaos.BehavioralGoal",
+      "x": 40,
+      "y": 80,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Anton",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "The policy will detail specify the standard operating procedures for handling confidential data, depending on the classification it has been given. It will be signed off by IT, HR and executive management and detail the penalties of non compliance",
+        "Stability": "",
+        "Description": "A Data handling policy is to be implemented when dealing with confidential and commercially sensitive documentation",
+        "RequirementType": "Security",
+        "RequirementPriority": "1",
+        "Label": "2",
+        "Reference": "Medical Certificate",
+        "ReferenceType": "asset",
+        "Rationale": "To provide documented procedures which are to be followed when transmitting confidential data internally within the company."
+      }
+    },
+    {
+      "id": "data_classification_policy",
+      "text": "Data classification policy",
+      "type": "kaos.BehavioralGoal",
+      "x": 200,
+      "y": 80,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Anton",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "Data classification levels will be documented and expressed in the form of a policy. The policy will contain criteria which must be met for the data classification level to be applied, and reference will be made  to the correct handling procedures as per",
+        "Stability": "",
+        "Description": "A data classification level will be applied to all confidential documentation that enters the company",
+        "RequirementType": "Security",
+        "RequirementPriority": "1",
+        "Label": "1",
+        "Reference": "Medical Certificate",
+        "ReferenceType": "asset",
+        "Rationale": "Reduce the probability of mishandling of data"
+      }
+    },
+    {
+      "id": "rfid_management_policy",
+      "text": "RFID Management Policy",
+      "type": "kaos.BehavioralGoal",
+      "x": 360,
+      "y": 80,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Anton",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "The policy will specify the points of contact for any card related issues and maintenance, as well as acceptable use by employees and instructions on how to handle lost or stolen ID cards.",
+        "Stability": "",
+        "Description": "A policy detailing the procedure for replacing and stopping lost or stolen RFID cards will be implemented.",
+        "RequirementType": "Operational",
+        "RequirementPriority": "1",
+        "Label": "1",
+        "Reference": "RFID Access Control System",
+        "ReferenceType": "asset",
+        "Rationale": "To ensure documented operating procedures for the use and management of ID Cards is provided and adhered to"
+      }
+    },
+    {
+      "id": "rfid_cease_requirement",
+      "text": "RFID Cease requirement",
+      "type": "kaos.BehavioralGoal",
+      "x": 520,
+      "y": 80,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Anton",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "When a card is reported stolen, it will be ceased from operation by access control administrators within 1 day of report by the initial employee",
+        "Stability": "",
+        "Description": "Lost or Stolen RFID cards will have a cease lead time of 1 day (policy mandated) and employees will be required to report the lost or stolen card within 24 hours to the person defined in the RFID management policy",
+        "RequirementType": "Security",
+        "RequirementPriority": "1",
+        "Label": "2",
+        "Reference": "RFID Access Control System",
+        "ReferenceType": "asset",
+        "Rationale": "Reduce the risk of unauthorised access to Balkan Rail facilities through fraudulent use of RFID cards"
+      }
+    },
+    {
+      "id": "rfid_replacement_card_business_process",
+      "text": "RFID replacement card business process",
+      "type": "kaos.BehavioralGoal",
+      "x": 680,
+      "y": 80,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Anton",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "The implemented policy will detail the process for replacing a lost card with a temporary assigned card, as well as reporting procedures for the incident in question",
+        "Stability": "",
+        "Description": "An interim RFID card issue process will be implemented, allowing users access to resources while they wait for a new badge (a temporary badge will be issued)",
+        "RequirementType": "Operational",
+        "RequirementPriority": "1",
+        "Label": "3",
+        "Reference": "RFID Access Control System",
+        "ReferenceType": "asset",
+        "Rationale": "Improve accountability and audit tracking of access to physical resources."
+      }
+    },
+    {
+      "id": "accounting",
+      "text": "Accounting",
+      "type": "kaos.Agent",
+      "x": 840,
+      "y": 80,
+      "customProperties": {
+        "Description": "Member of Financial Services department",
+        "RoleType": "Stakeholder",
+        "ShortCode": "ACC"
+      }
+    },
+    {
+      "id": "human_resources",
+      "text": "Human Resources",
+      "type": "kaos.Agent",
+      "x": 1000,
+      "y": 80,
+      "customProperties": {
+        "Description": "Human Resources",
+        "RoleType": "Stakeholder",
+        "ShortCode": "HR"
+      }
+    },
+    {
+      "id": "it_administrator",
+      "text": "IT administrator",
+      "type": "kaos.Agent",
+      "x": 1160,
+      "y": 80,
+      "customProperties": {
+        "Description": "IT staff",
+        "RoleType": "Stakeholder",
+        "ShortCode": "ADMIN"
+      }
+    },
+    {
+      "id": "purchasing",
+      "text": "Purchasing",
+      "type": "kaos.Agent",
+      "x": 1320,
+      "y": 80,
+      "customProperties": {
+        "Description": "Member of Purchasing and Supply department",
+        "RoleType": "Stakeholder",
+        "ShortCode": "PURCH"
+      }
+    },
+    {
+      "id": "ex_employee",
+      "text": "Ex-employee",
+      "type": "kaos.Agent",
+      "x": 1480,
+      "y": 80,
+      "customProperties": {
+        "Description": "Ex-employee",
+        "RoleType": "Attacker",
+        "ShortCode": "EXE"
+      }
+    },
+    {
+      "id": "criminal",
+      "text": "Criminal",
+      "type": "kaos.Agent",
+      "x": 1640,
+      "y": 80,
+      "customProperties": {
+        "Description": "An indervidual who commits a specific crime.",
+        "RoleType": "Attacker",
+        "ShortCode": "Criminal"
+      }
+    }
+  ],
+  "dependencies": [],
+  "links": [],
+  "display": {},
+  "tool": "dsm3-goals",
+  "metamodelVersion": "1.0",
+  "diagram": {
+    "width": 1935,
+    "height": 336,
+    "name": "Balkan_Rail-Balkan Rail Corprate HQ",
+    "customProperties": {
+      "Description": "The head office for Balkan Rail, hosuing all supporting and management groups of the company.",
+      "vocabulary": "cairis",
+      "cairisProject": "Balkan Railway",
+      "cairisEnvironment": "Balkan Rail Corprate HQ"
+    }
+  }
+}

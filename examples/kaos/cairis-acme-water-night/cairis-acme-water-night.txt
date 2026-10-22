@@ -1,0 +1,338 @@
+{
+  "actors": [],
+  "orphans": [
+    {
+      "id": "detectwar_dialing_attack",
+      "text": "DetectWar-dialing attack",
+      "type": "kaos.BehavioralGoal",
+      "x": 200,
+      "y": 80,
+      "customProperties": {
+        "Type": "Detect",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "Medium",
+        "Issue": "None",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "The system shall detect risk War-dialing attack after its occurrence."
+      }
+    },
+    {
+      "id": "detectunknown_applications",
+      "text": "DetectUnknown applications",
+      "type": "kaos.BehavioralGoal",
+      "x": 40,
+      "y": 180,
+      "customProperties": {
+        "Type": "Detect",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "Medium",
+        "Issue": "None",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "The system shall detect vulnerability Unknown applications after its occurrence."
+      }
+    },
+    {
+      "id": "detectwar_dialing",
+      "text": "DetectWar-dialing",
+      "type": "kaos.BehavioralGoal",
+      "x": 200,
+      "y": 180,
+      "customProperties": {
+        "Type": "Detect",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "Medium",
+        "Issue": "None",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "The system shall detect threat War-dialing after its occurrence."
+      }
+    },
+    {
+      "id": "anomalous_credentials_reset",
+      "text": "Anomalous credentials reset",
+      "type": "kaos.BehavioralGoal",
+      "x": 200,
+      "y": 280,
+      "customProperties": {
+        "Type": "Maintain",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "Medium",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "Login attempt logs available to service desk, together with a procedure for contacting the Information Security Manager in the event of anomalies.",
+        "Stability": "",
+        "Description": "Prior to responding to a password reset request, service desk operators shall monitor recent login logs for any malicious activity, and report any anomalies to the Information Security Manager."
+      }
+    },
+    {
+      "id": "pay_number_sharing",
+      "text": "Pay number sharing",
+      "type": "kaos.BehavioralGoal",
+      "x": 520,
+      "y": 80,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Anon",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "Pay numbers shall not be shared with unauthorised personnel.",
+        "RequirementType": "Security",
+        "RequirementPriority": "1",
+        "Label": "2",
+        "Reference": "ICT Credentials",
+        "ReferenceType": "asset",
+        "Rationale": "None"
+      }
+    },
+    {
+      "id": "third_party_requests",
+      "text": "Third party requests",
+      "type": "kaos.BehavioralGoal",
+      "x": 680,
+      "y": 80,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Standard 7.6(rr)",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "None",
+        "Stability": "",
+        "Description": "All third party requests for remote access to SCADA, Telemetry, and Control Systems may be reviewed using appropriate processes.",
+        "RequirementType": "Functional",
+        "RequirementPriority": "1",
+        "Label": "1",
+        "Reference": "STCS Application",
+        "ReferenceType": "asset",
+        "Rationale": "None"
+      }
+    },
+    {
+      "id": "application_program_backup",
+      "text": "Application program backup",
+      "type": "kaos.BehavioralGoal",
+      "x": 840,
+      "y": 80,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Standard 7.14(kkkk)",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "Create new PC image. Download app",
+        "Stability": "",
+        "Description": "PLC and SCADA application programs shall be stored in the central software repository.",
+        "RequirementType": "Functional",
+        "RequirementPriority": "1",
+        "Label": "2",
+        "Reference": "STCS Application",
+        "ReferenceType": "asset",
+        "Rationale": "All software stored in  repository."
+      }
+    },
+    {
+      "id": "pc_infrastructure",
+      "text": "PC infrastructure",
+      "type": "kaos.DomainProperty",
+      "x": 1000,
+      "y": 80,
+      "customProperties": {
+        "Kind": "Invariant",
+        "Description": "Works diary GT concept",
+        "Source": "Anon"
+      }
+    },
+    {
+      "id": "vendor",
+      "text": "Vendor",
+      "type": "kaos.Agent",
+      "x": 1160,
+      "y": 80,
+      "customProperties": {
+        "Description": "Vendor of SCADA, Telemetry, and Control System software",
+        "RoleType": "Stakeholder",
+        "ShortCode": "VENDOR"
+      }
+    },
+    {
+      "id": "cracker",
+      "text": "Cracker",
+      "type": "kaos.Agent",
+      "x": 1320,
+      "y": 80,
+      "customProperties": {
+        "Description": "Cracker",
+        "RoleType": "Attacker",
+        "ShortCode": "CRACK"
+      }
+    },
+    {
+      "id": "petty_criminal",
+      "text": "Petty Criminal",
+      "type": "kaos.Agent",
+      "x": 1480,
+      "y": 80,
+      "customProperties": {
+        "Description": "Engages in acts of petty crime",
+        "RoleType": "Attacker",
+        "ShortCode": "PETTY_CRIM"
+      }
+    },
+    {
+      "id": "integrator",
+      "text": "Integrator",
+      "type": "kaos.Agent",
+      "x": 1640,
+      "y": 80,
+      "customProperties": {
+        "Description": "Work with process partners to implement the control philosophy associated with a capital project",
+        "RoleType": "Stakeholder",
+        "ShortCode": "INTGR"
+      }
+    },
+    {
+      "id": "service_desk",
+      "text": "Service Desk",
+      "type": "kaos.Agent",
+      "x": 360,
+      "y": 280,
+      "customProperties": {
+        "Description": "Service Desk staff acting as first-line support for any ICT problems.",
+        "RoleType": "Stakeholder",
+        "ShortCode": "SERV_DESK"
+      }
+    },
+    {
+      "id": "machine",
+      "text": "Machine",
+      "type": "kaos.Agent",
+      "x": 1800,
+      "y": 80,
+      "customProperties": {
+        "Description": "System hardware",
+        "RoleType": "Stakeholder",
+        "ShortCode": "MACH"
+      }
+    }
+  ],
+  "dependencies": [],
+  "links": [
+    {
+      "hub": {
+        "id": "detectwar_dialing_attack-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "x": 178,
+        "y": 138,
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        }
+      },
+      "starts": [
+        {
+          "id": "detectwar_dialing_attack-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "detectunknown_applications",
+          "target": "detectwar_dialing_attack-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "detectwar_dialing_attack-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "detectwar_dialing_attack-refinement-1",
+        "target": "detectwar_dialing_attack"
+      }
+    },
+    {
+      "hub": {
+        "id": "detectwar_dialing_attack-refinement-2",
+        "type": "kaos.RefinementLinkHub",
+        "x": 258,
+        "y": 138,
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        }
+      },
+      "starts": [
+        {
+          "id": "detectwar_dialing_attack-refinement-2-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "detectwar_dialing",
+          "target": "detectwar_dialing_attack-refinement-2"
+        }
+      ],
+      "end": {
+        "id": "detectwar_dialing_attack-refinement-2-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "detectwar_dialing_attack-refinement-2",
+        "target": "detectwar_dialing_attack"
+      }
+    },
+    {
+      "hub": {
+        "id": "detectwar_dialing-refinement-1",
+        "type": "kaos.RefinementLinkHub",
+        "x": 258,
+        "y": 238,
+        "customProperties": {
+          "SysRef": "",
+          "Status": "",
+          "Tactic": ""
+        }
+      },
+      "starts": [
+        {
+          "id": "detectwar_dialing-refinement-1-1",
+          "type": "kaos.RefinementLinkStart",
+          "source": "anomalous_credentials_reset",
+          "target": "detectwar_dialing-refinement-1"
+        }
+      ],
+      "end": {
+        "id": "detectwar_dialing-refinement-1-end",
+        "type": "kaos.RefinementLinkEnd",
+        "source": "detectwar_dialing-refinement-1",
+        "target": "detectwar_dialing"
+      }
+    },
+    {
+      "id": "service_desk-assigned-anomalous_credentials_reset",
+      "type": "kaos.ResponsibilityAssignment",
+      "source": "service_desk",
+      "target": "anomalous_credentials_reset"
+    }
+  ],
+  "display": {},
+  "tool": "dsm3-goals",
+  "metamodelVersion": "1.0",
+  "diagram": {
+    "width": 2095,
+    "height": 416,
+    "name": "ACME_Water-Night",
+    "customProperties": {
+      "Description": "Night-time plant operations",
+      "vocabulary": "cairis",
+      "cairisProject": "ACME Water",
+      "cairisEnvironment": "Night",
+      "cairisUnsupported": "<manual_association from_name=\"Detect War-dialing attack\" from_dim=\"response\" to_name=\"DetectWar-dialing attack\" to_dim=\"goal\" />\n\n<dependency depender=\"Information Security Manager\" dependee=\"Service Desk\" dependency_type=\"goal\" dependency=\"Anomalous credentials reset\" environment=\"Night\" >\n  <rationale>Goal relies on service desk staff being switch-on enough to check logs, and pro-active enough to contact the ACME information security team.</rationale>\n</dependency>"
+    }
+  }
+}

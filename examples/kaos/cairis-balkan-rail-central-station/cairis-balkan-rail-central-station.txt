@@ -1,0 +1,213 @@
+{
+  "actors": [],
+  "orphans": [
+    {
+      "id": "data_handling_policy",
+      "text": "Data handling policy",
+      "type": "kaos.BehavioralGoal",
+      "x": 40,
+      "y": 80,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Anton",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "The policy will detail specify the standard operating procedures for handling confidential data, depending on the classification it has been given. It will be signed off by IT, HR and executive management and detail the penalties of non compliance",
+        "Stability": "",
+        "Description": "A Data handling policy is to be implemented when dealing with confidential and commercially sensitive documentation",
+        "RequirementType": "Security",
+        "RequirementPriority": "1",
+        "Label": "2",
+        "Reference": "Medical Certificate",
+        "ReferenceType": "asset",
+        "Rationale": "To provide documented procedures which are to be followed when transmitting confidential data internally within the company."
+      }
+    },
+    {
+      "id": "data_classification_policy",
+      "text": "Data classification policy",
+      "type": "kaos.BehavioralGoal",
+      "x": 200,
+      "y": 80,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "Anton",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "Data classification levels will be documented and expressed in the form of a policy. The policy will contain criteria which must be met for the data classification level to be applied, and reference will be made  to the correct handling procedures as per",
+        "Stability": "",
+        "Description": "A data classification level will be applied to all confidential documentation that enters the company",
+        "RequirementType": "Security",
+        "RequirementPriority": "1",
+        "Label": "1",
+        "Reference": "Medical Certificate",
+        "ReferenceType": "asset",
+        "Rationale": "Reduce the probability of mishandling of data"
+      }
+    },
+    {
+      "id": "data_retention_requirement",
+      "text": "Data retention requirement",
+      "type": "kaos.BehavioralGoal",
+      "x": 360,
+      "y": 80,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "Original copies of the recordings from cameras on the station will be stored with other CCTV recordings of the Balkan Rail main office in a bank safety deposit box.",
+        "Stability": "",
+        "Description": "Recordings from the CCTV system will be stored for a predetermined and mutually agreed time duration",
+        "RequirementType": "Legal",
+        "RequirementPriority": "1",
+        "Label": "1",
+        "Reference": "CCTV Recordings",
+        "ReferenceType": "asset",
+        "Rationale": "To provide evidence for following up of incidents of crime."
+      }
+    },
+    {
+      "id": "cctv_installation",
+      "text": "CCTV Installation",
+      "type": "kaos.BehavioralGoal",
+      "x": 520,
+      "y": 80,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "A site survey  and consultation with the station manager will be carried out prior to installation of the CCTV cameras",
+        "Stability": "",
+        "Description": "The strategic placement of CCTV recording cameras",
+        "RequirementType": "Functional",
+        "RequirementPriority": "1",
+        "Label": "1",
+        "Reference": "CCVTV Cameras",
+        "ReferenceType": "asset",
+        "Rationale": "Ensure adequate surveillance capability is implemented covering critical areas of the station"
+      }
+    },
+    {
+      "id": "cctv_installation_2",
+      "text": "CCTV installation",
+      "type": "kaos.BehavioralGoal",
+      "x": 680,
+      "y": 80,
+      "customProperties": {
+        "Type": "",
+        "Category": "",
+        "Source": "",
+        "Priority": "",
+        "Issue": "",
+        "FormalSpec": "",
+        "FitCriterion": "Provide a deterrent from crime and cecords of security and safety incidents",
+        "Stability": "",
+        "Description": "A full closed circut television system will be installed on the Central Station premises",
+        "RequirementType": "Functional",
+        "RequirementPriority": "1",
+        "Label": "1",
+        "Reference": "Central Station",
+        "ReferenceType": "environment",
+        "Rationale": "Provide a deterrent from crime and cecords of security and saftey incerdents"
+      }
+    },
+    {
+      "id": "accounting",
+      "text": "Accounting",
+      "type": "kaos.Agent",
+      "x": 840,
+      "y": 80,
+      "customProperties": {
+        "Description": "Member of Financial Services department",
+        "RoleType": "Stakeholder",
+        "ShortCode": "ACC"
+      }
+    },
+    {
+      "id": "human_resources",
+      "text": "Human Resources",
+      "type": "kaos.Agent",
+      "x": 1000,
+      "y": 80,
+      "customProperties": {
+        "Description": "Human Resources",
+        "RoleType": "Stakeholder",
+        "ShortCode": "HR"
+      }
+    },
+    {
+      "id": "it_administrator",
+      "text": "IT administrator",
+      "type": "kaos.Agent",
+      "x": 1160,
+      "y": 80,
+      "customProperties": {
+        "Description": "IT staff",
+        "RoleType": "Stakeholder",
+        "ShortCode": "ADMIN"
+      }
+    },
+    {
+      "id": "purchasing",
+      "text": "Purchasing",
+      "type": "kaos.Agent",
+      "x": 1320,
+      "y": 80,
+      "customProperties": {
+        "Description": "Member of Purchasing and Supply department",
+        "RoleType": "Stakeholder",
+        "ShortCode": "PURCH"
+      }
+    },
+    {
+      "id": "ex_employee",
+      "text": "Ex-employee",
+      "type": "kaos.Agent",
+      "x": 1480,
+      "y": 80,
+      "customProperties": {
+        "Description": "Ex-employee",
+        "RoleType": "Attacker",
+        "ShortCode": "EXE"
+      }
+    },
+    {
+      "id": "criminal",
+      "text": "Criminal",
+      "type": "kaos.Agent",
+      "x": 1640,
+      "y": 80,
+      "customProperties": {
+        "Description": "An indervidual who commits a specific crime.",
+        "RoleType": "Attacker",
+        "ShortCode": "Criminal"
+      }
+    }
+  ],
+  "dependencies": [],
+  "links": [],
+  "display": {},
+  "tool": "dsm3-goals",
+  "metamodelVersion": "1.0",
+  "diagram": {
+    "width": 1935,
+    "height": 336,
+    "name": "Balkan_Rail-Central Station",
+    "customProperties": {
+      "Description": "The central station on the Balkan Rail network, located within the capital of the operating country.",
+      "vocabulary": "cairis",
+      "cairisProject": "Balkan Railway",
+      "cairisEnvironment": "Central Station"
+    }
+  }
+}

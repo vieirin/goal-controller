@@ -1,0 +1,337 @@
+# The Elevator case study (Respect-IT's "A KAOS Tutorial", v1.0, 18 October
+# 2007; (c) Respect-IT sa, no licence stated; re-keyed by hand, never
+# copied). goal-controller#210 (refs #194, #195, #202, #189); README.md
+# says where every value comes from and what the tutorial's figures (no
+# text layer: UNREADABLE, docs/papers/respectit-kaos-tutorial.md) withhold.
+#
+# The goals and obstacles below (§3.6, Figures 33-35) are the same
+# declarations as packages/lib/test/engines/kaosres/fixtures/elevator.kaos
+# byte for byte (a test in packages/lib/test/examples/kaosElevator.test.ts
+# asserts it); this file adds the operations side (§3.3-3.5): agents,
+# objects (entities, associations, events) and operations, with the
+# responsibility-operationalisation-performance triangle (§3.5, Fig. 30).
+
+@title "Elevator (Respect-IT tutorial)"
+
+declare goal [ passengers_informed_of_direction ]
+  name "Passengers informed of elevator direction"
+  refinedby direction_updated_before_next_stop
+end
+
+declare goal [ direction_updated_before_next_stop ]
+  name "Elevator direction updated few seconds before next stop"
+  obstructedby direction_unreadable
+end
+
+declare obstacle [ direction_unreadable ]
+  name "Elevator direction unreadable"
+  refinedby inadequate_led_size
+  refinedby unreadable_by_blind_people
+  refinedby insufficient_display_contrast
+end
+
+declare obstacle [ inadequate_led_size ]
+  name "Inadequate LED size"
+  resolvedby [prevention] leds_at_least_2in_high
+end
+
+declare obstacle [ unreadable_by_blind_people ]
+  name "Elevator direction unreadable by blind people"
+  resolvedby [prevention] direction_announced_by_voice
+end
+
+declare obstacle [ insufficient_display_contrast ]
+  name "Insufficient display contrast"
+end
+
+declare goal [ leds_at_least_2in_high ]
+  name "LEDs at least 2in high"
+end
+
+declare goal [ direction_announced_by_voice ]
+  name "Elevator direction announced by voice"
+end
+
+declare goal [ robust_and_reliable ]
+  name "Robust and reliable elevator system"
+  obstructedby service_interrupted
+end
+
+declare obstacle [ service_interrupted ]
+  name "Service interrupted"
+  resolvedby [mitigation] self_reconfigurable_on_partial_failure
+  resolvedby [restoration] repair_delay_enforced
+  resolvedby [prevention] worn_out_components_replaced_in_time
+end
+
+declare goal [ self_reconfigurable_on_partial_failure ]
+  name "Self-reconfigurable system in case of partial failure"
+end
+
+declare goal [ repair_delay_enforced ]
+  name "Maximum permitted time delay for repairing failure enforced"
+end
+
+declare goal [ worn_out_components_replaced_in_time ]
+  name "Worn-out components replaced in time"
+  refinedby maintenance_program_provided, worn_out_components_replaced
+  refinedby worn_out_components_replaced, elevator_system_monitored
+end
+
+declare goal [ maintenance_program_provided ]
+  name "Maintenance program provided"
+  refinedby mtbf_requirements_specified, maintenance_program_defined, maintenance_program_executed
+end
+
+declare goal [ worn_out_components_replaced ]
+  name "Worn-out components replaced"
+end
+
+declare goal [ elevator_system_monitored ]
+  name "Elevator system monitored"
+  refinedby component_wear_detected, component_wear_reported
+end
+
+declare goal [ mtbf_requirements_specified ] name "MTBF requirements specified" end
+declare goal [ maintenance_program_defined ] name "Maintenance program defined" end
+declare goal [ maintenance_program_executed ] name "Maintenance program executed" end
+declare goal [ component_wear_detected ] name "Component wear detected" end
+declare goal [ component_wear_reported ] name "Component wear reported" end
+
+# --- The responsibility model (§3.3, p.23-25, Figures 20-22): "System
+# protected against fire" (Fig. 18), its two requirements assigned to the
+# Elevator Controller and its two expectations assigned to the Elevator
+# company. ---
+
+declare goal [ system_protected_against_fire ]
+  name "System protected against fire"
+end
+
+declare goal [ doors_locked_open_on_fire_alarm ]
+  name "Doors locked open when fire alarm is set"
+  assignedto elevator_controller
+end
+
+declare goal [ elevators_stopped_at_nearest_floor_on_fire ]
+  name "All moving elevators stopped as soon as they reach any floor, when a fire alarm is set"
+  assignedto elevator_controller
+end
+
+declare goal [ fireproof_cage_provided ]
+  name "Fireproof cage provided"
+  assignedto elevator_company
+end
+
+declare goal [ fireproof_equipment_provided ]
+  name "Fireproof equipment provided"
+  assignedto elevator_company
+end
+
+# --- "Efficient elevator system" (§3.5, p.32-33, Fig. 5 and Fig. 31):
+# refined by the two requirements of Fig. 16 that justify the Reschedule
+# operation, and the two new subgoals Fig. 31 adds. Fig. 31 also nests
+# "Passengers informed of elevator direction" here; that would give it a
+# second parent (it already refines from direction_updated_before_next_stop
+# above, §3.6), so it is left where the obstacle model has it (README.md). ---
+
+declare goal [ efficient_elevator_system ]
+  name "Efficient elevator system"
+  refinedby moving_elevator_stopped_next_floor_on_fire_signal, elevator_stopped, minimize_elevator_moves, minimize_average_waiting_time
+end
+
+declare goal [ moving_elevator_stopped_next_floor_on_fire_signal ]
+  name "Moving elevator stopped next floor in case of fire signal"
+end
+
+declare goal [ elevator_stopped ]
+  name "Elevator stopped"
+  definition "Contributes to Emergency stop available inside the cage (Fig. 16), which this seed does not otherwise model"
+end
+
+declare goal [ minimize_elevator_moves ]
+  name "Minimize elevator moves"
+end
+
+declare goal [ minimize_average_waiting_time ]
+  name "Minimize average waiting time"
+end
+
+# --- The triangle (§3.5, p.31-32, Fig. 30): "Execute schedule" is
+# performed by the Elevator Controller, which is responsible for "Elevator
+# stopped on calling floor" (Fig. 13), and operationalises it. ---
+
+declare goal [ elevator_stopped_on_calling_floor ]
+  name "Elevator stopped on calling floor"
+  assignedto elevator_controller
+end
+
+# --- "Stop button used" (§3.5, p.30): operationalized by the "Push
+# button" operation and the "Button" entity. The object side of that
+# operationalization has no link kind of its own (README.md). ---
+
+declare goal [ stop_button_used ]
+  name "Stop button used"
+end
+
+# --- Agents (§3.3-3.4). ---
+
+declare agent [ elevator_controller ]
+  name "Elevator Controller"
+end
+
+declare agent [ elevator_company ]
+  name "Elevator company"
+  type environment
+end
+
+declare agent [ passenger ]
+  name "Passenger"
+  type environment
+end
+
+# --- Objects: entities (§3.4, p.26-29, Figures 23-27). ---
+
+declare entity [ elevator_system ]
+  name "Elevator System"
+end
+
+declare entity [ cage ]
+  name "Cage"
+end
+
+declare entity [ floor ]
+  name "Floor"
+end
+
+declare entity [ alarm_device ]
+  name "Alarm device"
+end
+
+declare entity [ alarm_bell ]
+  name "Alarm bell"
+  definition "A component of the Elevator System, specialising Alarm device (Fig. 23)"
+end
+
+declare entity [ power_supply ]
+  name "Power supply"
+end
+
+declare entity [ door ]
+  name "Door"
+  attribute status : "Open|Close"
+end
+
+declare entity [ schedule ]
+  name "Schedule"
+  definition "The sequence of commands the elevator controller has to execute"
+end
+
+declare entity [ button ]
+  name "Button"
+end
+
+# --- Objects: associations (§3.4, p.27-28, Fig. 24): the Elevator
+# System's composition, and the At association between a Cage and a
+# Floor. ---
+
+declare association [ has_cage ]
+  name "ElevatorSystemHasCage"
+  link [1] elevatorSystem : elevator_system
+  link [1, *] cage : cage
+end
+
+declare association [ has_floor ]
+  name "ElevatorSystemHasFloor"
+  link [1] elevatorSystem : elevator_system
+  link [2, *] floor : floor
+end
+
+declare association [ has_alarm_bell ]
+  name "ElevatorSystemHasAlarmBell"
+  link [1] elevatorSystem : elevator_system
+  link [1] alarmBell : alarm_bell
+end
+
+declare association [ has_controller ]
+  name "ElevatorSystemHasController"
+  link [1] elevatorSystem : elevator_system
+  link [1] controller : elevator_controller
+end
+
+declare association [ has_power_supply ]
+  name "ElevatorSystemHasPowerSupply"
+  link [1] elevatorSystem : elevator_system
+  link [1] powerSupply : power_supply
+end
+
+declare association [ at ]
+  name "At"
+  link cage : cage
+  link floor : floor
+end
+
+# --- Objects: events (§3.5, p.30-32, Figures 28-29). ---
+
+declare event [ refresh ]
+  name "Refresh"
+end
+
+declare event [ elevator_state_change ]
+  name "Elevator state change"
+end
+
+declare event [ floor_call_button_pushed ]
+  name "Floor call button pushed"
+end
+
+declare event [ arrival_on_floor ]
+  name "Arrival on floor"
+end
+
+declare event [ button_light_on_command ]
+  name "Button light on command"
+end
+
+declare event [ stop_cage_command ]
+  name "Stop cage command"
+end
+
+# --- Operations (§3.5, p.30-33, Figures 28, 30, 32). ---
+
+declare operation [ reschedule ]
+  name "Reschedule"
+  causedby floor_call_button_pushed
+  output refresh
+end
+
+declare operation [ execute_schedule ]
+  name "Execute schedule"
+  input schedule
+  causedby refresh
+  causedby elevator_state_change
+  output button_light_on_command
+  output stop_cage_command
+  performedby elevator_controller
+  operationalizes elevator_stopped_on_calling_floor
+end
+
+declare operation [ push_button ]
+  name "Push button"
+  operationalizes stop_button_used
+end
+
+# --- The two state transitions the object model's prose states in words
+# (§3.4, p.26-28), not read off a figure: Door's status attribute and the
+# At association's instances. ---
+
+declare operation [ close_door ]
+  name "CloseDoor"
+  dompre door.status == "Open"
+  dompost door.status == "Close"
+end
+
+declare operation [ leave_floor ]
+  name "LeaveFloor"
+  dompre (c, f) in at
+  dompost not (c, f) in at
+end

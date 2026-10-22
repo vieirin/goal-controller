@@ -16,8 +16,9 @@
  * - **validate**: istar-ts validates the model (`validateModel`: none);
  * - **roundtrip**: written back (`writeKaos`, with its resources) and read
  *   again, the same model and the same resources;
- * - **analyses**: kaosprop's analyses, and kaosexpert's (both read every
- *   `.kaos`), run without error;
+ * - **analyses**: kaosprop's analyses, kaosres's, kaossim's and
+ *   kaosexpert's, and kaoslts's files (all read every `.kaos`), run without
+ *   error;
  * - **oracle**: the seed's `*.expected.csv`, each row against what the
  *   engine computes (below).
  *
@@ -48,6 +49,70 @@
  *   `paper` is the printed value, `data` where the inputs come from; a
  *   mismatch with the paper is the derivation's to explain, the row checks
  *   what the seed gives.
+ * - `structure,id,expected,derivation` (goal-controller#210): a count of an
+ *   element or link kind (`structure` `element`/`link`, `id` its kind, read
+ *   with the operation and object models' kinds too), or the
+ *   responsibility-operationalisation-performance triangle's open closures
+ *   (`structure` `open-closure`, `id` `-`), zero for a consistent model.
+ * - `quantity,selection,goal,expected,tolerance,options,derivation`
+ *   (kaosres's countermeasure selection, goal-controller#191): a selection
+ *   (its countermeasure goals joined by `+`, `none` for the empty one), run
+ *   with `options` (`semantics=kaostools;scope=model;limit=n`):
+ *   - `ESR` of `goal` within `tolerance`, `cost`, and `flags` (`safe` or
+ *     `not safe`, `consistent` or `inconsistent`, `cost-optimal`);
+ *   - of the run (`selection` `-`): `minimal cost` (`none`: no safe
+ *     selection), `chosen` (the chosen selections, ` | `), `candidates`,
+ *     `evaluated`, `exact` (`yes`/`no`).
+ * - `quantity,design,objective,expected,tolerance,paper,source,derivation`
+ *   (kaossim's quantitative goals, goal-controller#193): `design` is one of
+ *   the seed's `designs.json` by id (`model`: the model as it is, no
+ *   decision point), simulated with SIM_SAMPLES samples, seed 1:
+ *   - `value`: the objective's value, within `tolerance`;
+ *   - `unresolved`: the variables it lacks (space-separated, any order);
+ *   - `target`, `current`: as the model reads them;
+ *   - of the design space (`design` `-`): `designs` (how many), `pareto`
+ *     (the exhaustive front's designs, ` | `, sorted), `pareto nsga2`
+ *     (NSGA-II's, seeded, with kaossim's default population and
+ *     generations).
+ *   `expected` `-`: a number the paper prints and the seed can't
+ *   reproduce, reported, never a failure.
+ *
+ * - `quantity,id,expected,zip,source,derivation` (kaoslts's FSP and the
+ *   completeness check, goal-controller#209): the seed's operation model
+ *   through kaoslts (`ltsModel`), each row a part of its structure, as
+ *   kaoslts spells it: `fluents` (their names), a `fluent`'s initiating and
+ *   terminating events and initial value (`a b / c / true`), the
+ *   `alphabet`, a `constraint`'s condition as FLTL, a tick `process`'s
+ *   events, an `agent`'s and the `system`'s processes (sorted), an
+ *   `assert`'s formula, and a requirement's `completeness` verdict
+ *   (`complete`, `incomplete`, `undecided`). `zip` is what KAOS2LTSA's
+ *   mine pump (its models archive) has in its place, reported beside it;
+ *   `expected` `-`: a number the archive or the paper prints that needs
+ *   LTSA (a state count), reported, never a failure.
+ *
+ * The corpus (goal-controller#191, #201): ADS's simple.kaos and
+ * validation-model.kaos, and las.kaos with obstacles.kaos and
+ * resolutions.kaos (goal-language's test fixtures, MIT), selected as
+ * `scripts/kaos-stress/ads.expected.csv` says (its `model` column; the
+ * option `estimates=ambulance` puts each leaf obstacle at its experts'
+ * combined mean, kaosexpert's over the ambulance seed's five experts).
+ *
+ * - `id,element,cairis,kaosprop,rule,derivation` (the CAIRIS cross-check,
+ *   goal-controller#192): an obstacle's probability under CAIRIS's
+ *   `obstacleProbability`, as `cairis-oracle.csv` has it (CAIRIS in Docker,
+ *   scripts/kaos-stress/cairis-oracle.sh) and as lib's restatement of its
+ *   rule gives it (`cairisObstacleProbabilities`), both within 1e-6, and
+ *   kaosprop's within 5e-7; `rule` is `agree` exactly where the two are
+ *   equal (else what makes them differ: `and-from-0`, `or-sum`).
+ *
+ * The CAIRIS seeds (`cairis-*`, goal-controller#192) have no native file:
+ * their source is a CAIRIS exemplar, lib's test fixture
+ * (cairis-seeds.cjs), read with lib's CAIRIS importer. For them **import**
+ * reads that file (the seed's environment), **roundtrip** is the model's
+ * JSON (written and read again by istar-ts, the same bytes: D4, no CAIRIS
+ * writer), and **analyses** are kaosprop's. The synthetic cross-check
+ * (`synthetic.xml`, hand-written, in lib's fixtures) is checked beside the
+ * seeds.
  *
  * Writes SUMMARY.md and a JSON per seed to .cache/kaos/results/. Exits
  * non-zero only with `--strict`, on a failure.
@@ -62,6 +127,17 @@ const LAS_FIXTURE = path.join(
   ROOT,
   'packages/lib/test/engines/kaosprop/fixtures/re12-las.txt',
 );
+const ADS_FIXTURES = path.join(
+  ROOT,
+  'packages/goal-language/test/fixtures/kaos/ads',
+);
+const ADS_ORACLE = path.join(__dirname, 'ads.expected.csv');
+const {
+  FIXTURES: CAIRIS_FIXTURES,
+  cairisSeeds,
+} = require('./cairis-seeds.cjs');
+const CAIRIS_ORACLE = path.join(CAIRIS_FIXTURES, 'cairis-oracle.csv');
+const CAIRIS_SYNTHETIC = path.join(CAIRIS_FIXTURES, 'synthetic.xml');
 const pkg = (name) => path.join(ROOT, 'packages', name);
 const lib = require(path.join(pkg('lib'), 'out/index.js'));
 const dialect = require(
@@ -72,6 +148,12 @@ const core = require(
 );
 const { KAOS_OBSTACLES } = require(
   require.resolve('@istar-ts/dsm3-kaos/metamodel', { paths: [pkg('lib')] }),
+);
+const { KAOS_MODEL } = require(
+  path.join(pkg('lib'), 'out/dialects/kaos/metamodel.js'),
+);
+const { openClosures } = require(
+  require.resolve('@goal-controller/goal-tree', { paths: [pkg('lib')] }),
 );
 
 const strict = process.argv.includes('--strict');
@@ -135,6 +217,47 @@ const analysisModelOf = (modelText) =>
   lib.kaospropAnalysisModel(lib.readKaosObstacleModel(modelText));
 const expertModelOf = (modelText) =>
   lib.kaosexpertAnalysisModel(lib.readKaosObstacleModel(modelText));
+
+/**
+ * Structural rows (goal-controller#210): each a count of an element or link
+ * kind (the operation and object models', beside the goal and obstacle
+ * models'), or the triangle's open closures — the responsibility-
+ * operationalisation-performance triangle (§3.5 Fig. 30), zero for a
+ * consistent model. `row.structure` is `element`, `link` or `open-closure`.
+ */
+const structureOracle = (modelText, rows) => {
+  const model = core.parsePistar(modelText, { metamodel: KAOS_MODEL });
+  const countsOf = (map) => {
+    const counts = new Map();
+    for (const { kind } of map.values())
+      counts.set(kind, (counts.get(kind) ?? 0) + 1);
+    return counts;
+  };
+  const elements = countsOf(model.elements);
+  const links = countsOf(model.links);
+  const open = openClosures(model, lib.kaos).length;
+  return rows.map((row) => {
+    const got =
+      row.structure === 'element'
+        ? (elements.get(row.id) ?? 0)
+        : row.structure === 'link'
+          ? (links.get(row.id) ?? 0)
+          : row.structure === 'open-closure'
+            ? open
+            : null;
+    if (got === null) throw new Error(`unknown structure ${row.structure}`);
+    const expected = Number(row.expected);
+    const ok = got === expected;
+    return {
+      quantity: row.structure,
+      id: row.id || '-',
+      expected: row.expected,
+      got,
+      status: ok ? 'pass' : 'fail',
+      ...(!ok && { problems: [`${got} is not ${row.expected}`] }),
+    };
+  });
+};
 
 /** kaosprop's rows: each element's probability, the paper's printed value. */
 const kaospropOracle = (modelText, rows) => {
@@ -360,6 +483,596 @@ const expertOracle = (modelText, resources, rows) => {
   });
 };
 
+/** kaossim's samples per design for its oracle rows (goal-controller#193). */
+const SIM_SAMPLES = 100000;
+
+/** kaossim's rows: each a quantity of a design, or of the design space. */
+const simOracle = (modelText, resources, rows) => {
+  const model = lib.quantitativeModel(
+    lib.kaossimAnalysisModel(lib.readKaosObstacleModel(modelText)),
+  );
+  const files = Object.entries(resources.design ?? {}).map(([p, text]) => ({
+    path: p,
+    text,
+  }));
+  const designs = lib.readDesigns(files).designs;
+  const runs = new Map();
+  const runOf = (id) => {
+    if (!runs.has(id)) {
+      const design =
+        id === 'model'
+          ? { id, name: 'The model', options: [], set: new Map() }
+          : designs.find((d) => d.id === id);
+      if (!design) throw new Error(`no design ${id}`);
+      runs.set(
+        id,
+        lib.simulateDesign(model, design, { samples: SIM_SAMPLES, seed: 1 }),
+      );
+    }
+    return runs.get(id);
+  };
+  const fronts = new Map();
+  const frontOf = (method) => {
+    if (!fronts.has(method))
+      fronts.set(
+        method,
+        lib
+          .searchDesigns(model, {
+            ...lib.DEFAULT_SIM_OPTIONS,
+            method,
+            samples: SIM_SAMPLES,
+            seed: 1,
+          })
+          .front.map((s) => s.run.design.id)
+          .sort()
+          .join(' | '),
+      );
+    return fronts.get(method);
+  };
+  const objectiveOf = (name) => {
+    const found = model.objectives.find((o) => o.name === name);
+    if (!found) throw new Error(`no objective ${name}`);
+    return found;
+  };
+  const value = (row) => {
+    switch (row.quantity) {
+      case 'value':
+      case 'unresolved': {
+        const found = runOf(row.design).objectives.find(
+          (o) => o.objective.name === row.objective,
+        );
+        if (!found) throw new Error(`${row.objective} is not in ${row.design}`);
+        if (row.quantity === 'unresolved')
+          return 'missing' in found
+            ? [...found.missing].sort().join(' ')
+            : 'resolved';
+        if ('missing' in found)
+          throw new Error(`unresolved: needs ${found.missing.join(', ')}`);
+        return found.value;
+      }
+      case 'target':
+      case 'current':
+        return objectiveOf(row.objective)[row.quantity];
+      case 'designs':
+        return lib.enumerateDesigns(model).designs.length;
+      case 'pareto':
+        return frontOf('exhaustive');
+      case 'pareto nsga2':
+        return frontOf('nsga2');
+      default:
+        throw new Error(`unknown quantity ${row.quantity}`);
+    }
+  };
+  return rows.map((row) => {
+    const base = {
+      quantity: row.quantity,
+      id: `${row.design} ${row.objective}`.trim(),
+      expected: row.expected,
+      tolerance: row.tolerance,
+      paper: row.paper,
+      data: row.source,
+    };
+    if (row.expected.trim() === '-')
+      return { ...base, got: null, status: 'skip' };
+    let got;
+    try {
+      got = value(row);
+    } catch (error) {
+      return {
+        ...base,
+        got: null,
+        status: 'fail',
+        problems: [errorText(error)],
+      };
+    }
+    const textual = ['unresolved', 'pareto', 'pareto nsga2'].includes(
+      row.quantity,
+    );
+    const ok = textual
+      ? got ===
+        (row.quantity === 'unresolved'
+          ? row.expected.split(/\s+/).sort().join(' ')
+          : row.expected)
+      : got !== undefined &&
+        Math.abs(got - Number(row.expected)) <=
+          Number(row.tolerance || 0) + 1e-12;
+    return {
+      ...base,
+      got:
+        textual || got === undefined
+          ? (got ?? null)
+          : Number(Number(got).toFixed(6)),
+      status: ok ? 'pass' : 'fail',
+      ...(!ok && { problems: [`${got} is not ${row.expected}`] }),
+    };
+  });
+};
+
+/** kaoslts's rows (goal-controller#209): the structure of its FSP, and each requirement's completeness. */
+const ltsOracle = (modelText, rows) => {
+  const operations = lib.operationModelOf(
+    lib.kaosltsGoalModel(lib.readKaosModel(modelText)),
+  );
+  const lts = lib.ltsModel(operations);
+  const verdicts = lib.operationalisationCompleteness(operations);
+  const sorted = (names) => [...names].sort().join(' ');
+  const constraints = [
+    ...lts.agents.flatMap((agent) => agent.constraints),
+    ...lts.shared.constraints,
+  ];
+  const processes = [
+    ...lts.agents.flatMap((agent) => agent.processes),
+    ...lts.shared.processes,
+  ];
+  const parts = (holder) =>
+    sorted([...holder.processes, ...holder.constraints].map((d) => d.name));
+  const found = (what, id, item) => {
+    if (!item) throw new Error(`no ${what} ${id}`);
+    return item;
+  };
+  const value = ({ quantity, id }) => {
+    switch (quantity) {
+      case 'fluents':
+        return sorted(lts.fluents.map((f) => f.name));
+      case 'fluent': {
+        const f = found(
+          quantity,
+          id,
+          lts.fluents.find((x) => x.name === id),
+        );
+        return `${f.initiating.join(' ')} / ${f.terminating.join(' ')} / ${f.initially}`;
+      }
+      case 'alphabet':
+        return sorted(lts.alphabet);
+      case 'constraint':
+        return found(
+          quantity,
+          id,
+          constraints.find((c) => c.name === id),
+        ).condition;
+      case 'process':
+        return sorted(
+          found(
+            quantity,
+            id,
+            processes.find((p) => p.name === id),
+          ).events,
+        );
+      case 'agent':
+        return parts(
+          found(
+            quantity,
+            id,
+            lts.agents.find((a) => a.name === id),
+          ),
+        );
+      case 'system':
+        return sorted([
+          ...lts.agents
+            .filter((a) => a.constraints.length || a.processes.length)
+            .map((a) => a.name),
+          ...[...lts.shared.processes, ...lts.shared.constraints].map(
+            (d) => d.name,
+          ),
+        ]);
+      case 'assert':
+        return found(
+          quantity,
+          id,
+          lts.asserts.find((a) => a.name === id),
+        )
+          .lines.join(' ')
+          .replace(/^assert \S+ = /, '');
+      case 'completeness':
+        return found(
+          quantity,
+          id,
+          verdicts.find((v) => v.requirement === id),
+        ).status;
+      default:
+        throw new Error(`unknown quantity ${quantity}`);
+    }
+  };
+  return rows.map((row) => {
+    const base = {
+      quantity: row.quantity,
+      id: row.id,
+      expected: row.expected,
+      paper: row.zip,
+      data: row.source,
+    };
+    if (row.expected.trim() === '-')
+      return { ...base, got: null, status: 'skip' };
+    let got;
+    try {
+      got = value(row);
+    } catch (error) {
+      return {
+        ...base,
+        got: null,
+        status: 'fail',
+        problems: [errorText(error)],
+      };
+    }
+    const ok = got === row.expected;
+    return {
+      ...base,
+      got,
+      status: ok ? 'pass' : 'fail',
+      ...(!ok && { problems: [`${got} is not ${row.expected}`] }),
+    };
+  });
+};
+
+/** A selection's key: its countermeasure goals joined by `+`, `none` for the empty one. */
+const selectionKey = (selection) => selection.goals.join('+') || 'none';
+const flagsOf = (s) =>
+  [
+    s.safe ? 'safe' : 'not safe',
+    s.consistent ? 'consistent' : 'inconsistent',
+    ...(s.costOptimal ? ['cost-optimal'] : []),
+  ].join(', ');
+/** `semantics=kaostools;scope=model;limit=8`: the selection's options (the others are the caller's). */
+const optionsOf = (text) => {
+  const options = {};
+  for (const pair of (text ?? '').split(';').filter((p) => p.trim())) {
+    const [key, value] = pair.split('=').map((t) => t.trim());
+    options[key] = key === 'limit' ? Number(value) : value;
+  }
+  return options;
+};
+
+/** kaosres's rows: each a quantity of a selection, or of the run, on `model` (a KaosModel). */
+const selectionOracle = (modelOf, rows) => {
+  const runs = new Map();
+  const runOf = (options) => {
+    if (!runs.has(options)) {
+      const { estimates, ...given } = optionsOf(options);
+      runs.set(options, lib.selectCountermeasures(modelOf(estimates), given));
+    }
+    return runs.get(options);
+  };
+  return rows.map((row) => {
+    const result = runOf(row.options);
+    const selection = result.selections.find(
+      (s) => selectionKey(s) === row.selection,
+    );
+    let got;
+    let ok;
+    switch (row.quantity) {
+      case 'ESR':
+        got = selection?.esr.get(row.goal);
+        ok =
+          got !== undefined &&
+          Math.abs(got - Number(row.expected)) <=
+            Number(row.tolerance || 0) + 1e-12;
+        break;
+      case 'cost':
+        got = selection?.cost;
+        ok = got !== undefined && Math.abs(got - Number(row.expected)) < 1e-9;
+        break;
+      case 'flags':
+        got = selection && flagsOf(selection);
+        ok = got === row.expected;
+        break;
+      case 'minimal cost':
+        got = result.minimalCost ?? 'none';
+        ok = String(got) === row.expected;
+        break;
+      case 'chosen':
+        got = result.chosen.map(selectionKey).join(' | ');
+        ok = got === row.expected;
+        break;
+      case 'candidates':
+      case 'evaluated':
+        got =
+          row.quantity === 'candidates'
+            ? result.candidates
+            : result.selections.length;
+        ok = String(got) === row.expected;
+        break;
+      case 'exact':
+        got = result.exact ? 'yes' : 'no';
+        ok = got === row.expected;
+        break;
+      default:
+        got = undefined;
+        ok = false;
+    }
+    return {
+      quantity: `${row.quantity}${row.goal ? ` ${row.goal}` : ''}`,
+      id: row.selection,
+      expected: row.expected,
+      got: typeof got === 'number' ? Number(got.toFixed(9)) : (got ?? null),
+      tolerance: row.tolerance,
+      data: row.options,
+      status: ok ? 'pass' : 'fail',
+      ...(!ok && {
+        problems: [
+          selection === undefined && row.selection !== '-'
+            ? `no selection ${row.selection} evaluated`
+            : `${got} is not ${row.expected}`,
+        ],
+      }),
+    };
+  });
+};
+
+/** CAIRIS's numbers in Docker (cairis-oracle.csv), by file, environment and obstacle. */
+const cairisOracle = () => {
+  const values = new Map();
+  for (const row of readCsv(fs.readFileSync(CAIRIS_ORACLE, 'utf8')))
+    values.set(
+      `${row.file}\u0000${row.environment}\u0000${row.obstacle}`,
+      Number(row.cairis),
+    );
+  return values;
+};
+
+/**
+ * The CAIRIS cross-check's rows (goal-controller#192): each obstacle's
+ * probability under CAIRIS's rule (Docker's and lib's restatement of it)
+ * and kaosprop's, and whether they agree as `rule` says.
+ */
+const crossCheckOracle = (file, environment, modelText, rows) => {
+  const docker = cairisOracle();
+  const { document } = lib.readCairisDocument(
+    fs.readFileSync(path.join(CAIRIS_FIXTURES, file), 'utf8'),
+  );
+  const restated = lib.cairisObstacleProbabilities(document, environment);
+  const { probabilities } = lib.propagateProbabilities(
+    analysisModelOf(modelText),
+  );
+  return rows.map((row) => {
+    const problems = [];
+    const ran = docker.get(`${file}\u0000${environment}\u0000${row.element}`);
+    const rule = restated.get(row.element);
+    const got = probabilities.get(row.id);
+    const cairis = Number(row.cairis);
+    if (ran === undefined) problems.push('not in cairis-oracle.csv');
+    else if (Math.abs(ran - cairis) > 1e-6)
+      problems.push(`CAIRIS gave ${ran}, not ${row.cairis}`);
+    if (rule === undefined || Math.abs(rule - cairis) > 1e-6)
+      problems.push(`CAIRIS's rule restated gives ${rule}, not ${row.cairis}`);
+    if (got === undefined) problems.push('kaosprop computes none');
+    else if (Math.abs(got - Number(row.kaosprop)) > 5e-7)
+      problems.push(`kaosprop ${got.toFixed(6)}, not ${row.kaosprop}`);
+    const agree = Math.abs(cairis - Number(row.kaosprop)) < 1e-9;
+    if (agree !== (row.rule === 'agree'))
+      problems.push(
+        `they ${agree ? 'agree' : 'differ'}, the row says ${row.rule}`,
+      );
+    return {
+      quantity: `probability (${row.rule})`,
+      id: row.id,
+      expected: `${row.cairis} / ${row.kaosprop}`,
+      got: `${ran ?? '-'} / ${got === undefined ? '-' : Number(got.toFixed(6))}`,
+      data: `CAIRIS / kaosprop, ${environment}`,
+      status: problems.length ? 'fail' : 'pass',
+      ...(problems.length && { problems }),
+    };
+  });
+};
+
+/** The CAIRIS seeds, by name: their exemplar and environment (cairis-seeds.cjs). */
+let cairisSeedsByName = null;
+const cairisSeedOf = (name) => {
+  cairisSeedsByName ??= new Map(cairisSeeds(lib).map((s) => [s.seed, s]));
+  return cairisSeedsByName.get(name) ?? null;
+};
+
+/** A CAIRIS seed: read from its exemplar, its JSON round trip, kaosprop's analyses, its cross-check. */
+const checkCairisSeed = (name, manifest) => {
+  const dir = path.join(SEEDS_DIR, name);
+  const [entry] = manifest.models;
+  const modelText = fs.readFileSync(path.join(dir, entry.path), 'utf8');
+  const seed = cairisSeedOf(name);
+  const checks = {};
+  checks.import = check(() => {
+    if (!seed)
+      return { status: 'fail', detail: 'no CAIRIS exemplar has this seed' };
+    const { model, dialectRecord, diagnostics } = seed.result;
+    if (!model)
+      return {
+        status: 'fail',
+        detail: diagnostics.map((d) => d.message).join('; '),
+      };
+    const problems = [];
+    if (json(model) !== modelText)
+      problems.push(
+        `${entry.path} is not ${seed.exemplar.file} (${seed.environment}) read`,
+      );
+    if (dialectRecord.engine !== manifest.dialect)
+      problems.push(
+        `opens in ${dialectRecord.engine}, the project is ${manifest.dialect}'s`,
+      );
+    return problems.length
+      ? { status: 'fail', detail: problems.join('; ') }
+      : {
+          status: 'pass',
+          detail: `${seed.exemplar.file}, ${seed.environment}: ${diagnostics.length} diagnostic(s); mode ${manifest.dialect}`,
+        };
+  });
+  checks.validate = check(() => {
+    const issues = core.validateModel(kaosModelOf(modelText));
+    return issues.length
+      ? {
+          status: 'fail',
+          detail: issues.map((i) => i.message ?? String(i)).join('; '),
+        }
+      : { status: 'pass' };
+  });
+  checks.roundtrip = check(() => {
+    const again = json(core.toPistarObject(kaosModelOf(modelText)));
+    return again === modelText
+      ? { status: 'pass', detail: 'JSON, byte for byte (no CAIRIS writer)' }
+      : {
+          status: 'fail',
+          detail: 'istar-ts writes the model back differently',
+        };
+  });
+  checks.analyses = check(() => {
+    const ran = [];
+    for (const [id, analysis] of Object.entries(lib.kaospropAnalyses)) {
+      const out = lib.runAnalysis(analysis, analysisModelOf(modelText));
+      if ('error' in out)
+        return { status: 'fail', detail: `kaosprop ${id}: ${out.error}` };
+      ran.push(`kaosprop ${id}: ${out.result.cases.length} case(s)`);
+    }
+    return { status: 'pass', detail: ran.join('; ') };
+  });
+  const rows = [];
+  for (const file of fs
+    .readdirSync(dir)
+    .filter((f) => f.endsWith('.expected.csv')))
+    rows.push(
+      ...crossCheckOracle(
+        seed.exemplar.file,
+        seed.environment,
+        modelText,
+        readCsv(fs.readFileSync(path.join(dir, file), 'utf8')),
+      ).map((r) => ({ file, ...r })),
+    );
+  if (rows.length) {
+    const failing = rows.filter((r) => r.status === 'fail');
+    checks.oracle = {
+      status: failing.length ? 'fail' : 'pass',
+      detail: `${rows.length - failing.length}/${rows.length} rows`,
+    };
+  } else
+    checks.oracle = {
+      status: 'skip',
+      detail: 'no probabilities in the source: not an oracle',
+    };
+  return { seed: name, mode: manifest.dialect, checks, rows };
+};
+
+/** The synthetic cross-check (goal-controller#192): synthetic.xml under CAIRIS's rule and kaosprop's. */
+const checkCairisSynthetic = () => {
+  const environment = 'Synthetic';
+  const read = lib.importCairis(fs.readFileSync(CAIRIS_SYNTHETIC, 'utf8'), {
+    modelName: 'synthetic',
+    environment,
+  });
+  const file = 'synthetic.expected.csv';
+  const rows = crossCheckOracle(
+    'synthetic.xml',
+    environment,
+    json(read.model),
+    readCsv(fs.readFileSync(path.join(CAIRIS_FIXTURES, file), 'utf8')),
+  ).map((r) => ({ file, ...r }));
+  const failing = rows.filter((r) => r.status === 'fail');
+  return {
+    seed: 'CAIRIS synthetic',
+    mode: 'kaosprop',
+    checks: {
+      oracle: {
+        status: failing.length ? 'fail' : 'pass',
+        detail: `${rows.length - failing.length}/${rows.length} rows`,
+      },
+    },
+    rows,
+  };
+};
+
+// a model's own kinds (the operation and object models', #194) from its block
+const kaosModelOf = (json) =>
+  core.parsePistar(json, { metamodel: KAOS_OBSTACLES, fileMetamodel: true });
+
+/**
+ * Each leaf obstacle's experts' combined mean, kaosexpert's over the
+ * ambulance seed's five experts (RE'15's weighting): ADS's own point
+ * estimates are per expert, which kaosprop doesn't read.
+ */
+const ambulanceMeans = () => {
+  const dir = path.join(SEEDS_DIR, 'ambulance');
+  const text = (f) => fs.readFileSync(path.join(dir, f), 'utf8');
+  const analysis = lib.expertAnalysis(
+    lib.kaosexpertAnalysisModel(
+      lib.readKaosObstacleModel(text('ambulance.txt')),
+    ),
+    {
+      resources: {
+        expert: { 'experts.json': text('experts.json') },
+        calibration: { 'calibrations.json': text('calibrations.json') },
+      },
+      options: { samples: 1, seed: 1 },
+    },
+  );
+  return new Map(
+    [...analysis.leaves].map(([id, event]) => {
+      const value = analysis.events[event].value;
+      return [id, typeof value === 'number' ? value : value.mean];
+    }),
+  );
+};
+
+/** The corpus's selections (ADS's files, goal-controller#201 and the field run). */
+const checkCorpus = () => {
+  const rows = readCsv(fs.readFileSync(ADS_ORACLE, 'utf8'));
+  const fixture = (f) => fs.readFileSync(path.join(ADS_FIXTURES, f), 'utf8');
+  const out = [];
+  let means = null;
+  for (const model of new Set(rows.map((r) => r.model))) {
+    const [main, ...imports] = model.split('+');
+    const read = lib.readKaos(fixture(main), {
+      modelName: path.basename(main, '.kaos'),
+      files: Object.fromEntries(imports.map((f) => [f, fixture(f)])),
+    });
+    const modelOf = (estimates) => {
+      const json = JSON.parse(JSON.stringify(read.model));
+      if (estimates === 'ambulance') {
+        means ??= ambulanceMeans();
+        for (const node of json.orphans)
+          if (means.has(node.id))
+            node.customProperties = {
+              ...node.customProperties,
+              Probability: String(means.get(node.id)),
+            };
+      }
+      return kaosModelOf(json);
+    };
+    out.push(
+      ...selectionOracle(
+        modelOf,
+        rows.filter((r) => r.model === model),
+      ).map((r) => ({ file: model, ...r })),
+    );
+  }
+  const failing = out.filter((r) => r.status === 'fail');
+  return {
+    seed: 'ADS corpus',
+    mode: 'kaosres',
+    checks: {
+      oracle: {
+        status: failing.length ? 'fail' : 'pass',
+        detail: `${out.length - failing.length}/${out.length} rows`,
+      },
+    },
+    rows: out,
+  };
+};
+
 /** Two sets of resources, the same files by kind and path, whatever their order. */
 const sameResources = (a, b) => {
   const flat = (r) =>
@@ -388,6 +1101,7 @@ const checkSeed = (name) => {
     fs.readFileSync(path.join(dir, 'project.json'), 'utf8'),
   );
   const [entry] = manifest.models;
+  if (!entry.native?.kaos) return checkCairisSeed(name, manifest);
   const kaosFile = entry.native?.kaos;
   const modelText = fs.readFileSync(path.join(dir, entry.path), 'utf8');
   const kaos = fs.readFileSync(path.join(dir, kaosFile), 'utf8');
@@ -427,9 +1141,7 @@ const checkSeed = (name) => {
         };
   });
   checks.validate = check(() => {
-    const issues = core.validateModel(
-      core.parsePistar(modelText, { metamodel: KAOS_OBSTACLES }),
-    );
+    const issues = core.validateModel(kaosModelOf(modelText));
     return issues.length
       ? {
           status: 'fail',
@@ -471,6 +1183,26 @@ const checkSeed = (name) => {
         return { status: 'fail', detail: `kaosprop ${id}: ${out.error}` };
       ran.push(`kaosprop ${id}: ${out.result.cases.length} case(s)`);
     }
+    for (const [id, analysis] of Object.entries(lib.kaosresAnalyses)) {
+      const out = lib.runAnalysis(
+        analysis,
+        lib.kaosresAnalysisModel(lib.readKaosObstacleModel(modelText)),
+      );
+      if ('error' in out)
+        return { status: 'fail', detail: `kaosres ${id}: ${out.error}` };
+      ran.push(`kaosres ${id}: ${out.result.cases.length} case(s)`);
+    }
+    for (const [id, analysis] of Object.entries(lib.kaossimAnalyses)) {
+      const out = lib.runAnalysis(
+        analysis,
+        lib.kaossimAnalysisModel(lib.readKaosObstacleModel(modelText)),
+        undefined,
+        { resources: committed, options: { samples: 200, seed: 1 } },
+      );
+      if ('error' in out)
+        return { status: 'fail', detail: `kaossim ${id}: ${out.error}` };
+      ran.push(`kaossim ${id}: ${out.result.cases.length} case(s)`);
+    }
     for (const [id, analysis] of Object.entries(lib.kaosexpertAnalyses)) {
       const out = lib.runAnalysis(
         analysis,
@@ -485,6 +1217,11 @@ const checkSeed = (name) => {
         return { status: 'fail', detail: `kaosexpert ${id}: ${out.error}` };
       ran.push(`kaosexpert ${id}: ${out.result.cases.length} case(s)`);
     }
+    const lts = lib.kaosltsOutput(
+      lib.kaosltsGoalModel(lib.readKaosModel(modelText)),
+      { modelName: entry.path },
+    );
+    ran.push(`kaoslts: ${lts.files.length} file(s)`);
     return { status: 'pass', detail: ran.join('; ') };
   });
   const oracleFiles = fs
@@ -494,7 +1231,23 @@ const checkSeed = (name) => {
   for (const file of oracleFiles) {
     const csv = readCsv(fs.readFileSync(path.join(dir, file), 'utf8'));
     if (!csv.length) continue;
-    if ('probability' in csv[0]) {
+    if ('zip' in csv[0])
+      rows.push(...ltsOracle(modelText, csv).map((r) => ({ file, ...r })));
+    else if ('objective' in csv[0])
+      rows.push(
+        ...simOracle(modelText, committed, csv).map((r) => ({ file, ...r })),
+      );
+    else if ('structure' in csv[0])
+      rows.push(
+        ...structureOracle(modelText, csv).map((r) => ({ file, ...r })),
+      );
+    else if ('selection' in csv[0])
+      rows.push(
+        ...selectionOracle(() => kaosModelOf(JSON.parse(modelText)), csv).map(
+          (r) => ({ file, ...r }),
+        ),
+      );
+    else if ('probability' in csv[0]) {
       // las.expected.csv is RE'12's hand-drawn model's (its header says so)
       const text =
         name === 'las' ? fs.readFileSync(LAS_FIXTURE, 'utf8') : modelText;
@@ -576,7 +1329,11 @@ const markdown = (results, exitCode) => {
 const main = () => {
   fs.rmSync(RESULTS, { recursive: true, force: true });
   fs.mkdirSync(RESULTS, { recursive: true });
-  const results = SEEDS.map(checkSeed);
+  const results = [
+    ...SEEDS.map(checkSeed),
+    checkCorpus(),
+    checkCairisSynthetic(),
+  ];
   for (const result of results) {
     fs.writeFileSync(path.join(RESULTS, `${result.seed}.json`), json(result));
     console.log(

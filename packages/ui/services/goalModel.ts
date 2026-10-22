@@ -8,7 +8,7 @@ import {
 import { parsePistar, type IstarModel } from '@istar-ts/core';
 import type { Framework } from '@goal-controller/dialect';
 import { recordedMode } from '../lib/project';
-import { ENGINE_FILE_KINDS } from '../lib/workbench/engineDialects';
+import { declaresKinds } from '../lib/workbench/dialects';
 import { FRAMEWORK_ROOTS, frameworkOfModel } from '../lib/workbench/frameworks';
 import {
   edgeEngineMapper,
@@ -16,9 +16,12 @@ import {
   godaEngineMapper,
   kaosdocEngineMapper,
   kaosdocGoalModel,
+  kaosltsEngineMapper,
+  kaosltsGoalModel,
   mutroseEngineMapper,
   sleecEngineMapper,
   type KaosdocGoalModel,
+  type KaosltsGoalModel,
   type AnyModel,
 } from '@goal-controller/lib';
 
@@ -62,13 +65,14 @@ export const GoalModel = {
     // Parse the piStar file
     let model: AnyModel;
     try {
-      // an engine whose models declare kinds of their own reads its block
+      // an engine whose models declare kinds of their own reads its block,
+      // as does any model of another framework (goal-controller#194)
       const mode = recordedMode(modelJson);
       const framework = options.framework ?? frameworkOfModel(modelJson);
       // another framework's kinds are the IR's to read (#171, PR D)
       model = parsePistar(modelJson, {
         metamodel: FRAMEWORK_ROOTS[framework],
-        fileMetamodel: mode !== null && mode in ENGINE_FILE_KINDS,
+        fileMetamodel: declaresKinds(mode, framework),
       });
     } catch (error) {
       return {
@@ -129,6 +133,36 @@ export const GoalModel = {
 
   parseForMutrose(modelJson: string, options: ParseOptions = {}) {
     return this.parseWith(modelJson, mutroseEngineMapper, options);
+  },
+
+  /**
+   * A KAOS model as kaoslts reads it (goal-controller#209): parsed in its
+   * framework, its IR (goals, agents, operations, objects, links) built.
+   */
+  parseForKaoslts(modelJson: string):
+    | {
+        success: true;
+        model: AnyModel;
+        tree: null;
+        goalModel: KaosltsGoalModel;
+      }
+    | ParseError {
+    const parseResult = this.parseModel(
+      modelJson,
+      {},
+      kaosltsEngineMapper.dialect,
+    );
+    if (!parseResult.success) return parseResult;
+    try {
+      const goalModel = kaosltsGoalModel(parseResult.model);
+      return { ...parseResult, tree: null, goalModel };
+    } catch (error) {
+      return {
+        success: false,
+        error: `Tree conversion failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        stage: 'tree',
+      };
+    }
   },
 
   /**

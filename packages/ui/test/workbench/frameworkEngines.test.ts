@@ -106,6 +106,23 @@ describe("the frameworks' engines (#171)", () => {
     expect(files[0]!.text).toBe(read('examples/kaos/kaos-welcome.expected.md'));
   });
 
+  it('kaoslts writes the mine pump’s FSP as lib’s test commits it (goal-controller#209)', () => {
+    const { files } = transform({
+      modelJson: read('examples/kaos/mine-pump/mine-pump.txt'),
+      engine: 'kaoslts',
+      fileName: 'mine-pump',
+    });
+    expect(files.map((f) => f.fileName)).toEqual([
+      'mine-pump.lts',
+      'PumpController.lts',
+      'Environment.lts',
+      'mine-pump.completeness.md',
+    ]);
+    expect(files[0]!.text).toBe(
+      read('packages/lib/test/engines/kaoslts/fixtures/mine-pump.lts'),
+    );
+  });
+
   it('nfrprop labels the seed as its oracle says', () => {
     const engine = ENGINE_ANALYSES.nfrprop!;
     const result = engine.analyses.nfrLabels!.run(

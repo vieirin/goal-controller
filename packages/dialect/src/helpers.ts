@@ -16,6 +16,7 @@ import {
   type DialectKind,
   type ExtensionElementDefinition,
   type ExtensionLinkDefinition,
+  type FormulaSymbols,
   type FunctionDefinition,
   type MemberSource,
   type ISTAR_LINK_KINDS,
@@ -24,7 +25,9 @@ import {
   type ProblemKind,
   type ProjectResourceDefinition,
   type PropertyDefinition,
+  type ReferenceTarget,
   type ResourceCandidates,
+  type Target,
   type Severity,
 } from './schema';
 import type { DistributionOptions } from './distribution';
@@ -41,8 +44,13 @@ export type PropertyOptions<C extends string = string> = {
   check?: C;
   inspector?: boolean;
   servedBy?: 'engine';
-  /** keyed by a project resource's names (`Probability[e1]`, goal-controller#190) */
-  keyed?: string;
+  /**
+   * keyed by its target's names (`Probability[e1]`, goal-controller#190,
+   * #354): a project resource's entries (`{ resource: 'expert' }`), elements
+   * of some kinds, or any name the model writes (`{ written: true }`,
+   * goal-controller#193)
+   */
+  keyed?: Target;
   /** an actor property's actor kinds (`actors`) */
   kinds?: readonly string[];
 };
@@ -107,6 +115,7 @@ const ASSERTION_KEYS = [
   'members',
 ] as const;
 const EXPRESSION_KEYS = ['resolves', 'functions', 'members'] as const;
+const REFERENCE_KEYS = ['members'] as const;
 const OCL_KEYS = ['declaredBy', 'candidates', 'memberCandidates'] as const;
 
 type IntOptions = { min?: number; max?: number };
@@ -126,6 +135,9 @@ type ExpressionOptions = {
   functions?: readonly FunctionDefinition[];
   members?: MemberSource;
 };
+type ReferenceOptions = { members?: MemberSource };
+type FormulaOptions = { symbols?: FormulaSymbols };
+const FORMULA_KEYS = ['symbols'] as const;
 type OclOptions = {
   declaredBy?: readonly string[];
   candidates?: ResourceCandidates;
@@ -227,28 +239,37 @@ const builders = <C extends string>() => ({
       [],
       typeof kind === 'string' ? { kind } : { kinds: kind },
     ) as never,
-  /** one element's id, of one of these kinds (an anchor goal) */
+  /**
+   * one name of its target (goal-controller#354): an element's id, of one
+   * of its kinds (`{ kinds: ['kaos.BehavioralGoal'] }`, an anchor goal), or
+   * a project resource entry's (`{ resource: 'expert' }`); with `members`,
+   * a member after it (`sump.highWater`, goal-controller#194)
+   */
   reference: <
     const K extends string,
-    const E extends readonly DialectKind[],
-    const P extends PropertyOptions<C>,
+    const T extends ReferenceTarget,
+    const P extends PropertyOptions<C> & ReferenceOptions,
   >(
     key: K,
-    kinds: E,
-    rest: Exact<P, PropertyOptions<C>>,
-  ): Built<K, 'reference', P, never, { kinds: E }> =>
-    build(key, 'reference', rest, [], { kinds }) as never,
-  /** a sentence of a formal language, tagged with it (`ltl`); nothing checks it yet */
+    target: T,
+    rest: Exact<P, PropertyOptions<C> & ReferenceOptions>,
+  ): Built<K, 'reference', P, (typeof REFERENCE_KEYS)[number], { target: T }> =>
+    build(key, 'reference', rest, REFERENCE_KEYS, { target }) as never,
+  /**
+   * a sentence of a formal language, tagged with it (`ltl`); with
+   * `symbols` (goal-controller#385), an `ltl` formula is type-checked
+   * against the model
+   */
   formula: <
     const K extends string,
     const L extends string,
-    const P extends PropertyOptions<C>,
+    const P extends PropertyOptions<C> & FormulaOptions,
   >(
     key: K,
     language: L,
-    rest: Exact<P, PropertyOptions<C>>,
-  ): Built<K, 'formula', P, never, { language: L }> =>
-    build(key, 'formula', rest, [], { language }) as never,
+    rest: Exact<P, PropertyOptions<C> & FormulaOptions>,
+  ): Built<K, 'formula', P, (typeof FORMULA_KEYS)[number], { language: L }> =>
+    build(key, 'formula', rest, FORMULA_KEYS, { language }) as never,
   /** a probability in [0, 1]: `0.8`, `.8` or `80%`, kept as written */
   probability: <const K extends string, const P extends PropertyOptions<C>>(
     key: K,

@@ -70,8 +70,20 @@ const idRulesOf = (own: readonly string[]): IdRules => {
    */
   const rt = rules([
     ...literal(...ID_PREFIXES),
+    // longest first, as idPrefixPattern: `AS` before a dialect's `A`
+    // (goal-controller#194), whose shorter match a WORD would beat
     ...(own.length
-      ? [['ID_PREFIX', new RegExp(own.map(escaped).join('|'))] as const]
+      ? [
+          [
+            'ID_PREFIX',
+            new RegExp(
+              [...own]
+                .sort((a, b) => b.length - a.length)
+                .map(escaped)
+                .join('|'),
+            ),
+          ] as const,
+        ]
       : []),
     ...literal('[', ']', ':', '@', '|', '?', '+', '#', ';', '->'),
     ...literal(',', '^', '&', '~', '!', '(', ')', '*', ...CALL_NAMES),
@@ -250,6 +262,8 @@ export type LexerStart =
   | 'elementLine'
   | 'annotatedName'
   | 'assertion'
+  /** a property line's key on its own (`Probability[e1]`, goal-controller#354) */
+  | 'propertyKey'
   | keyof typeof VALUES;
 
 /** Where the lexer is in an element line. */
@@ -269,6 +283,7 @@ const LINE_BREAK = /[\r\n]+/y;
 const INDENT = /[ \t]+/y;
 const ANNOTATION = /<<|\{/y;
 const KEY = /[A-Za-z][A-Za-z0-9_]*/y;
+const KEYED_NAME = /[^\s[\]]+/y;
 const AFTER_KEY = /[ \t]+/y;
 const LINE_REST = /[^\r\n]*/y;
 const PROPERTY_VALUE = /[^\s](?:[^\r\n]*[^\s])?/y;
@@ -390,6 +405,32 @@ export class GoalLexer extends DefaultLexer {
       return best;
     };
 
+    /**
+     * a property line's key (`Probability`), and a keyed key's name in its
+     * brackets right after it (`Probability[e1]`, goal-controller#354)
+     */
+    const pushKey = (key: string) => {
+      push('KEY', key);
+      if (text[offset] !== '[') return;
+      push('[', '[');
+      for (const [name, pattern] of [
+        ['WS', INDENT],
+        ['KEYED_NAME', KEYED_NAME],
+        ['WS', INDENT],
+      ] as const) {
+        const image = at(pattern, text, offset);
+        if (image) push(name, image);
+      }
+      if (text[offset] === ']') push(']', ']');
+    };
+
+    if (start === 'propertyKey') {
+      const key = at(KEY, text, offset);
+      if (key) pushKey(key);
+      while (offset < text.length) unrecognized();
+      return { tokens, hidden, errors };
+    }
+
     if (start === 'assertion' || start in VALUES) {
       const set =
         start === 'assertion'
@@ -473,7 +514,7 @@ export class GoalLexer extends DefaultLexer {
           !at(ids.elementStart, text, offset) &&
           at(KEY, text, offset)
         ) {
-          push('KEY', at(KEY, text, offset)!);
+          pushKey(at(KEY, text, offset)!);
           const space = at(AFTER_KEY, text, offset);
           if (space) push('WS', space);
           state = 'property';

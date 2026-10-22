@@ -1,0 +1,23 @@
+# The ADS corpus's countermeasure selections (goal-controller#191, #201): ancailliau/ADS da3241f (MIT), as goal-language's test fixtures commit it, selected by kaosres under SEAMS'17's rules (cost = the number of countermeasure goals: no file sets a cost). No published oracle: SEAMS'17's Table I is the flood example's, in neither simple.kaos nor validation-model.kaos (#201), and ADS's files have no point estimates (their leaves are estimated per expert, which kaosprop doesn't combine, so every leaf is 0 and every goal 100 %).
+# `estimates=ambulance`: each leaf obstacle at its experts' combined mean (kaosexpert over the ambulance seed's five experts, RE'15's Cooke weighting): the field run of resolutions.kaos's 33 resolutions (29 countermeasure goals) with the ambulance model. 2^29 selections can't all be evaluated (about 5 ms each here: 85 years): the search goes in cost order up to its limit (4096: every selection of cost 3 or less, and 6 of cost 4) and finds none safe. Even all 29 together give 9.24 % (scripts' run, not a row: the search never reaches it), far under the RSR 95 %, as RE'15's VU 100 % says.
+model,quantity,selection,goal,expected,tolerance,options,derivation
+simple.kaos,ESR,none,avoid_ambulance_mobilized_on_road,1,1e-9,,"no leaf obstacle has an estimate: each is 0, the goal 100 %"
+simple.kaos,candidates,-,,8,,,"its 6 resolvedby lines, 3 commented out: 3 resolutions by 3 countermeasure goals (automated_onscene_detection, automated_at_hospital_detection, night_allocator), 2^3"
+simple.kaos,evaluated,-,,8,,,every selection
+simple.kaos,minimal cost,-,,0,,,"the empty selection is safe: every RSR (0 for Goal 1–4, .8 for Avoid [Ambulance Mobilized At Station]) is under 100 %"
+simple.kaos,chosen,-,,none,,,the most satisfying at cost 0
+simple.kaos,exact,-,,yes,,,every selection evaluated
+validation-model.kaos,candidates,-,,1,,,no resolution: the empty selection only
+validation-model.kaos,minimal cost,-,,0,,,"no goal has an RSR: nothing is required, the empty selection is safe"
+validation-model.kaos,chosen,-,,none,,,the only selection
+las.kaos+obstacles.kaos+resolutions.kaos,ESR,none,achieve_incident_resolved,1,1e-9,,"ADS's files as they are: every leaf's estimate is per expert (Probability[e4], the others commented out), which kaosprop doesn't read: 0 each, 100 %"
+las.kaos+obstacles.kaos+resolutions.kaos,candidates,-,,536870912,,,"33 resolutions, 29 countermeasure goals (a goal resolving several obstacles counts once): 2^29"
+las.kaos+obstacles.kaos+resolutions.kaos,minimal cost,-,,0,,,the empty selection is safe (100 % > 95 %)
+las.kaos+obstacles.kaos+resolutions.kaos,evaluated,-,,1,,,"the search stops once the minimal cost's level (0, the empty selection) is complete"
+las.kaos+obstacles.kaos+resolutions.kaos,exact,-,,yes,,,the minimal cost's level evaluated whole
+las.kaos+obstacles.kaos+resolutions.kaos,ESR,none,achieve_incident_resolved,0.001173786694,1e-9,estimates=ambulance,"each of the 47 leaves at its experts' combined mean; kaosprop's RE'12 rules (kaosexpert's BDD, and KAOSTools, give 0.403 % with the same means: Achieve [Incident Resolved]'s obstacles share leaves, which the BDD counts once)"
+las.kaos+obstacles.kaos+resolutions.kaos,evaluated,-,,4096,,estimates=ambulance,"the limit: every selection costing 3 or less (1 + 29 + 406 + 3654 = 4090), and 6 of cost 4"
+las.kaos+obstacles.kaos+resolutions.kaos,minimal cost,-,,none,,estimates=ambulance,no selection evaluated is safe
+las.kaos+obstacles.kaos+resolutions.kaos,chosen,-,,achieve_mobilized_ambulance_intervention_or_mobilization_cancelled+obesity_ambulance_when_required+assign_dest_hospital,,estimates=ambulance,"none safe: the most satisfying among those evaluated, flagged (the thesis: the selection that maximises the satisfaction rate is picked)"
+las.kaos+obstacles.kaos+resolutions.kaos,ESR,achieve_mobilized_ambulance_intervention_or_mobilization_cancelled+obesity_ambulance_when_required+assign_dest_hospital,achieve_incident_resolved,0.027781576164,1e-9,estimates=ambulance,"the weakening of Achieve [Mobilized Ambulance Intervention] (the leaf itself, replaced), Obesity Ambulance When Required and Assign Destination Hospital: 2.78 %"
+las.kaos+obstacles.kaos+resolutions.kaos,exact,-,,no,,estimates=ambulance,"the limit reached before any safe selection: the chosen one is the best of 4096, not §VI.C's"

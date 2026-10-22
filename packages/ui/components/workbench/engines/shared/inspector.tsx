@@ -191,6 +191,11 @@ const ENGINE_KEYS: Record<TransformEngine, EngineKeys> = {
     lists: {},
     mapper: 'packages/lib/src/engines/kaosdoc/mapper.ts',
   },
+  kaoslts: {
+    file: 'packages/lib/src/dialects/kaos/index.ts',
+    lists: {},
+    mapper: 'packages/lib/src/engines/kaoslts/mapper.ts',
+  },
   kaosprop: {
     file: 'packages/lib/src/engines/kaosprop/definition.ts',
     lists: {},
@@ -200,6 +205,16 @@ const ENGINE_KEYS: Record<TransformEngine, EngineKeys> = {
     file: 'packages/lib/src/engines/kaosexpert/definition.ts',
     lists: {},
     mapper: 'packages/lib/src/engines/kaosexpert/mapper.ts',
+  },
+  kaosres: {
+    file: 'packages/lib/src/engines/kaosres/definition.ts',
+    lists: {},
+    mapper: 'packages/lib/src/engines/kaosres/mapper.ts',
+  },
+  kaossim: {
+    file: 'packages/lib/src/engines/kaossim/definition.ts',
+    lists: {},
+    mapper: 'packages/lib/src/engines/kaossim/mapper.ts',
   },
   nfrprop: {
     file: 'packages/lib/src/engines/nfrprop/definition.ts',

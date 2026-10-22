@@ -13,8 +13,8 @@ import { expect } from 'chai';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { inheritMetamodel, parsePistar } from '@istar-ts/core';
-import { KAOS_OBSTACLES } from '@istar-ts/dsm3-kaos/metamodel';
 import { kaos } from '../../src';
+import { KAOS_MODEL } from '../../src/dialects/kaos/metamodel';
 import { readKaos } from '../../src/importers/kaos';
 import { propagateProbabilities } from '../../src/engines/kaosprop';
 import { kaosdocDocument, kaosdocGoalModel } from '../../src/engines/kaosdoc';
@@ -35,11 +35,15 @@ const corpus = (path: string) =>
     join(__dirname, '../../../goal-language/test/fixtures/kaos', path),
     'utf8',
   );
-// `files` is open: a project's files by path, as readKaos takes them
+// `files` is open: a project's files by path, as readKaos takes them.
+// `KAOS_MODEL` (the `kaos` dialect's own, goal-controller#194) is
+// `KAOS_OBSTACLES` extended with the operation and object models' kinds, so
+// a seed that declares them too (goal-controller#210) reads whole: kaosres
+// sees the whole seed and simply ignores the kinds it doesn't read.
 const read = (text: string, files?: Readonly<Record<string, string>>) => {
   const { model, diagnostics } = readKaos(text, { modelName: 'm', files });
   expect(model, JSON.stringify(diagnostics.slice(0, 3))).to.not.equal(null);
-  return parsePistar(model!, { metamodel: KAOS_OBSTACLES });
+  return parsePistar(model!, { metamodel: KAOS_MODEL });
 };
 
 /** ADS's London Ambulance with its obstacles and its resolutions (las.kaos imports both). */
@@ -48,9 +52,11 @@ const ADS = read(corpus('ads/las.kaos'), {
   'resolutions.kaos': corpus('ads/resolutions.kaos'),
 });
 const LAS = read(corpus('kaostools/las.kaos'));
+// the seed's own file (goal-controller#210): its §3.6 obstacle analysis
+// (#202) is the only copy, no separate fixture (rv400's review of #400)
 const ELEVATOR = read(
   readFileSync(
-    join(__dirname, '../engines/kaosres/fixtures/elevator.kaos'),
+    join(__dirname, '../../../../examples/kaos/elevator/elevator.kaos'),
     'utf8',
   ),
 );

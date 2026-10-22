@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "dialect": "edgev2",
+  "models": [{ "path": "deltaIoT.txt" }],
+  "projectResources": { "variables": "variables.json", "properties": ["props/deltaIoT.props"] },
+  "outputs": []
+}

@@ -5,9 +5,11 @@ import {
   AlertTriangle,
   CheckCircle2,
   Loader2,
+  Minus,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import type { Framework } from '@goal-controller/dialect';
+import { dialectForModel } from '@goal-controller/lib';
 import { settingsInManifest, type Project } from '@/lib/project';
 import type { TransformEngine } from '@/lib/types';
 import {
@@ -57,7 +59,12 @@ export type Plan = Conversion | { error: string };
 export type Check =
   | { state: 'checking' }
   | { state: 'done'; errors: Problem[]; warnings: Problem[] };
-export type Status = 'checking' | 'ready' | 'warnings' | 'blocked';
+export type Status =
+  | 'checking'
+  | 'ready'
+  | 'warnings'
+  | 'blocked'
+  | 'unchecked';
 
 /**
  * The workbench's own model checks, and a dialect engine's language on the
@@ -68,8 +75,14 @@ export type Status = 'checking' | 'ready' | 'warnings' | 'blocked';
 const localProblems = (text: string, engine: TransformEngine): Problem[] => {
   try {
     const framework = frameworkEditorOf(engine);
-    if (framework)
-      return frameworkProblems(parseModel(text), framework.definition);
+    if (framework) {
+      // with the vocabulary profile the model records (a CAIRIS model's, #192)
+      const model = parseModel(text);
+      return frameworkProblems(
+        model,
+        dialectForModel(framework.definition, model),
+      );
+    }
     const tree = treeView(text, engine);
     return [
       ...treeProblems(tree, engine),
@@ -179,6 +192,8 @@ export function useEngineConformity(
     const plan = plans[id];
     if (!plan || 'error' in plan || plan.blockers.length > 0) return 'blocked';
     if (isModellingMode(id)) return 'ready';
+    // an empty model conforms vacuously: its checks are held back (`skip`)
+    if (skip) return 'unchecked';
     const check = checks[id];
     if (!check || check.state === 'checking') return 'checking';
     if (check.errors.length > 0) return 'blocked';
@@ -188,19 +203,33 @@ export function useEngineConformity(
     const check = checks[id];
     return check?.state === 'done' ? check.warnings.length : 0;
   };
-  return { plans, checks, statusOf, warningsOf };
+  /** The first problem's message, for a card that wants to explain `blocked`. */
+  const detailOf = (id: ConversionTarget): string | undefined => {
+    const plan = plans[id];
+    if (plan && 'error' in plan) return plan.error;
+    const check = checks[id];
+    return check?.state === 'done' ? check.errors[0]?.message : undefined;
+  };
+  return { plans, checks, statusOf, warningsOf, detailOf };
 }
 
-/** One line on an engine card: checking / accepts / accepts with warnings / has problems. */
+/**
+ * One line on an engine card: checking / accepts / accepts with warnings /
+ * has problems / unchecked (an empty model: not run against the engine yet).
+ * `detail` (a blocked card's first problem) shows as a tooltip.
+ */
 export function ConformityStatus({
   status,
   warnings,
+  detail,
 }: {
   status: Status;
   warnings: number;
+  detail?: string;
 }) {
   return (
     <span
+      title={status === 'blocked' ? detail : undefined}
       className={cx(
         'mt-1 flex items-center gap-1 text-2xs',
         status === 'ready'
@@ -218,6 +247,8 @@ export function ConformityStatus({
         <CheckCircle2 className='h-3 w-3' aria-hidden />
       ) : status === 'warnings' ? (
         <AlertTriangle className='h-3 w-3' aria-hidden />
+      ) : status === 'unchecked' ? (
+        <Minus className='h-3 w-3' aria-hidden />
       ) : (
         <AlertCircle className='h-3 w-3' aria-hidden />
       )}
@@ -227,7 +258,9 @@ export function ConformityStatus({
           ? 'accepts the model'
           : status === 'warnings'
             ? `accepts, with ${warnings} warning${warnings > 1 ? 's' : ''}`
-            : 'has problems'}
+            : status === 'unchecked'
+              ? 'not checked yet: the model is empty'
+              : 'has problems'}
     </span>
   );
 }

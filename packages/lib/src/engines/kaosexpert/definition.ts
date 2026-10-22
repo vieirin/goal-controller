@@ -33,14 +33,18 @@
  * uncertainty. `.kaos` is the native file of both (the same definition):
  * its reader says which mode a file opens in.
  */
-import { defineDialect, property } from '@goal-controller/dialect';
+import {
+  defineDialect,
+  property,
+  type ResourceTarget,
+} from '@goal-controller/dialect';
 import { kaos } from '../../dialects/kaos';
 import { kaosprop } from '../kaosprop/definition';
 
-const estimate = (
-  key: 'Probability' | 'ESR' | 'Beta',
+const estimate = <const K extends 'Probability' | 'ESR' | 'Beta'>(
+  key: K,
   help: string,
-  keyed?: 'expert',
+  keyed?: ResourceTarget<'expert'>,
 ) =>
   property.distribution(key, {
     point: true,
@@ -83,7 +87,7 @@ export const kaosexpert = defineDialect({
       estimate(
         'Probability',
         'a leaf obstacle’s estimated probability: a value (2.7%), a distribution (pert[1%, 2%, 5%], beta[2, 98]) or quantiles ((2.4%, 2.7%, 3%)); per expert, Probability[e1], which Cooke’s model combines',
-        'expert',
+        { resource: 'expert' },
       ),
       estimate(
         'Beta',
@@ -109,6 +113,7 @@ export const kaosexpert = defineDialect({
       role: 'experts',
       path: 'experts.json',
       accept: ['.json'],
+      entries: true,
       help: 'the experts whose estimates (Probability[e1]) are combined, and the quantile levels their estimates give ((.1, .5, .9))',
     },
     calibration: {

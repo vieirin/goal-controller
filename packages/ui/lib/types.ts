@@ -10,8 +10,13 @@ import type { GodaVariant } from '@goal-controller/lib';
  * the frameworks besides iStar 2.0 (goal-controller#171): 'kaosdoc' (KAOS:
  * a requirements document; 'kaosprop', goal-controller#181: an analysis
  * engine, probabilistic obstacle analysis; 'kaosexpert', goal-controller#190:
- * an analysis engine, expert estimates and their uncertainty) and 'nfrprop'
- * (NFR: an analysis engine, label propagation).
+ * an analysis engine, expert estimates and their uncertainty; 'kaosres',
+ * goal-controller#191: an analysis engine, countermeasure selection;
+ * 'kaossim', goal-controller#193: an analysis engine, quantitative goals
+ * simulated per design and the Pareto-optimal designs; 'kaoslts',
+ * goal-controller#209: the operation model as FSP for LTSA, and the
+ * completeness of its operationalisations) and
+ * 'nfrprop' (NFR: an analysis engine, label propagation).
  */
 export type TransformEngine =
   | 'edge'
@@ -24,8 +29,11 @@ export type TransformEngine =
   | 'tropos4as'
   | 'cgm'
   | 'kaosdoc'
+  | 'kaoslts'
   | 'kaosprop'
   | 'kaosexpert'
+  | 'kaosres'
+  | 'kaossim'
   | 'nfrprop';
 
 /** edgeV2: one PRISM module per task (EDGE reference layout) or a single ChangeManager module */
@@ -45,8 +53,11 @@ const TRANSFORM_ENGINES: TransformEngine[] = [
   'tropos4as',
   'cgm',
   'kaosdoc',
+  'kaoslts',
   'kaosprop',
   'kaosexpert',
+  'kaosres',
+  'kaossim',
   'nfrprop',
 ];
 
