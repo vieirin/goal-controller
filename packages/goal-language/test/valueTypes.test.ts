@@ -8,7 +8,13 @@
  */
 import type { DefinitionContext, ValueConfig } from '@goal-controller/dialect';
 import { expect } from 'chai';
-import { highlightValue, readProperties, valueProblem } from '../src/index.js';
+import {
+  highlightValue,
+  readProperties,
+  referenceMemberProblem,
+  referenceParts,
+  valueProblem,
+} from '../src/index.js';
 
 const context: DefinitionContext = {
   elements: {
@@ -169,5 +175,124 @@ describe('value types: distribution, and keyed properties (#190)', () => {
       'Probability[e1]',
       'Probability[e2]',
     ]);
+  });
+});
+
+describe('value types: a reference with a member (#194)', () => {
+  const gauge: ValueConfig = {
+    type: 'reference',
+    target: { kinds: ['toy.Tank', 'toy.Pump'] },
+    members: { from: 'Parts' },
+  };
+  const tanks: DefinitionContext = {
+    elements: {
+      T1: {
+        kind: 'toy.Tank',
+        children: [],
+        properties: { Parts: 'level:number, full:bool' },
+      },
+      P1: { kind: 'toy.Pump', children: [], properties: {} },
+      R1: { kind: 'toy.Room', children: [], properties: {} },
+    },
+    variables: [],
+  };
+  const definition = {
+    properties: {
+      'toy.Tank': [
+        {
+          key: 'Parts',
+          value: { type: 'pairList', value: 'text' },
+          help: 'its parts',
+        },
+      ],
+      'toy.Pump': [
+        {
+          key: 'Parts',
+          value: { type: 'pairList', value: 'text' },
+          help: 'its parts',
+        },
+      ],
+    },
+  } as const;
+
+  it('splits its name and its member at the last dot before a name (an id’s own dots are its)', () => {
+    expect(referenceParts(gauge, 'T1.level')).to.deep.equal({
+      ref: 'T1',
+      member: 'level',
+    });
+    expect(referenceParts(gauge, ' tank_a.full ')).to.deep.equal({
+      ref: 'tank_a',
+      member: 'full',
+    });
+    expect(referenceParts(gauge, 'T1.1')).to.deep.equal({
+      ref: 'T1.1',
+      member: null,
+    });
+    expect(referenceParts(gauge, 'T1')).to.deep.equal({
+      ref: 'T1',
+      member: null,
+    });
+    // without members, all of it is the name
+    const plain: ValueConfig = { type: 'reference', target: { kinds: [] } };
+    expect(referenceParts(plain, 'T1.level')).to.deep.equal({
+      ref: 'T1.level',
+      member: null,
+    });
+  });
+
+  it('names a member its element declares, as an assertion’s member (#137)', () => {
+    expect(valueProblem(gauge, 'T1.level', tanks, definition)).to.equal(null);
+    expect(valueProblem(gauge, 'T1', tanks, definition)).to.equal(null);
+    expect(valueProblem(gauge, 'T1.volume', tanks, definition)).to.equal(
+      'T1 has no member volume (its members: level, full)',
+    );
+    expect(valueProblem(gauge, 'P1.level', tanks, definition)).to.equal(
+      'P1 has no member level (it declares none)',
+    );
+    // its name's problems first: no element, or one of another kind
+    expect(valueProblem(gauge, 'T2.level', tanks, definition)).to.equal(
+      'T2 is not an element of this model',
+    );
+    expect(valueProblem(gauge, 'R1.level', tanks, definition)).to.equal(
+      'R1 is a toy.Room, not a toy.Tank or toy.Pump',
+    );
+    // by its piStar id too
+    expect(
+      valueProblem(
+        gauge,
+        'tank_a.full',
+        { ...tanks, iStarIds: { tank_a: 'T1' } },
+        definition,
+      ),
+    ).to.equal(null);
+  });
+
+  it('reads as the element and its member', () => {
+    const { values } = readProperties(
+      { properties: { 'toy.Gauge': [{ key: 'Of', value: gauge, help: '' }] } },
+      { element: 'toy.Gauge' },
+      { Of: 'T1.level' },
+    );
+    expect(values).to.deep.equal({ Of: { id: 'T1', member: 'level' } });
+  });
+
+  it('is checked on any element a lookup finds (a model’s, not a view’s)', () => {
+    const lookup = (ref: string) =>
+      ref === 'tank_a'
+        ? { kind: 'toy.Tank', properties: { Parts: 'level:number' } }
+        : undefined;
+    expect(
+      referenceMemberProblem(gauge, 'tank_a.level', lookup, definition),
+    ).to.equal(null);
+    expect(
+      referenceMemberProblem(gauge, 'tank_a.full', lookup, definition),
+    ).to.equal('tank_a has no member full (its members: level)');
+    // no member, or no element: nothing to say here (danglingName's)
+    expect(
+      referenceMemberProblem(gauge, 'tank_a', lookup, definition),
+    ).to.equal(null);
+    expect(referenceMemberProblem(gauge, 'x.y', lookup, definition)).to.equal(
+      null,
+    );
   });
 });

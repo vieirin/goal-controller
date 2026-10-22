@@ -117,10 +117,20 @@ describe('kaosdocEngineMapper: characterization (#187)', () => {
       'Kind',
       'Description',
     ]);
+    // the operation and object models' (goal-controller#194) as written:
+    // kaosdoc's document has no section for them
     assert.deepStrictEqual(KAOSDOC_LINK_KEYS, [
       'BoundaryCondition',
       'ResolutionType',
       'Anchor',
+      'ReqPre',
+      'ReqTrig',
+      'ReqPost',
+      'Monitors',
+      'Controls',
+      'Delay',
+      'Multiplicity',
+      'Role',
     ]);
   });
 

@@ -40,9 +40,23 @@
  *   parameters (`sysref = "…"`, `v = "…"`), and `declare design` the
  *   project resource `designs.json`. A file with any of these opens in
  *   kaossim's mode.
+ * - the operation and object models (goal-controller#194), the `kaos`
+ *   dialect's `kaosOperations` kinds: KAOSTools' `entity` (`object`),
+ *   `association` (`relation`), `predicate` and `type`, each attribute
+ *   as KAOSTools' parsers read it (`attribute name : type`, an entity's
+ *   `type software`, `link [0, 1] target`, a predicate's `argument a : t`,
+ *   `formalspec` and `default`), and our `operation` and `event`
+ *   (KAOSTools has neither): an operation's `dompre` and `dompost`,
+ *   `performedby a`, `input e`, `output e`, `causedby [delay = "…"] ev`,
+ *   `operationalizes g` and its required conditions `reqpre [g] f`,
+ *   `reqtrig [g] f`, `reqpost [g] f`; an event's `frequency`; an agent's
+ *   `load`, `attribute`s, and `monitors` and `controls`, each an
+ *   object's attribute (`sump.highWater`, FSE'02) or a predicate
+ *   (KAOSTools'). A model with any declares the kinds in its
+ *   `"metamodel"` block.
  *
  * Nothing is dropped: what has no place (a per-expert or distribution
- * `esr` on a goal, an `entity`, a custom `$attribute`, an import not
+ * `esr` on a goal, an entity's `isa`, a custom `$attribute`, an import not
  * given) is kept as written, in file order, in the diagram's
  * `kaosUnsupported` (an attribute of a placed element as an `override` of
  * it), and said. The writer (./write.ts) writes it back. Positions are
@@ -50,7 +64,11 @@
  * goals they obstruct, a resolving goal below its obstacle, an agent beside
  * its goal.
  */
-import { parsePistar, toPistarObject } from '@istar-ts/core';
+import {
+  FILE_METAMODEL_KEY,
+  parsePistar,
+  toPistarObject,
+} from '@istar-ts/core';
 import { KAOS_OBSTACLES } from '@istar-ts/dsm3-kaos/metamodel';
 import { readDistribution } from '@goal-controller/dialect';
 import type { ImportDiagnostic, ImportResult } from '../types';
@@ -65,7 +83,7 @@ import {
   type EvidenceEntry,
   type ExpertEntry,
 } from '../../engines/kaosexpert/resources';
-import { layOut } from '../layout';
+import { LAYOUT_GRID, layOut, type LayoutExtent } from '../layout';
 import {
   kaosFormulaText as formulaText,
   kaosHeadRangeOf as headRangeOf,
@@ -91,9 +109,12 @@ import {
   KAOS_TYPES,
   KAOSTOOLS_RESOLUTIONS,
   KAOSTOOLS_TACTICS,
+  REQUIRED_CONDITIONS,
   isKaosDeclaration,
+  isObjectDeclaration,
   type KaosDeclarationKind,
 } from './vocabulary';
+import { KAOS_OPERATIONS_BLOCK } from '../../dialects/kaos/metamodel';
 
 /** The diagram's key that keeps what the model has no place for, as written. */
 export const KAOS_UNSUPPORTED_KEY = 'kaosUnsupported';
@@ -144,6 +165,8 @@ type Element = {
   assignments: { ref: Ref; props: [string, string][] }[];
   /** a goal's annotations for an obstacle (goal-controller#191): a resolution's Form, payload or Cost */
   annotations: Annotation[];
+  /** the operation and object models' links from or onto it (goal-controller#194) */
+  objects: ObjectLinks;
   /** its attributes kept as written */
   raw: string[];
   declared: boolean;
@@ -171,6 +194,39 @@ type Annotation = {
   attribute: Attribute;
   file: string | null;
 };
+
+/**
+ * The operation and object models' links an element's attributes declare
+ * (goal-controller#194): an operation's performers, inputs, outputs,
+ * causes and the requirements it operationalises (with their required
+ * conditions, by key), an agent's monitored and controlled attributes (as
+ * written, `sump.highWater`), an association's links.
+ */
+type ObjectLinks = {
+  performers: Ref[];
+  inputs: Ref[];
+  outputs: Ref[];
+  causes: { ref: Ref; delay?: string }[];
+  operationalises: { ref: Ref; conditions: Map<string, string> }[];
+  monitors: { ref: Ref; written: string }[];
+  controls: { ref: Ref; written: string }[];
+  links: { ref: Ref; multiplicity?: string; role?: string }[];
+};
+
+const noObjectLinks = (): ObjectLinks => ({
+  performers: [],
+  inputs: [],
+  outputs: [],
+  causes: [],
+  operationalises: [],
+  monitors: [],
+  controls: [],
+  links: [],
+});
+
+/** KAOSTools' other names for a declaration (`(entity|object)`, `(association|relation)`) as the one it is. */
+const canonicalOf = (word: KaosDeclarationKind): KaosDeclarationKind =>
+  word === 'object' ? 'entity' : word === 'relation' ? 'association' : word;
 
 /** An annotation's word and the resolution `Form` it is. */
 const FORMS = {
@@ -208,6 +264,71 @@ export const identifierOf = (text: string, fallback: string) => {
   return !slug ? fallback : /^[a-z]/.test(slug) ? slug : `${fallback}_${slug}`;
 };
 
+/** The operation and object models' attributes (goal-controller#194), each read on its kinds. */
+const OBJECT_ATTRIBUTES = [
+  'attribute',
+  'argument',
+  'default',
+  'frequency',
+  'load',
+  'dompre',
+  'dompost',
+  'performedby',
+  'input',
+  'output',
+  'causedby',
+  'operationalizes',
+  'operationalises',
+  'reqpre',
+  'reqtrig',
+  'reqpost',
+  'monitors',
+  'controls',
+  'link',
+];
+
+/** The file types of the block's kinds (`kaos.Operation`, `kaos.MonitoringLink`). */
+const OPERATION_TYPES: ReadonlySet<unknown> = new Set(
+  [...KAOS_OPERATIONS_BLOCK.elements, ...KAOS_OPERATIONS_BLOCK.links].map(
+    (kind) => kind.pistarType,
+  ),
+);
+
+/** Whether a model's nodes or links are of the block's kinds. */
+const usesOperationKinds = (
+  nodes: readonly Readonly<Record<string, unknown>>[],
+  links: readonly Readonly<Record<string, unknown>>[],
+) => [...nodes, ...links].some((item) => OPERATION_TYPES.has(item.type));
+
+/**
+ * Nodes nothing links, in rows below a laid-out model (as wide as it, a
+ * grid's step apart), and how far the model reaches with them.
+ */
+const placeLoose = (
+  loose: readonly { x?: number; y?: number }[],
+  extent: LayoutExtent | null,
+): LayoutExtent | null => {
+  if (!loose.length) return extent;
+  // a laid-out extent is a grid cell past its last column and row
+  const { dx, dy, padding } = LAYOUT_GRID;
+  const columns = Math.max(
+    1,
+    Math.floor(((extent?.right ?? 0) - padding) / dx),
+  );
+  const top = extent?.bottom ?? padding;
+  loose.forEach((node, i) => {
+    node.x = padding + (i % columns) * dx;
+    node.y = top + Math.floor(i / columns) * dy;
+  });
+  return {
+    right: Math.max(
+      extent?.right ?? 0,
+      padding + Math.min(loose.length, columns) * dx,
+    ),
+    bottom: top + Math.ceil(loose.length / columns) * dy,
+  };
+};
+
 /** kaossim's attributes (goal-controller#193) and the keys they are, keyed by a name. */
 const SIM_KEYS = {
   qualityvariable: 'QualityVariable',
@@ -226,6 +347,12 @@ const isGoal = (word: KaosDeclarationKind) =>
   word === 'goal' || word === 'softgoal';
 const isDomain = (word: KaosDeclarationKind) =>
   word === 'domainproperty' || word === 'domainhypothesis';
+/** The objects an `attribute` declares attributes of (FSE'02's agents have them too). */
+const hasAttributes = (word: KaosDeclarationKind) =>
+  word === 'entity' ||
+  word === 'association' ||
+  word === 'event' ||
+  word === 'agent';
 
 /** What each kind's properties are, in the `kaos` dialect's order, `''` unset (as DSM3 creates them). */
 const defaultsOf = (type: string): [string, string][] => {
@@ -369,20 +496,20 @@ export const readKaos = (
         `${headOf(declaration)} has no "end": it ends where the next declaration starts`,
         headAt(declaration),
       );
-    const word = declaration.kind;
-    if (word === 'expert' || word === 'calibration') {
+    const written = declaration.kind;
+    if (written === 'expert' || written === 'calibration') {
       resource(declaration, where);
       return null;
     }
-    if (word === 'evidence') {
+    if (written === 'evidence') {
       evidenceItem(declaration, where);
       return null;
     }
-    if (word === 'design') {
+    if (written === 'design') {
       designItem(declaration, where);
       return null;
     }
-    if (word === 'constraint') {
+    if (written === 'constraint') {
       const why = conflictOf(declaration, where);
       if (why === null) return null;
       raw.push(sourceOf(declaration));
@@ -394,16 +521,17 @@ export const readKaos = (
       );
       return null;
     }
-    if (!isKaosDeclaration(word)) {
+    if (!isKaosDeclaration(written)) {
       raw.push(sourceOf(declaration));
       say(
         where,
         'warning',
-        `${headOf(declaration)}: kept as written, not read (KAOS's ${word}s have no place in the model)`,
+        `${headOf(declaration)}: kept as written, not read (KAOS's ${written}s have no place in the model)`,
         headAt(declaration),
       );
       return null;
     }
+    const word = canonicalOf(written);
     const idAttribute = declaration.attributes.find((a) => a.name === 'id');
     const idValue = idAttribute && single(idAttribute);
     const id =
@@ -438,6 +566,7 @@ export const readKaos = (
         resolutions: [],
         assignments: [],
         annotations: [],
+        objects: noObjectLinks(),
         raw: [],
         declared: false,
       };
@@ -473,7 +602,12 @@ export const readKaos = (
         }
         break;
       case 'formalspec':
-        if (word === 'agent') break;
+        // a predicate's formal definition is its FormalSpec too, as KAOSTools'
+        if (
+          word === 'agent' ||
+          (isObjectDeclaration(word) && word !== 'predicate')
+        )
+          break;
         if (value?.atom.$type === 'FormulaAtom') {
           element.props.set('FormalSpec', formulaText(value.atom));
           return;
@@ -485,6 +619,15 @@ export const readKaos = (
         }
         break;
       case 'type':
+        // an entity's (KAOSTools' EntityTypeAttributeParser.cs)
+        if (
+          word === 'entity' &&
+          value?.atom.$type === 'NameAtom' &&
+          ['software', 'environment', 'shared'].includes(value.atom.value)
+        ) {
+          element.props.set('EntityType', value.atom.value);
+          return;
+        }
         if (word === 'agent' && value?.atom.$type === 'NameAtom') {
           const agentType = value.atom.value;
           if (agentType === 'software' || agentType === 'environment') {
@@ -640,6 +783,138 @@ export const readKaos = (
           }
         }
         break;
+      // the operation and object models (goal-controller#194)
+      case 'attribute':
+      case 'argument': {
+        const pair =
+          (name === 'attribute' ? hasAttributes(word) : word === 'predicate') &&
+          pairOf(attribute);
+        if (pair) {
+          const key = name === 'attribute' ? 'Attributes' : 'Arguments';
+          const before = element.props.get(key);
+          element.props.set(key, before ? `${before}, ${pair}` : pair);
+          return;
+        }
+        break;
+      }
+      case 'default':
+        if (
+          word === 'predicate' &&
+          value?.atom.$type === 'NameAtom' &&
+          (value.atom.value === 'true' || value.atom.value === 'false')
+        ) {
+          element.props.set('Default', value.atom.value);
+          return;
+        }
+        break;
+      case 'frequency':
+      case 'load': {
+        const text = value && wordOf(value.atom);
+        if (
+          text !== null &&
+          (name === 'frequency' ? word === 'event' : word === 'agent')
+        ) {
+          element.props.set(name === 'frequency' ? 'Frequency' : 'Load', text);
+          return;
+        }
+        break;
+      }
+      case 'dompre':
+      case 'dompost': {
+        const formula = word === 'operation' && value && formulaOf(value.atom);
+        if (formula) {
+          element.props.set(name === 'dompre' ? 'DomPre' : 'DomPost', formula);
+          return;
+        }
+        break;
+      }
+      case 'performedby':
+      case 'input':
+      case 'output': {
+        const found = word === 'operation' && refs(attribute, false);
+        if (found) {
+          const list =
+            name === 'performedby'
+              ? element.objects.performers
+              : name === 'input'
+                ? element.objects.inputs
+                : element.objects.outputs;
+          list.push(...found.map((r) => r.ref));
+          return;
+        }
+        break;
+      }
+      case 'causedby': {
+        const delay = attribute.params.length
+          ? delayOf(attribute)
+          : { delay: undefined };
+        const found =
+          word === 'operation' && delay && refs(attribute, false, true);
+        if (found) {
+          element.objects.causes.push(
+            ...found.map(({ ref }) => ({
+              ref,
+              ...(delay.delay !== undefined && { delay: delay.delay }),
+            })),
+          );
+          return;
+        }
+        break;
+      }
+      case 'operationalizes':
+      case 'operationalises': {
+        const found = word === 'operation' && refs(attribute, false);
+        if (found) {
+          for (const { ref } of found) operationalised(element, ref);
+          return;
+        }
+        break;
+      }
+      case 'reqpre':
+      case 'reqtrig':
+      case 'reqpost': {
+        const [goal] = attribute.params;
+        const ref =
+          word === 'operation' &&
+          attribute.params.length === 1 &&
+          !goal!.bracket.length &&
+          !goal!.op &&
+          refOf(goal!.atom);
+        const formula =
+          ref &&
+          attribute.values.length === 1 &&
+          !attribute.values[0]!.bracket.length &&
+          !attribute.values[0]!.op &&
+          formulaOf(attribute.values[0]!.atom);
+        if (ref && formula) {
+          operationalised(element, ref).conditions.set(
+            REQUIRED_CONDITIONS[name],
+            formula,
+          );
+          return;
+        }
+        break;
+      }
+      case 'monitors':
+      case 'controls': {
+        const found = word === 'agent' && monitoredOf(attribute);
+        if (found) {
+          (name === 'monitors'
+            ? element.objects.monitors
+            : element.objects.controls
+          ).push(...found);
+          return;
+        }
+        break;
+      }
+      case 'link': {
+        const found = word === 'association' && associationLinkOf(attribute);
+        if (found) {
+          element.objects.links.push(found);
+          return;
+        }
+        break;
+      }
       default:
         if (
           name.startsWith('$') &&
@@ -684,8 +959,9 @@ export const readKaos = (
                 'probability',
                 'beta',
                 ...Object.keys(SIM_KEYS),
+                ...OBJECT_ATTRIBUTES,
               ].includes(name)
-            ? `not in this form on a ${word}`
+            ? `not in this form on a${/^[aeiou]/.test(word) ? 'n' : ''} ${word}`
             : `no place in the model for ${name}`;
 
   /**
@@ -928,6 +1204,127 @@ export const readKaos = (
     return found;
   };
 
+  // the operation and object models' attributes (goal-controller#194)
+
+  /** An atom as a word: a string's content, a number or a name as written; null for another. */
+  const wordOf = (atom: Atom): string | null =>
+    atom.$type === 'StringAtom'
+      ? unquote(sourceOf(atom))
+      : atom.$type === 'NumberAtom' || atom.$type === 'NameAtom'
+        ? atom.value
+        : null;
+
+  /** A formula's text (`c.PumpSwitch != "On"`), a name as one (`PumpOn`), or a string's content. */
+  const formulaOf = (atom: Atom): string | null =>
+    atom.$type === 'FormulaAtom'
+      ? formulaText(atom)
+      : atom.$type === 'NameAtom' || atom.$type === 'StringAtom'
+        ? wordOf(atom)
+        : null;
+
+  /** `attribute name : type` (`argument a : t`) as a pair, `name:type`; null in another form (an untyped one). */
+  const pairOf = (attribute: Attribute): string | null => {
+    const [value] = attribute.values;
+    if (attribute.params.length || attribute.values.length !== 1) return null;
+    if (value!.bracket.length || value!.op !== ':' || !value!.right)
+      return null;
+    const left = value!.atom.$type === 'NameAtom' ? value!.atom.value : null;
+    const right =
+      value!.right.$type === 'NameAtom' || value!.right.$type === 'StringAtom'
+        ? wordOf(value!.right)
+        : null;
+    return left !== null && right ? `${left}:${right}` : null;
+  };
+
+  /** `causedby [delay = "5 s"] ev`'s delay; null when its parameters are another. */
+  const delayOf = (attribute: Attribute): { delay: string } | null => {
+    const [param] = attribute.params;
+    if (attribute.params.length !== 1 || param!.bracket.length) return null;
+    const delay =
+      param!.op === '=' &&
+      param!.atom.$type === 'NameAtom' &&
+      param!.atom.value.toLowerCase() === 'delay' &&
+      param!.right
+        ? wordOf(param!.right)
+        : null;
+    return delay === null ? null : { delay };
+  };
+
+  /** An operation's operationalisation of a requirement, made when it is first named. */
+  const operationalised = (element: Element, ref: Ref) => {
+    const same = (other: Ref) =>
+      other.id !== undefined ? other.id === ref.id : other.name === ref.name;
+    let found = element.objects.operationalises.find((o) => same(o.ref));
+    if (!found) {
+      found = { ref, conditions: new Map() };
+      element.objects.operationalises.push(found);
+    }
+    return found;
+  };
+
+  /**
+   * `monitors sump.highWater, pump` (`controls …`): each an object's
+   * attribute (FSE'02) or an element as a whole (KAOSTools' predicate); null
+   * in another form.
+   */
+  const monitoredOf = (
+    attribute: Attribute,
+  ): { ref: Ref; written: string }[] | null => {
+    if (attribute.params.length) return null;
+    const found: { ref: Ref; written: string }[] = [];
+    for (const value of attribute.values) {
+      if (value.bracket.length || value.op) return null;
+      const { atom } = value;
+      const member =
+        atom.$type === 'FormulaAtom'
+          ? /^([A-Za-z$][A-Za-z0-9_-]*)\.[A-Za-z_][A-Za-z0-9_]*$/.exec(
+              formulaText(atom),
+            )
+          : null;
+      if (member) found.push({ ref: { id: member[1]! }, written: member[0] });
+      else if (atom.$type === 'NameAtom')
+        found.push({ ref: { id: atom.value }, written: atom.value });
+      else return null;
+    }
+    return found;
+  };
+
+  /**
+   * `link [0, 1] target` (KAOSTools' LinkAttributeParser.cs: one
+   * multiplicity, or two as `0..1`), `link [*] role : target` with its role
+   * (ours: KAOSTools' Link has a Role its parser doesn't read); null in
+   * another form.
+   */
+  const associationLinkOf = (
+    attribute: Attribute,
+  ): { ref: Ref; multiplicity?: string; role?: string } | null => {
+    const bounds = attribute.params.map((param) =>
+      param.bracket.length || param.op
+        ? null
+        : param.atom.$type === 'StarAtom'
+          ? '*'
+          : param.atom.$type === 'NumberAtom' || param.atom.$type === 'NameAtom'
+            ? param.atom.value
+            : null,
+    );
+    if (bounds.length > 2 || bounds.some((b) => b === null)) return null;
+    const [value] = attribute.values;
+    if (attribute.values.length !== 1 || value!.bracket.length) return null;
+    const role =
+      value!.op === ':' && value!.right ? wordOf(value!.atom) : undefined;
+    const ref = value!.op
+      ? value!.op === ':' && value!.right
+        ? refOf(value!.right)
+        : null
+      : refOf(value!.atom);
+    if (!ref || role === null) return null;
+    return {
+      ref,
+      ...(bounds.length && { multiplicity: bounds.join('..') }),
+      ...(role !== undefined && { role }),
+    };
+  };
+
   /**
    * `declare constraint [ c ] conflict a, b end`: a Conflict link between two
    * goals (KAOS's conflict, `{a, b, Dom} ⊨ false`; KAOSTools' older syntax,
@@ -991,7 +1388,8 @@ export const readKaos = (
       if (probabilityOf(value) === undefined) return false;
       const { atom } = value;
       if (atom.$type === 'DeclarationAtom') {
-        if (!isKaosDeclaration(atom.declaration.kind)) return false;
+        const kind = atom.declaration.kind;
+        if (!isKaosDeclaration(kind) || isObjectDeclaration(kind)) return false;
       } else if (!refOf(atom)) return false;
     }
     const refinees = attribute.values.map((value) => {
@@ -1234,6 +1632,7 @@ export const readKaos = (
       resolutions: [],
       assignments: [],
       annotations: [],
+      objects: noObjectLinks(),
       raw: [],
       declared: false,
     };
@@ -1242,7 +1641,7 @@ export const readKaos = (
     else byName.set(ref.name!, element);
     diagnostics.push({
       severity: 'warning',
-      message: `${ref.id ?? `"${ref.name}"`} is not declared: read as a${word === 'obstacle' || word === 'agent' ? 'n' : ''} ${word}`,
+      message: `${ref.id ?? `"${ref.name}"`} is not declared: read as a${/^[aeiou]/.test(word) ? 'n' : ''} ${word}`,
     });
     return element;
   };
@@ -1280,12 +1679,21 @@ export const readKaos = (
       props: [string, string][];
     }[];
     conflicts: { a: Element; b: Element }[];
+    /** the operation and object models' (goal-controller#194), each from its source to its target */
+    objects: {
+      type: string;
+      name: string;
+      source: Element;
+      target: Element;
+      props: [string, string][];
+    }[];
   } = {
     refinements: [],
     obstructions: [],
     resolutions: [],
     assignments: [],
     conflicts: [],
+    objects: [],
   };
   for (const element of elements.values()) {
     for (const r of element.refinements)
@@ -1322,6 +1730,76 @@ export const readKaos = (
         goal: element,
         props,
       });
+    const {
+      performers,
+      inputs,
+      outputs,
+      causes,
+      operationalises,
+      monitors,
+      controls,
+      links: legs,
+    } = element.objects;
+    const object = (
+      type: string,
+      name: string,
+      source: Element,
+      target: Element,
+      props: [string, string][] = [],
+    ) => links.objects.push({ type, name, source, target, props });
+    for (const ref of performers)
+      object(
+        KAOS_TYPES.performance,
+        'performs',
+        resolve(ref, 'agent'),
+        element,
+      );
+    for (const { ref, conditions } of operationalises)
+      object(
+        KAOS_TYPES.operationalisation,
+        'operationalises',
+        element,
+        resolve(ref, 'goal'),
+        [...conditions],
+      );
+    for (const { ref, delay } of causes)
+      object(
+        KAOS_TYPES.cause,
+        'causes',
+        resolve(ref, 'event'),
+        element,
+        delay !== undefined ? [['Delay', delay]] : [],
+      );
+    for (const ref of inputs)
+      object(KAOS_TYPES.input, 'input', resolve(ref, 'entity'), element);
+    for (const ref of outputs)
+      object(KAOS_TYPES.output, 'output', element, resolve(ref, 'entity'));
+    for (const [list, type, name, key] of [
+      [monitors, KAOS_TYPES.monitoring, 'monitors', 'Monitors'],
+      [controls, KAOS_TYPES.control, 'controls', 'Controls'],
+    ] as const)
+      for (const { ref, written } of list)
+        object(
+          type,
+          name,
+          element,
+          // an attribute's object is an entity; a name alone, KAOSTools' predicate
+          resolve(ref, written.includes('.') ? 'entity' : 'predicate'),
+          [[key, written]],
+        );
+    for (const { ref, multiplicity, role } of legs)
+      object(
+        KAOS_TYPES.associationLink,
+        'links',
+        element,
+        resolve(ref, 'entity'),
+        [
+          ...(multiplicity !== undefined
+            ? [['Multiplicity', multiplicity] as [string, string]]
+            : []),
+          ...(role !== undefined ? [['Role', role] as [string, string]] : []),
+        ],
+      );
   }
   for (const { a, b } of conflicts)
     links.conflicts.push({ a: resolve(a, 'goal'), b: resolve(b, 'goal') });
@@ -1614,13 +2092,34 @@ export const readKaos = (
       source: a.id,
       target: b.id,
     });
+  for (const { type, name, source, target, props } of links.objects)
+    pistarLinks.push({
+      id: linkId(`${source.id}-${name}-${target.id}`),
+      type,
+      source: source.id,
+      target: target.id,
+      ...(props.length && { customProperties: Object.fromEntries(props) }),
+    });
 
   // positions: a refinement's children below it, an obstacle below what it
   // obstructs, a resolving goal below its obstacle, an agent beside its goal
   const BELOW = 'below';
-  const extent = layOut(
+  // a predicate or a type nothing links (KAOSTools' are declared apart):
+  // in rows below the model, not a root of its own (goal-controller#194)
+  const linked = new Set(
+    links.objects.flatMap((o) => [o.source.id!, o.target.id!]),
+  );
+  const loose = new Set(
+    [...elements.values()]
+      .filter(
+        (e) =>
+          (e.word === 'predicate' || e.word === 'type') && !linked.has(e.id!),
+      )
+      .map((e) => e.id!),
+  );
+  const laidOut = layOut(
     {
-      orphans: nodes,
+      orphans: nodes.filter((node) => !loose.has(node.id)),
       links: [
         ...hubs.flatMap(({ parent, children }) =>
           children.map((child) => ({
@@ -1644,10 +2143,21 @@ export const readKaos = (
           source: a.agent.id,
           target: a.goal.id,
         })),
+        // an operation below the requirement it operationalises, an object
+        // beside what links it (goal-controller#194)
+        ...links.objects.map((o) =>
+          o.type === KAOS_TYPES.operationalisation
+            ? { type: BELOW, source: o.source.id, target: o.target.id }
+            : { type: 'beside', source: o.target.id, target: o.source.id },
+        ),
       ],
     },
     undefined,
     new Set([BELOW]),
+  );
+  const extent = placeLoose(
+    nodes.filter((node) => loose.has(node.id)),
+    laidOut,
   );
   // a hub between its goal and its children (DSM3's node is 135 × 36, a hub 20 × 20)
   for (const { hub, parent, children } of hubs) {
@@ -1683,10 +2193,15 @@ export const readKaos = (
         ...(kept.length && { [KAOS_UNSUPPORTED_KEY]: kept.join('\n\n') }),
       },
     },
+    // the operation and object models' kinds, declared in the file
+    // (goal-controller#194) by a model that has any
+    ...(usesOperationKinds(nodes, pistarLinks) && {
+      [FILE_METAMODEL_KEY]: KAOS_OPERATIONS_BLOCK,
+    }),
   };
   // in istar-ts's form, as the workbench writes a KAOS model
   const model = toPistarObject(
-    parsePistar(json, { metamodel: KAOS_OBSTACLES }),
+    parsePistar(json, { metamodel: KAOS_OBSTACLES, fileMetamodel: true }),
   ) as unknown as Record<string, unknown>;
   // kaosexpert's resources, when the file declares any
   const projectResources: Record<string, Record<string, string>> = {};

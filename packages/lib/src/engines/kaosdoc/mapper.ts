@@ -9,10 +9,8 @@
  * and SysRef arrive through its entry (goal-controller#226).
  */
 import { parsePistar } from '@istar-ts/core';
-import {
-  KAOS_OBSTACLES,
-  KAOS_REFINEMENT_HUB,
-} from '@istar-ts/dsm3-kaos/metamodel';
+import { KAOS_REFINEMENT_HUB } from '@istar-ts/dsm3-kaos/metamodel';
+import { KAOS_MODEL } from '../../dialects/kaos/metamodel';
 import { linkPropertyKeys, propertyKeys } from '@goal-controller/dialect';
 import {
   createEngineMapper,
@@ -22,7 +20,11 @@ import {
   type NodeOf,
   type ModelFor,
 } from '@goal-controller/goal-tree';
-import { kaos } from '../../dialects/kaos';
+import {
+  kaos,
+  KAOS_OPERATION_KINDS,
+  KAOS_OPERATION_LINKS,
+} from '../../dialects/kaos';
 
 /** The keys a KAOS goal reads: DSM3's eight, and its description. */
 export const KAOSDOC_GOAL_KEYS = propertyKeys(kaos, 'kaos.BehavioralGoal');
@@ -100,7 +102,11 @@ export const kaosdocEngineMapper = createEngineMapper({
       kinds: ['kaos.Conflict', 'kaosObstacles.ResolutionLink'],
       mapProps: ({ props }) => set(props),
     }),
+    // the operation and object models' (goal-controller#194), as written
+    entry({ kinds: KAOS_OPERATION_LINKS, mapProps: ({ props }) => set(props) }),
   ],
+  // the operation and object models' nodes: the model's elements, no tree's
+  ignore: KAOS_OPERATION_KINDS,
 });
 
 /** kaosdoc's IR of a KAOS model: its trees on the paper, its links and elements. */
@@ -128,6 +134,6 @@ export const kaosdocGoalModel = <EK extends string, LK extends string>(
   model: ModelFor<typeof kaosdocEngineMapper.dialect, EK, LK>,
 ): KaosdocGoalModel => GoalTree.goalModel(model, kaosdocEngineMapper);
 
-/** A KAOS model's piStar text (DSM3's), read with KAOS and its obstacle analysis. */
+/** A KAOS model's piStar text (DSM3's), read with KAOS, its obstacle analysis and its operation and object models (goal-controller#194). */
 export const readKaosModel = (text: string) =>
-  parsePistar(text, { metamodel: KAOS_OBSTACLES });
+  parsePistar(text, { metamodel: KAOS_MODEL });

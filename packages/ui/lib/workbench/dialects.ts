@@ -107,23 +107,38 @@ export const DIALECT_DEFINITIONS = {
 
 /**
  * The metamodel a mode reads a model with: its dialect's with what the model
- * adds, or its framework's root (by default, the text's: frameworkOfModel).
- * Throws as istar-ts does when the model's kinds collide with the dialect's.
+ * adds, or its framework's root (by default, the text's: frameworkOfModel),
+ * with what a model of a framework besides iStar 2.0 declares (its
+ * dialect's own kinds, goal-controller#194: KAOS's operations). Throws as
+ * istar-ts does when the model's kinds collide with the dialect's.
  */
 export const metamodelOfMode = (
   mode: string | null,
   text = '',
   framework: Framework = frameworkOfModel(text),
 ): AnyMetamodel => {
-  if (!isDialectMode(mode)) return FRAMEWORK_ROOTS[framework];
   const block = JSON.parse(text || '{}')?.[FILE_METAMODEL_KEY];
+  const host = isDialectMode(mode)
+    ? HOSTS[mode]
+    : framework !== DEFAULT_FRAMEWORK && FRAMEWORK_ROOTS[framework];
+  if (!host) return FRAMEWORK_ROOTS[framework];
   return block
     ? extendMetamodel(
-        HOSTS[mode],
+        host,
         fileMetamodelExtension(validateFileMetamodel(block)),
       )
-    : HOSTS[mode];
+    : host;
 };
+
+/**
+ * Whether a model read in a mode applies its file's `"metamodel"` block: an
+ * engine's whose models declare its kinds (`fileKinds`), and any model of a
+ * framework besides iStar 2.0, whose dialect's own kinds its importer
+ * declares there (goal-controller#194).
+ */
+export const declaresKinds = (mode: string | null, framework: Framework) =>
+  (mode !== null && mode in ENGINE_FILE_KINDS) ||
+  framework !== DEFAULT_FRAMEWORK;
 
 /*
  * A model read with a dialect is typed as an iStar 2.0 one: the workbench's
@@ -147,8 +162,9 @@ export const parseModel = (
   if (!isDialectMode(mode))
     return parsePistar(text, {
       metamodel: FRAMEWORK_ROOTS[framework],
-      // an engine whose models declare kinds of their own: their block applied
-      fileMetamodel: mode !== null && mode in ENGINE_FILE_KINDS,
+      // an engine whose models declare kinds of their own, or a framework's
+      // model its dialect's (goal-controller#194): their block applied
+      fileMetamodel: declaresKinds(mode, framework),
     });
   const model = parsePistar(text, {
     metamodel: HOSTS[mode],

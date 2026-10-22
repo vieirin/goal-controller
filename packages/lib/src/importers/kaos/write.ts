@@ -32,6 +32,14 @@
  *   after the evidence items.
  * - A conflict between two goals as KAOSTools' older `declare constraint
  *   [ c ] conflict a, b end` (goal-controller#191), after the elements.
+ * - The operation and object models (goal-controller#194) in the
+ *   reader's attributes: an object's `attribute name : type`, an entity's
+ *   `type`, a predicate's `argument`s and `default`, an event's
+ *   `frequency`, an agent's `load`, `monitors` and `controls`, an
+ *   association's `link [0, 1] role : target`, and on an operation its
+ *   `dompre`, `dompost`, `performedby`, `input`, `output`, `causedby
+ *   [delay = "…"]`, `operationalizes` and required conditions (`reqtrig
+ *   [g] …`).
  * - What the reader kept as written (`kaosUnsupported`) at the end, as it
  *   was.
  * - Not written, and said: a refinement's `Status`, an
@@ -63,6 +71,7 @@ import {
   KAOS_TYPES,
   KAOSTOOLS_RESOLUTIONS,
   KAOSTOOLS_TACTICS,
+  REQUIRED_CONDITIONS,
   RESOLUTION_PATTERNS,
   TACTIC_PATTERNS,
   isKaosIdentifier,
@@ -125,6 +134,42 @@ const WORDS: Readonly<Record<string, string>> = {
   [KAOS_TYPES.domainProperty]: 'domainproperty',
   [KAOS_TYPES.agent]: 'agent',
   [KAOS_TYPES.environmentAgent]: 'agent',
+  [KAOS_TYPES.operation]: 'operation',
+  [KAOS_TYPES.entity]: 'entity',
+  [KAOS_TYPES.association]: 'association',
+  [KAOS_TYPES.event]: 'event',
+  [KAOS_TYPES.predicate]: 'predicate',
+  [KAOS_TYPES.givenType]: 'type',
+};
+
+/** The kinds a `formalspec` is written on (a predicate's formal definition, goal-controller#194, too). */
+const FORMAL: ReadonlySet<string> = new Set([
+  KAOS_TYPES.goal,
+  KAOS_TYPES.softgoal,
+  KAOS_TYPES.obstacle,
+  KAOS_TYPES.domainProperty,
+  KAOS_TYPES.predicate,
+]);
+
+/** The objects whose `Attributes` are written as `attribute name : type` (goal-controller#194). */
+const ATTRIBUTED: ReadonlySet<string> = new Set([
+  KAOS_TYPES.entity,
+  KAOS_TYPES.association,
+  KAOS_TYPES.event,
+  KAOS_TYPES.agent,
+  KAOS_TYPES.environmentAgent,
+]);
+
+/** The operation and object models' link types, each written on the element at the end it names. */
+const OBJECT_LINKS: Readonly<Record<string, 'source' | 'target'>> = {
+  [KAOS_TYPES.performance]: 'target',
+  [KAOS_TYPES.operationalisation]: 'source',
+  [KAOS_TYPES.cause]: 'target',
+  [KAOS_TYPES.input]: 'target',
+  [KAOS_TYPES.output]: 'source',
+  [KAOS_TYPES.monitoring]: 'source',
+  [KAOS_TYPES.control]: 'source',
+  [KAOS_TYPES.associationLink]: 'source',
 };
 
 /** The keys each kind's attributes or custom attributes write; any other set key is said. */
@@ -138,8 +183,47 @@ const WRITTEN: Readonly<Record<string, readonly string[]>> = {
     'FormalSpec',
     'Probability',
   ],
-  [KAOS_TYPES.agent]: ['Description'],
-  [KAOS_TYPES.environmentAgent]: ['Description'],
+  [KAOS_TYPES.agent]: ['Description', 'Load', 'Attributes'],
+  [KAOS_TYPES.environmentAgent]: ['Description', 'Load', 'Attributes'],
+  [KAOS_TYPES.operation]: ['Description', 'DomPre', 'DomPost'],
+  [KAOS_TYPES.entity]: ['Description', 'EntityType', 'Attributes'],
+  [KAOS_TYPES.association]: ['Description', 'Attributes'],
+  [KAOS_TYPES.event]: ['Description', 'Frequency', 'Attributes'],
+  [KAOS_TYPES.predicate]: ['Description', 'FormalSpec', 'Arguments', 'Default'],
+  [KAOS_TYPES.givenType]: ['Description'],
+};
+
+/** A word as .kaos reads it back: an identifier or a number as it is, any other quoted. */
+const wordText = (text: string) =>
+  isKaosIdentifier(text) || isNumber(text) ? text : quoted(text);
+
+/** A condition (DomPre, ReqTrig, …) as .kaos reads it back: a formula or a name as it is, any other quoted. */
+const conditionText = (text: string) =>
+  isFormula(text) || isKaosIdentifier(text) ? text : quoted(text);
+
+/** `name:type` pairs as written (an object's Attributes, a predicate's Arguments). */
+const pairsOf = (text: string) =>
+  text
+    .split(',')
+    .map((pair) => pair.trim())
+    .filter(Boolean)
+    .map((pair) => {
+      const colon = pair.indexOf(':');
+      return colon < 0
+        ? null
+        : {
+            name: pair.slice(0, colon).trim(),
+            type: pair.slice(colon + 1).trim(),
+          };
+    });
+
+/** A link's multiplicity as KAOSTools' parameters: `0..1` as `0, 1`; null when it can't be. */
+const multiplicityParams = (text: string): string | null => {
+  const bounds = text.split('..').map((b) => b.trim());
+  return bounds.length <= 2 &&
+    bounds.every((b) => b === '*' || isNumber(b) || isKaosIdentifier(b))
+    ? bounds.join(', ')
+    : null;
 };
 
 /**
@@ -231,6 +315,140 @@ const ANNOTATIONS = {
 
 const isForm = (text: string): text is CountermeasureForm =>
   Object.hasOwn(ANNOTATIONS, text);
+
+/**
+ * An element's operation and object models' keys as the reader's
+ * attributes (goal-controller#194): an entity's `type`, a predicate's
+ * `argument`s and `default`, an event's `frequency`, an agent's `load`, an
+ * operation's `dompre` and `dompost`, an object's `attribute`s.
+ */
+const objectAttributes = (
+  name: string,
+  type: string,
+  text: (key: string) => string,
+  say: (message: string) => void,
+): string[] => {
+  const body: string[] = [];
+  const pairs = (key: 'Attributes' | 'Arguments', attribute: string) => {
+    for (const pair of pairsOf(text(key)))
+      if (pair && isKaosIdentifier(pair.name) && pair.type)
+        body.push(`${attribute} ${pair.name} : ${wordText(pair.type)}`);
+      else
+        say(
+          `${name}: its ${key} ${text(key)} is no name:type list, not all written`,
+        );
+  };
+  if (type === KAOS_TYPES.entity && text('EntityType')) {
+    if (['software', 'environment', 'shared'].includes(text('EntityType')))
+      body.push(`type ${text('EntityType')}`);
+    else
+      say(
+        `${name}: KAOSTools has no entity type ${text('EntityType')}, not written`,
+      );
+  }
+  if (type === KAOS_TYPES.operation)
+    for (const [key, attribute] of [
+      ['DomPre', 'dompre'],
+      ['DomPost', 'dompost'],
+    ] as const)
+      if (text(key)) body.push(`${attribute} ${conditionText(text(key))}`);
+  if (type === KAOS_TYPES.event && text('Frequency'))
+    body.push(`frequency ${wordText(text('Frequency'))}`);
+  if (
+    (type === KAOS_TYPES.agent || type === KAOS_TYPES.environmentAgent) &&
+    text('Load')
+  )
+    body.push(`load ${wordText(text('Load'))}`);
+  if (type === KAOS_TYPES.predicate) {
+    pairs('Arguments', 'argument');
+    if (text('Default') === 'true' || text('Default') === 'false')
+      body.push(`default ${text('Default')}`);
+    else if (text('Default'))
+      say(`${name}: its Default ${text('Default')} is no bool, not written`);
+  }
+  if (ATTRIBUTED.has(type)) pairs('Attributes', 'attribute');
+  return body;
+};
+
+/**
+ * The operation and object models' links an element writes
+ * (goal-controller#194): an operation's `performedby`, `input`, `output`,
+ * `causedby` and `operationalizes` with the required conditions, an
+ * agent's `monitors` and `controls`, an association's `link`s.
+ */
+const objectLinkLines = (
+  name: string,
+  links: readonly Json[],
+  ref: (id: unknown) => string | undefined,
+  say: (message: string) => void,
+): string[] => {
+  const body: string[] = [];
+  const props = (link: Json) =>
+    (link.customProperties ?? {}) as Record<string, unknown>;
+  const value = (link: Json, key: string): string => {
+    const text: unknown = props(link)[key];
+    return typeof text === 'string' ? text.trim() : '';
+  };
+  const ends = (type: string, end: 'source' | 'target') =>
+    links.filter((l) => l.type === type).map((l) => ref(l[end])!);
+  for (const [type, attribute] of [
+    [KAOS_TYPES.performance, 'performedby'],
+    [KAOS_TYPES.input, 'input'],
+    [KAOS_TYPES.output, 'output'],
+  ] as const) {
+    const written = ends(
+      type,
+      type === KAOS_TYPES.output ? 'target' : 'source',
+    );
+    if (written.length) body.push(`${attribute} ${written.join(', ')}`);
+  }
+  for (const link of links.filter((l) => l.type === KAOS_TYPES.cause)) {
+    const delay = value(link, 'Delay');
+    body.push(
+      `causedby${delay ? ` [delay = ${quoted(delay)}]` : ''} ${ref(link.source)}`,
+    );
+  }
+  for (const link of links.filter(
+    (l) => l.type === KAOS_TYPES.operationalisation,
+  )) {
+    const goal = ref(link.target)!;
+    body.push(`operationalizes ${goal}`);
+    for (const [attribute, key] of Object.entries(REQUIRED_CONDITIONS))
+      if (value(link, key))
+        body.push(`${attribute} [${goal}] ${conditionText(value(link, key))}`);
+  }
+  for (const [type, attribute, key] of [
+    [KAOS_TYPES.monitoring, 'monitors', 'Monitors'],
+    [KAOS_TYPES.control, 'controls', 'Controls'],
+  ] as const) {
+    const written = links
+      .filter((l) => l.type === type)
+      .map((link) => {
+        // the object by its identifier, the attribute as written
+        const reference = value(link, key);
+        const dot = reference.lastIndexOf('.');
+        const member = dot < 0 ? '' : reference.slice(dot + 1);
+        const object = ref(dot < 0 ? reference : reference.slice(0, dot));
+        return `${object ?? ref(link.target)}${member ? `.${member}` : ''}`;
+      });
+    if (written.length) body.push(`${attribute} ${written.join(', ')}`);
+  }
+  for (const link of links.filter(
+    (l) => l.type === KAOS_TYPES.associationLink,
+  )) {
+    const multiplicity = value(link, 'Multiplicity');
+    const params = multiplicity ? multiplicityParams(multiplicity) : '';
+    if (params === null)
+      say(
+        `${name}: its link's Multiplicity ${multiplicity} is none KAOSTools reads, not written`,
+      );
+    const role = value(link, 'Role');
+    body.push(
+      `link${params ? ` [${params}]` : ''} ${role ? `${wordText(role)} : ` : ''}${ref(link.target)}`,
+    );
+  }
+  return body;
+};
 
 /** A model as a `.kaos` text, with what it doesn't write. */
 export const writeKaos = (
@@ -344,6 +562,8 @@ export const writeKaos = (
   const refinements = new Map<string, Json[]>();
   const binary = new Map<string, Json[]>();
   const conflicts: Json[] = [];
+  // the operation and object models' (goal-controller#194), by the element that writes each
+  const objectLinks = new Map<string, Json[]>();
   const push = (map: Map<string, Json[]>, key: string, link: Json) =>
     map.set(key, [...(map.get(key) ?? []), link]);
   for (const link of (json.links ?? []) as Json[]) {
@@ -370,6 +590,12 @@ export const writeKaos = (
           `${link.type} ${link.source} → ${link.target}: an end .kaos doesn't declare, not written`,
         );
       else conflicts.push(link);
+    } else if (OBJECT_LINKS[link.type]) {
+      if (ref(link.source) === undefined || ref(link.target) === undefined)
+        say(
+          `${link.type} ${link.source} → ${link.target}: an end .kaos doesn't declare, not written`,
+        );
+      else push(objectLinks, String(link[OBJECT_LINKS[link.type]!]), link);
     } else
       say(
         `${link.type} ${link.source} → ${link.target}: no .kaos attribute for it, not written`,
@@ -417,11 +643,7 @@ export const writeKaos = (
       body.push(`name ${quoted(String(node.text ?? ''))}`);
     if (text('Description'))
       body.push(`definition ${quoted(text('Description'))}`);
-    if (
-      text('FormalSpec') &&
-      type !== KAOS_TYPES.agent &&
-      type !== KAOS_TYPES.environmentAgent
-    ) {
+    if (text('FormalSpec') && FORMAL.has(type)) {
       if (isFormula(text('FormalSpec')))
         body.push(`formalspec ${text('FormalSpec')}`);
       else {
@@ -432,6 +654,8 @@ export const writeKaos = (
       }
     }
     if (type === KAOS_TYPES.environmentAgent) body.push('type environment');
+    // the operation and object models' (goal-controller#194)
+    body.push(...objectAttributes(name, type, text, say));
     // ESR and Beta are distributions too (goal-controller#199, HASE'11's
     // P(G) and β; no per-expert form, unlike an obstacle's Probability)
     const DISTRIBUTION_KEYS = ['Probability', 'ESR', 'Beta'];
@@ -603,6 +827,7 @@ export const writeKaos = (
         );
       }
     }
+    body.push(...objectLinkLines(name, objectLinks.get(id) ?? [], ref, say));
     body.push(...(annotations.get(id) ?? []));
     lines.push(
       '',

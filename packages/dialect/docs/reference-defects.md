@@ -262,6 +262,20 @@ tool.
   different formula. `examples/kaos/mooring/mooring.expected.csv` checks
   our exact solve, not the paper's rounded digits.
 
+- **ASE'08 (Letier, Kramer, Magee and Uchitel, the mine pump, §2 and
+  §4):** one requirement's name is spelled three ways. Figure 2 defines
+  `Maintain[PumpOnWhenHighWaterAndNoMethane]`; Figure 3's operations
+  (`startPump`'s `ReqTrig For`, `stopPump`'s `ReqPre For`) name it
+  `PumpOnWhenHighWaterAndNotMethane`; the paper's models archive (its
+  `Mine Pump KAOS model.txt`, licence not stated, read and not copied)
+  writes `PumpOnWhenHighWaterANDNoMethane`. Found while transcribing the
+  paper (`docs/papers/letier-fse02-icse02.md`, §3.5) for
+  goal-controller#194; reproduced by reading the two figures side by side.
+  A seed that re-keys the figures as printed has an operationalisation
+  naming a requirement nobody declares. The mine pump seed (#209) keys
+  every operation to Figure 2's name, the one the requirement is declared
+  with, and records the other two spellings as this defect.
+
 ## Inputs withheld (not a defect)
 
 Some papers withhold the elicited data a model's numeric oracle would

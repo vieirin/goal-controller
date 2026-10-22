@@ -220,7 +220,17 @@ export type ValueConfig =
    * of its kinds (a resolution's anchor goal), or the id of an entry of a
    * project resource; a name that resolves to nothing is a problem
    */
-  | { type: 'reference'; target: ReferenceTarget }
+  | {
+      type: 'reference';
+      target: ReferenceTarget;
+      /**
+       * what a member after the name is (`sump.highWater`,
+       * goal-controller#194): the keys of the named element's `from`
+       * property, as an assertion's members are (goal-controller#135). None:
+       * the value is a name alone, a member is an error.
+       */
+      members?: MemberSource;
+    }
   /**
    * a sentence of a formal language, tagged with it (`ltl`: KAOS's
    * `FormalSpec`): read as text, which nothing checks yet
@@ -266,10 +276,10 @@ export type ValueConfig =
     };
 
 /**
- * Where the members of a reference in an `assertion` or an `expression` come
- * from (`room.clean`, goal-controller#135): the referenced element's
- * pairList property `from` (each pair a member and its type), or any name
- * (`'any'`: its members are declared elsewhere).
+ * Where the members of a reference in an `assertion`, an `expression` or a
+ * `reference` come from (`room.clean`, goal-controller#135, #194): the
+ * referenced element's pairList property `from` (each pair a member and its
+ * type), or any name (`'any'`: its members are declared elsewhere).
  */
 export type MemberSource = { from: string } | 'any';
 
@@ -583,6 +593,18 @@ export const danglingName = (
     : `${name} is a ${kind}, not a ${target.kinds.join(' or ')}`;
 };
 
+/**
+ * A chain of two links that a third must close (`closures`): its message's
+ * `{start}`, `{via}` and `{end}` are the texts of the first link's source,
+ * the element the two share, and the second's target.
+ */
+export type LinkClosure = {
+  path: readonly [first: string, second: string];
+  closedBy: string;
+  severity: Severity;
+  message: string;
+};
+
 /** The mismatches between a notation and the structure the views report. */
 export type ProblemKind =
   | 'notAChild'
@@ -628,6 +650,15 @@ export type DialectDefinition<K extends string = ElementKind> = {
    * leaf goal). A link onto a refined element is a Problem.
    */
   leafTargets?: readonly string[];
+  /**
+   * Link chains a model must close (goal-controller#210): wherever a link of
+   * `path`'s first kind ends where one of its second starts, a link of
+   * `closedBy` joins the first's source to the second's target, or the chain
+   * is a Problem on the first link (an agent performing an operation that
+   * operationalises a requirement is responsible for it). A non-iStar
+   * framework's link kinds.
+   */
+  closures?: readonly LinkClosure[];
   /**
    * The kinds it adds to iStar 2.0 (`defineExtension`): its node kinds may
    * have properties (`properties`, by kind id), be named by references
@@ -1451,7 +1482,7 @@ const checkFrameworkDialect = (
 const checkFrameworkLinks = (
   definition: Pick<
     AnyDialect,
-    'framework' | 'refinements' | 'linkLabels' | 'leafTargets'
+    'framework' | 'refinements' | 'linkLabels' | 'leafTargets' | 'closures'
   >,
   linkKinds: readonly string[],
   fail: (why: string) => never,
@@ -1473,6 +1504,13 @@ const checkFrameworkLinks = (
     for (const kind of definition.leafTargets)
       if (!linkKinds.includes(kind))
         fail(`leafTargets: ${kind} is not a link kind of ${framework}`);
+  }
+  if (definition.closures) {
+    if (framework === 'istar-2.0') fail(`closures: iStar's links are its own`);
+    for (const { path, closedBy } of definition.closures)
+      for (const kind of [...path, closedBy])
+        if (!linkKinds.includes(kind))
+          fail(`closures: ${kind} is not a link kind of ${framework}`);
   }
   for (const [kind, relation] of Object.entries(definition.refinements ?? {}))
     if (relation !== 'and' && relation !== 'or')
@@ -1612,7 +1650,9 @@ export const defineDialect = <const D extends AnyDialect>(
             fail(`${owner}.${property.key} names unknown kind ${kind}`);
         // members from a property: a pairList some kind it resolves declares
         const members =
-          (config.type === 'assertion' || config.type === 'expression') &&
+          (config.type === 'assertion' ||
+            config.type === 'expression' ||
+            config.type === 'reference') &&
           config.members;
         if (
           members &&
@@ -1863,6 +1903,12 @@ export type ExtensionElementDefinition = {
   /** the `type` a piStar file saves it with, when not its name (e.g. `istar.<Name>`) */
   pistarType?: string;
   size?: { width: number; height: number };
+  /**
+   * where a node may be (istar-ts's `info`): default, the kind it behaves
+   * like's, else piStar-ext's (inside an actor, not on the paper); a
+   * framework without actors needs its nodes on the paper (goal-controller#194)
+   */
+  info?: NodeInfo;
   /** SVG path data it is drawn with (presentation only; default: a dashed box with its «label») */
   shape?: string;
   /**
@@ -1870,6 +1916,13 @@ export type ExtensionElementDefinition = {
    * (presentation only; e.g. a shape's arrow tip is no place for text)
    */
   textBox?: { top: number; right: number; bottom: number; left: number };
+};
+
+/** Where a node may be: in an actor, as a dependum, on the paper (istar-ts's `NodeInfo`). */
+export type NodeInfo = {
+  canBeInnerElement: boolean;
+  canBeDependum: boolean;
+  canBeOnPaper: boolean;
 };
 
 /** Which kinds a new link may join: kind names, or the categories `node`, `actor`, `*`. */

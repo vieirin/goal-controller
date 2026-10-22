@@ -561,6 +561,22 @@ describe('an id is one lexical unit (#186)', () => {
     );
   });
 
+  it('reads a dialect’s own prefix that starts with another of its own (`AS1` beside `A1`, #194)', () => {
+    const dialect = {
+      elements: {
+        'toy.Actor': { prefix: 'A' },
+        'toy.Assembly': { prefix: 'AS' },
+        'toy.Orb': { prefix: 'O' },
+        'toy.Operation': { prefix: 'OP' },
+      },
+    };
+    for (const line of ['A1: Ann', 'AS1: Rig', 'O1: Ball', 'OP2: Spin']) {
+      const read = parseElementLineIn(dialect, line);
+      assert.deepEqual(read.errors, [], line);
+      assert.equal(read.value?.id, line.slice(0, line.indexOf(':')), line);
+    }
+  });
+
   it("still reads GODA's bracket without its spaces", () => {
     const read = parseElementLineIn(
       { notation: { whitespace: 'ignore' } },
