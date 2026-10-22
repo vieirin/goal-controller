@@ -373,7 +373,12 @@ export {
 } from './engines/edgeFamily';
 export { istar4RationalAgents } from './dialects/pistarExt';
 // the frameworks' dialects (goal-controller#171)
-export { kaos } from './dialects/kaos';
+export {
+  kaos,
+  kaosOperations,
+  KAOS_OPERATION_KINDS,
+  KAOS_OPERATION_LINKS,
+} from './dialects/kaos';
 // vocabulary profiles of the KAOS dialects (goal-controller#192): CAIRIS's
 export {
   CAIRIS_VOCABULARIES,

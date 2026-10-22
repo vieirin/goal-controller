@@ -16,7 +16,7 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 import { describe, it } from 'mocha';
 import { parsePistar } from '@istar-ts/core';
-import { KAOS_OBSTACLES } from '@istar-ts/dsm3-kaos/metamodel';
+import { KAOS_MODEL } from '../../../src/dialects/kaos/metamodel';
 import { readKaos } from '../../../src/importers/kaos';
 import {
   kaosresAnalyses,
@@ -41,7 +41,8 @@ declare obstacle [ o2 ] refinedby so1 refinedby so2 end
 const modelOf = (text: string): KaosModel => {
   const { model, diagnostics } = readKaos(text);
   assert.ok(model, JSON.stringify(diagnostics));
-  return parsePistar(model, { metamodel: KAOS_OBSTACLES });
+  // a model of predicates too (the flood seed's, #194)
+  return parsePistar(model, { metamodel: KAOS_MODEL });
 };
 const select = (text: string, options?: Partial<SelectionOptions>) =>
   selectCountermeasures(modelOf(text), options);

@@ -56,15 +56,20 @@ import {
   type IstarModel,
   type LinkKindOf,
 } from '@istar-ts/core';
-import { KAOS_OBSTACLES } from '@istar-ts/dsm3-kaos/metamodel';
 import { KAOS_VOCABULARIES } from '../../dialects/kaos';
+import { KAOS_MODEL } from '../../dialects/kaos/metamodel';
 import { viewValues, type AnalysisModel, type ViewValues } from '../analysis';
 import { kaosres, type CountermeasureForm } from './definition';
 
-/** A KAOS model's element kinds, its obstacle analysis's too (istar-ts's `KAOS_OBSTACLES`). */
-export type KaosElementKind = ElementKindOf<typeof KAOS_OBSTACLES>;
-/** A KAOS model's link kinds, its obstacle analysis's too. */
-export type KaosLinkKind = LinkKindOf<typeof KAOS_OBSTACLES>;
+/**
+ * A KAOS model's element kinds, its obstacle analysis's (istar-ts's
+ * `KAOS_OBSTACLES`) and its operation and object models' too
+ * (goal-controller#194, `KAOS_MODEL`): none of these is a countermeasure's,
+ * but a model has them.
+ */
+export type KaosElementKind = ElementKindOf<typeof KAOS_MODEL>;
+/** A KAOS model's link kinds, its obstacle analysis's and its operation and object models' too. */
+export type KaosLinkKind = LinkKindOf<typeof KAOS_MODEL>;
 /** A KAOS model as the workbench reads it: KAOS with its obstacle analysis, kinds typed. */
 export type KaosModel = IstarModel<KaosElementKind, KaosLinkKind>;
 type Element = IstarElement<KaosElementKind>;
@@ -1055,9 +1060,9 @@ export const kaosresView = <EK extends string, LK extends string>(
 });
 
 const isElementKind = (kind: string): kind is KaosElementKind =>
-  elementKindDefinition(KAOS_OBSTACLES, kind) !== undefined;
+  elementKindDefinition(KAOS_MODEL, kind) !== undefined;
 const isLinkKind = (kind: string): kind is KaosLinkKind =>
-  linkKindDefinition(KAOS_OBSTACLES, kind) !== undefined;
+  linkKindDefinition(KAOS_MODEL, kind) !== undefined;
 
 /**
  * A view as a KAOS model (an analysis is given the view, whose kinds are
@@ -1091,7 +1096,7 @@ export const kaosModelOfView = (view: AnalysisModel): KaosModel => {
       customProperties: properties,
     });
   }
-  return withMetamodel({ elements, links }, KAOS_OBSTACLES);
+  return withMetamodel({ elements, links }, KAOS_MODEL);
 };
 
 /**
