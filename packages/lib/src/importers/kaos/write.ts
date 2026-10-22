@@ -183,7 +183,13 @@ const WRITTEN: Readonly<Record<string, readonly string[]>> = {
     'FormalSpec',
     'Probability',
   ],
-  [KAOS_TYPES.agent]: ['Description', 'Type', 'Load', 'Attributes', 'Initially'],
+  [KAOS_TYPES.agent]: [
+    'Description',
+    'Type',
+    'Load',
+    'Attributes',
+    'Initially',
+  ],
   [KAOS_TYPES.environmentAgent]: [
     'Description',
     'Load',
