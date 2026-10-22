@@ -33,6 +33,16 @@ export interface LtlParseError {
   readonly pos: number;
 }
 
+/** a syntax error the parser recognizes, as opposed to a bug in the parser itself */
+class LtlSyntaxError extends Error {
+  constructor(
+    message: string,
+    readonly pos: number,
+  ) {
+    super(message);
+  }
+}
+
 export interface LtlParseResult {
   readonly value: LtlNode | null;
   readonly errors: readonly LtlParseError[];
@@ -80,7 +90,7 @@ class Parser {
   }
 
   private fail(message: string): never {
-    throw { message, pos: this.peek().pos } satisfies LtlParseError;
+    throw new LtlSyntaxError(message, this.peek().pos);
   }
 
   private expectId(text: string): void {
@@ -181,10 +191,11 @@ class Parser {
   private parseTemporalBinary(): LtlNode {
     const left = this.parseAnd();
     if (this.isId('until') || this.isId('U')) {
+      const surface = this.isId('U') ? 'symbolic' : 'sugar';
       this.advance();
       const bound = this.tryParseEventuallyStyleBound();
       const right = this.parseFormula();
-      return { kind: 'until', left, right, bound, surface: 'sugar' };
+      return { kind: 'until', left, right, bound, surface };
     }
     if (this.isId('release') || this.isId('R')) {
       const surface = this.isId('R') ? 'symbolic' : 'sugar';
@@ -193,14 +204,17 @@ class Parser {
       return { kind: 'release', left, right, surface };
     }
     const mark = this.mark();
-    const bound = this.tryParseGloballyStyleBound();
+    const boundBefore = this.tryParseGloballyStyleBound();
     if (this.isId('unless') || this.isId('W')) {
       const surface = this.isId('W') ? 'symbolic' : 'sugar';
       this.advance();
+      // the sugar's `GloballyBound` comes before `unless`; the symbolic
+      // `≤d`/`≥d` subscript comes right after `W`, like every other bound
+      const bound = boundBefore ?? this.tryParseGloballyStyleBound();
       const right = this.parseFormula();
       return { kind: 'weakUntil', left, right, bound, surface };
     }
-    if (bound) this.reset(mark);
+    if (boundBefore) this.reset(mark);
     return left;
   }
 
@@ -493,7 +507,8 @@ export const parseLtl = (text: string): LtlParseResult => {
     }
     return { value, errors: [] };
   } catch (e) {
-    const error = e as LtlParseError;
-    return { value: null, errors: [error] };
+    if (e instanceof LtlSyntaxError)
+      return { value: null, errors: [{ message: e.message, pos: e.pos }] };
+    throw e;
   }
 };

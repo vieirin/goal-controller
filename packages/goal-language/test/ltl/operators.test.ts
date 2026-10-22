@@ -34,14 +34,26 @@ const bad = (text: string) => {
   assert.strictEqual(value, null);
 };
 
-describe('LTL: quantifiers (KAOSTools has no symbolic spelling attested, but the grammar does)', () => {
+/** every node with a `Surface` has it: `.surface` is unknown to the type at the `LtlNode` union level */
+const surfaceOf = (node: LtlNode): string | undefined =>
+  'surface' in node ? node.surface : undefined;
+
+describe('LTL: quantifiers (the sugar grammar has no symbolic spelling attested, but its shape does)', () => {
   it('forall / ∀', () => {
-    assert.strictEqual(parsed('forall x: T . p(x)').kind, 'forall');
-    assert.strictEqual(parsed('∀ x: T · p(x)').kind, 'forall');
+    const sugar = parsed('forall x: T . p(x)');
+    assert.strictEqual(sugar.kind, 'forall');
+    assert.strictEqual(surfaceOf(sugar), 'sugar');
+    const symbolic = parsed('∀ x: T · p(x)');
+    assert.strictEqual(symbolic.kind, 'forall');
+    assert.strictEqual(surfaceOf(symbolic), 'symbolic');
   });
   it('exists / ∃', () => {
-    assert.strictEqual(parsed('exists x: T . p(x)').kind, 'exists');
-    assert.strictEqual(parsed('∃ x: T · p(x)').kind, 'exists');
+    const sugar = parsed('exists x: T . p(x)');
+    assert.strictEqual(sugar.kind, 'exists');
+    assert.strictEqual(surfaceOf(sugar), 'sugar');
+    const symbolic = parsed('∃ x: T · p(x)');
+    assert.strictEqual(symbolic.kind, 'exists');
+    assert.strictEqual(surfaceOf(symbolic), 'symbolic');
   });
   it('several typed variables', () => {
     const tree = parsed('forall x: Train, y: Block . p(x, y)');
@@ -56,26 +68,44 @@ describe('LTL: quantifiers (KAOSTools has no symbolic spelling attested, but the
 
 describe('LTL: boolean connectives', () => {
   it('and / ∧', () => {
-    assert.strictEqual(parsed('a() and b()').kind, 'and');
-    assert.strictEqual(parsed('a() ∧ b()').kind, 'and');
+    const sugar = parsed('a() and b()');
+    assert.strictEqual(sugar.kind, 'and');
+    assert.strictEqual(surfaceOf(sugar), 'sugar');
+    const symbolic = parsed('a() ∧ b()');
+    assert.strictEqual(symbolic.kind, 'and');
+    assert.strictEqual(surfaceOf(symbolic), 'symbolic');
   });
   it('or / ∨', () => {
-    assert.strictEqual(parsed('a() or b()').kind, 'or');
-    assert.strictEqual(parsed('a() ∨ b()').kind, 'or');
+    const sugar = parsed('a() or b()');
+    assert.strictEqual(sugar.kind, 'or');
+    assert.strictEqual(surfaceOf(sugar), 'sugar');
+    const symbolic = parsed('a() ∨ b()');
+    assert.strictEqual(symbolic.kind, 'or');
+    assert.strictEqual(surfaceOf(symbolic), 'symbolic');
   });
   it('not / ¬', () => {
-    assert.strictEqual(parsed('not a()').kind, 'not');
-    assert.strictEqual(parsed('¬ a()').kind, 'not');
+    const sugar = parsed('not a()');
+    assert.strictEqual(sugar.kind, 'not');
+    assert.strictEqual(surfaceOf(sugar), 'sugar');
+    const symbolic = parsed('¬ a()');
+    assert.strictEqual(symbolic.kind, 'not');
+    assert.strictEqual(surfaceOf(symbolic), 'symbolic');
   });
   it('iff / ⇔', () => {
-    assert.strictEqual(parsed('a() iff b()').kind, 'iff');
-    assert.strictEqual(parsed('a() ⇔ b()').kind, 'iff');
+    const sugar = parsed('a() iff b()');
+    assert.strictEqual(sugar.kind, 'iff');
+    assert.strictEqual(surfaceOf(sugar), 'sugar');
+    const symbolic = parsed('a() ⇔ b()');
+    assert.strictEqual(symbolic.kind, 'iff');
+    assert.strictEqual(surfaceOf(symbolic), 'symbolic');
   });
   it('plain implication: `if … then …` / symbolic ⇒', () => {
     const sugar = parsed('if a() then b()');
     assert.strictEqual(sugar.kind, 'implies');
+    assert.strictEqual(surfaceOf(sugar), 'sugar');
     const symbolic = parsed('a() ⇒ b()');
     assert.strictEqual(symbolic.kind, 'implies');
+    assert.strictEqual(surfaceOf(symbolic), 'symbolic');
   });
   it('strong implication: `when … then …` (no symbolic spelling is attested)', () => {
     assert.strictEqual(parsed('when a() then b()').kind, 'strongImplies');
@@ -84,13 +114,23 @@ describe('LTL: boolean connectives', () => {
 
 describe('LTL: future temporal operators', () => {
   it('next / ○', () => {
-    assert.strictEqual(parsed('next a()').kind, 'next');
-    assert.strictEqual(parsed('○ a()').kind, 'next');
+    const sugar = parsed('next a()');
+    assert.strictEqual(sugar.kind, 'next');
+    assert.strictEqual(surfaceOf(sugar), 'sugar');
+    const symbolic = parsed('○ a()');
+    assert.strictEqual(symbolic.kind, 'next');
+    assert.strictEqual(surfaceOf(symbolic), 'symbolic');
   });
   it('eventually: sooner-or-later / eventually / ◇', () => {
-    assert.strictEqual(parsed('sooner-or-later a()').kind, 'eventually');
-    assert.strictEqual(parsed('eventually a()').kind, 'eventually');
-    assert.strictEqual(parsed('◇ a()').kind, 'eventually');
+    const soonerOrLater = parsed('sooner-or-later a()');
+    assert.strictEqual(soonerOrLater.kind, 'eventually');
+    assert.strictEqual(surfaceOf(soonerOrLater), 'sugar');
+    const eventually = parsed('eventually a()');
+    assert.strictEqual(eventually.kind, 'eventually');
+    assert.strictEqual(surfaceOf(eventually), 'sugar');
+    const symbolic = parsed('◇ a()');
+    assert.strictEqual(symbolic.kind, 'eventually');
+    assert.strictEqual(surfaceOf(symbolic), 'symbolic');
   });
   it('bounded eventually: sugar `, before 2 minutes,` / symbolic `≤`', () => {
     const sugar = parsed('sooner-or-later, before 2 minutes, a()');
@@ -113,9 +153,15 @@ describe('LTL: future temporal operators', () => {
       });
   });
   it('always: always / globally / □, bounded', () => {
-    assert.strictEqual(parsed('always a()').kind, 'always');
-    assert.strictEqual(parsed('globally a()').kind, 'always');
-    assert.strictEqual(parsed('□ a()').kind, 'always');
+    const always = parsed('always a()');
+    assert.strictEqual(always.kind, 'always');
+    assert.strictEqual(surfaceOf(always), 'sugar');
+    const globally = parsed('globally a()');
+    assert.strictEqual(globally.kind, 'always');
+    assert.strictEqual(surfaceOf(globally), 'sugar');
+    const symbolic = parsed('□ a()');
+    assert.strictEqual(symbolic.kind, 'always');
+    assert.strictEqual(surfaceOf(symbolic), 'symbolic');
     assert.strictEqual(parsed('always, for 2 minutes, a()').kind, 'always');
     assert.strictEqual(parsed('□≤2 minutes a()').kind, 'always');
   });
@@ -133,24 +179,45 @@ describe('LTL: future temporal operators', () => {
     }
   });
   it('until / U, bounded', () => {
-    assert.strictEqual(parsed('a() until b()').kind, 'until');
-    assert.strictEqual(parsed('a() U b()').kind, 'until');
+    const sugar = parsed('a() until b()');
+    assert.strictEqual(sugar.kind, 'until');
+    assert.strictEqual(surfaceOf(sugar), 'sugar');
+    const symbolic = parsed('a() U b()');
+    assert.strictEqual(symbolic.kind, 'until');
+    assert.strictEqual(surfaceOf(symbolic), 'symbolic');
     assert.strictEqual(
       parsed('a() until, before 2 minutes, b()').kind,
       'until',
     );
   });
-  it('release / R (KAOSTools sugar; no RE’01 attestation)', () => {
-    assert.strictEqual(parsed('a() release b()').kind, 'release');
-    assert.strictEqual(parsed('a() R b()').kind, 'release');
+  it('release / R (the sugar grammar has it; no RE’01 attestation)', () => {
+    const sugar = parsed('a() release b()');
+    assert.strictEqual(sugar.kind, 'release');
+    assert.strictEqual(surfaceOf(sugar), 'sugar');
+    const symbolic = parsed('a() R b()');
+    assert.strictEqual(symbolic.kind, 'release');
+    assert.strictEqual(surfaceOf(symbolic), 'symbolic');
   });
-  it('weak-until: unless / W, bounded before the keyword', () => {
-    assert.strictEqual(parsed('a() unless b()').kind, 'weakUntil');
-    assert.strictEqual(parsed('a() W b()').kind, 'weakUntil');
+  it('weak-until: unless / W, bounded before the keyword (sugar) or after it (symbolic)', () => {
+    const sugar = parsed('a() unless b()');
+    assert.strictEqual(sugar.kind, 'weakUntil');
+    assert.strictEqual(surfaceOf(sugar), 'sugar');
+    const symbolic = parsed('a() W b()');
+    assert.strictEqual(symbolic.kind, 'weakUntil');
+    assert.strictEqual(surfaceOf(symbolic), 'symbolic');
     assert.strictEqual(
       parsed('a(), for 2 minutes, unless b()').kind,
       'weakUntil',
     );
+    const boundedSymbolic = parsed('a() W≤2 minutes b()');
+    assert.strictEqual(boundedSymbolic.kind, 'weakUntil');
+    if (boundedSymbolic.kind === 'weakUntil')
+      assert.deepStrictEqual(boundedSymbolic.bound, {
+        surface: 'symbolic',
+        strictly: false,
+        comparator: '<=',
+        duration: [{ amount: 2, unit: 'minutes' }],
+      });
   });
 });
 
