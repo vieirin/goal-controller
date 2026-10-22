@@ -36,6 +36,7 @@ const UNICODE_SYMBOLS = new Set([
   '○',
   '●',
   '◇',
+  '◊', // U+25CA: the same "eventually" as ◇ (U+25C7), a PDF font variant (parser.ts)
   '♦',
   '□',
   '■',
