@@ -378,6 +378,7 @@ export {
   kaosOperations,
   KAOS_OPERATION_KINDS,
   KAOS_OPERATION_LINKS,
+  OBJECT_MODEL_SYMBOLS,
 } from './dialects/kaos';
 // vocabulary profiles of the KAOS dialects (goal-controller#192): CAIRIS's
 export {

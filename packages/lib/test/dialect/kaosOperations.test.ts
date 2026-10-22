@@ -15,7 +15,7 @@ import {
   notationDocument,
 } from '@goal-controller/goal-language';
 import { type AnyDialect } from '@goal-controller/dialect';
-import { kaos, kaosOperations } from '../../src';
+import { kaos, kaosOperations, OBJECT_MODEL_SYMBOLS } from '../../src';
 import { kaosNativeFile } from '../../src/importers/kaos';
 import { parseModel } from '../../../ui/lib/workbench/dialects';
 import { frameworkProblems } from '../../../ui/lib/workbench/frameworkProblems';
@@ -167,7 +167,11 @@ describe('kaos: the operation and object models (#194)', () => {
       expect(
         properties['kaosOperations.Operation'].find((p) => p.key === key)!
           .value,
-      ).to.deep.equal({ type: 'formula', language: 'ltl' });
+      ).to.deep.equal({
+        type: 'formula',
+        language: 'ltl',
+        symbols: OBJECT_MODEL_SYMBOLS,
+      });
     expect(
       links['kaosOperations.OperationalisationLink'].map((p) => [
         p.key,
@@ -176,7 +180,7 @@ describe('kaos: the operation and object models (#194)', () => {
     ).to.deep.equal(
       ['ReqPre', 'ReqTrig', 'ReqPost'].map((key) => [
         key,
-        { type: 'formula', language: 'ltl' },
+        { type: 'formula', language: 'ltl', symbols: OBJECT_MODEL_SYMBOLS },
       ]),
     );
     expect(links['kaosOperations.MonitoringLink'][0]!.value).to.deep.equal({

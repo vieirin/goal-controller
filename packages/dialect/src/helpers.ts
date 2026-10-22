@@ -16,6 +16,7 @@ import {
   type DialectKind,
   type ExtensionElementDefinition,
   type ExtensionLinkDefinition,
+  type FormulaSymbols,
   type FunctionDefinition,
   type MemberSource,
   type ISTAR_LINK_KINDS,
@@ -135,6 +136,8 @@ type ExpressionOptions = {
   members?: MemberSource;
 };
 type ReferenceOptions = { members?: MemberSource };
+type FormulaOptions = { symbols?: FormulaSymbols };
+const FORMULA_KEYS = ['symbols'] as const;
 type OclOptions = {
   declaredBy?: readonly string[];
   candidates?: ResourceCandidates;
@@ -252,17 +255,21 @@ const builders = <C extends string>() => ({
     rest: Exact<P, PropertyOptions<C> & ReferenceOptions>,
   ): Built<K, 'reference', P, (typeof REFERENCE_KEYS)[number], { target: T }> =>
     build(key, 'reference', rest, REFERENCE_KEYS, { target }) as never,
-  /** a sentence of a formal language, tagged with it (`ltl`); nothing checks it yet */
+  /**
+   * a sentence of a formal language, tagged with it (`ltl`); with
+   * `symbols` (goal-controller#385), an `ltl` formula is type-checked
+   * against the model
+   */
   formula: <
     const K extends string,
     const L extends string,
-    const P extends PropertyOptions<C>,
+    const P extends PropertyOptions<C> & FormulaOptions,
   >(
     key: K,
     language: L,
-    rest: Exact<P, PropertyOptions<C>>,
-  ): Built<K, 'formula', P, never, { language: L }> =>
-    build(key, 'formula', rest, [], { language }) as never,
+    rest: Exact<P, PropertyOptions<C> & FormulaOptions>,
+  ): Built<K, 'formula', P, (typeof FORMULA_KEYS)[number], { language: L }> =>
+    build(key, 'formula', rest, FORMULA_KEYS, { language }) as never,
   /** a probability in [0, 1]: `0.8`, `.8` or `80%`, kept as written */
   probability: <const K extends string, const P extends PropertyOptions<C>>(
     key: K,

@@ -2248,16 +2248,16 @@ Lamsweerde's RE'01 "Guided Tour" — over one grammar and one AST (D4 of
   into without widening that machinery for one value tag. `src/ltl/lexer.ts`
   tokenizes both surfaces alike (an identifier, matching the sugar
   grammar's own name terminal, so `sooner-or-later` is one token).
-- **The checker is a parser, not a validator against the object model**
-  (D3 of #194: no model checking this round). `ltlProblem` (`src/ltl/
-  index.ts`) is wired into the `formula` value's check for tag `ltl`
+- **The checker is a parser, not (yet, at this step) a validator against
+  the object model** (D3 of #194: no model checking this round). `ltlProblem`
+  (`src/ltl/index.ts`) is wired into the `formula` value's check for tag `ltl`
   (`src/notation/values.ts`): a syntax error is a Problem, never a parse
   failure — the text is written back unchanged either way, as every other
   value type's is. The well-formedness check against a model's predicates
-  and attributes (gt194's object model, items 1–2, in flight) is a hook,
+  and attributes (gt194's object model, items 1–2) is a hook,
   `ltlTypeProblems(formula, symbols)`, left unimplemented (always no
-  Problems) until a follow-up PR wires a real `SymbolTable` in —
-  goal-controller#385.
+  Problems) until a follow-up PR wires a real `SymbolTable` in — part B,
+  below.
 - **Epistemic operators (`Knows`/`Belief`, ICSE'04, #212) have no node
   yet.** The grammar's shape (one node per operator, a `Unary`-level
   parsing slot) leaves room: an agent-indexed unary operator fits beside
@@ -2284,3 +2284,58 @@ Lamsweerde's RE'01 "Guided Tour" — over one grammar and one AST (D4 of
   `examples/kaos/**`: 401 formulas across 6 files that have any, all
   parsing with zero Problems and printing back (squashed) byte-identical.
   Results are on #383.
+
+### Step 7 part B: FormalSpec → LTL, type-checked against the object model (goal-controller#385)
+
+`ltlTypeProblems(formula, symbols)` (`src/ltl/index.ts`) wired into the
+`formula` value's `ltl` check (`src/notation/values.ts`'s `formula` case):
+once a formula parses, it is walked against a `SymbolTable` (every
+predicate's arity, every entity's attributes, every declared relation, each
+keyed by id) for four Problem kinds — an unknown predicate, the wrong
+arity, an unknown attribute, an unknown relation.
+
+- **No framework names in goal-language or dialect src (#189's gate).**
+  What feeds the symbol table is data on the `formula` value itself
+  (`FormulaSymbols`, `dialect/src/schema.ts`): the kind whose elements are
+  predicates (with the pairList property its arity is counted from), the
+  kind whose elements are entities (with the pairList property its
+  attributes are read from, reusing `membersOf`/`memberProblem`, #137 —
+  no second resolver), and the kind whose elements are relations. The
+  `kaos` dialect (`lib/src/dialects/kaos/index.ts`) is the only one that
+  sets `symbols` so far (`OBJECT_MODEL_SYMBOLS`, on every `ltl` `formula`:
+  a goal's, a domain property's and an obstacle's `FormalSpec`, an
+  operation's `DomPre`/`DomPost`, an operationalisation link's
+  `ReqPre`/`ReqTrig`/`ReqPost`, a predicate's own `FormalSpec`); `kaosres`'s
+  `Condition` (a different engine's `ltl` value, `lib/src/engines/kaosres/
+  definition.ts`) sets none, so it keeps today's "always no Problems"
+  behaviour unchanged.
+- **The open world, decided per category.** A category `symbols` doesn't
+  name, or whose kind has no element in a given model, never raises a
+  Problem for it — most formulas in the corpus call predicates their model
+  never declares (ADS, `las.kaos`; neither declares predicate elements at
+  all), so they stay clean. The rule is literal for predicates and
+  relations (their map/set is checked only when non-empty); for an
+  attribute access `ref.attr`, it falls out of reusing `membersOf` directly
+  on `ref` — an id that isn't an element with the configured attributes
+  property set (whatever its kind — an entity's, but also an agent's or an
+  event's sharing `kaos`'s `Attributes` key, FSE'02's `PumpController.
+  PumpSwitch`) is simply not in the table, so it is never flagged, with no
+  separate category gate needed.
+- **No variable binding.** A formula's `x.attr`/`p(x)` names are read
+  literally against the symbol table's ids (`sump.highWater`, KAOSTools'
+  `declare entity [ sump ]`): a `forall`/`exists`-bound or predicate
+  `argument`-bound name (`high_water`'s own `s.highWater`, bound by its
+  `argument s : sump`, not by the formula's own text) resolves to nothing
+  in the table and is silently skipped — completeness over bound variables
+  is #209's, not this step's.
+- **The oracle: the mine pump fixture and every `examples/kaos/**.kaos`
+  with a declared object model, zero type Problems** (`lib/test/importers/
+  kaosLtlTypes.test.ts`), through the same `valueProblem` path
+  `propertyErrors` and the Problems panel use; a mutated attribute name
+  raises one. Two pre-existing corpus defects this step unmasked, filed
+  rather than fixed (not #385's to touch): `examples/kaos/flood/flood.kaos`
+  declares predicate `DustyEnvironment` but every `formalspec` calls
+  `dustyEnvironment()` (#398); `examples/kaos/las-quantitative/
+  las-quantitative.kaos`'s `ambulance_intervention` `formalspec` writes a
+  quantifier with no `.`/`·` separator before its body (a pre-existing
+  #211 parser gap, not a type one; #399). Results are on #383.

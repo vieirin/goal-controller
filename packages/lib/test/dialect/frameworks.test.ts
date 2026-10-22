@@ -18,7 +18,7 @@ import {
   type AnyDialect,
   type ValueConfig,
 } from '@goal-controller/dialect';
-import { kaos, nfr } from '../../src';
+import { kaos, nfr, OBJECT_MODEL_SYMBOLS } from '../../src';
 import { parseModel } from '../../../ui/lib/workbench/dialects';
 import { frameworkProblems } from '../../../ui/lib/workbench/frameworkProblems';
 import { serializeModel } from '../../../ui/lib/workbench/pistar';
@@ -138,7 +138,11 @@ describe('frameworks: the kaos and nfr dialects (#171)', () => {
     const formalSpec = kaos.properties['kaos.DomainProperty'].find(
       (p) => p.key === 'FormalSpec',
     )!.value;
-    expect(formalSpec).to.deep.equal({ type: 'formula', language: 'ltl' });
+    expect(formalSpec).to.deep.equal({
+      type: 'formula',
+      language: 'ltl',
+      symbols: OBJECT_MODEL_SYMBOLS,
+    });
   });
 
   it('types the keys with a vocabulary, one source each, and FormalSpec as a formula (#181)', () => {
@@ -176,7 +180,11 @@ describe('frameworks: the kaos and nfr dialects (#171)', () => {
       Source: { type: 'text' },
       Priority: ['', 'high', 'medium', 'low'],
       Issue: { type: 'text' },
-      FormalSpec: { type: 'formula', language: 'ltl' },
+      FormalSpec: {
+        type: 'formula',
+        language: 'ltl',
+        symbols: OBJECT_MODEL_SYMBOLS,
+      },
       FitCriterion: { type: 'text' },
       Stability: { type: 'text' },
       Description: { type: 'text' },
