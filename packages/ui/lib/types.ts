@@ -13,7 +13,9 @@ import type { GodaVariant } from '@goal-controller/lib';
  * an analysis engine, expert estimates and their uncertainty; 'kaosres',
  * goal-controller#191: an analysis engine, countermeasure selection;
  * 'kaossim', goal-controller#193: an analysis engine, quantitative goals
- * simulated per design and the Pareto-optimal designs) and
+ * simulated per design and the Pareto-optimal designs; 'kaoslts',
+ * goal-controller#209: the operation model as FSP for LTSA, and the
+ * completeness of its operationalisations) and
  * 'nfrprop' (NFR: an analysis engine, label propagation).
  */
 export type TransformEngine =
@@ -27,6 +29,7 @@ export type TransformEngine =
   | 'tropos4as'
   | 'cgm'
   | 'kaosdoc'
+  | 'kaoslts'
   | 'kaosprop'
   | 'kaosexpert'
   | 'kaosres'
@@ -50,6 +53,7 @@ const TRANSFORM_ENGINES: TransformEngine[] = [
   'tropos4as',
   'cgm',
   'kaosdoc',
+  'kaoslts',
   'kaosprop',
   'kaosexpert',
   'kaosres',
