@@ -1,0 +1,37 @@
+# The oracle of the mine pump's operational layer (goal-controller#209), checked by scripts/kaos-stress with kaoslts: the structure of its FSP (fluents, action alphabet, constraints, processes, compositions) against KAOS2LTSA's mine pump, "Mine Pump LTS from goal operationalization - ASEJ vesrion.lts" in the ASE'08 paper's models archive (no licence stated: read as an oracle, nothing copied; its identifiers are in docs/papers/letier-fse02-icse02.md §3.6), and FSE'02's completeness result.
+# expected is kaoslts's own spelling (a condition as FLTL over the fluents, a set sorted); zip is the archive's identifier or its condition, re-keyed. Names differ by design (ReqTrig_<op>_For_<Goal>, ASE'08 §4's template, where the archive writes ReqTRIG_On_<op>_For_<Goal>); the requirement's name is Figure 2's (packages/dialect/docs/reference-defects.md, ASE'08). States are LTSA's minimised counts: LTSA is not run, so they are listed, not reproduced.
+quantity,id,expected,zip,source,derivation
+fluents,-,HighWater LowWater Methane PumpOn,PumpOn HighWater LowWater Methane,ASE'08 §4 step 1,"the four Boolean state variables, each an attribute here (sump.highWater, sump.lowWater, mine.methane, pump.pumpOn), each a fluent of the attribute's name"
+fluent,PumpOn,startPump / stopPump / false,"<startPump, stopPump>",ASE'08 §4 step 2,"startPump's DomPost has PumpOn, stopPump's ¬PumpOn (Fig. 3); the paper's own fluent definition"
+fluent,HighWater,aboveHigh / belowHigh / false,"<aboveHigh, belowHigh>",ASE'08 §4 step 2,aboveHigh's DomPost (as printed) and belowHigh's
+fluent,LowWater,belowLow / aboveLow / true,"<belowLow, aboveLow> initially 1",ASE'08 §4 step 2,"the archive's initial value, the sump's Initially lowWater : true"
+fluent,Methane,methaneAppears / methaneLeaves / false,"<methaneAppears, methaneLeaves>",ASE'08 §4 step 2,the methane operations' DomPosts
+alphabet,-,aboveHigh aboveLow belowHigh belowLow methaneAppears methaneLeaves startPump stopPump tick,9 actions (the same),ASE'08 §4 step 2,"tick, and each operation an event of its name"
+constraint,DomPre_startPump,!PumpOn,DomPre_startPump: !PumpOn,ASE'08 §4 step 3,startPump's DomPre (Fig. 3)
+constraint,DomPre_stopPump,PumpOn,DomPre_stopPump: PumpOn,ASE'08 §4 step 3,stopPump's DomPre (Fig. 3)
+constraint,DomPre_aboveHigh,!HighWater && !LowWater,DomPre_aboveHigh: !HighWater,ASE'08 §4 step 2,"the paper prints aboveHigh's DomPre ¬HighWater ∧ ¬LowWater; the archive drops ¬LowWater (packages/dialect/docs/reference-defects.md, ASE'08): the seed keeps the paper's"
+constraint,DomPre_belowHigh,HighWater,DomPre_belowHigh: HighWater,ASE'08 §4 step 2,"belowHigh, ""in a similar way"""
+constraint,DomPre_aboveLow,LowWater,DomPre_aboveLow: LowWater,ASE'08 §4 step 2,"aboveLow, ""in a similar way"""
+constraint,DomPre_belowLow,!HighWater && !LowWater,DomPre_belowLow: !LowWater,ASE'08 §4 step 2,"belowLow, aboveHigh's mirror (from the medium level); the archive drops ¬HighWater, as for aboveHigh"
+constraint,DomPre_methaneAppears,!Methane,DomPre_methaneAppears: !Methane,ASE'08 §4 step 2,the step 2 rule's DomPre
+constraint,DomPre_methaneLeaves,Methane,DomPre_methaneLeaves: Methane,ASE'08 §4 step 2,the step 2 rule's DomPre
+constraint,ReqTrig_startPump_For_PumpOnWhenHighWaterAndNoMethane,HighWater && !Methane,ReqTRIG_On_startPump_For_PumpOnWhenHighWaterANDNoMethane,ASE'08 Fig. 3,"startPump's ReqTrig, with its DomPre !PumpOn in the template as in the archive"
+constraint,ReqPre_stopPump_For_PumpOnWhenHighWaterAndNoMethane,!(HighWater && !Methane),ReqPRE_On_stopPump_For_PumpOnWhenHighWaterANDNoMethane,ASE'08 Fig. 3,stopPump's ReqPre
+constraint,ReqTrig_stopPump_For_PumpOffWhenLowWater,LowWater,ReqTRIG_On_stopPump_For_PumpOffWhenLowWater,ASE'08 Fig. 3,stopPump's ReqTrig
+constraint,ReqPre_startPump_For_PumpOffWhenLowWater,!LowWater,ReqPRE_On_startPump_For_PumpOffWhenLowWater,ASE'08 Fig. 3,startPump's ReqPre
+constraint,ReqTrig_stopPump_For_PumpOffWhenMethane,Methane,ReqTRIG_On_stopPump_For_PumpOffWhenMethane,ASE'08 Fig. 3,stopPump's ReqTrig
+constraint,ReqPre_startPump_For_PumpOffWhenMethane,!Methane,ReqPRE_On_startPump_For_PumpOffWhenMethane,ASE'08 §4 step 4,"the paper's own example: ""[]((tick && ! ! Methane) -> X(! startPump W tick))"""
+process,OnePerTick_Pump,startPump stopPump,InterleavingCstr_for_PumpOn,ASE'08 §4 step 3,the pump's events at most once between two ticks
+process,OnePerTick_Sump,aboveHigh aboveLow belowHigh belowLow,InterleavingCstr_for_Water,ASE'08 §4 step 3,"the sump's: the archive groups the water level's two fluents in one process, as the sump does here (the paper says per fluent)"
+process,OnePerTick_Mine,methaneAppears methaneLeaves,InterleavingCstr_for_Methane,ASE'08 §4 step 3,the mine's methane
+agent,PumpController,DomPre_startPump DomPre_stopPump OnePerTick_Pump ReqPre_startPump_For_PumpOffWhenLowWater ReqPre_startPump_For_PumpOffWhenMethane ReqPre_stopPump_For_PumpOnWhenHighWaterAndNoMethane ReqTrig_startPump_For_PumpOnWhenHighWaterAndNoMethane ReqTrig_stopPump_For_PumpOffWhenLowWater ReqTrig_stopPump_For_PumpOffWhenMethane,Operationalized_GOALS_simple: PumpOn_DomainModel (its 3) and 6 required conditions,ASE'08 §4 step 5,"""the 2 LTSs derived from its operations' domain preconditions with the 6 LTSs derived from its required pre and trigger conditions"", and the pump's tick process"
+agent,Environment,DomPre_aboveHigh DomPre_aboveLow DomPre_belowHigh DomPre_belowLow DomPre_methaneAppears DomPre_methaneLeaves OnePerTick_Mine OnePerTick_Sump,EnvironementModel: 2 tick processes and 6 domain preconditions,ASE'08 §4 step 2,the environment's operations (the paper names no agent for them)
+system,System,Environment PumpController,SimpleGOALS_Operationalized_DOM: Operationalized_GOALS_simple || EnvironementModel,ASE'08 §4 step 5,the agents composed
+states,Environment,-,32,ASE'08 models archive,"its minimised state count, the archive's comment; not reproduced (LTSA not run), and the seed's environment differs (aboveHigh's and belowLow's DomPre, above)"
+states,System,-,65,ASE'08 §4 step 5,"""The resulting LTS model has 65 states""; not reproduced (LTSA not run)"
+assert,PumpOnWhenHighWaterAndNoMethane,[](tick -> ((HighWater && !Methane) -> X(!tick W (tick && PumpOn)))),PumpOnWhenHighWaterANDNoMethane_Satisfation,ASE'08 §2.2.3,"Tr([] (HighWater ∧ ¬Methane -> X PumpOn)), the paper's encoding"
+assert,PumpOffWhenMethane,[](tick -> (Methane -> X(!tick W (tick && !PumpOn)))),PumpOffWhenMethane_Satisfation,ASE'08 §2.2.3,Tr([] (Methane -> X ¬PumpOn))
+assert,PumpOffWhenLowWater,[](tick -> (LowWater -> X(!tick W (tick && !PumpOn)))),PumpOffWhenLowWater_Satisfation,ASE'08 §2.2.3,Tr([] (LowWater -> X ¬PumpOn))
+completeness,pump_on_when_high_water_and_no_methane,complete,-,FSE'02 Fig. 1,"Immediate Achieve: startPump's ReqTrig HighWater ∧ ¬Methane, stopPump's ReqPre ¬(HighWater ∧ ¬Methane)"
+completeness,pump_off_when_methane,complete,-,FSE'02 Fig. 1,"Immediate Achieve: stopPump's ReqTrig Methane, startPump's ReqPre ¬Methane"
+completeness,pump_off_when_low_water,complete,-,FSE'02 Fig. 1,"Immediate Achieve: stopPump's ReqTrig LowWater, startPump's ReqPre ¬LowWater"
