@@ -2361,11 +2361,15 @@ arity, an unknown attribute, an unknown relation.
   raises one. Its `KNOWN_DEFECTS` allowlist is keyed by file, element
   id.key and the exact message (not by id alone, across every file) so a
   new Problem on the same id elsewhere, or a changed message, still fails
-  it. One pre-existing corpus defect this step unmasked, filed rather than
-  fixed (not #385's to touch): `examples/kaos/flood/flood.kaos` declares
-  predicate `DustyEnvironment` but every `formalspec` calls
-  `dustyEnvironment()`, verbatim in the upstream thesis source (#398, a
-  reference defect, `dialect/docs/reference-defects.md`). Results are on
+  it. Two corpus defects this step unmasked, filed rather than fixed (not
+  #385's to touch): `examples/kaos/flood/flood.kaos` declares predicate
+  `DustyEnvironment` but every `formalspec` calls `dustyEnvironment()`,
+  verbatim in the upstream thesis source (#398, a reference defect,
+  `dialect/docs/reference-defects.md`); `examples/kaos/ebanking/
+  ebanking.kaos` (merged to main while #401 was in flight, #212) writes a
+  bare quantifier as a unary operator's operand (`◊ ∃ p: Person, acc:
+  Account · …`), which the parser's parenthesized-header fix (#399,
+  below) doesn't cover — a goal-language parser gap, #404. Results are on
   #383.
 - **`examples/kaos/las-quantitative/las-quantitative.kaos`'s
   `ambulance_intervention` formula (#399) had three causes, all parser
