@@ -42,18 +42,63 @@ const read = (text: string, files?: Readonly<Record<string, string>>) => {
   return parsePistar(model!, { metamodel: KAOS_OBSTACLES });
 };
 
+type Node = { id: string; type: string };
+type Link =
+  | { type: string; source: string; target: string }
+  | { hub: Node; starts: unknown[]; end: unknown };
+type Model = { orphans: Node[]; links: Link[]; actors: unknown[] };
+
+/**
+ * `KAOS_OBSTACLES`'s own kinds (dsm3-kaos's `KAOS_ELEMENT_KINDS`,
+ * `KAOS_OBSTACLE_ELEMENT_KINDS`, saved as `kaos.*`): the goal and obstacle
+ * models. The seed's operation and object models (goal-controller#210) add
+ * kinds this metamodel doesn't know (`kaos.Entity`, `kaos.Operation`, …);
+ * filtering them out here, by kind, is how the seed can be the one copy of
+ * the §3.6 declarations (rv400's review of #400), with no separate fixture.
+ */
+const KAOS_OBSTACLES_ELEMENT_KINDS = new Set([
+  'kaos.BehavioralGoal',
+  'kaos.Softgoal',
+  'kaos.Agent',
+  'kaos.EnvironmentAgent',
+  'kaos.DomainProperty',
+  'kaos.Obstacle',
+]);
+const KAOS_OBSTACLES_LINK_KINDS = new Set([
+  'kaos.ResponsibilityAssignment',
+  'kaos.Conflict',
+  'kaos.ObstructionLink',
+  'kaos.ResolutionLink',
+]);
+const kaosObstacleModelOf = (model: Model): Model => ({
+  ...model,
+  orphans: model.orphans.filter((n) =>
+    KAOS_OBSTACLES_ELEMENT_KINDS.has(n.type),
+  ),
+  links: model.links.filter((l) =>
+    'hub' in l ? true : KAOS_OBSTACLES_LINK_KINDS.has(l.type),
+  ),
+});
+
 /** ADS's London Ambulance with its obstacles and its resolutions (las.kaos imports both). */
 const ADS = read(corpus('ads/las.kaos'), {
   'obstacles.kaos': corpus('ads/obstacles.kaos'),
   'resolutions.kaos': corpus('ads/resolutions.kaos'),
 });
 const LAS = read(corpus('kaostools/las.kaos'));
-const ELEVATOR = read(
-  readFileSync(
-    join(__dirname, '../engines/kaosres/fixtures/elevator.kaos'),
+// the seed's own file (goal-controller#210): its §3.6 obstacle analysis
+// (#202) is the only copy, no separate fixture (rv400's review of #400)
+const ELEVATOR = (() => {
+  const text = readFileSync(
+    join(__dirname, '../../../../examples/kaos/elevator/elevator.kaos'),
     'utf8',
-  ),
-);
+  );
+  const { model, diagnostics } = readKaos(text, { modelName: 'm' });
+  expect(model, JSON.stringify(diagnostics.slice(0, 3))).to.not.equal(null);
+  return parsePistar(kaosObstacleModelOf(model! as Model), {
+    metamodel: KAOS_OBSTACLES,
+  });
+})();
 
 /** The model with `obstacle` a leaf at probability `p`: its refinements gone, its estimates too. */
 const alone = (model: KaosModel, obstacle: string, p: number): KaosModel => {

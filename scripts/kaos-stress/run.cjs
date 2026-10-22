@@ -49,6 +49,11 @@
  *   `paper` is the printed value, `data` where the inputs come from; a
  *   mismatch with the paper is the derivation's to explain, the row checks
  *   what the seed gives.
+ * - `structure,id,expected,derivation` (goal-controller#210): a count of an
+ *   element or link kind (`structure` `element`/`link`, `id` its kind, read
+ *   with the operation and object models' kinds too), or the
+ *   responsibility-operationalisation-performance triangle's open closures
+ *   (`structure` `open-closure`, `id` `-`), zero for a consistent model.
  * - `quantity,selection,goal,expected,tolerance,options,derivation`
  *   (kaosres's countermeasure selection, goal-controller#191): a selection
  *   (its countermeasure goals joined by `+`, `none` for the empty one), run
@@ -144,6 +149,12 @@ const core = require(
 const { KAOS_OBSTACLES } = require(
   require.resolve('@istar-ts/dsm3-kaos/metamodel', { paths: [pkg('lib')] }),
 );
+const { KAOS_MODEL } = require(
+  path.join(pkg('lib'), 'out/dialects/kaos/metamodel.js'),
+);
+const { openClosures } = require(
+  require.resolve('@goal-controller/goal-tree', { paths: [pkg('lib')] }),
+);
 
 const strict = process.argv.includes('--strict');
 const ICON = { pass: '✅', fail: '❌', skip: '⏭️' };
@@ -206,6 +217,47 @@ const analysisModelOf = (modelText) =>
   lib.kaospropAnalysisModel(lib.readKaosObstacleModel(modelText));
 const expertModelOf = (modelText) =>
   lib.kaosexpertAnalysisModel(lib.readKaosObstacleModel(modelText));
+
+/**
+ * Structural rows (goal-controller#210): each a count of an element or link
+ * kind (the operation and object models', beside the goal and obstacle
+ * models'), or the triangle's open closures — the responsibility-
+ * operationalisation-performance triangle (§3.5 Fig. 30), zero for a
+ * consistent model. `row.structure` is `element`, `link` or `open-closure`.
+ */
+const structureOracle = (modelText, rows) => {
+  const model = core.parsePistar(modelText, { metamodel: KAOS_MODEL });
+  const countsOf = (map) => {
+    const counts = new Map();
+    for (const { kind } of map.values())
+      counts.set(kind, (counts.get(kind) ?? 0) + 1);
+    return counts;
+  };
+  const elements = countsOf(model.elements);
+  const links = countsOf(model.links);
+  const open = openClosures(model, lib.kaos).length;
+  return rows.map((row) => {
+    const got =
+      row.structure === 'element'
+        ? (elements.get(row.id) ?? 0)
+        : row.structure === 'link'
+          ? (links.get(row.id) ?? 0)
+          : row.structure === 'open-closure'
+            ? open
+            : null;
+    if (got === null) throw new Error(`unknown structure ${row.structure}`);
+    const expected = Number(row.expected);
+    const ok = got === expected;
+    return {
+      quantity: row.structure,
+      id: row.id || '-',
+      expected: row.expected,
+      got,
+      status: ok ? 'pass' : 'fail',
+      ...(!ok && { problems: [`${got} is not ${row.expected}`] }),
+    };
+  });
+};
 
 /** kaosprop's rows: each element's probability, the paper's printed value. */
 const kaospropOracle = (modelText, rows) => {
@@ -1184,6 +1236,10 @@ const checkSeed = (name) => {
     else if ('objective' in csv[0])
       rows.push(
         ...simOracle(modelText, committed, csv).map((r) => ({ file, ...r })),
+      );
+    else if ('structure' in csv[0])
+      rows.push(
+        ...structureOracle(modelText, csv).map((r) => ({ file, ...r })),
       );
     else if ('selection' in csv[0])
       rows.push(

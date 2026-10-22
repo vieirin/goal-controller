@@ -1,11 +1,11 @@
 /**
  * `examples/kaos/elevator` (goal-controller#210): the Elevator tutorial's
- * operations side, over the same goals and obstacles as `../engines/
- * kaosres/fixtures/elevator.kaos` (#202's seed, Figures 33-35). This
- * agrees with that fixture (its declarations are the seed's, byte for
- * byte) and is triangle-consistent (the responsibility-operationalisation-
- * performance closure, §3.5, Fig. 30): an operation performed by an agent
- * not responsible for the goal it operationalises raises `open-closure`.
+ * operations side, over the same goals and obstacles as #202's seed
+ * (Figures 33-35), which this file now is the one copy of (rv400's review
+ * of #400: no separate `kaosres/fixtures/elevator.kaos`). Triangle-
+ * consistent (the responsibility-operationalisation-performance closure,
+ * §3.5, Fig. 30): an operation performed by an agent not responsible for
+ * the goal it operationalises raises `open-closure`.
  */
 import { expect } from 'chai';
 import { readFileSync } from 'fs';
@@ -16,10 +16,6 @@ import { kaosNativeFile } from '../../src/importers/kaos';
 import { parseModel } from '../../../ui/lib/workbench/dialects';
 import { frameworkProblems } from '../../../ui/lib/workbench/frameworkProblems';
 
-const FIXTURE = readFileSync(
-  join(__dirname, '../engines/kaosres/fixtures/elevator.kaos'),
-  'utf8',
-);
 const SEED = readFileSync(
   join(__dirname, '../../../../examples/kaos/elevator/elevator.kaos'),
   'utf8',
@@ -41,17 +37,6 @@ const problemsOf = (json: Json) =>
   );
 
 describe('examples/kaos/elevator: the operations side (#210)', () => {
-  it('declares the kaosres fixture’s goals and obstacles byte for byte (#202’s seed, Figures 33-35)', () => {
-    // the fixture's own declarations, past its header comment and @title
-    const marker = '@title "Elevator (Respect-IT tutorial, Figures 33-35)"\n\n';
-    const [, body] = FIXTURE.split(marker);
-    expect(
-      body,
-      'the fixture’s own form changed: update this test too',
-    ).to.not.equal(undefined);
-    expect(SEED).to.include(body!);
-  });
-
   it('is triangle-consistent: no Problems', () => {
     expect(problemsOf(jsonOf(SEED))).to.deep.equal([]);
   });

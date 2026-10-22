@@ -2120,7 +2120,11 @@ object model those reference. Items 1–2 of #194 (the formula parser is
   goal model (~25 goals, a conflict, expectations per agent) as kaosdoc's
   document oracle; #210 only adds the triangle's few goals the operations
   side needs, not that model, so `elevator.expected.md` here is not that
-  oracle.
+  oracle. `scripts/kaos-stress`'s oracle for it is structural
+  (`elevator.expected.csv`, `structure,id,expected,derivation`): a count
+  of every element and link kind (the operation and object models' beside
+  the goal and obstacle models'), and the triangle's open closures
+  (`openClosures`), zero for a consistent model.
 
 ### Models typed by their framework (goal-controller#185)
 

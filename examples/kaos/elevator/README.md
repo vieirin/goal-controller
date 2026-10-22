@@ -5,9 +5,9 @@ no licence stated; re-keyed by hand, never copied). The tutorial's Elevator
 case study: §3.3's responsibility model, §3.4's object model and §3.5's
 operation model, with the responsibility–operationalisation–performance
 triangle (§3.5, Fig. 30), beside §3.6's obstacle analysis, which
-goal-controller#202 already re-keyed as
-`packages/lib/test/engines/kaosres/fixtures/elevator.kaos` (Figures 33–35).
-goal-controller#210 (refs #194, #195, #202, #189).
+goal-controller#202 already re-keyed (Figures 33–35) and
+`packages/lib/test/dialect/kaosres.test.ts` reads from this seed, the
+declarations' one copy. goal-controller#210 (refs #194, #195, #202, #189).
 
 The tutorial's figures are raster/vector images with no text layer: every
 figure's internal content (node labels, `Multiplicity`, `Role`, `DomPre`,
@@ -27,15 +27,19 @@ Prose only, §3.3–3.5 (page and figure numbers as the tutorial has them):
   reach any floor") assigned to the Elevator Controller, and its two
   expectations ("fireproof cage provided", "fireproof equipment provided")
   assigned to the Elevator company — the prose's own example of a
-  responsibility diagram.
+  responsibility diagram. The prose only states the four responsibilities;
+  it never says they refine "System protected against fire" by name, so
+  the 4-way AND-refinement (read off Fig. 18, unreadable) isn't modelled
+  (rv400's review) — see "left out" below.
 - **The object model (§3.4, p.26–29, Figs. 23–27):** the three kinds of
   object (entities, agents, associations) and their examples — elevator
   doors, buttons, Cage, Floor, Door (with a `status` attribute: `Open` →
-  `Close` on `CloseDoor`, told in words, not a figure), Schedule (identified
-  while describing the operation model, §3.5); the Elevator company,
-  Passenger and Elevator Controller agents; the At association (a Cage to a
-  Floor, with the state transition `At(c,f) → ¬At(c,f)` on `LeaveFloor`,
-  also told in words); the Elevator System's composition, with the
+  `Close` on `CloseDoor`, told in words, not a figure, and kept as that
+  operation's `DomPre`/`DomPost`), Schedule (identified while describing the
+  operation model, §3.5); the Elevator company, Passenger and Elevator
+  Controller agents; the At association (a Cage to a Floor, with the state
+  transition `At(c,f) → ¬At(c,f)` on `LeaveFloor`, also told in words and
+  kept the same way); the Elevator System's composition, with the
   cardinalities the prose gives for Fig. 24 (one or several Cage, at least
   two Floors, one Alarm bell — specialising Alarm device — one Elevator
   Controller "located in a control room", one Power supply). "Elevator
@@ -52,7 +56,10 @@ Prose only, §3.3–3.5 (page and figure numbers as the tutorial has them):
   light on command" and "Stop cage command"); the triangle (Fig. 30): Execute
   schedule is performed by the Elevator Controller, which is responsible for
   "Elevator stopped on calling floor" (Fig. 13), and operationalises it —
-  the tutorial's own worked example of the pattern. "Stop button used"
+  the tutorial's own worked example of the pattern; CloseDoor and LeaveFloor
+  (p.26-28), the object model's two worked state transitions, each with its
+  `DomPre`/`DomPost` as the prose states it (a `formula` tagged `ltl`,
+  #211's parser). "Stop button used"
   operationalised by "Push button" (the Button entity's own share has no
   link kind, as above). "Efficient elevator system" (Fig. 5, refined in
   Fig. 31) by the two requirements of Fig. 16 that justify Reschedule
@@ -60,14 +67,23 @@ Prose only, §3.3–3.5 (page and figure numbers as the tutorial has them):
   stopped", which the prose says itself contributes to "Emergency stop
   available inside the cage" — not otherwise modelled here) and the two new
   subgoals Fig. 31 adds ("minimize elevator moves", "minimize average
-  waiting time").
+  waiting time"). Execute schedule is caused by "Refresh" and "Elevator
+  state change" only (p.30-31: "Refresh" *starts* it, "Elevator state
+  change" *feeds* it); the walkthrough's "[the controller] will then wait
+  to receive the event 'Arrival on floor' … before issuing a 'Stop cage
+  command'" (p.31) is the already-executing controller waiting mid-process
+  for one more event before an output, not a third thing that starts or
+  re-starts Execute schedule — a third `causedby` there stretched the
+  narrative (rv400's review); "Arrival on floor" stays declared as an
+  event, unused as a cause.
 
 ## What the figures alone would give, left out
 
-- `DomPre`/`DomPost` on every operation but the two the prose states in
-  words (`door`'s and `at`'s, kept as free text, not formulas: #211 parses
-  formulas, not prose); `ReqPre`/`ReqTrig`/`ReqPost` on the operationalisation
-  links; `Multiplicity`/`Role` beyond the Elevator System's composition
+- `DomPre`/`DomPost` on every operation but CloseDoor and LeaveFloor, the
+  two the prose states in words (rv400's review: these two were missing
+  from the seed and the formulas unset; both now set, as the grammar's
+  formula rules, not free text); `ReqPre`/`ReqTrig`/`ReqPost` on the
+  operationalisation links; `Multiplicity`/`Role` beyond the Elevator System's composition
   cardinalities (the prose's own numbers); `Frequency` on every event;
   `Delay` on every cause link; `Load` on every agent. None of these has a
   value in the tutorial's text (§189's D1 for the full KAOS stress test);
@@ -81,13 +97,20 @@ Prose only, §3.3–3.5 (page and figure numbers as the tutorial has them):
 - Figures 23–27's own sub-components of Cage and Floor: the prose names
   only that they exist ("A cage is equipped as shown on Figure 26"), with no
   further description — left out.
+- The 4-way AND-refinement of "System protected against fire" into its two
+  requirements and two expectations: read off Figs. 18 and 20 (unreadable).
+  The prose (§3.3) states the four responsibilities and their assignments
+  but never that they refine the parent goal; the goals and their
+  `assignedto` links stay, the refinement doesn't (rv400's review of #400).
 
 ## Files
 
-- `elevator.kaos`: the project's native file. §3.6's declarations (goals and
-  obstacles) are `fixtures/elevator.kaos`'s, byte for byte
-  (`packages/lib/test/dialect/kaosElevator.test.ts` asserts it); the rest —
-  §3.3–3.5's agents, objects and operations — is this issue's own.
+- `elevator.kaos`: the project's native file, the §3.6 obstacle analysis
+  (#202) and §3.3–3.5's responsibility, object and operation models (#210)
+  in one copy. `packages/lib/test/dialect/kaosres.test.ts` reads it
+  directly for #202's kaosres oracle (not a separate fixture, rv400's
+  review of #400); its results are unchanged by the operations and object
+  kinds the seed adds beside the §3.6 obstacle analysis.
 - `elevator.txt`: the model, `elevator.kaos` read.
 - `elevator.expected.md`: kaosdoc's requirements document for it, byte for
   byte as committed (`packages/lib/test/engines/kaosdoc/kaosdoc.test.ts`).
@@ -95,6 +118,11 @@ Prose only, §3.3–3.5 (page and figure numbers as the tutorial has them):
   ignores the operation and object models' kinds, goal-controller#194): no
   Operations, Entities, Associations or Events section exists to gain one.
 
-No `*.expected.csv`: nothing here is quantitative (`scripts/kaos-stress`
-checks import, validation, the round trip and every analysis; its oracle is
-"skip", as the CAIRIS seeds with no probabilities already have it).
+- `elevator.expected.csv`: `scripts/kaos-stress`'s structural oracle
+  (`structure,id,expected,derivation`, goal-controller#210): a count of
+  every element and link kind the model has (the goal and obstacle models'
+  counted beside the operation and object models'), and the triangle's
+  open closures, zero for a consistent model (the responsibility-
+  operationalisation-performance triangle, §3.5 Fig. 30). Nothing here is
+  quantitative, so this is the seed's whole oracle: no probabilities, no
+  selections, no simulated designs.

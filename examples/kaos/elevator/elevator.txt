@@ -364,7 +364,7 @@
         "Stability": "",
         "Description": ""
       },
-      "x": 3080,
+      "x": 1800,
       "y": 80
     },
     {
@@ -382,8 +382,8 @@
         "Stability": "",
         "Description": ""
       },
-      "x": 1800,
-      "y": 180
+      "x": 3400,
+      "y": 80
     },
     {
       "id": "elevators_stopped_at_nearest_floor_on_fire",
@@ -400,8 +400,8 @@
         "Stability": "",
         "Description": ""
       },
-      "x": 3880,
-      "y": 180
+      "x": 3560,
+      "y": 80
     },
     {
       "id": "fireproof_cage_provided",
@@ -418,8 +418,8 @@
         "Stability": "",
         "Description": ""
       },
-      "x": 4040,
-      "y": 180
+      "x": 1960,
+      "y": 80
     },
     {
       "id": "fireproof_equipment_provided",
@@ -436,8 +436,8 @@
         "Stability": "",
         "Description": ""
       },
-      "x": 4360,
-      "y": 180
+      "x": 2120,
+      "y": 80
     },
     {
       "id": "efficient_elevator_system",
@@ -454,7 +454,7 @@
         "Stability": "",
         "Description": ""
       },
-      "x": 4680,
+      "x": 2440,
       "y": 80
     },
     {
@@ -472,7 +472,7 @@
         "Stability": "",
         "Description": ""
       },
-      "x": 4520,
+      "x": 2280,
       "y": 180
     },
     {
@@ -490,7 +490,7 @@
         "Stability": "",
         "Description": "Contributes to Emergency stop available inside the cage (Fig. 16), which this seed does not otherwise model"
       },
-      "x": 4680,
+      "x": 2440,
       "y": 180
     },
     {
@@ -508,7 +508,7 @@
         "Stability": "",
         "Description": ""
       },
-      "x": 4840,
+      "x": 2600,
       "y": 180
     },
     {
@@ -526,7 +526,7 @@
         "Stability": "",
         "Description": ""
       },
-      "x": 5000,
+      "x": 2760,
       "y": 180
     },
     {
@@ -544,7 +544,7 @@
         "Stability": "",
         "Description": ""
       },
-      "x": 5800,
+      "x": 2920,
       "y": 80
     },
     {
@@ -562,7 +562,7 @@
         "Stability": "",
         "Description": ""
       },
-      "x": 6600,
+      "x": 5320,
       "y": 80
     },
     {
@@ -573,8 +573,8 @@
         "Type": "",
         "Description": ""
       },
-      "x": 1960,
-      "y": 180
+      "x": 3080,
+      "y": 80
     },
     {
       "id": "elevator_company",
@@ -583,8 +583,8 @@
       "customProperties": {
         "Description": ""
       },
-      "x": 4200,
-      "y": 180
+      "x": 5480,
+      "y": 80
     },
     {
       "id": "passenger",
@@ -593,7 +593,7 @@
       "customProperties": {
         "Description": ""
       },
-      "x": 6760,
+      "x": 5640,
       "y": 80
     },
     {
@@ -603,8 +603,8 @@
       "customProperties": {
         "Description": ""
       },
-      "x": 2280,
-      "y": 180
+      "x": 3720,
+      "y": 80
     },
     {
       "id": "cage",
@@ -613,8 +613,8 @@
       "customProperties": {
         "Description": ""
       },
-      "x": 3080,
-      "y": 180
+      "x": 4520,
+      "y": 80
     },
     {
       "id": "floor",
@@ -623,8 +623,8 @@
       "customProperties": {
         "Description": ""
       },
-      "x": 3240,
-      "y": 180
+      "x": 4680,
+      "y": 80
     },
     {
       "id": "alarm_device",
@@ -633,7 +633,7 @@
       "customProperties": {
         "Description": ""
       },
-      "x": 6920,
+      "x": 5800,
       "y": 80
     },
     {
@@ -643,8 +643,8 @@
       "customProperties": {
         "Description": "A component of the Elevator System, specialising Alarm device (Fig. 23)"
       },
-      "x": 3400,
-      "y": 180
+      "x": 4840,
+      "y": 80
     },
     {
       "id": "power_supply",
@@ -653,8 +653,8 @@
       "customProperties": {
         "Description": ""
       },
-      "x": 3560,
-      "y": 180
+      "x": 5000,
+      "y": 80
     },
     {
       "id": "door",
@@ -664,7 +664,7 @@
         "Description": "",
         "Attributes": "status:Open|Close"
       },
-      "x": 7080,
+      "x": 5960,
       "y": 80
     },
     {
@@ -674,7 +674,7 @@
       "customProperties": {
         "Description": "The sequence of commands the elevator controller has to execute"
       },
-      "x": 5320,
+      "x": 3560,
       "y": 180
     },
     {
@@ -684,7 +684,7 @@
       "customProperties": {
         "Description": ""
       },
-      "x": 7240,
+      "x": 6120,
       "y": 80
     },
     {
@@ -694,8 +694,8 @@
       "customProperties": {
         "Description": ""
       },
-      "x": 2440,
-      "y": 180
+      "x": 3880,
+      "y": 80
     },
     {
       "id": "has_floor",
@@ -704,8 +704,8 @@
       "customProperties": {
         "Description": ""
       },
-      "x": 2600,
-      "y": 180
+      "x": 4040,
+      "y": 80
     },
     {
       "id": "has_alarm_bell",
@@ -714,8 +714,8 @@
       "customProperties": {
         "Description": ""
       },
-      "x": 2760,
-      "y": 180
+      "x": 4200,
+      "y": 80
     },
     {
       "id": "has_controller",
@@ -724,8 +724,8 @@
       "customProperties": {
         "Description": ""
       },
-      "x": 2120,
-      "y": 180
+      "x": 3240,
+      "y": 80
     },
     {
       "id": "has_power_supply",
@@ -734,8 +734,8 @@
       "customProperties": {
         "Description": ""
       },
-      "x": 2920,
-      "y": 180
+      "x": 4360,
+      "y": 80
     },
     {
       "id": "at",
@@ -744,8 +744,8 @@
       "customProperties": {
         "Description": ""
       },
-      "x": 3720,
-      "y": 180
+      "x": 5160,
+      "y": 80
     },
     {
       "id": "refresh",
@@ -754,7 +754,7 @@
       "customProperties": {
         "Description": ""
       },
-      "x": 5480,
+      "x": 3720,
       "y": 180
     },
     {
@@ -764,7 +764,7 @@
       "customProperties": {
         "Description": ""
       },
-      "x": 5640,
+      "x": 3880,
       "y": 180
     },
     {
@@ -774,7 +774,7 @@
       "customProperties": {
         "Description": ""
       },
-      "x": 6440,
+      "x": 4520,
       "y": 180
     },
     {
@@ -784,8 +784,8 @@
       "customProperties": {
         "Description": ""
       },
-      "x": 5800,
-      "y": 180
+      "x": 6280,
+      "y": 80
     },
     {
       "id": "button_light_on_command",
@@ -794,7 +794,7 @@
       "customProperties": {
         "Description": ""
       },
-      "x": 5960,
+      "x": 4040,
       "y": 180
     },
     {
@@ -804,7 +804,7 @@
       "customProperties": {
         "Description": ""
       },
-      "x": 6120,
+      "x": 4200,
       "y": 180
     },
     {
@@ -814,7 +814,7 @@
       "customProperties": {
         "Description": ""
       },
-      "x": 6280,
+      "x": 4360,
       "y": 180
     },
     {
@@ -824,7 +824,7 @@
       "customProperties": {
         "Description": ""
       },
-      "x": 5160,
+      "x": 3400,
       "y": 180
     },
     {
@@ -834,8 +834,32 @@
       "customProperties": {
         "Description": ""
       },
-      "x": 6600,
+      "x": 5320,
       "y": 180
+    },
+    {
+      "id": "close_door",
+      "text": "CloseDoor",
+      "type": "kaos.Operation",
+      "customProperties": {
+        "Description": "",
+        "DomPre": "door.status == \"Open\"",
+        "DomPost": "door.status == \"Close\""
+      },
+      "x": 6440,
+      "y": 80
+    },
+    {
+      "id": "leave_floor",
+      "text": "LeaveFloor",
+      "type": "kaos.Operation",
+      "customProperties": {
+        "Description": "",
+        "DomPre": "(c, f) in at",
+        "DomPost": "not (c, f) in at"
+      },
+      "x": 6600,
+      "y": 80
     }
   ],
   "dependencies": [],
@@ -1073,51 +1097,6 @@
     },
     {
       "hub": {
-        "id": "system_protected_against_fire-refinement-1",
-        "type": "kaos.RefinementLinkHub",
-        "customProperties": {
-          "SysRef": "",
-          "Status": "",
-          "Tactic": ""
-        },
-        "x": 3358,
-        "y": 138
-      },
-      "starts": [
-        {
-          "id": "system_protected_against_fire-refinement-1-1",
-          "type": "kaos.RefinementLinkStart",
-          "source": "doors_locked_open_on_fire_alarm",
-          "target": "system_protected_against_fire-refinement-1"
-        },
-        {
-          "id": "system_protected_against_fire-refinement-1-2",
-          "type": "kaos.RefinementLinkStart",
-          "source": "elevators_stopped_at_nearest_floor_on_fire",
-          "target": "system_protected_against_fire-refinement-1"
-        },
-        {
-          "id": "system_protected_against_fire-refinement-1-3",
-          "type": "kaos.RefinementLinkStart",
-          "source": "fireproof_cage_provided",
-          "target": "system_protected_against_fire-refinement-1"
-        },
-        {
-          "id": "system_protected_against_fire-refinement-1-4",
-          "type": "kaos.RefinementLinkStart",
-          "source": "fireproof_equipment_provided",
-          "target": "system_protected_against_fire-refinement-1"
-        }
-      ],
-      "end": {
-        "id": "system_protected_against_fire-refinement-1-end",
-        "type": "kaos.RefinementLinkEnd",
-        "source": "system_protected_against_fire-refinement-1",
-        "target": "system_protected_against_fire"
-      }
-    },
-    {
-      "hub": {
         "id": "efficient_elevator_system-refinement-1",
         "type": "kaos.RefinementLinkHub",
         "customProperties": {
@@ -1125,7 +1104,7 @@
           "Status": "",
           "Tactic": ""
         },
-        "x": 4778,
+        "x": 2538,
         "y": 138
       },
       "starts": [
@@ -1408,12 +1387,6 @@
       "target": "execute_schedule"
     },
     {
-      "id": "arrival_on_floor-causes-execute_schedule",
-      "type": "kaos.CauseLink",
-      "source": "arrival_on_floor",
-      "target": "execute_schedule"
-    },
-    {
       "id": "schedule-input-execute_schedule",
       "type": "kaos.InputLink",
       "source": "schedule",
@@ -1442,7 +1415,7 @@
   "tool": "dsm3-goals",
   "metamodelVersion": "1.0",
   "diagram": {
-    "width": 7535,
+    "width": 6895,
     "height": 616,
     "name": "Elevator (Respect-IT tutorial)",
     "customProperties": {
