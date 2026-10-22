@@ -13,7 +13,9 @@ export const KAOS_DECLARATIONS = {
   softgoal: 'kaos.Softgoal',
   obstacle: 'kaos.Obstacle',
   domainproperty: 'kaos.DomainProperty',
+  domprop: 'kaos.DomainProperty', // KAOSTools short name (#344)
   domainhypothesis: 'kaos.DomainProperty',
+  domhyp: 'kaos.DomainProperty', // KAOSTools short name (#344)
   agent: 'kaos.Agent',
   // the operation and object models (goal-controller#194): KAOSTools'
   // entities (or objects), associations (or relations), predicates and

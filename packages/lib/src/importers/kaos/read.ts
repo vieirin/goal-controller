@@ -4,7 +4,7 @@
  * the layering of #181 puts it:
  *
  * - structure (istar-ts): a declaration's kind (`goal`, `softgoal`,
- *   `obstacle`, `domainproperty`/`domainhypothesis` with its `Kind`,
+ *   `obstacle`, `domainproperty`/`domprop`/`domainhypothesis`/`domhyp` with its `Kind`,
  *   `agent` by its `type`), `name` its text, `definition` its
  *   `Description`, `formalspec` its `FormalSpec`, `refinedby` a refinement
  *   (a goal's or an obstacle's, one hub each), `obstructedby` an
@@ -349,7 +349,12 @@ const SIM_KEYS = {
 const isGoal = (word: KaosDeclarationKind) =>
   word === 'goal' || word === 'softgoal';
 const isDomain = (word: KaosDeclarationKind) =>
-  word === 'domainproperty' || word === 'domainhypothesis';
+  word === 'domainproperty' ||
+  word === 'domprop' ||
+  word === 'domainhypothesis' ||
+  word === 'domhyp';
+const isHypothesis = (word: KaosDeclarationKind) =>
+  word === 'domainhypothesis' || word === 'domhyp';
 /** The objects an `attribute` declares attributes of (FSE'02's agents have them too). */
 const hasAttributes = (word: KaosDeclarationKind) =>
   word === 'entity' ||
@@ -1947,7 +1952,7 @@ export const readKaos = (
     if (isDomain(element.word))
       props.set(
         'Kind',
-        element.word === 'domainhypothesis' ? 'hypothesis' : 'invariant',
+        isHypothesis(element.word) ? 'hypothesis' : 'invariant',
       );
     for (const [key, value] of element.props) props.set(key, value);
     return {
