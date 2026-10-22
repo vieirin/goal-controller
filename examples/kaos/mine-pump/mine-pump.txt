@@ -164,6 +164,7 @@
       "text": "PumpController",
       "type": "kaos.Agent",
       "customProperties": {
+        "Type": "",
         "Description": ""
       },
       "x": 1000,

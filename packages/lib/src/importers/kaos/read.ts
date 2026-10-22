@@ -384,6 +384,11 @@ const defaultsOf = (type: string): [string, string][] => {
         ['Kind', ''],
         ['Description', ''],
       ];
+    case KAOS_TYPES.agent:
+      return [
+        ['Type', ''],
+        ['Description', ''],
+      ];
     default:
       return [['Description', '']];
   }
@@ -639,12 +644,7 @@ export const readKaos = (
           }
           if (agentType === 'malicious') {
             element.environment = false;
-            say(
-              where,
-              'info',
-              `${element.key}: a malicious agent, read as an agent (KAOS's anti-models have no kind of their own)`,
-              at(attribute),
-            );
+            element.props.set('Type', 'malicious');
             return;
           }
         }
@@ -682,7 +682,7 @@ export const readKaos = (
         }
         break;
       case 'assignedto':
-        if (isGoal(word)) {
+        if (isGoal(word) || word === 'obstacle') {
           const agents = refs(attribute, false, true);
           const quantities = quantitiesOf(attribute, false);
           if (

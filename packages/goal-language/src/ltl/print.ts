@@ -100,6 +100,14 @@ const print = (node: LtlNode): string => {
       return `■${node.bound ? symbolicBoundText(node.bound) : ''} ${print(node.expr)}`;
     case 'atLabel':
       return `${print(node.expr)}@${node.label}`;
+    case 'knows':
+      return node.surface === 'sugar'
+        ? `${node.asValue ? 'knows-value' : 'knows'} [${node.agent}] ${print(node.expr)}`
+        : `${node.asValue ? 'KnowsV' : 'Knows'}[${node.agent}] ${print(node.expr)}`;
+    case 'belief':
+      return node.surface === 'sugar'
+        ? `believes [${node.agent}] ${print(node.expr)}`
+        : `Belief[${node.agent}] ${print(node.expr)}`;
     case 'paren':
       return `(${print(node.expr)})`;
     case 'comparison':

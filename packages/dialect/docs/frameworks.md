@@ -2275,10 +2275,10 @@ Lamsweerde's RE'01 "Guided Tour" — over one grammar and one AST (D4 of
   `ltlTypeProblems(formula, symbols)`, left unimplemented (always no
   Problems) until a follow-up PR wires a real `SymbolTable` in —
   goal-controller#385.
-- **Epistemic operators (`Knows`/`Belief`, ICSE'04, #212) have no node
-  yet.** The grammar's shape (one node per operator, a `Unary`-level
-  parsing slot) leaves room: an agent-indexed unary operator fits beside
-  `Next`/`Always` without reshaping the rest.
+- **Epistemic operators (`Knows`/`Belief`, ICSE'04, #212): built, "Step
+  8" below.** The grammar's shape (one node per operator, a `Unary`-level
+  parsing slot) left room, as expected: an agent-indexed unary operator
+  fits beside `Next`/`Always` without reshaping the rest.
 - **Two details are the writer's own choice, unattested anywhere in the
   sources**: the quantifier's symbolic separator `·`/`∙` (no oracle spells
   a symbolic `forall`/`exists` out), and `@P` binding to the innermost
@@ -2381,3 +2381,116 @@ model checking; the LTS is a transform engine) holds.
   mirror), which the archive weakens. The state counts (32, 65) need LTSA,
   which is not run (no Docker image of it here): they are listed, not
   reproduced.
+### Step 8: anti-models (van Lamsweerde ICSE'04, goal-controller#212)
+
+The owner's request reopened #212 under #196's D1; #196's D2 decided
+anti-models ride on the obstacle machinery, not a parallel tree. This
+section settles the two points #196 left open, logged on #189.
+
+- **AntiGoal: a kind, or an `ObstacleCategory` value — the Category
+  wins.** A new element kind (`kaosObstacles.AntiGoal`, parallel to
+  `Obstacle`) would need its own properties, links, importer cases and
+  kaosdoc entry, and every engine that switches on an obstacle's kind
+  would need to learn the new one. The dialect's `ObstacleCategory`
+  vocabulary (goal-controller#181) already exists on every obstacle for
+  exactly this purpose — naming what kind of thing it is — so it gains one
+  value, `AntiGoal` (van Lamsweerde & Letier TSE'00's own five,
+  `Non-satisfaction`/`Non-information`/`Inaccuracy`/`Hazard`/`Threat`,
+  stay as they are; `AntiGoal` is ICSE'04's addition, orthogonal to them).
+  `kaosprop`, `kaosres`, `kaossim` and `kaosexpert` read every obstacle the
+  same regardless of its Category, so every existing model (and engine
+  test) is unaffected; only `kaosdoc`'s new "Threats" section reads it.
+  `AntiGoal` marks every node of an anti-goal AND/OR tree, root to leaf
+  (ICSE'04 Table 1 step 4), not only its terminals: the paper itself calls
+  intermediate nodes like `PaymentMediumKnownByThief` anti-goals too.
+- **Anti-requirement vs. vulnerability: the terminal anti-goal's
+  responsible agent, not a further value or kind.** ICSE'04 §4: "the
+  former [an anti-goal realizable by the attacker] are anti-requirements
+  assigned to the attacker whereas the latter are vulnerabilities assigned
+  to the attackee." This is exactly `kaos.ResponsibilityAssignment`
+  (goal-controller#181's link from a goal to an agent, which already
+  tells a requirement from an expectation by the agent's kind), extended
+  to also accept an obstacle as its source. No dialect or link-list change
+  was needed for this: `kaos.ResponsibilityAssignment` is the base KAOS
+  metamodel's own link, declared with no endpoint-kind restriction and no
+  properties schema in `@istar-ts/dsm3-kaos`; `istar-ts`'s `validateModel`
+  accepts an obstacle source (checked directly: a model with one validates
+  with no Problems, goal-controller#212's tests). The importer's
+  `assignedto` case (`packages/lib/src/importers/kaos/read.ts`) and the
+  writer's generic per-link-kind loop (`write.ts`, already keyed by link
+  kind, not source kind) needed one condition each to accept
+  `word === 'obstacle'` alongside a goal's.
+- **Malicious agents: the diagnostic becomes a value, not a kind.**
+  KAOSTools' `type malicious` (goal-controller#181 PR F) read as a plain
+  `kaos.Agent` with an info diagnostic, discarding the distinction. The
+  `kaos` dialect's agent vocabulary gains `Type` (its own vocabulary,
+  `AgentType`, one value `malicious`; the key is `Type`, shared with a
+  goal's own `Type` key, each dialect-typed independently) — the
+  importer now sets it instead of discarding the fact, and the diagnostic
+  is gone where `malicious` is now a valid, lossless read. Software vs.
+  environment agent stays the structural `environment` field, as it was;
+  a malicious agent reads as a (non-environment) `kaos.Agent`, per the
+  existing behaviour.
+- **SecurityGoal subclasses: six more `Category` values.** ICSE'04 §3
+  lists the `SecurityGoal` meta-class's subclasses exactly: Confidentiality,
+  Integrity, Availability, Privacy, Authentication, Non-repudiation. They
+  sit beside TSE'00's five Category values on the same goal property
+  (`Satisfaction`/`Information`/`Accuracy`/`Safety`/`Security`): the paper
+  gives no further taxonomy under them (no sub-sub-classes), so nesting
+  would invent structure the source doesn't have.
+- **`Knows`/`Belief`/`KnowsV`: two AST node kinds, one extra flag — not
+  three nodes.** ICSE'04 §2 defines `KnowsV ag (v) ≡ ∃x : Knows ag (x =
+  v)` and uses both `Knows` and `KnowsV` directly in its formulas (never
+  expanding `KnowsV` away), so both need to parse as written, not just the
+  defined-from form. `Knows` (`goal-language/src/ltl/ast.ts`) carries an
+  `asValue` flag distinguishing `KnowsV` from plain `Knows`, rather than a
+  third node kind, since the two share every other field (`agent`,
+  `expr`, `surface`) and differ only in which keyword was read. `Belief`
+  is its own node (no value form in the paper). Both are agent-indexed
+  unary operators, parsed at the same `parseUnary` level as `Next` and
+  `Always` — exactly the slot frameworks.md's "Step 7 part A" left open
+  for them.
+  - **The `[ag]` subscript spelling is unattested on both surfaces, by
+    design.** The paper's own PDF-to-text extraction prints the
+    subscript with inconsistent spacing ("Knows ag (P)", "KnowsVp
+    (acc.PIN)", "KnowsV p (acc.Acc#)" — three spacings for the same
+    construct), so there is no one glyph sequence to mirror the way
+    other operators mirror RE'01's. `[ag]` was chosen because it matches
+    a convention the KAOS dialects already use for a keyed value
+    (`Probability[e1]`, goal-controller#190) rather than inventing an
+    unrelated one; a sugar spelling (`knows [ag]`, `knows-value [ag]`,
+    `believes [ag]`) uses the same bracket, since KAOSTools' own sugar
+    grammar has no epistemic construct to take a spelling from.
+  - **Neither surface exists in KAOSTools' native `.kaos` grammar**
+    (`packages/goal-language/src/formats/kaos/kaos.langium`'s `Formula`
+    rule, which mirrors the PEG exactly and has no symbolic spelling for
+    anything, let alone an agent-indexed operator). A `formalspec` using
+    `Knows`/`Belief`/`KnowsV` therefore reads and writes as a quoted
+    string (the existing `StringAtom` fallback for "a FormalSpec that is
+    no \[native\] formula"), exactly as any other symbolic-surface
+    formula in a `.kaos` file would — the ebanking seed's two such
+    formulas round-trip this way.
+- **kaosdoc's "Threats" section** mirrors "Requirements and expectations"
+  exactly: one row per `AntiGoal`-category obstacle (in the model's
+  obstacle order), its `Obstructs` (any `ObstructionLink`, as the
+  Obstacles section already reads it), its responsible agent(s), and
+  `anti-goal` (no agent — an interior node of the attacker's own tree),
+  `anti-requirement` (a malicious agent), `vulnerability` (an attackee
+  agent) or `shared` (both) by the same logic that table already has.
+  Every existing kaosdoc snapshot (`kaos-welcome.expected.md`, the LAS
+  Obstacles-section test) is untouched: neither has an `AntiGoal`
+  obstacle, so the new section never appears for them.
+- **The seed**: `examples/kaos/ebanking`, re-keyed structurally from
+  ICSE'04 §2, §3 and §6 (no machine-readable model of this example
+  exists); provenance and the mapping above's rationale are in its
+  `README.md`. It opens in kaosres's mode (it has `resolvedby`
+  annotations), round-trips through `.kaos`, and `stress:kaos` checks it
+  with no numeric oracle (`oracle: skip`) — the oracle is the paper's
+  anti-model tree, reproduced structurally and asserted directly in
+  `packages/lib/test/engines/kaosdoc/kaosdoc.test.ts`'s Threats-section
+  tests.
+
+Out of scope, parked per #196 D1: #213 (RELAX) and #214 (SysML/KAOS). The
+formula type check against the object model (goal-controller#385) and
+#194's operations/objects are separate, in-flight work this step doesn't
+touch.

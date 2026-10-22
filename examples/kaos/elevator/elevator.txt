@@ -570,6 +570,7 @@
       "text": "Elevator Controller",
       "type": "kaos.Agent",
       "customProperties": {
+        "Type": "",
         "Description": ""
       },
       "x": 1960,

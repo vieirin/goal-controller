@@ -1039,6 +1039,18 @@
     "outputs": []
   },
   {
+    "path": "kaos/ebanking",
+    "group": "kaos",
+    "name": "ebanking",
+    "form": "file",
+    "dialect": "kaosres",
+    "root": "kaos/ebanking",
+    "files": ["README.md", "ebanking.kaos", "ebanking.txt", "project.json"],
+    "models": ["ebanking.txt"],
+    "projectResources": {},
+    "outputs": []
+  },
+  {
     "path": "kaos/elevator",
     "group": "kaos",
     "name": "elevator",

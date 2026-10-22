@@ -161,6 +161,7 @@ describe('kaos: the operation and object models (#194)', () => {
       'Description',
     ]);
     expect(keys(properties['kaos.Agent'])).to.deep.equal([
+      'Type',
       'Description',
       'Load',
       'Attributes',

@@ -78,6 +78,7 @@ describe('readKaos: the operation and object models (#194)', () => {
       Attributes: 'highWater:bool, level:waterLevel',
     });
     assert.deepStrictEqual(nodeOf(model, 'controller').customProperties, {
+      Type: '',
       Description: '',
       Load: 'one switch per tick',
       Attributes: 'pumpSwitch:On|Off',

@@ -183,7 +183,13 @@ const WRITTEN: Readonly<Record<string, readonly string[]>> = {
     'FormalSpec',
     'Probability',
   ],
-  [KAOS_TYPES.agent]: ['Description', 'Load', 'Attributes', 'Initially'],
+  [KAOS_TYPES.agent]: [
+    'Description',
+    'Type',
+    'Load',
+    'Attributes',
+    'Initially',
+  ],
   [KAOS_TYPES.environmentAgent]: [
     'Description',
     'Load',
@@ -666,6 +672,8 @@ export const writeKaos = (
       }
     }
     if (type === KAOS_TYPES.environmentAgent) body.push('type environment');
+    else if (type === KAOS_TYPES.agent && text('Type') === 'malicious')
+      body.push('type malicious');
     // the operation and object models' (goal-controller#194)
     body.push(...objectAttributes(name, type, text, say));
     // ESR and Beta are distributions too (goal-controller#199, HASE'11's

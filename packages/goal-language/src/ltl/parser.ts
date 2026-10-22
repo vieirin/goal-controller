@@ -276,7 +276,45 @@ class Parser {
       const bound = this.tryParseGloballyStyleBound();
       return { kind: 'historically', expr: this.parseUnary(), bound };
     }
+    if (this.isOneOfId('believes', 'Belief')) {
+      const surface = this.isId('believes') ? 'sugar' : 'symbolic';
+      this.advance();
+      const agent = this.parseAgentSubscript();
+      return { kind: 'belief', agent, expr: this.parseUnary(), surface };
+    }
+    if (this.isOneOfId('knows-value', 'KnowsV')) {
+      const surface = this.isId('knows-value') ? 'sugar' : 'symbolic';
+      this.advance();
+      const agent = this.parseAgentSubscript();
+      return {
+        kind: 'knows',
+        agent,
+        asValue: true,
+        expr: this.parseUnary(),
+        surface,
+      };
+    }
+    if (this.isOneOfId('knows', 'Knows')) {
+      const surface = this.isId('knows') ? 'sugar' : 'symbolic';
+      this.advance();
+      const agent = this.parseAgentSubscript();
+      return {
+        kind: 'knows',
+        agent,
+        asValue: false,
+        expr: this.parseUnary(),
+        surface,
+      };
+    }
     return this.parseAtomPostfix();
+  }
+
+  /** `[ag]`: the epistemic operators' agent subscript (unattested spelling, see ../ltl/ast.ts's `Knows` doc) */
+  private parseAgentSubscript(): string {
+    this.expectSymbol('[');
+    const agent = this.readId();
+    this.expectSymbol(']');
+    return agent;
   }
 
   // -------------------------------------------------------------------
