@@ -304,7 +304,7 @@ export type FormulaSymbols = {
   };
   /** each element's attributes: the keys of its `attributes` pairList property */
   readonly entities?: {
-    readonly kind: DialectKind;
+    readonly kinds: readonly DialectKind[];
     readonly attributes: string;
   };
   /** a relation is one of this kind's elements, by id */

@@ -35,6 +35,7 @@ import {
   type ExpressionTree,
 } from '../parse.js';
 import { ltlTypeProblems, parseLtl, type SymbolTable } from '../ltl/index.js';
+import { argumentsText } from '../text.js';
 import { assertionVariables } from './goalNames.js';
 import {
   contextElementOf,
@@ -139,11 +140,11 @@ export const membersOf = (
 /**
  * The symbol table an `ltl` formula's type check draws on (goal-controller
  * #385): every element of `symbols.predicates`' kind, by id, with its
- * `arguments` pairList's arity; every element with `symbols.entities`'
- * `attributes` pairList set (reusing `membersOf`, not a second resolver),
- * by id, with its attribute names; every element of `symbols.relations`'
- * kind, by id. No `symbols`, or no context: every map empty, the open
- * world for every category.
+ * `arguments` pairList's arity; every element of one of `symbols.entities`'
+ * `kinds` with its `attributes` pairList set (reusing `membersOf`, not a
+ * second resolver), by id, with its attribute names; every element of
+ * `symbols.relations`' kind, by id. No `symbols`, or no context: every map
+ * empty, the open world for every category.
  */
 const symbolTableOf = (
   symbols: FormulaSymbols | undefined,
@@ -164,7 +165,10 @@ const symbolTableOf = (
         );
       if (symbols.relations && element.kind === symbols.relations.kind)
         relations.add(ref);
-      if (symbols.entities) {
+      if (
+        symbols.entities &&
+        symbols.entities.kinds.some((kind) => kind === element.kind)
+      ) {
         const members = membersOf(context, ref, {
           from: symbols.entities.attributes,
         });
@@ -316,10 +320,6 @@ const decimalOf = (tree: AssertionTree | null): string | null => {
       return null;
   }
 };
-
-/** `1 argument`, `2 arguments`: what a function takes, in words. */
-export const argumentsText = (n: number) =>
-  `${n} argument${n === 1 ? '' : 's'}`;
 
 /** The first call of an expression to a function not declared, or with another number of arguments. */
 const callProblem = (

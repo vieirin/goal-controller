@@ -4,6 +4,7 @@ export { printLtl } from './print.js';
 
 import type { LtlNode } from './ast.js';
 import { parseLtl } from './parser.js';
+import { argumentsText } from '../text.js';
 
 /**
  * What is wrong with an `ltl` formula's text (null when it parses): the
@@ -30,9 +31,6 @@ export interface SymbolTable {
   readonly attributesOf: ReadonlyMap<string, ReadonlySet<string>>;
   readonly relations: ReadonlySet<string>;
 }
-
-/** `1 argument`, `2 arguments`. */
-const argumentsText = (n: number) => `${n} argument${n === 1 ? '' : 's'}`;
 
 /** What is wrong with one node against `symbols` (null: nothing, or nothing to check it against). */
 const nodeProblem = (node: LtlNode, symbols: SymbolTable): string | null => {

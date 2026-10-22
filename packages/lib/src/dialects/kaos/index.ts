@@ -72,6 +72,14 @@ const ASSOCIATION = 'kaosOperations.Association';
 const EVENT = 'kaosOperations.Event';
 const PREDICATE = 'kaosOperations.Predicate';
 
+const AGENTS = ['kaos.Agent', 'kaos.EnvironmentAgent'] as const;
+/**
+ * KAOS's objects (FSE'02 §2.1.2; the Respect-IT tutorial, §3.4): entities,
+ * associations, events and agents, which an operation reads and writes and
+ * an agent monitors and controls
+ */
+const OBJECTS = [ENTITY, ASSOCIATION, EVENT, ...AGENTS] as const;
+
 /**
  * A schema's keys, each typed here (goal-controller#229): a key the schema
  * gains and this dialect doesn't type doesn't compile. Returns the typed
@@ -192,14 +200,16 @@ const vocabulary = <const K extends string>(
 
 /**
  * What an `ltl` formula is type-checked against (goal-controller#385): a
- * predicate's arity from its `Arguments` pairList, an entity's attributes
- * from its `Attributes` pairList, a relation from an association's id.
- * None of the three kinds has an element in a given model: the open world
- * for that one (frameworks.md, "KAOS stress test", step 7).
+ * predicate's arity from its `Arguments` pairList; an entity's, an
+ * association's, an event's or an agent's attributes from its `Attributes`
+ * pairList (every kind a formula's `object.attribute` legitimately
+ * reaches, `OBJECTS`); a relation from an association's id. None of the
+ * three categories has an element in a given model: the open world for
+ * that one (frameworks.md, "KAOS stress test", step 7).
  */
 export const OBJECT_MODEL_SYMBOLS = {
   predicates: { kind: PREDICATE, arguments: 'Arguments' },
-  entities: { kind: ENTITY, attributes: 'Attributes' },
+  entities: { kinds: OBJECTS, attributes: 'Attributes' },
   relations: { kind: ASSOCIATION },
 } as const;
 
@@ -375,14 +385,6 @@ const node = <const N extends string>(name: N, label: string = name) =>
     size: SIZE,
     info: ON_PAPER,
   });
-
-const AGENTS = ['kaos.Agent', 'kaos.EnvironmentAgent'] as const;
-/**
- * KAOS's objects (FSE'02 §2.1.2; the Respect-IT tutorial, §3.4): entities,
- * associations, events and agents, which an operation reads and writes and
- * an agent monitors and controls
- */
-const OBJECTS = [ENTITY, ASSOCIATION, EVENT, ...AGENTS] as const;
 
 /** A link of the operation or object model, saved as `kaos.<Name>`. */
 const link = <const N extends string>(

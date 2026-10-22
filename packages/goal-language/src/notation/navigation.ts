@@ -26,12 +26,12 @@ import {
 } from './linkLine.js';
 import { isEnabled } from './reading.js';
 import {
-  argumentsText,
   fieldPropertyOf,
   MEMBER_REF,
   membersOf,
   memberTypeText,
 } from './values.js';
+import { argumentsText } from '../text.js';
 import { readLine, type ElementReading, type Span } from './lines.js';
 
 type Definition = Pick<

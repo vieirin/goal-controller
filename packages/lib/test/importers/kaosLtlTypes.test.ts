@@ -8,7 +8,7 @@
  */
 import * as assert from 'assert';
 import { readFileSync, readdirSync } from 'fs';
-import { join } from 'path';
+import { join, relative } from 'path';
 import { describe, it } from 'mocha';
 import { parsePistar } from '@istar-ts/core';
 import type { DefinitionContext } from '@goal-controller/dialect';
@@ -50,22 +50,31 @@ const exampleFiles = readdirSync(examplesRoot, { recursive: true })
   )
   .map((entry) => join(examplesRoot, entry));
 
+/** One corpus file's known Problem, by its exact id.key and message (never deleted at large). */
+type KnownDefect = {
+  readonly file: string;
+  readonly key: string;
+  readonly message: string;
+};
+
 /**
  * Pre-existing defects the stress corpus's own data has, unmasked by this
- * type check (not #385's to fix; each is its own issue, not a comment):
+ * type check (not #385's to fix, each its own issue, not a comment): keyed
+ * by file (relative to `examplesRoot`), the element id and property key,
+ * and the exact message, so a new Problem on the same id elsewhere, or a
+ * changed message, still fails this test.
  * - flood.kaos's predicate `DustyEnvironment` is declared with that
  *   capitalisation but every `formalspec` calls `dustyEnvironment()`
- *   (goal-controller#398).
- * - las-quantitative.kaos's `ambulance_intervention` formalspec writes a
- *   quantifier with no `.`/`·` separator before its body, which the LTL
- *   grammar requires (a pre-existing parser gap, goal-controller#211's,
- *   not #385's: it is a syntax Problem, not a type one;
- *   goal-controller#399).
+ *   (goal-controller#398, a reference defect of the upstream source:
+ *   docs/reference-defects.md).
  */
-const KNOWN_DEFECTS = new Set([
-  'dusty_environment.FormalSpec',
-  'ambulance_intervention.FormalSpec',
-]);
+const KNOWN_DEFECTS: readonly KnownDefect[] = [
+  {
+    file: join('flood', 'flood.kaos'),
+    key: 'dusty_environment.FormalSpec',
+    message: 'dustyEnvironment is not a declared predicate',
+  },
+];
 
 describe('ltl type-checking: the operation and object models (#385)', () => {
   it('the mine pump fixture type-checks clean', () => {
@@ -85,9 +94,12 @@ describe('ltl type-checking: the operation and object models (#385)', () => {
   });
 
   for (const path of exampleFiles) {
-    it(`${path}: every formula type-checks against its model`, () => {
+    const file = relative(examplesRoot, path);
+    it(`${file}: every formula type-checks against its model`, () => {
       const problems = formulaProblemsOf(readFileSync(path, 'utf8'));
-      for (const key of KNOWN_DEFECTS) delete problems[key];
+      for (const defect of KNOWN_DEFECTS)
+        if (defect.file === file && problems[defect.key] === defect.message)
+          delete problems[defect.key];
       assert.deepStrictEqual(problems, {});
     });
   }

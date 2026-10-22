@@ -321,10 +321,18 @@ class Parser {
       this.isOneOfId('sooner-or-later', 'eventually') ||
       this.isOneOfSymbol('◇', '◊')
     ) {
-      const surface = this.isOneOfSymbol('◇', '◊') ? 'symbolic' : 'sugar';
+      const symbolic = this.isOneOfSymbol('◇', '◊');
+      const glyph = this.isSymbol('◊') ? '◊' : symbolic ? '◇' : undefined;
+      const surface = symbolic ? 'symbolic' : 'sugar';
       this.advance();
       const bound = this.tryParseEventuallyStyleBound();
-      return { kind: 'eventually', expr: this.parseUnary(), bound, surface };
+      return {
+        kind: 'eventually',
+        expr: this.parseUnary(),
+        bound,
+        surface,
+        glyph,
+      };
     }
     if (this.isSymbol('♦')) {
       this.advance();
