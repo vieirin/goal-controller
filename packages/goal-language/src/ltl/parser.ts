@@ -131,9 +131,24 @@ class Parser {
   }
 
   private parseQuantified(): LtlNode {
+    return this.tryParseBareQuantifier() ?? this.parseStrongBinary();
+  }
+
+  /**
+   * `∀x:T …`/`∃x:T …`, its keyword/symbol bare (not parenthesized):
+   * consumed here when next, else `undefined`, rewinding nothing (a
+   * lookahead on the next token only). Reused both at `Formula`'s own top
+   * (`parseQuantified`) and as a unary operator's operand
+   * (`parseUnary`, goal-controller#404) — RE'01's own and ICSE'04's
+   * formulas write a bare quantifier after `◊`/`eventually` with no
+   * parens around it (`examples/kaos/ebanking/ebanking.kaos`'s `◊ ∃ p:
+   * Person, acc: Account · …`), the same shape `tryParseParenthesizedQuantifier`
+   * already covers parenthesized.
+   */
+  private tryParseBareQuantifier(): Forall | Exists | undefined {
     const sugar = this.isOneOfId('forall', 'exists');
     const symbolic = this.isOneOfSymbol('∀', '∃');
-    if (!sugar && !symbolic) return this.parseStrongBinary();
+    if (!sugar && !symbolic) return undefined;
     const kind =
       this.isOneOfId('forall') || this.isOneOfSymbol('∀') ? 'forall' : 'exists';
     const surface = sugar ? 'sugar' : 'symbolic';
@@ -298,6 +313,8 @@ class Parser {
   }
 
   private parseUnary(): LtlNode {
+    const bareQuantifier = this.tryParseBareQuantifier();
+    if (bareQuantifier) return bareQuantifier;
     if (this.isId('not') || this.isSymbol('¬')) {
       const surface = this.isId('not') ? 'sugar' : 'symbolic';
       this.advance();

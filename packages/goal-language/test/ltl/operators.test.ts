@@ -178,6 +178,23 @@ describe('LTL: future temporal operators', () => {
     assert.strictEqual(printLtl(synonym), '◊ a()');
     assert.strictEqual(printLtl(canonical), '◇ a()');
   });
+  it('a bare (unparenthesized) quantifier as a unary operator’s operand (goal-controller#404; examples/kaos/ebanking/ebanking.kaos’s own shape)', () => {
+    const tree = parsed(
+      '◊ ∃ p: Person, acc: Account · ¬ (Owner(p, acc) ∨ Proxy(p, acc) ∨ Manager(p, acc)) ∧ KnowsV[p] acc.AccNum ∧ KnowsV[p] acc.PIN',
+    );
+    assert.strictEqual(tree.kind, 'eventually');
+    if (tree.kind === 'eventually') {
+      assert.strictEqual(tree.expr.kind, 'exists');
+      if (tree.expr.kind === 'exists')
+        assert.deepStrictEqual(tree.expr.variables, [
+          { name: 'p', type: 'Person' },
+          { name: 'acc', type: 'Account' },
+        ]);
+    }
+    // the same shape under every unary operator, not just ◊
+    assert.strictEqual(parsed('not ∃ x: T · p(x)').kind, 'not');
+    assert.strictEqual(parsed('always ∀ x: T · p(x)').kind, 'always');
+  });
   it('bounded eventually: sugar `, before 2 minutes,` / symbolic `≤`', () => {
     const sugar = parsed('sooner-or-later, before 2 minutes, a()');
     assert.strictEqual(sugar.kind, 'eventually');
