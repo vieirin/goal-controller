@@ -307,9 +307,14 @@ export const kaosdocDocument = (
         antiGoals.map((id) => {
           const responsible = agentsOf(id);
           const malicious = new Set(
-            responsible.map(
-              (agent) => elements.get(agent)?.properties.Type === 'malicious',
-            ),
+            responsible.map((agent) => {
+              const element = elements.get(agent);
+              return (
+                !!element &&
+                isAgentElement(element) &&
+                prop(element.engine?.properties ?? {}, 'Type') === 'malicious'
+              );
+            }),
           );
           return [
             nameOf(id),

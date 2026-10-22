@@ -209,6 +209,38 @@ describe('kaosdoc: threats, anti-goals ridden on the obstacle machinery (van Lam
     );
   });
 
+  it('a raw Type left on an EnvironmentAgent (the dialect does not type it there) does not read as malicious: a vulnerability, not an anti-requirement', () => {
+    const json = JSON.parse(las);
+    for (const orphan of json.orphans)
+      if (orphan.id === AMBULANCE_LOST)
+        orphan.customProperties = {
+          ...orphan.customProperties,
+          Category: 'AntiGoal',
+        };
+    json.orphans.push({
+      id: 'thief',
+      text: 'Thief',
+      type: 'kaos.EnvironmentAgent',
+      x: 0,
+      y: 0,
+      customProperties: { Type: 'malicious' },
+    });
+    json.links.push({
+      id: 'r1',
+      type: 'kaos.ResponsibilityAssignment',
+      source: 'thief',
+      target: AMBULANCE_LOST,
+    });
+    assert.strictEqual(
+      sectionOf(documentOf(JSON.stringify(json)), 'Threats'),
+      [
+        '| Anti-goal | Obstructs | Assigned to | As |',
+        '| --- | --- | --- | --- |',
+        '| Ambulance Lost |  | Thief | vulnerability |',
+      ].join('\n'),
+    );
+  });
+
   it('unassigned, it is just an anti-goal (an interior node of the attacker’s own tree)', () => {
     const json = JSON.parse(las);
     for (const orphan of json.orphans)
