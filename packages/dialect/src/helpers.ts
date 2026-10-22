@@ -114,6 +114,7 @@ const ASSERTION_KEYS = [
   'members',
 ] as const;
 const EXPRESSION_KEYS = ['resolves', 'functions', 'members'] as const;
+const REFERENCE_KEYS = ['members'] as const;
 const OCL_KEYS = ['declaredBy', 'candidates', 'memberCandidates'] as const;
 
 type IntOptions = { min?: number; max?: number };
@@ -133,6 +134,7 @@ type ExpressionOptions = {
   functions?: readonly FunctionDefinition[];
   members?: MemberSource;
 };
+type ReferenceOptions = { members?: MemberSource };
 type OclOptions = {
   declaredBy?: readonly string[];
   candidates?: ResourceCandidates;
@@ -237,18 +239,19 @@ const builders = <C extends string>() => ({
   /**
    * one name of its target (goal-controller#354): an element's id, of one
    * of its kinds (`{ kinds: ['kaos.BehavioralGoal'] }`, an anchor goal), or
-   * a project resource entry's (`{ resource: 'expert' }`)
+   * a project resource entry's (`{ resource: 'expert' }`); with `members`,
+   * a member after it (`sump.highWater`, goal-controller#194)
    */
   reference: <
     const K extends string,
     const T extends ReferenceTarget,
-    const P extends PropertyOptions<C>,
+    const P extends PropertyOptions<C> & ReferenceOptions,
   >(
     key: K,
     target: T,
-    rest: Exact<P, PropertyOptions<C>>,
-  ): Built<K, 'reference', P, never, { target: T }> =>
-    build(key, 'reference', rest, [], { target }) as never,
+    rest: Exact<P, PropertyOptions<C> & ReferenceOptions>,
+  ): Built<K, 'reference', P, (typeof REFERENCE_KEYS)[number], { target: T }> =>
+    build(key, 'reference', rest, REFERENCE_KEYS, { target }) as never,
   /** a sentence of a formal language, tagged with it (`ltl`); nothing checks it yet */
   formula: <
     const K extends string,

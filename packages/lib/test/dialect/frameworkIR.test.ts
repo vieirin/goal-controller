@@ -18,7 +18,12 @@ import {
   useIstarDefaultNaming,
   type IStarModel,
 } from '@goal-controller/goal-tree';
-import { kaos, nfr } from '../../src';
+import {
+  KAOS_OPERATION_KINDS,
+  KAOS_OPERATION_LINKS,
+  kaos,
+  nfr,
+} from '../../src';
 
 const seed = (path: string) =>
   readFileSync(join(__dirname, '../../../../examples', path), 'utf8');
@@ -51,10 +56,19 @@ const KAOS_MAPPER = createEngineMapper({
       mapProps: asWritten,
     }),
   ],
-  ignore: ['kaos.Agent', 'kaos.EnvironmentAgent', 'kaos.RefinementLinkHub'],
+  ignore: [
+    'kaos.Agent',
+    'kaos.EnvironmentAgent',
+    'kaos.RefinementLinkHub',
+    ...KAOS_OPERATION_KINDS,
+  ],
   links: (entry) => [
     entry({
-      kinds: ['kaos.Conflict', 'kaosObstacles.ResolutionLink'],
+      kinds: [
+        'kaos.Conflict',
+        'kaosObstacles.ResolutionLink',
+        ...KAOS_OPERATION_LINKS,
+      ],
       mapProps: () => ({}),
     }),
   ],

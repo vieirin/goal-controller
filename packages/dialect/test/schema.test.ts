@@ -1044,6 +1044,71 @@ describe('defineDialect: a framework’s refinements and link labels (#171)', ()
       /leafTargets: nfr\.Claim is not a link kind of nfr/,
     );
   });
+
+  it('reads a reference’s members from a pairList of a kind it names (#194)', () => {
+    const gauge = (from: string) =>
+      ({
+        ...(structuredClone(toy) as AnyDialect),
+        properties: {
+          ...toy.properties,
+          task: [
+            ...toy.properties.task,
+            {
+              key: 'Parts',
+              value: { type: 'pairList', value: 'text' },
+              help: 'h',
+            },
+          ],
+          goal: [
+            ...toy.properties.goal,
+            {
+              key: 'Gauge',
+              value: {
+                type: 'reference',
+                target: { kinds: ['task'] },
+                members: { from },
+              },
+              help: 'h',
+            },
+          ],
+        },
+        propertyLineOrder: [...toy.propertyLineOrder, 'Parts', 'Gauge'],
+      }) as AnyDialect;
+    expect(() => defineDialect(gauge('Parts'))).not.to.throw();
+    expect(() => defineDialect(gauge('Nope'))).to.throw(
+      /goal\.Gauge: its members are from Nope, a pairList none of the kinds it resolves declares/,
+    );
+  });
+
+  it('names the link chains a third link must close, of its root (#194, #210)', () => {
+    const closure = {
+      path: ['nfr.ContributionLink', 'nfr.AndRefinementLink'],
+      closedBy: 'nfr.OrRefinementLink',
+      severity: 'error',
+      message: '{start} {via} {end}',
+    } as const;
+    expect(
+      defineDialect({ ...nfr, closures: [closure] }).closures,
+    ).to.deep.equal([closure]);
+    expect(
+      bad((d) => ({
+        ...d,
+        closures: [{ ...closure, closedBy: 'nfr.Claim' }],
+      })),
+    ).to.throw(/closures: nfr\.Claim is not a link kind of nfr/);
+    expect(
+      bad((d) => ({
+        ...d,
+        closures: [{ ...closure, path: ['nfr.NFR', 'nfr.AndRefinementLink'] }],
+      })),
+    ).to.throw(/closures: nfr\.NFR is not a link kind of nfr/);
+    expect(
+      defineDialect.bind(null, {
+        ...(structuredClone(toy) as AnyDialect),
+        closures: [closure],
+      }),
+    ).to.throw(/closures: iStar's links are its own/);
+  });
 });
 
 describe('defineExtension', () => {

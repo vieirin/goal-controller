@@ -15,6 +15,7 @@ import {
   valueOf,
   type AnyDialect,
   type DefinitionContext,
+  type DefinitionContextElement,
   type DialectKind,
   type FunctionDefinition,
   type MemberSource,
@@ -34,7 +35,13 @@ import {
 } from '../parse.js';
 import { ltlProblem } from '../ltl/index.js';
 import { assertionVariables } from './goalNames.js';
-import { propertyIn, propertyOf, targetScopeOf } from './properties.js';
+import {
+  contextElementOf,
+  propertyIn,
+  propertyOf,
+  referenceParts,
+  targetScopeOf,
+} from './properties.js';
 
 const kindOf = (context: DefinitionContext | undefined, id: string) =>
   context?.elements[id]?.kind;
@@ -164,6 +171,31 @@ const memberProblem = (
   return members.has(member)
     ? null
     : `${ref} has no member ${member} (${members.size ? `its members: ${[...members.keys()].join(', ')}` : 'it declares none'})`;
+};
+
+/**
+ * What is wrong with the member a `reference` names (`sump.dirty`,
+ * goal-controller#194), as with an assertion's (memberProblem): the named
+ * element (`elementOf` finds it) declares none, or none of that name. Null
+ * when it names no member, or no element (its name's problem,
+ * `danglingName`).
+ */
+export const referenceMemberProblem = (
+  value: Extract<ValueConfig, { type: 'reference' }>,
+  text: string,
+  elementOf: (
+    ref: string,
+  ) => Pick<DefinitionContextElement, 'kind' | 'properties'> | undefined,
+  definition?: Pick<AnyDialect, 'properties'>,
+): string | null => {
+  const { ref, member } = referenceParts(value, text);
+  const element = member === null ? undefined : elementOf(ref);
+  if (member === null || !element) return null;
+  const context: DefinitionContext = {
+    elements: { [ref]: { ...element, children: [] } },
+    variables: [],
+  };
+  return memberProblem(value, { ref, member }, context, definition);
 };
 
 /** A declared member's type, when its element has one of that name. */
@@ -435,7 +467,8 @@ export const valueProblem = (
       return error ? error.message : null;
     }
     case 'reference': {
-      const id = text.trim();
+      // its name, and the member after it when it reads members (`sump.highWater`)
+      const { ref: id } = referenceParts(value, text);
       // an imported model names an element by its piStar id, which no
       // grammar reads; any other element's is one id, as the grammar reads
       // a refList's
@@ -444,14 +477,21 @@ export const valueProblem = (
         if (read.errors.length || read.value.length !== 1)
           return `An element's id (G1), not ${id}`;
       }
-      return context
-        ? danglingName(
-            value.target,
-            id,
-            targetScopeOf(context),
-            definition?.projectResources,
-          )
-        : null;
+      if (!context) return null;
+      return (
+        danglingName(
+          value.target,
+          id,
+          targetScopeOf(context),
+          definition?.projectResources,
+        ) ??
+        referenceMemberProblem(
+          value,
+          text,
+          (ref) => contextElementOf(context, ref),
+          definition,
+        )
+      );
     }
     case 'probability':
       return probabilityOf(text) === null

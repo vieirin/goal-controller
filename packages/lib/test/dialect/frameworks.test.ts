@@ -85,6 +85,13 @@ describe('frameworks: the kaos and nfr dialects (#171)', () => {
       'kaos.EnvironmentAgent': 'A',
       'kaos.DomainProperty': 'DP',
       'kaosObstacles.Obstacle': 'O',
+      // the operation and object models (goal-controller#194)
+      'kaosOperations.Operation': 'OP',
+      'kaosOperations.Entity': 'EN',
+      'kaosOperations.Association': 'AS',
+      'kaosOperations.Event': 'EV',
+      'kaosOperations.Predicate': 'PR',
+      'kaosOperations.Type': 'TY',
     });
     expect(
       Object.fromEntries(
@@ -374,7 +381,7 @@ describe('frameworks: the Notation view of a KAOS or NFR model (#171)', () => {
         .map((d) => d.message);
     // an iStar prefix: read as an id, of no KAOS kind
     expect(added('T1: A task')).to.deep.equal([
-      "T is no prefix of KAOS's: its elements are G…, A…, DP…, O…",
+      "T is no prefix of KAOS's: its elements are G…, A…, DP…, O…, OP…, EN…, AS…, EV…, PR…, TY…",
     ]);
     // another framework's: no id at all in KAOS (a property line, here
     // under the agent above it)

@@ -197,7 +197,8 @@ describe('the IR of a framework model, read by the workbench (#171)', () => {
   it("reads DSM3's KAOS model with its hubs as AND refinements", async () => {
     const { GoalTree, createEngineMapper } =
       await import('@goal-controller/goal-tree');
-    const { kaos } = await import('@goal-controller/lib');
+    const { kaos, KAOS_OPERATION_KINDS, KAOS_OPERATION_LINKS } =
+      await import('@goal-controller/lib');
     const model = GoalTree.goalModel(
       parseModel(KAOS_WELCOME) as never,
       createEngineMapper({
@@ -218,10 +219,15 @@ describe('the IR of a framework model, read by the workbench (#171)', () => {
           'kaos.Agent',
           'kaos.EnvironmentAgent',
           'kaos.RefinementLinkHub',
+          ...KAOS_OPERATION_KINDS,
         ],
         links: (entry) => [
           entry({
-            kinds: ['kaos.Conflict', 'kaosObstacles.ResolutionLink'],
+            kinds: [
+              'kaos.Conflict',
+              'kaosObstacles.ResolutionLink',
+              ...KAOS_OPERATION_LINKS,
+            ],
             mapProps: () => ({}),
           }),
         ],

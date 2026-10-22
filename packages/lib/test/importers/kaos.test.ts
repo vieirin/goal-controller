@@ -179,11 +179,11 @@ describe('readKaos: the corpus, counted', () => {
       ),
     );
     const imported = readKaos('import "x.kaos"', {
-      files: { 'x.kaos': 'declare entity [ e ] end' },
+      files: { 'x.kaos': 'declare scenario [ e ] end' },
     }).diagnostics;
     assert.ok(
       imported.some((d) =>
-        d.message.startsWith('x.kaos: declare entity [ e ]'),
+        d.message.startsWith('x.kaos: declare scenario [ e ]'),
       ),
       JSON.stringify(imported),
     );
@@ -556,18 +556,14 @@ declare constraint [ cst2 ] conflict a, b, c end`);
   });
 
   it('keeps KAOS’s other declarations and attributes (#181’s list) as written, each said', () => {
-    const text = `declare entity [ ambulance ]
+    // entities, associations, predicates and types are read since #194
+    const text = `declare scenario [ night ]
+  name "Night shift"
+end
+declare entity [ ambulance ]
   name "Ambulance"
-  attribute available : boolean
+  isa vehicle
 end
-declare association [ allocated ]
-  link [ a ] ambulance
-end
-declare predicate [ allocated_p ]
-  argument a : ambulance
-  formalspec (a) in allocated
-end
-declare type [ boolean ] end
 declare goal [ g ]
   refinedby [context=night] a, b
   provided x() and y()
@@ -583,10 +579,8 @@ declare domainproperty [ d ] probability 90% end`;
     assert.deepStrictEqual(
       kept.split('\n\n').map((entry) => entry.split('\n')[0]),
       [
-        'declare entity [ ambulance ]',
-        'declare association [ allocated ]',
-        'declare predicate [ allocated_p ]',
-        'declare type [ boolean ] end',
+        'declare scenario [ night ]',
+        'override entity [ ambulance ]',
         'override goal [ g ]',
       ],
     );
@@ -602,7 +596,10 @@ declare domainproperty [ d ] probability 90% end`;
         'override goal [ g ]\n  refinedby [context=night] a, b\n  provided x() and y()\n  except z()\n  relaxedTo w\n  replaces h\nend',
       ),
     );
-    assert.strictEqual(diagnostics.length, 9);
+    assert.ok(
+      kept.includes('override entity [ ambulance ]\n  isa vehicle\nend'),
+    );
+    assert.strictEqual(diagnostics.length, 7);
     // the refinement in a context isn't read: g refines into nothing
     assert.strictEqual(hubsOf(model, 'g').length, 0);
   });

@@ -16,23 +16,31 @@ import {
   type ElementDefinition,
   type ExtensionDefinition,
   type LinkRulesDefinition,
+  type NodeInfo,
   type PropertyDefinition,
   type ValueConfig,
 } from '../schema';
 
-/** `@istar-ts/core`'s `MetamodelExtension`, structurally (this package has no dependencies). */
-export type MetamodelExtensionData = {
+/**
+ * `@istar-ts/core`'s `MetamodelExtension`, structurally (this package has no
+ * dependencies), its kinds `EK` and `LK` (an extension's own, as literals).
+ */
+export type MetamodelExtensionData<
+  EK extends string = string,
+  LK extends string = string,
+> = {
   name: string;
   elements: {
-    kind: string;
+    kind: EK;
     label?: string;
     category?: 'node' | 'actor';
     behavesLike?: string;
     pistarType?: string;
     size?: { width: number; height: number };
+    info?: NodeInfo;
   }[];
   links: {
-    kind: string;
+    kind: LK;
     label?: string;
     behavesLike?: string;
     rules?: LinkRulesDefinition;
@@ -47,14 +55,19 @@ export const defined = <T extends object>(value: T): T =>
     Object.entries(value).filter(([, v]) => v !== undefined),
   ) as T;
 
-/** The metamodel extension a dialect's models are read with (presentation left out). */
-export const metamodelExtensionOf = (
-  extension: ExtensionDefinition,
-): MetamodelExtensionData => ({
+/** The metamodel extension a dialect's models are read with (presentation left out), its kinds' literal types kept. */
+export const metamodelExtensionOf = <
+  const E extends Pick<ExtensionDefinition, 'name' | 'elements' | 'links'>,
+>(
+  extension: E,
+): MetamodelExtensionData<
+  E['elements'][number]['kind'],
+  E['links'][number]['kind']
+> => ({
   name: extension.name,
   elements: extension.elements.map(
-    ({ kind, label, category, behavesLike, pistarType, size }) =>
-      defined({ kind, label, category, behavesLike, pistarType, size }),
+    ({ kind, label, category, behavesLike, pistarType, size, info }) =>
+      defined({ kind, label, category, behavesLike, pistarType, size, info }),
   ),
   links: extension.links.map(
     ({ kind, label, behavesLike, rules, pistarType, arity }) =>

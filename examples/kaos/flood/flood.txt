@@ -435,6 +435,186 @@
       "y": 480
     },
     {
+      "id": "radarDepthAcquired",
+      "text": "RadarDepthAcquired",
+      "type": "kaos.Predicate",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 40,
+      "y": 780
+    },
+    {
+      "id": "depthAccurate",
+      "text": "DepthAccurate",
+      "type": "kaos.Predicate",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 200,
+      "y": 780
+    },
+    {
+      "id": "speedAcquiredByUltrasound",
+      "text": "SpeedAcquiredByUltraSound",
+      "type": "kaos.Predicate",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 360,
+      "y": 780
+    },
+    {
+      "id": "speedAcquiredByCamera",
+      "text": "SpeedAcquiredByCamera",
+      "type": "kaos.Predicate",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 520,
+      "y": 780
+    },
+    {
+      "id": "speedAccurate",
+      "text": "SpeedAccurate",
+      "type": "kaos.Predicate",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 680,
+      "y": 780
+    },
+    {
+      "id": "acquiredDepthCritical",
+      "text": "AcquiredDepthCritical",
+      "type": "kaos.Predicate",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 840,
+      "y": 780
+    },
+    {
+      "id": "acquiredSpeedCritical",
+      "text": "AcquiredSpeedCritical",
+      "type": "kaos.Predicate",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 1000,
+      "y": 780
+    },
+    {
+      "id": "localsWarnedByPhone",
+      "text": "LocalsWarnedByPhone",
+      "type": "kaos.Predicate",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 1160,
+      "y": 780
+    },
+    {
+      "id": "localsWarnedBySMS",
+      "text": "LocalsWarnedBySMS",
+      "type": "kaos.Predicate",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 1320,
+      "y": 780
+    },
+    {
+      "id": "localsWarnedByEmail",
+      "text": "LocalsWarnedByEmail",
+      "type": "kaos.Predicate",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 1480,
+      "y": 780
+    },
+    {
+      "id": "DustyEnvironment",
+      "text": "DustyEnvironment",
+      "type": "kaos.Predicate",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 1640,
+      "y": 780
+    },
+    {
+      "id": "falseEcho",
+      "text": "FalseEcho",
+      "type": "kaos.Predicate",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 1800,
+      "y": 780
+    },
+    {
+      "id": "radarDepthSensorBroken",
+      "text": "DepthSensorBroken",
+      "type": "kaos.Predicate",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 1960,
+      "y": 780
+    },
+    {
+      "id": "ultrasoundSensorBroken",
+      "text": "UltrasoundSensorBroken",
+      "type": "kaos.Predicate",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 2120,
+      "y": 780
+    },
+    {
+      "id": "ultrasoundDistortion",
+      "text": "UltrasoundDistortion",
+      "type": "kaos.Predicate",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 2280,
+      "y": 780
+    },
+    {
+      "id": "noisyImage",
+      "text": "NoisyImage",
+      "type": "kaos.Predicate",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 2440,
+      "y": 780
+    },
+    {
+      "id": "gsmNetworkDown",
+      "text": "GSMNetworkDown",
+      "type": "kaos.Predicate",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 40,
+      "y": 880
+    },
+    {
+      "id": "voiceNetworkOverloaded",
+      "text": "VoiceNetworkOveloaded",
+      "type": "kaos.Predicate",
+      "customProperties": {
+        "Description": ""
+      },
+      "x": 200,
+      "y": 880
+    },
+    {
       "id": "radarDepthSensor",
       "text": "Depth Sensor",
       "type": "kaos.Agent",
@@ -978,11 +1158,255 @@
   "metamodelVersion": "1.0",
   "diagram": {
     "width": 2735,
-    "height": 816,
+    "height": 1016,
     "name": "flood",
     "customProperties": {
       "Description": "",
-      "kaosUnsupported": "override obstacle [ dusty_environment ]\n  $monitored \"true\"\nend\n\noverride obstacle [ echo ]\n  $monitored \"true\"\nend\n\noverride obstacle [ depth_broken ]\n  $monitored \"true\"\nend\n\noverride obstacle [ ultrasound_broken ]\n  $monitored \"true\"\nend\n\noverride obstacle [ noisy_image ]\n  $monitored \"true\"\nend\n\noverride obstacle [ voice_down ]\n  $monitored \"true\"\nend\n\noverride goal [ speed_acquired_by_camera ]\n  $ondeploy \"DeployCamera\"\n  $onwithold \"DeployUltrasound\"\nend\n\noverride goal [ acquired_camera_speed_accurate ]\n  $ondeploy \"DeployCamera\"\n  $onwithold \"DeployUltrasound\"\nend\n\noverride goal [ locals_warned_by_sms ]\n  $ondeploy \"DeploySMS\"\n  $onwithold \"DeployPhone\"\nend\n\noverride goal [ locals_warned_by_email ]\n  $ondeploy \"DeployEmail\"\n  $onwithold \"DeployPhone\"\nend\n\ndeclare predicate [ radarDepthAcquired ]\n\tname \"RadarDepthAcquired\"\nend\n\ndeclare predicate [ depthAccurate ]\n  name \"DepthAccurate\"\nend\n\ndeclare predicate [ speedAcquiredByUltrasound ]\n\tname \"SpeedAcquiredByUltraSound\"\nend\n\ndeclare predicate [ speedAcquiredByCamera ]\n\tname \"SpeedAcquiredByCamera\"\nend\n\ndeclare predicate [ speedAccurate ]\n  name \"SpeedAccurate\"\nend\n\ndeclare predicate [ acquiredDepthCritical ]\n  name \"AcquiredDepthCritical\"\nend\n\ndeclare predicate [ acquiredSpeedCritical ]\n  name \"AcquiredSpeedCritical\"\nend\n\ndeclare predicate [ localsWarnedByPhone ]\n  name \"LocalsWarnedByPhone\"\nend\n\ndeclare predicate [ localsWarnedBySMS ]\n  name \"LocalsWarnedBySMS\"\nend\n\ndeclare predicate [ localsWarnedByEmail ]\n  name \"LocalsWarnedByEmail\"\nend\n\ndeclare predicate [ DustyEnvironment ]\n  name \"DustyEnvironment\"\nend\n\ndeclare predicate [ falseEcho ]\n  name \"FalseEcho\"\nend\n\ndeclare predicate [ radarDepthSensorBroken ]\n  name \"DepthSensorBroken\"\nend\n\ndeclare predicate [ ultrasoundSensorBroken ]\n  name \"UltrasoundSensorBroken\"\nend\n\ndeclare predicate [ ultrasoundDistortion ]\n  name \"UltrasoundDistortion\"\nend\n\ndeclare predicate [ noisyImage ]\n  name \"NoisyImage\"\nend\n\ndeclare predicate [ gsmNetworkDown ]\n  name \"GSMNetworkDown\"\nend\n\ndeclare predicate [ voiceNetworkOverloaded ]\n  name \"VoiceNetworkOveloaded\"\nend\n\ndeclare constraint\n  id cst13\n  conflict locals_warned_by_sms, locals_warned_by_email, locals_warned\nend"
+      "kaosUnsupported": "override obstacle [ dusty_environment ]\n  $monitored \"true\"\nend\n\noverride obstacle [ echo ]\n  $monitored \"true\"\nend\n\noverride obstacle [ depth_broken ]\n  $monitored \"true\"\nend\n\noverride obstacle [ ultrasound_broken ]\n  $monitored \"true\"\nend\n\noverride obstacle [ noisy_image ]\n  $monitored \"true\"\nend\n\noverride obstacle [ voice_down ]\n  $monitored \"true\"\nend\n\noverride goal [ speed_acquired_by_camera ]\n  $ondeploy \"DeployCamera\"\n  $onwithold \"DeployUltrasound\"\nend\n\noverride goal [ acquired_camera_speed_accurate ]\n  $ondeploy \"DeployCamera\"\n  $onwithold \"DeployUltrasound\"\nend\n\noverride goal [ locals_warned_by_sms ]\n  $ondeploy \"DeploySMS\"\n  $onwithold \"DeployPhone\"\nend\n\noverride goal [ locals_warned_by_email ]\n  $ondeploy \"DeployEmail\"\n  $onwithold \"DeployPhone\"\nend\n\ndeclare constraint\n  id cst13\n  conflict locals_warned_by_sms, locals_warned_by_email, locals_warned\nend"
     }
+  },
+  "metamodel": {
+    "name": "kaosOperations",
+    "elements": [
+      {
+        "kind": "kaosOperations.Operation",
+        "label": "Operation",
+        "category": "node",
+        "pistarType": "kaos.Operation",
+        "size": {
+          "width": 135,
+          "height": 36
+        },
+        "info": {
+          "canBeInnerElement": false,
+          "canBeDependum": false,
+          "canBeOnPaper": true
+        }
+      },
+      {
+        "kind": "kaosOperations.Entity",
+        "label": "Entity",
+        "category": "node",
+        "pistarType": "kaos.Entity",
+        "size": {
+          "width": 135,
+          "height": 36
+        },
+        "info": {
+          "canBeInnerElement": false,
+          "canBeDependum": false,
+          "canBeOnPaper": true
+        }
+      },
+      {
+        "kind": "kaosOperations.Association",
+        "label": "Association",
+        "category": "node",
+        "pistarType": "kaos.Association",
+        "size": {
+          "width": 135,
+          "height": 36
+        },
+        "info": {
+          "canBeInnerElement": false,
+          "canBeDependum": false,
+          "canBeOnPaper": true
+        }
+      },
+      {
+        "kind": "kaosOperations.Event",
+        "label": "Event",
+        "category": "node",
+        "pistarType": "kaos.Event",
+        "size": {
+          "width": 135,
+          "height": 36
+        },
+        "info": {
+          "canBeInnerElement": false,
+          "canBeDependum": false,
+          "canBeOnPaper": true
+        }
+      },
+      {
+        "kind": "kaosOperations.Predicate",
+        "label": "Predicate",
+        "category": "node",
+        "pistarType": "kaos.Predicate",
+        "size": {
+          "width": 135,
+          "height": 36
+        },
+        "info": {
+          "canBeInnerElement": false,
+          "canBeDependum": false,
+          "canBeOnPaper": true
+        }
+      },
+      {
+        "kind": "kaosOperations.Type",
+        "label": "Type",
+        "category": "node",
+        "pistarType": "kaos.Type",
+        "size": {
+          "width": 135,
+          "height": 36
+        },
+        "info": {
+          "canBeInnerElement": false,
+          "canBeDependum": false,
+          "canBeOnPaper": true
+        }
+      }
+    ],
+    "links": [
+      {
+        "kind": "kaosOperations.OperationalisationLink",
+        "label": "Operationalisation",
+        "rules": {
+          "sources": [
+            "kaosOperations.Operation"
+          ],
+          "targets": [
+            "kaos.BehavioralGoal"
+          ],
+          "sameActor": false,
+          "unique": "kind"
+        },
+        "pistarType": "kaos.OperationalisationLink"
+      },
+      {
+        "kind": "kaosOperations.PerformanceLink",
+        "label": "Performance",
+        "rules": {
+          "sources": [
+            "kaos.Agent",
+            "kaos.EnvironmentAgent"
+          ],
+          "targets": [
+            "kaosOperations.Operation"
+          ],
+          "sameActor": false,
+          "unique": "kind"
+        },
+        "pistarType": "kaos.PerformanceLink"
+      },
+      {
+        "kind": "kaosOperations.MonitoringLink",
+        "label": "Monitoring",
+        "rules": {
+          "sources": [
+            "kaos.Agent",
+            "kaos.EnvironmentAgent"
+          ],
+          "targets": [
+            "kaosOperations.Entity",
+            "kaosOperations.Association",
+            "kaosOperations.Event",
+            "kaos.Agent",
+            "kaos.EnvironmentAgent",
+            "kaosOperations.Predicate"
+          ],
+          "sameActor": false,
+          "unique": false,
+          "allowSelf": true
+        },
+        "pistarType": "kaos.MonitoringLink"
+      },
+      {
+        "kind": "kaosOperations.ControlLink",
+        "label": "Control",
+        "rules": {
+          "sources": [
+            "kaos.Agent",
+            "kaos.EnvironmentAgent"
+          ],
+          "targets": [
+            "kaosOperations.Entity",
+            "kaosOperations.Association",
+            "kaosOperations.Event",
+            "kaos.Agent",
+            "kaos.EnvironmentAgent",
+            "kaosOperations.Predicate"
+          ],
+          "sameActor": false,
+          "unique": false,
+          "allowSelf": true
+        },
+        "pistarType": "kaos.ControlLink"
+      },
+      {
+        "kind": "kaosOperations.CauseLink",
+        "label": "Cause",
+        "rules": {
+          "sources": [
+            "kaosOperations.Event"
+          ],
+          "targets": [
+            "kaosOperations.Operation"
+          ],
+          "sameActor": false,
+          "unique": "kind"
+        },
+        "pistarType": "kaos.CauseLink"
+      },
+      {
+        "kind": "kaosOperations.InputLink",
+        "label": "Input",
+        "rules": {
+          "sources": [
+            "kaosOperations.Entity",
+            "kaosOperations.Association",
+            "kaosOperations.Event",
+            "kaos.Agent",
+            "kaos.EnvironmentAgent"
+          ],
+          "targets": [
+            "kaosOperations.Operation"
+          ],
+          "sameActor": false,
+          "unique": "kind"
+        },
+        "pistarType": "kaos.InputLink"
+      },
+      {
+        "kind": "kaosOperations.OutputLink",
+        "label": "Output",
+        "rules": {
+          "sources": [
+            "kaosOperations.Operation"
+          ],
+          "targets": [
+            "kaosOperations.Entity",
+            "kaosOperations.Association",
+            "kaosOperations.Event",
+            "kaos.Agent",
+            "kaos.EnvironmentAgent"
+          ],
+          "sameActor": false,
+          "unique": "kind"
+        },
+        "pistarType": "kaos.OutputLink"
+      },
+      {
+        "kind": "kaosOperations.AssociationLink",
+        "label": "Association",
+        "rules": {
+          "sources": [
+            "kaosOperations.Association"
+          ],
+          "targets": [
+            "kaosOperations.Entity",
+            "kaosOperations.Association",
+            "kaosOperations.Event",
+            "kaos.Agent",
+            "kaos.EnvironmentAgent"
+          ],
+          "sameActor": false,
+          "unique": false
+        },
+        "pistarType": "kaos.AssociationLink"
+      }
+    ]
   }
 }

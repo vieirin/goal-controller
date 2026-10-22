@@ -15,8 +15,18 @@
  * KAOS model with: obstacles, their refinements, obstructions and
  * resolutions (goal-controller#181).
  *
+ * The operation and object models (Letier and van Lamsweerde, FSE'02;
+ * goal-controller#194) are this dialect's own `extension`, on the KAOS root
+ * (#181 PR E; istar-ts has none of them): operations, entities,
+ * associations, events, and KAOSTools' predicates and types, with the
+ * operationalisation, performance, monitoring, control, cause, input,
+ * output and association links. Files write them as `kaos.*` (`pistarType`),
+ * as they write obstacles, and a model with any declares them in its
+ * `"metamodel"` block.
+ *
  * In the Notation view goals are `G`, agents `A`, domain properties `DP` and
- * obstacles `O`; there is no bracket notation (a KAOS goal's name keeps its
+ * obstacles `O`, operations `OP`, entities `EN`, associations `AS`, events
+ * `EV`, predicates `PR` and types `TY`; there is no bracket notation (a KAOS goal's name keeps its
  * brackets, `Achieve [Manual Backup]`). A refinement, drawn as a hub joining
  * several sub-goals (or sub-obstacles), is an AND: they are listed under the
  * goal (or obstacle) they refine. An obstacle obstructs a leaf goal or a
@@ -43,7 +53,10 @@ import {
 } from '@istar-ts/dsm3-kaos/metamodel';
 import {
   defineDialect,
+  defineExtension,
   element,
+  extensionKind,
+  extensionLink,
   links,
   property,
   type ElementDefinition,
@@ -192,6 +205,12 @@ export const KAOS_VOCABULARIES = {
     ['prevention', 'prevention (KAOSTools: obstacle prevention)'],
     ['mitigation', 'mitigation (KAOSTools: obstacle mitigation)'],
   ],
+  /**
+   * an entity's type: KAOSTools' `type` on an entity
+   * (`EntityTypeAttributeParser.cs`, goal-controller#194): where it lives,
+   * in the software, its environment, or both
+   */
+  EntityType: ['software', 'environment', 'shared'],
 } as const satisfies Record<string, readonly EnumOptionInput[]>;
 
 /** A property whose values are a vocabulary's (`''`: not set). */
@@ -358,7 +377,148 @@ const RESOLUTION = [
   RESOLUTION_FIELDS.Anchor,
 ] as const;
 
-/** Every KAOS node kind, with its prefix: goals G, agents A, domain properties DP, obstacles O. */
+/**
+ * Where a KAOS node lies: on the paper, as every KAOS node does (KAOS has no
+ * actors), not piStar-ext's default for an extension's node.
+ */
+const ON_PAPER = {
+  canBeInnerElement: false,
+  canBeDependum: false,
+  canBeOnPaper: true,
+} as const;
+
+/** DSM3's node size (language_kaos_shapes.js), every KAOS node's. */
+const SIZE = { width: 135, height: 36 } as const;
+
+/** A node of the operation or object model, saved as `kaos.<Name>`. */
+const node = <const N extends string>(name: N, label: string = name) =>
+  extensionKind(`kaosOperations.${name}`, {
+    label,
+    category: 'node',
+    pistarType: `kaos.${name}`,
+    size: SIZE,
+    info: ON_PAPER,
+  });
+
+const OPERATION = 'kaosOperations.Operation';
+const ENTITY = 'kaosOperations.Entity';
+const ASSOCIATION = 'kaosOperations.Association';
+const EVENT = 'kaosOperations.Event';
+const PREDICATE = 'kaosOperations.Predicate';
+const AGENTS = ['kaos.Agent', 'kaos.EnvironmentAgent'] as const;
+/**
+ * KAOS's objects (FSE'02 §2.1.2; the Respect-IT tutorial, §3.4): entities,
+ * associations, events and agents, which an operation reads and writes and
+ * an agent monitors and controls
+ */
+const OBJECTS = [ENTITY, ASSOCIATION, EVENT, ...AGENTS] as const;
+
+/** A link of the operation or object model, saved as `kaos.<Name>`. */
+const link = <const N extends string>(
+  name: N,
+  label: string,
+  sources: readonly string[],
+  targets: readonly string[],
+  unique: 'kind' | false = 'kind',
+  allowSelf = false,
+) =>
+  extensionLink(`kaosOperations.${name}`, {
+    label,
+    pistarType: `kaos.${name}`,
+    rules: {
+      sources,
+      targets,
+      sameActor: false,
+      unique,
+      ...(allowSelf && { allowSelf }),
+    },
+  });
+
+/**
+ * KAOS's operation and object models (goal-controller#194, D1), on the KAOS
+ * root: operations (FSE'02 §2.1.4), entities, associations and events (the
+ * object model, §2.1.2; the Respect-IT tutorial, §3.4), and KAOSTools'
+ * predicates and types (`declare predicate`, `declare type`). The links:
+ * an operation operationalises a requirement (with its required
+ * conditions), an agent performs it, monitors and controls objects'
+ * attributes, an event causes it, it reads its input objects and writes its
+ * output ones, and an association links objects. A monitoring or a control
+ * link names one attribute, so an agent may have several onto one object.
+ */
+export const kaosOperations = defineExtension(
+  {
+    name: 'kaosOperations',
+    label: 'KAOS operations and objects',
+    elements: [
+      node('Operation'),
+      node('Entity'),
+      node('Association'),
+      node('Event'),
+      node('Predicate'),
+      node('Type'),
+    ],
+    links: [
+      link(
+        'OperationalisationLink',
+        'Operationalisation',
+        [OPERATION],
+        ['kaos.BehavioralGoal'],
+      ),
+      link('PerformanceLink', 'Performance', AGENTS, [OPERATION]),
+      // an agent monitors and controls its own attributes too (FSE'02's
+      // PumpController.PumpSwitch)
+      link(
+        'MonitoringLink',
+        'Monitoring',
+        AGENTS,
+        [...OBJECTS, PREDICATE],
+        false,
+        true,
+      ),
+      link(
+        'ControlLink',
+        'Control',
+        AGENTS,
+        [...OBJECTS, PREDICATE],
+        false,
+        true,
+      ),
+      link('CauseLink', 'Cause', [EVENT], [OPERATION]),
+      link('InputLink', 'Input', OBJECTS, [OPERATION]),
+      link('OutputLink', 'Output', [OPERATION], OBJECTS),
+      link('AssociationLink', 'Association', [ASSOCIATION], OBJECTS, false),
+    ],
+    groupers: {},
+    stereotypes: [],
+    taggedValues: [],
+    defaultTags: [],
+  },
+  undefined,
+  'kaos',
+);
+
+/**
+ * The operation and object models' node kinds (goal-controller#194), which
+ * an engine that doesn't read them ignores (they stay the model's elements).
+ */
+export const KAOS_OPERATION_KINDS = kaosOperations.elements.map(
+  (kind) => kind.kind,
+);
+
+/** The operation and object models' link kinds with properties, which such an engine's links map as written. */
+export const KAOS_OPERATION_LINKS = [
+  'kaosOperations.OperationalisationLink',
+  'kaosOperations.MonitoringLink',
+  'kaosOperations.ControlLink',
+  'kaosOperations.CauseLink',
+  'kaosOperations.AssociationLink',
+] as const;
+
+/**
+ * Every KAOS node kind, with its prefix: goals G, agents A, domain
+ * properties DP, obstacles O; operations OP, entities EN, associations AS,
+ * events EV, predicates PR and types TY.
+ */
 const ELEMENTS = {
   'kaos.BehavioralGoal': element('G', { fill: FILL }),
   'kaos.Softgoal': element('G', { fill: FILL }),
@@ -366,38 +526,188 @@ const ELEMENTS = {
   'kaos.EnvironmentAgent': element('A', { fill: FILL }),
   'kaos.DomainProperty': element('DP', { fill: FILL }),
   'kaosObstacles.Obstacle': element('O', { fill: FILL }),
+  [OPERATION]: element('OP', { fill: FILL }),
+  [ENTITY]: element('EN', { fill: FILL }),
+  [ASSOCIATION]: element('AS', { fill: FILL }),
+  [EVENT]: element('EV', { fill: FILL }),
+  [PREDICATE]: element('PR', { fill: FILL }),
+  'kaosOperations.Type': element('TY', { fill: FILL }),
 } as const satisfies Record<
-  KaosDeclaredElementKind | KaosObstacleDeclaredElementKind,
+  | KaosDeclaredElementKind
+  | KaosObstacleDeclaredElementKind
+  | (typeof kaosOperations.elements)[number]['kind'],
   ElementDefinition
 >;
+
+/**
+ * An object's attributes (FSE'02's `Has PumpSwitch: {On, Off}`; KAOSTools'
+ * `attribute name : type`), each its name and type: `bool`, a number
+ * (`int`, `number`), its values (`On|Off`), or a type's name. They are the
+ * members a monitoring or a control names (`sump.highWater`, D2).
+ */
+const ATTRIBUTES = property.pairList('Attributes', 'text', {
+  help: 'its attributes, each name:type (HighWater:bool, PumpSwitch:On|Off)',
+});
+
+/** an ltl formula of the operation model (FSE'02 §2.1.4), which nothing checks yet */
+const condition = <const K extends string>(key: K, help: string) =>
+  property.formula(key, 'ltl', { help });
+
+const OPERATION_PROPERTIES = [
+  condition(
+    'DomPre',
+    'its domain precondition: what holds in any state it is applied in',
+  ),
+  condition(
+    'DomPost',
+    'its domain postcondition: what holds in any state it leads to',
+  ),
+  DESCRIPTION,
+] as const;
+
+const ENTITY_PROPERTIES = [
+  vocabulary(
+    'EntityType',
+    'where it lives: in the software, its environment, or both (shared)',
+    'EntityType',
+  ),
+  ATTRIBUTES,
+  DESCRIPTION,
+] as const;
+
+const EVENT_PROPERTIES = [
+  text('Frequency', 'how often it occurs (Objectiver’s Frequency)'),
+  ATTRIBUTES,
+  DESCRIPTION,
+] as const;
+
+const PREDICATE_PROPERTIES = [
+  property.pairList('Arguments', 'text', {
+    help: 'its arguments, each name:type (a:ambulance)',
+  }),
+  formalSpec('its formal definition, in real-time linear temporal logic'),
+  property.bool('Default', {
+    help: 'its value when nothing has set it (KAOSTools’ default)',
+  }),
+  DESCRIPTION,
+] as const;
+
+/**
+ * an agent's, besides its description: its load (Objectiver's) and its
+ * attributes (FSE'02's agents have some: PumpController's PumpSwitch)
+ */
+const AGENT_PROPERTIES = [
+  DESCRIPTION,
+  text(
+    'Load',
+    'how much of its capacity its operations take (Objectiver’s Load)',
+  ),
+  ATTRIBUTES,
+] as const;
+
+/** a monitoring's or a control's attribute: an object's, by `object.attribute` (D2) */
+const attribute = <const K extends string>(key: K, help: string) =>
+  property.reference(
+    key,
+    { kinds: [...OBJECTS, PREDICATE] },
+    { members: { from: 'Attributes' }, help },
+  );
 
 export const kaos = defineDialect({
   id: 'kaos',
   name: 'KAOS',
   framework: 'kaos',
+  extension: kaosOperations,
   elements: ELEMENTS,
   defaultFill: FILL,
   properties: {
     'kaos.BehavioralGoal': GOAL,
     'kaos.Softgoal': GOAL,
-    'kaos.Agent': [AGENT_TYPE, DESCRIPTION],
-    'kaos.EnvironmentAgent': [DESCRIPTION],
+    'kaos.Agent': [AGENT_TYPE, ...AGENT_PROPERTIES],
+    'kaos.EnvironmentAgent': AGENT_PROPERTIES,
     'kaos.DomainProperty': DOMAIN_PROPERTY,
     'kaosObstacles.Obstacle': OBSTACLE,
     [KAOS_REFINEMENT_HUB]: REFINEMENT,
+    [OPERATION]: OPERATION_PROPERTIES,
+    [ENTITY]: ENTITY_PROPERTIES,
+    [ASSOCIATION]: [ATTRIBUTES, DESCRIPTION],
+    [EVENT]: EVENT_PROPERTIES,
+    [PREDICATE]: PREDICATE_PROPERTIES,
+    'kaosOperations.Type': [DESCRIPTION],
   },
   // a goal's (FormalSpec already among them), then a domain property's Kind
-  // (an obstacle's keys are a goal's)
-  propertyLineOrder: [...GOAL.map((p) => p.key), 'Kind'],
+  // (an obstacle's keys are a goal's), then the operation and object
+  // models' (goal-controller#194)
+  propertyLineOrder: [
+    ...GOAL.map((p) => p.key),
+    'Kind',
+    'DomPre',
+    'DomPost',
+    'EntityType',
+    'Frequency',
+    'Arguments',
+    'Default',
+    'Load',
+    'Attributes',
+  ],
   indent: '  ',
   refinements: {
     'kaos.RefinementLink': 'and',
     'kaosObstacles.ObstacleRefinementLink': 'and',
   },
   leafTargets: ['kaosObstacles.ObstructionLink'],
+  // the Respect-IT tutorial's triangle (§3.5, Fig. 30; goal-controller#210):
+  // the agent performing an operation that operationalises a requirement is
+  // responsible for it, FSE'02's inter-model consistency
+  closures: [
+    {
+      path: [
+        'kaosOperations.PerformanceLink',
+        'kaosOperations.OperationalisationLink',
+      ],
+      closedBy: 'kaos.ResponsibilityAssignment',
+      severity: 'error',
+      message:
+        '{start} performs {via}, which operationalises {end}, but is not responsible for it: assign {end} to {start}',
+    },
+  ],
   links: links({
     'kaos.Conflict': CONFLICT,
     'kaosObstacles.ResolutionLink': RESOLUTION,
+    // FSE'02 §2.1.4: an operation's required conditions for a requirement
+    'kaosOperations.OperationalisationLink': [
+      condition(
+        'ReqPre',
+        'its required precondition for the requirement: when it may be applied',
+      ),
+      condition(
+        'ReqTrig',
+        'its required trigger condition for the requirement: when it must be applied (its domain precondition holding)',
+      ),
+      condition(
+        'ReqPost',
+        'its required postcondition for the requirement: what must hold after it',
+      ),
+    ],
+    'kaosOperations.MonitoringLink': [
+      attribute('Monitors', 'the attribute it monitors, object.attribute'),
+    ],
+    'kaosOperations.ControlLink': [
+      attribute('Controls', 'the attribute it controls, object.attribute'),
+    ],
+    'kaosOperations.CauseLink': [
+      text(
+        'Delay',
+        'how long after the event the operation starts (Objectiver’s Delay)',
+      ),
+    ],
+    'kaosOperations.AssociationLink': [
+      text(
+        'Multiplicity',
+        'how many of the object an instance links: 1, *, 0..1 (KAOSTools’ link multiplicity)',
+      ),
+      text('Role', 'the object’s role in the association'),
+    ],
   }),
   model: { actors: 'many', treesPerActor: 'many' },
   problems: {

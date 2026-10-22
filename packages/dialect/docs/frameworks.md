@@ -1969,6 +1969,142 @@ attempts log are on #369. D1's encoding is logged on #189 ("#193 D1").
     file's sign, they agree within 4σ (worst 1.1σ), and the exhaustive front
     is RADAR's 6.
 
+### Step 7: operations and objects (goal-controller#194)
+
+The part of KAOS that leads to code (Letier and van Lamsweerde, FSE'02 and
+ICSE'02; transcribed in `docs/papers/letier-fse02-icse02.md`): operations
+with their domain and required conditions, agents' interfaces, and the
+object model those reference. Items 1–2 of #194 (the formula parser is
+#211, the completeness check and the LTS output #209, the Elevator seed
+#210). Results are on #383; the decisions are logged on #189.
+
+- **The kinds are the `kaos` dialect's own extension, not istar-ts's**
+  (the owner's decision on #189, 2026-10-21; it departs from D1's
+  "structure is istar-ts's" for this model only). `kaosOperations` extends
+  the KAOS root as PR E allows: `Operation` (`OP`), `Entity` (`EN`),
+  `Association` (`AS`), `Event` (`EV`), and KAOSTools' `Predicate` (`PR`)
+  and `Type` (`TY`, its given types), each on the paper and saved as
+  `kaos.<Name>` (`pistarType`), as obstacles are. Its links, each saved as
+  `kaos.<Name>`:
+
+  | Link | From → to | Its keys |
+  | --- | --- | --- |
+  | `OperationalisationLink` | an operation → a requirement (a behavioural goal) | `ReqPre`, `ReqTrig`, `ReqPost` (`ltl` formulas) |
+  | `PerformanceLink` | an agent → an operation | — |
+  | `MonitoringLink`, `ControlLink` | an agent → an object or a predicate (itself too) | `Monitors` / `Controls` |
+  | `CauseLink` | an event → an operation | `Delay` |
+  | `InputLink` / `OutputLink` | an object → an operation / an operation → an object | — |
+  | `AssociationLink` | an association → an object | `Multiplicity`, `Role` |
+
+  The objects are entities, associations, events and agents (FSE'02
+  §2.1.2, the tutorial's §3.4). A monitoring or a control names one
+  attribute, so it is not unique between an agent and an object, and an
+  agent may monitor or control its own (FSE'02's
+  `PumpController.PumpSwitch`).
+- **Keys, one source each:**
+
+  | Key | On | Type | Source |
+  | --- | --- | --- | --- |
+  | `DomPre`, `DomPost` | operations | `formula`, `ltl` | FSE'02 §2.1.4 (the tutorial's figures name them, unreadable) |
+  | `ReqPre`, `ReqTrig`, `ReqPost` | operationalisations | `formula`, `ltl` | FSE'02 §2.1.4: on the link, one set per requirement (`ReqTrig for G`) |
+  | `Attributes` | entities, associations, events, agents | `pairList`, `name:type` | FSE'02's `Has PumpSwitch: {On, Off}`; KAOSTools' `attribute name : type` |
+  | `EntityType` | entities | software, environment, shared | KAOSTools' `EntityTypeAttributeParser.cs` |
+  | `Arguments`, `FormalSpec`, `Default` | predicates | `pairList`, `formula`, `bool` | KAOSTools' `PredicateDeclareParser.cs` |
+  | `Monitors`, `Controls` | monitorings, controls | `reference` with members | FSE'02's `Monitors PumpController.HighWaterFlag` (D2) |
+  | `Multiplicity`, `Role` | association links | text | KAOSTools' `Link` (`Multiplicity`, `Role`; its parser reads the first); FSE'02's `card 0:1` |
+  | `Frequency` | events | text | the tutorial's figures name it (unreadable); kept free text |
+  | `Delay` | causes | text | the tutorial's figures name it (unreadable); kept free text |
+  | `Load` | agents | text | the tutorial's figures name it (unreadable); kept free text |
+
+  The tutorial's figures have no text layer, so the last three are logged
+  as kept keys: free text until a readable source types them.
+- **Attributes are one `pairList`, not keyed properties.** `Attribute[name]
+  = type` would fit the `Key[name]` form, but #137's member resolution reads
+  an element's members from a pairList (`MemberSource`'s `{ from }`), so a
+  pairList reuses it as it is, and the inspector edits it as one value. A
+  type is `bool`, `int`/`number`, the values (`On|Off`), or a type's name
+  (`waterLevel`); checking a type's name against the model's types is
+  #211's.
+- **D2: `Monitors` and `Controls` are a `reference` with a member.** The
+  generic change: a `reference` may declare `members` (as an assertion's
+  and an expression's do), and is then written `object.attribute`
+  (`sump.highWater`). `referenceParts` splits it at its last dot before a
+  name (an id's own dots, `T1.1`, are the id's). Its name resolves as any
+  reference's (`danglingName`, by key, piStar id or the id its text gives),
+  and its member through #137's `memberProblem`: `referenceMemberProblem`
+  gives it the element its lookup finds, so the Notation view (a context's
+  elements) and the Problems panel (the model's) check it with the same
+  function. A member its object doesn't declare is `unknown-member`; a name
+  that is no object, `dangling-reference`. A name alone (KAOSTools'
+  `monitors p`, a predicate) is a reference to the element as a whole. A
+  reference reads into `{ id, member }`.
+- **The triangle is a declared closure.** The generic change: a framework's
+  dialect may declare `closures`, link chains a third link must close
+  (`path: [first, second]`, `closedBy`, a severity and a message with
+  `{start}`, `{via}`, `{end}`). goal-tree's `openClosures` finds the open
+  ones; the Problems panel reports each on its first link (`open-closure`).
+  The `kaos` dialect declares one: performance then operationalisation,
+  closed by a responsibility assignment, an error (FSE'02's inter-model
+  consistency; the tutorial's §3.5, Fig. 30: a requirement is "closed" when
+  the triangle is established). No code in the core packages knows KAOS.
+- **A model of these kinds declares them in its file.** The importer writes
+  the extension (`metamodelExtensionOf`, which now keeps each kind's `info`
+  and its kinds' literal types) as the model's `"metamodel"` block, as a
+  GRL model declares GRL's. A model without them gets no block and is
+  written as before, byte for byte. The workbench reads a non-iStar
+  framework's model with its block applied (`declaresKinds`), as it reads a
+  `fileKinds` engine's. lib reads one with `KAOS_MODEL` (KAOS, its obstacle
+  analysis and the extension, its kinds typed): the KAOS engines' readers,
+  and the countermeasure engine's view of a model. Their mappers `ignore` the
+  new kinds (the model's elements, no tree's) and map the new links as
+  written; their outputs on the existing seeds are unchanged.
+- **`.kaos`, in KAOSTools' grammar where it has one** (its parsers,
+  ancailliau/KAOSTools @`6a25d84`, MIT): `declare entity` (or `object`) with
+  `attribute name : type`, `type software|environment|shared`; `declare
+  association` (or `relation`) with `link [0, 1] target` (two bounds are
+  `0..1`) and our `link [1] role : target`; `declare predicate` with
+  `argument a : t`, `formalspec`, `default`; `declare type`. KAOSTools has
+  no operations or events, so these are ours, in its attribute style:
+
+  ```
+  declare operation [ switch_pump_on ]
+    dompre controller.pumpSwitch != "On"
+    dompost controller.pumpSwitch == "On"
+    performedby controller
+    input sump
+    output controller
+    causedby [delay = "1 tick"] high_water_detected
+    operationalizes pump_on_when_high_water
+    reqtrig [pump_on_when_high_water] sump.highWater == true
+  end
+  declare event [ high_water_detected ] frequency "once a minute" end
+  declare agent [ controller ] load "…" monitors sump.highWater controls controller.pumpSwitch end
+  ```
+
+  A required condition names its requirement as a parameter, and makes the
+  operationalisation when no `operationalizes` does. A formula's text is
+  kept as read (#211 parses it). What an attribute names and nothing
+  declares is made, of the kind it implies (an agent, an entity, an event, a
+  goal; a monitored name alone a predicate), and said. An entity's `isa`,
+  an untyped `attribute`, and a form the reader doesn't know are kept as
+  written, as before. A predicate or a type nothing links is laid out in
+  rows below the model, not as a root beside it.
+- **The corpus.** Every `.kaos` file reads to the same model and writes the
+  same text as before but `examples/kaos/flood/flood.kaos`: its 18
+  `declare predicate`s were kept text and are Predicate nodes now, so
+  `flood.txt` is regenerated (the nodes, the block, two rows below the
+  model; no other node moves) and the writer writes them in the model's
+  order. The round trip stays structural with a fixed point, as PR F
+  defined it. The countermeasure selection's outputs on it are unchanged.
+- **A fix the prefixes needed.** The goal language's lexer read a dialect's
+  own prefixes in their declaration order, so `A` shadowed `AS` (and `O`,
+  `OP`): the line `AS1: …` didn't read. They are tried longest first now,
+  as `idPrefixPattern` already ordered them.
+- **The fixture.** `packages/lib/test/importers/fixtures/kaos/
+  pump-operations.kaos` re-keys the structure of FSE'02's mine pump in our
+  own names: it reads, lints clean, and writes back byte for byte but its
+  comments.
+
 ### Models typed by their framework (goal-controller#185)
 
 - **Framework-aware, option 1.** goal-tree's `Model<EK, LK>` (lib's

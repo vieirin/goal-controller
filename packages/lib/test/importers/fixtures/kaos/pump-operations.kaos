@@ -1,0 +1,69 @@
+# A pump controller's operation and object models (goal-controller#194):
+# re-keyed from the structure of Letier and van Lamsweerde, FSE'02, §2.1
+# (its mine pump), in KAOSTools' syntax and ours; names and texts are this
+# fixture's own.
+@title "Pump operations"
+
+declare goal [ pump_on_when_high_water ]
+  name "Maintain [PumpOnWhenHighWater]"
+  definition "The pump is on when the water is high"
+  formalspec when sump.highWater == true then sooner-or-later pump.motor == "On"
+  assignedto controller
+end
+
+declare agent [ controller ]
+  name "PumpController"
+  load "one switch per tick"
+  attribute pumpSwitch : "On|Off"
+  monitors sump.highWater
+  controls controller.pumpSwitch
+end
+
+declare entity [ sump ]
+  name "Sump"
+  type environment
+  attribute highWater : bool
+  attribute level : waterLevel
+end
+
+declare entity [ pump ]
+  name "Pump"
+  attribute motor : "On|Off"
+end
+
+declare type [ waterLevel ]
+  name "WaterLevel"
+  definition "A level, in centimetres"
+end
+
+declare association [ has_pump ]
+  name "HasPump"
+  attribute since : waterLevel
+  link [0, 1] sump
+  link [1] installed : pump
+end
+
+declare event [ high_water_detected ]
+  name "HighWaterDetected"
+  frequency "at most once a minute"
+end
+
+declare predicate [ high_water ]
+  name "HighWater"
+  formalspec s.highWater == true
+  argument s : sump
+  default false
+end
+
+declare operation [ switch_pump_on ]
+  name "SwitchPumpOn"
+  definition "Switches the pump on"
+  dompre controller.pumpSwitch != "On"
+  dompost controller.pumpSwitch == "On"
+  performedby controller
+  input sump
+  output controller
+  causedby [delay = "1 tick"] high_water_detected
+  operationalizes pump_on_when_high_water
+  reqtrig [pump_on_when_high_water] sump.highWater == true
+end

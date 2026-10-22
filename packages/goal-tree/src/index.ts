@@ -117,6 +117,7 @@ export type {
   Shape,
 } from './types/kindTree';
 export { Model, type ModelNamespace } from './Model';
+export { openClosures, type OpenClosure } from './internal/closures';
 export {
   modelShapeProblem,
   refinementsOf,

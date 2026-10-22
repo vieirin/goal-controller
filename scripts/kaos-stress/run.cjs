@@ -813,8 +813,9 @@ const checkCairisSynthetic = () => {
   };
 };
 
+// a model's own kinds (the operation and object models', #194) from its block
 const kaosModelOf = (json) =>
-  core.parsePistar(json, { metamodel: KAOS_OBSTACLES });
+  core.parsePistar(json, { metamodel: KAOS_OBSTACLES, fileMetamodel: true });
 
 /**
  * Each leaf obstacle's experts' combined mean, kaosexpert's over the
@@ -958,9 +959,7 @@ const checkSeed = (name) => {
         };
   });
   checks.validate = check(() => {
-    const issues = core.validateModel(
-      core.parsePistar(modelText, { metamodel: KAOS_OBSTACLES }),
-    );
+    const issues = core.validateModel(kaosModelOf(modelText));
     return issues.length
       ? {
           status: 'fail',

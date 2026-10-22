@@ -18,6 +18,8 @@ import {
   valueOf,
   type ConditionalValue,
   type DefinitionContext,
+  type DefinitionContextElement,
+  type MemberSource,
   type PropertyDefinition,
   type Target,
   type TargetId,
@@ -63,21 +65,46 @@ export const propertyIn = <P extends Pick<PropertyDefinition, 'key' | 'keyed'>>(
  * id a name starts with; its project resources' entries.
  */
 export const targetScopeOf = (context: DefinitionContext): TargetScope => ({
-  kindOf: (id) => {
-    const key = context.iStarIds?.[id] ?? id;
-    return (
-      context.elements[key]?.kind ??
-      context.elements[context.named?.[key] ?? '']?.kind
-    );
-  },
+  kindOf: (id) => contextElementOf(context, id)?.kind,
   entriesOf: (resource) => context.projectResources?.[resource]?.entries,
 });
+
+/**
+ * A `reference`'s name and member as written (`sump.highWater`,
+ * goal-controller#194): with `members`, what follows its last dot when that
+ * is a name (an id's own dots, `T1.1`, are the id's); none without.
+ */
+export const referenceParts = (
+  value: { members?: MemberSource },
+  text: string,
+): { ref: string; member: string | null } => {
+  const written = text.trim();
+  const parts = value.members
+    ? /^(.+)\.([A-Za-z_][A-Za-z0-9_]*)$/.exec(written)
+    : null;
+  return parts
+    ? { ref: parts[1]!, member: parts[2]! }
+    : { ref: written, member: null };
+};
+
+/** The element a name names in a context: by key, by piStar id, or by the id its name starts with. */
+export const contextElementOf = (
+  context: DefinitionContext,
+  id: string,
+): DefinitionContextElement | undefined => {
+  const key = context.iStarIds?.[id] ?? id;
+  return context.elements[key] ?? context.elements[context.named?.[key] ?? ''];
+};
+
+/** A `reference` that reads members, read (goal-controller#194): the element it names, and its member. */
+export type MemberReference<I> = { id: I; member: string | null };
 
 /**
  * What a value config reads into: `ValueData` for its type, an enum narrowed
  * to its options' values (when the config keeps their literal types; any
  * word when it is `open`). A dialect's types the goal language has no rule
- * for: a `reference` is the id written, a `formula` its text, a
+ * for: a `reference` is the id written (with its member, when it reads
+ * members), a `formula` its text, a
  * `probability` its number in [0, 1]. Null: empty.
  */
 export type ValueDataOf<C> = C extends { type: 'enum'; open: true }
@@ -90,17 +117,19 @@ export type ValueDataOf<C> = C extends { type: 'enum'; open: true }
       ? Assertion[]
       : C extends { type: 'pairList'; value: infer V }
         ? PairList<V extends 'text' ? string : number>
-        : C extends { type: 'reference'; target: infer T }
-          ? TargetId<T> | null
-          : C extends { type: 'formula' }
-            ? string | null
-            : C extends { type: 'probability' }
-              ? number | null
-              : C extends { type: 'distribution' }
-                ? Distribution | null
-                : C extends { type: infer T extends keyof ValueData }
-                  ? ValueData[T]
-                  : never;
+        : C extends { type: 'reference'; target: infer T; members: object }
+          ? MemberReference<TargetId<T>> | null
+          : C extends { type: 'reference'; target: infer T }
+            ? TargetId<T> | null
+            : C extends { type: 'formula' }
+              ? string | null
+              : C extends { type: 'probability' }
+                ? number | null
+                : C extends { type: 'distribution' }
+                  ? Distribution | null
+                  : C extends { type: infer T extends keyof ValueData }
+                    ? ValueData[T]
+                    : never;
 
 /** What a property reads into: a conditional one's, either of its configs'. */
 export type PropertyDataOf<V> = V extends ConditionalValue
@@ -218,16 +247,18 @@ const readValue = (
 ): unknown => {
   switch (config.type) {
     case 'reference': {
-      const id = text.trim();
+      const { ref: id, member } = referenceParts(config, text);
       if (!id) return null;
+      const read = (named: unknown) =>
+        config.members ? { id: named, member } : named;
       if (!context || !('kinds' in config.target))
-        return targetId(config.target, id);
+        return read(targetId(config.target, id));
       // an id of no element, or of a kind it doesn't name, isn't its type,
       // as valueProblem reports
       const kind = context.kindOf(id);
       return kind !== undefined &&
         (config.target.kinds as readonly string[]).includes(kind)
-        ? targetId(config.target, id)
+        ? read(targetId(config.target, id))
         : undefined;
     }
     case 'formula':
