@@ -106,5 +106,9 @@ scope.onmessage = (event: MessageEvent<EngineWorkerRequest>) => {
     scheduleAnalysis();
     return;
   }
+  if (message.type === 'ping') {
+    post({ type: 'pong', id: message.id });
+    return;
+  }
   runTransform(message.options);
 };

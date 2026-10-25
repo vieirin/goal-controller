@@ -51,6 +51,11 @@ export type EngineWorkerRequest =
   | {
       readonly type: 'transform';
       readonly options: TransformRequestOptions;
+    }
+  | {
+      /** a liveness probe: the worker answers `pong` as soon as it's free */
+      readonly type: 'ping';
+      readonly id: number;
     };
 
 /** Worker → main thread. */
@@ -68,4 +73,8 @@ export type EngineWorkerResponse =
   | {
       readonly type: 'transformed';
       readonly outcome: TransformOutcome;
+    }
+  | {
+      readonly type: 'pong';
+      readonly id: number;
     };

@@ -2,10 +2,13 @@
  * The main-thread side of the engine worker (goal-controller#413): one
  * worker per `WorkbenchProvider`, its mirror reconnected to the session's
  * dispatcher whenever the session changes (a new model opened). Analysis
- * results arrive as they're ready; a transform is request/response, keyed
- * by a request id so several in flight (Run, then live mode) don't cross.
- * A crash (`onerror`/`onmessageerror`, goal-controller#432 review) fails
- * every pending transform, surfaces as `crashed`, and respawns the worker.
+ * outcomes are handed to `onAnalysis` as they arrive; a transform is
+ * request/response, keyed by a request id. Every transform settles exactly
+ * once (`settle`, goal-controller#432 review): with the worker's outcome, a
+ * failure if the worker crashes, or `cancelled` when a newer request
+ * supersedes it, the session it was sent for goes away, or the provider
+ * unmounts. A crash (`onerror`/`onmessageerror`, or no `pong` to a `probe`)
+ * is reported to `onAnalysis` too, and respawns the worker.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { connectDispatcher, type ActionDispatcher } from '@istar-ts/actions';
@@ -18,60 +21,106 @@ import type {
   TransformRequestOptions,
 } from './engineWorkerProtocol';
 
-export type EngineAnalysis =
-  | { readonly ok: true; readonly key: string; readonly data: AnalyzeResponse }
-  | { readonly ok: false; readonly key: string; readonly message: string };
+/** what the worker says about analysis: a result or a failure for a key, or that it died */
+export type EngineAnalysisOutcome =
+  | {
+      readonly kind: 'analyzed';
+      readonly key: string;
+      readonly data: AnalyzeResponse;
+    }
+  | { readonly kind: 'failed'; readonly key: string; readonly message: string }
+  | { readonly kind: 'crashed'; readonly message: string };
 
-/** A worker crash, with a fresh identity each time so a repeat is still a change. */
-export type EngineWorkerCrash = {
-  readonly message: string;
-  readonly at: number;
-};
+/** why a transform was settled without the worker's answer */
+export type TransformCancelReason = 'superseded' | 'session' | 'unmounted';
+
+export type EngineTransformResult =
+  | { readonly status: 'done'; readonly outcome: TransformOutcome }
+  | { readonly status: 'cancelled'; readonly reason: TransformCancelReason };
 
 export type EngineWorkerClient = {
-  /** the worker's latest analysis, by key (`analysisKey`); none until the first */
-  readonly analysis: EngineAnalysis | null;
   /** runs a transform in the worker, against its mirror's current model */
   readonly transform: (
     options: Omit<TransformRequestOptions, 'requestId'>,
-  ) => Promise<TransformOutcome>;
-  /** the worker's last crash, if any; a new one is always a new object */
-  readonly crashed: EngineWorkerCrash | null;
+  ) => Promise<EngineTransformResult>;
+  /**
+   * asks the worker for a `pong`; none within `timeoutMs` and the worker is
+   * treated as crashed (it's single-threaded: busy that long is hung). One
+   * probe at a time: a call while one is out is a no-op.
+   */
+  readonly probe: (timeoutMs: number) => void;
+  /** transforms sent and not settled yet (what the tests check is never leaked) */
+  readonly pendingTransforms: () => number;
 };
 
 /** `connect` is sent with its port instead, by the reconnect effect below. */
 type EngineWorkerCommand = Exclude<EngineWorkerRequest, { type: 'connect' }>;
+
+type PendingTransform = {
+  readonly resolve: (result: EngineTransformResult) => void;
+};
 
 const spawnWorker = (): Worker =>
   new Worker(new URL('./engineWorker.ts', import.meta.url), {
     type: 'module',
   });
 
+const failed = (requestId: number, error: string): EngineTransformResult => ({
+  status: 'done',
+  outcome: { requestId, modelSignature: null, ok: false, error },
+});
+
 /**
  * Connects `dispatcher` to a dedicated engine worker: analysis reruns there
  * on every `sourceModelChanged`, debounced; `transform` runs there once per
  * call. No worker where the page is prerendered (`typeof Worker ===
- * 'undefined'`): `analysis` stays null and `transform` rejects every call.
+ * 'undefined'`): `onAnalysis` is never called and every `transform` fails.
  */
 export const useEngineWorker = (
   dispatcher: ActionDispatcher<string, string>,
   engine: TransformEngine,
   pistar: boolean,
+  onAnalysis: (outcome: EngineAnalysisOutcome) => void,
 ): EngineWorkerClient => {
   const workerRef = useRef<Worker | null>(null);
-  const pending = useRef(
-    new Map<
-      number,
-      { sessionId: number; resolve: (outcome: TransformOutcome) => void }
-    >(),
-  );
+  const pending = useRef(new Map<number, PendingTransform>());
   const nextRequestId = useRef(0);
-  const latestRequestId = useRef(0);
-  const sessionId = useRef(0);
-  const [analysis, setAnalysis] = useState<EngineAnalysis | null>(null);
-  const [crashed, setCrashed] = useState<EngineWorkerCrash | null>(null);
+  const probing = useRef<{
+    readonly id: number;
+    readonly timer: ReturnType<typeof setTimeout>;
+  } | null>(null);
+  const nextProbeId = useRef(0);
+  // the current worker's crash path, for a probe that times out
+  const crashRef = useRef<((message: string) => void) | null>(null);
+  // the latest callback, so the worker's handlers never need re-binding
+  const onAnalysisRef = useRef(onAnalysis);
+  useEffect(() => {
+    onAnalysisRef.current = onAnalysis;
+  });
   // bumped to respawn the worker (its creation effect below keys on it)
   const [workerVersion, setWorkerVersion] = useState(0);
+
+  // the one place a pending transform is resolved and forgotten
+  const settle = useCallback(
+    (requestId: number, result: EngineTransformResult): void => {
+      const entry = pending.current.get(requestId);
+      if (!entry) return;
+      pending.current.delete(requestId);
+      entry.resolve(result);
+    },
+    [],
+  );
+  const settleAll = useCallback(
+    (result: (requestId: number) => EngineTransformResult): void => {
+      for (const requestId of pending.current.keys())
+        settle(requestId, result(requestId));
+    },
+    [settle],
+  );
+  const stopProbing = useCallback((): void => {
+    if (probing.current) clearTimeout(probing.current.timer);
+    probing.current = null;
+  }, []);
 
   useEffect(() => {
     if (typeof Worker === 'undefined') return undefined;
@@ -79,40 +128,40 @@ export const useEngineWorker = (
     const crash = (message: string): void => {
       if (workerRef.current !== worker) return;
       workerRef.current = null;
-      for (const [requestId, entry] of pending.current) {
-        entry.resolve({
-          requestId,
-          modelSignature: null,
-          ok: false,
-          error: message,
-        });
-      }
-      pending.current.clear();
-      setCrashed({ message, at: Date.now() });
+      stopProbing();
+      worker.terminate();
+      settleAll((requestId) => failed(requestId, message));
+      onAnalysisRef.current({ kind: 'crashed', message });
       setWorkerVersion((version) => version + 1);
     };
+    crashRef.current = crash;
     worker.onmessage = (event: MessageEvent<EngineWorkerResponse>) => {
       const message = event.data;
       if (message.type === 'analyzed') {
-        setAnalysis({ ok: true, key: message.key, data: message.data });
+        onAnalysisRef.current({
+          kind: 'analyzed',
+          key: message.key,
+          data: message.data,
+        });
         return;
       }
       if (message.type === 'analyzeFailed') {
-        setAnalysis({ ok: false, key: message.key, message: message.message });
+        onAnalysisRef.current({
+          kind: 'failed',
+          key: message.key,
+          message: message.message,
+        });
         return;
       }
-      const { outcome } = message;
-      const entry = pending.current.get(outcome.requestId);
-      if (!entry) return;
-      pending.current.delete(outcome.requestId);
-      // dropped: a later request already superseded this one, or the
-      // session (an opened/closed model) it was sent for is gone
-      if (
-        entry.sessionId !== sessionId.current ||
-        outcome.requestId !== latestRequestId.current
-      )
+      if (message.type === 'pong') {
+        if (probing.current?.id === message.id) stopProbing();
         return;
-      entry.resolve(outcome);
+      }
+      // none pending: it was already cancelled (superseded, or its session gone)
+      settle(message.outcome.requestId, {
+        status: 'done',
+        outcome: message.outcome,
+      });
     };
     worker.onerror = (event: ErrorEvent) => {
       crash(event.message || 'the engine worker crashed');
@@ -124,14 +173,17 @@ export const useEngineWorker = (
     workerRef.current = worker;
     return () => {
       worker.terminate();
-      if (workerRef.current === worker) workerRef.current = null;
+      if (workerRef.current === worker) {
+        workerRef.current = null;
+        stopProbing();
+        settleAll(() => ({ status: 'cancelled', reason: 'unmounted' }));
+      }
     };
-  }, [workerVersion]);
+  }, [workerVersion, settle, settleAll, stopProbing]);
 
   useEffect(() => {
     const worker = workerRef.current;
     if (!worker) return undefined;
-    sessionId.current += 1;
     const { port1, port2 } = new MessageChannel();
     const disconnect = connectDispatcher<string, string, MessageEvent>(
       port1,
@@ -140,8 +192,13 @@ export const useEngineWorker = (
     worker.postMessage({ type: 'connect' } satisfies EngineWorkerRequest, [
       port2,
     ]);
-    return () => disconnect();
-  }, [dispatcher, workerVersion]);
+    return () => {
+      disconnect();
+      // the model they were asked for is gone: their answers would label
+      // a run of the next one
+      settleAll(() => ({ status: 'cancelled', reason: 'session' }));
+    };
+  }, [dispatcher, workerVersion, settleAll]);
 
   useEffect(() => {
     const worker = workerRef.current;
@@ -153,22 +210,17 @@ export const useEngineWorker = (
   const transform = useCallback(
     (
       options: Omit<TransformRequestOptions, 'requestId'>,
-    ): Promise<TransformOutcome> => {
+    ): Promise<EngineTransformResult> => {
       const worker = workerRef.current;
       if (!worker)
-        return Promise.resolve({
-          requestId: -1,
-          modelSignature: null,
-          ok: false,
-          error: 'the engine worker is not available in this environment',
-        });
+        return Promise.resolve(
+          failed(-1, 'the engine worker is not available in this environment'),
+        );
+      // only the latest request's answer is wanted (the worker answers in order)
+      settleAll(() => ({ status: 'cancelled', reason: 'superseded' }));
       const requestId = (nextRequestId.current += 1);
-      latestRequestId.current = requestId;
       return new Promise((resolve) => {
-        pending.current.set(requestId, {
-          sessionId: sessionId.current,
-          resolve,
-        });
+        pending.current.set(requestId, { resolve });
         const message: EngineWorkerCommand = {
           type: 'transform',
           options: { ...options, requestId },
@@ -176,8 +228,28 @@ export const useEngineWorker = (
         worker.postMessage(message);
       });
     },
-    [],
+    [settleAll],
   );
 
-  return { analysis, transform, crashed };
+  const probe = useCallback((timeoutMs: number): void => {
+    const worker = workerRef.current;
+    if (!worker || probing.current) return;
+    const id = (nextProbeId.current += 1);
+    probing.current = {
+      id,
+      timer: setTimeout(
+        () =>
+          crashRef.current?.(
+            `The engine worker stopped responding (no reply in ${timeoutMs / 1000}s); it was restarted.`,
+          ),
+        timeoutMs,
+      ),
+    };
+    const message: EngineWorkerCommand = { type: 'ping', id };
+    worker.postMessage(message);
+  }, []);
+
+  const pendingTransforms = useCallback(() => pending.current.size, []);
+
+  return { transform, probe, pendingTransforms };
 };
