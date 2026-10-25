@@ -14,7 +14,7 @@ export default async function globalSetup(config: FullConfig): Promise<void> {
   try {
     const page = await browser.newPage();
     await page.goto(`${baseURL}/?example=edgeV2/simpleChoice.txt`);
-    await page.locator('.react-flow__pane').waitFor({
+    await page.locator('[data-workbench-ready="true"]').waitFor({
       state: 'visible',
       timeout: 60_000,
     });
