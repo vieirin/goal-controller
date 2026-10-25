@@ -7,7 +7,7 @@ import {
   generatesFiles,
   isDialectEngine,
 } from '@/lib/workbench/engineDialects';
-import type { Analysis, LoggerReport } from '@goal-controller/lib';
+import type { Analysis, AnyModel, LoggerReport } from '@goal-controller/lib';
 import {
   cairisEnvironmentSlug,
   dialectForModel,
@@ -31,7 +31,15 @@ import {
   treeProblems,
 } from '@/lib/workbench/localProblems';
 import type { GoalView } from '@goal-controller/goal-tree';
-import { parseModel } from '@/lib/workbench/dialects';
+import { emptyModel, parseModel } from '@/lib/workbench/dialects';
+import { serializeModel } from '@/lib/workbench/pistar';
+import {
+  createModelSession,
+  type ModelChanged,
+  type ModelSession,
+} from '@/lib/workbench/modelSession';
+import type { ActionDispatcher } from '@istar-ts/actions';
+import type { IstarSurface } from '@istar-ts/react';
 import { frameworkProblems } from '@/lib/workbench/frameworkProblems';
 import { frameworkOfModel } from '@/lib/workbench/frameworks';
 import {
@@ -331,13 +339,27 @@ export type Workbench = {
   projectSource: ProjectSource | null;
   /** close the model and go back to the start screen; it stays in Recent with its edits */
   closeModel: () => void;
+  /**
+   * the text as the model's, read into the store as one undoable edit (bursts
+   * coalesced); a text that doesn't parse is kept, the store left as it was.
+   * The editors not yet ported to actions write through it (#411)
+   */
   setText: (text: string, source: ChangeSource) => void;
   renameFile: (fileName: string) => void;
   markSaved: () => void;
+  /** `glspUndo` on the dispatcher: the one undo history (#410) */
   undo: () => void;
+  /** `glspRedo` on the dispatcher */
   redo: () => void;
   canUndo: boolean;
   canRedo: boolean;
+  /**
+   * the open model's store and dispatcher (#410): the model is the source of
+   * truth, and `text` is derived from it on every `sourceModelChanged`
+   */
+  session: ModelSession;
+  /** the dispatcher an editor sends its actions through, tagged with its surface */
+  dispatcherFor: (surface: IstarSurface) => ActionDispatcher<string, string>;
   recent: RecentFile[];
   /** `id`: the entry's recentId */
   forgetRecent: (id: string) => void;
@@ -617,8 +639,10 @@ const useDebounced = <T,>(value: T, ms: number): T => {
   return debounced;
 };
 
-const UNDO_LIMIT = 100;
 const COALESCE_MS = 600;
+
+/** A model text read (blank: an empty model), or why it can't be. */
+type ReadText = { model: AnyModel } | { error: Error };
 
 // ---------------------------------------------------------------------------
 // Provider
@@ -737,15 +761,13 @@ function WorkbenchState({
   const openSettings = useCallback(() => setSettingsDialog('edit'), []);
   const closeSettings = useCallback(() => setSettingsDialog(null), []);
 
-  const undoStack = useRef<string[]>([]);
-  const redoStack = useRef<string[]>([]);
   const lastPush = useRef(0);
   const [, forceHistory] = useState(0);
   // read after loadPreferences, which may move an old autosave into Recent
   const [recent, setRecent] = useState<RecentFile[]>(() => loadRecent());
 
-  // latest text, updated synchronously so the undo bookkeeping stays outside
-  // state updaters (React may run updaters twice)
+  // latest text, updated synchronously so the text and the store stay in step
+  // outside state updaters (React may run updaters twice)
   const textRef = useRef(model.text);
   const commit = useCallback((text: string, source: ChangeSource) => {
     textRef.current = text;
@@ -758,24 +780,111 @@ function WorkbenchState({
     forceHistory((n) => n + 1);
   }, []);
 
+  // the last text read, and what it read (setText and `parsed` read each once)
+  const lastRead = useRef<{ text: string; read: ReadText } | null>(null);
+  const readText = useCallback((text: string): ReadText => {
+    if (lastRead.current?.text === text) return lastRead.current.read;
+    let read: ReadText;
+    try {
+      read = { model: text.trim() ? parseModel(text) : emptyModel() };
+    } catch (error) {
+      read = { error: error as Error };
+    }
+    lastRead.current = { text, read };
+    return read;
+  }, []);
+
+  // ---- the model: the store and dispatcher own it, the text is derived (#410) ----
+  // the text each model of the history was shown as: undo and redo bring it back as it was
+  const textOf = useRef(new WeakMap<AnyModel, string>());
+  // the model setText last read into the store (its next burst replaces it)
+  const lastReplaced = useRef<AnyModel | null>(null);
+  // the dispatcher's sourceModelChanged: an edit (canvas, inspector), undo or redo
+  const onModelChanged = useCallback(
+    ({ model: next, action, surface }: ModelChanged) => {
+      const text =
+        textOf.current.get(next) ?? serializeModel(next, textRef.current);
+      textOf.current.set(next, text);
+      lastReplaced.current = null;
+      if (text === textRef.current) {
+        forceHistory((n) => n + 1);
+        return;
+      }
+      commit(
+        text,
+        action.source === 'undo' || action.source === 'redo'
+          ? 'undo'
+          : (surface ?? 'canvas'),
+      );
+    },
+    [commit],
+  );
+  const onModelChangedRef = useRef(onModelChanged);
+  onModelChangedRef.current = onModelChanged;
+  const newSession = useCallback(
+    (model: AnyModel): ModelSession =>
+      createModelSession(model, (change) => onModelChangedRef.current(change)),
+    [],
+  );
+  const [session, setSession] = useState(() => newSession(emptyModel()));
+  const sessionRef = useRef(session);
+  // disposes the session that's current when the provider unmounts for real.
+  // Strict Mode mounts, cleans up, and remounts the same session: the
+  // cleanup only *schedules* the dispose, so the second mount can cancel it
+  // before the session it's about to keep using is torn down.
+  const disposeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (disposeTimer.current !== null) {
+      clearTimeout(disposeTimer.current);
+      disposeTimer.current = null;
+    }
+    return () => {
+      const current = sessionRef.current;
+      disposeTimer.current = setTimeout(() => {
+        disposeTimer.current = null;
+        current.dispose();
+      }, 0);
+    };
+  }, []);
+  /** a new session for an opened model (none: an empty one): its history starts empty */
+  const startSession = useCallback(
+    (text: string) => {
+      const read = readText(text);
+      const model = 'model' in read ? read.model : emptyModel();
+      if ('model' in read) textOf.current.set(model, text);
+      sessionRef.current.dispose();
+      const next = newSession(model);
+      sessionRef.current = next;
+      lastReplaced.current = null;
+      setSession(next);
+    },
+    [readText, newSession],
+  );
+
   const setText = useCallback(
     (text: string, source: ChangeSource) => {
       if (textRef.current === text) return;
       const now = Date.now();
-      // coalesce bursts (typing, dragging) into one undo step
-      if (
-        now - lastPush.current > COALESCE_MS ||
-        undoStack.current.length === 0
-      ) {
-        undoStack.current = [...undoStack.current, textRef.current].slice(
-          -UNDO_LIMIT,
-        );
+      const read = readText(text);
+      if ('model' in read) {
+        const { store, quietly } = sessionRef.current;
+        // coalesce bursts (typing) into one undo step: the burst's last
+        // replace is taken back and made again with this text's model
+        const burst =
+          now - lastPush.current <= COALESCE_MS &&
+          lastReplaced.current === store.getModel() &&
+          store.canUndo();
+        quietly(() => {
+          if (burst) store.undo();
+          store.replace(read.model);
+        });
+        lastReplaced.current = read.model;
+        textOf.current.set(read.model, text);
       }
       lastPush.current = now;
-      redoStack.current = [];
       commit(text, source);
     },
-    [commit],
+    [commit, readText],
   );
 
   // ---- the model's options: written to its manifest (lib/project) ---------
@@ -916,20 +1025,11 @@ function WorkbenchState({
   );
 
   const undo = useCallback(() => {
-    const previous = undoStack.current.pop();
-    if (previous === undefined) return;
-    redoStack.current.push(textRef.current);
-    lastPush.current = 0;
-    commit(previous, 'undo');
-  }, [commit]);
-
+    void sessionRef.current.dispatcher.dispatch({ kind: 'glspUndo' });
+  }, []);
   const redo = useCallback(() => {
-    const next = redoStack.current.pop();
-    if (next === undefined) return;
-    undoStack.current.push(textRef.current);
-    lastPush.current = 0;
-    commit(next, 'undo');
-  }, [commit]);
+    void sessionRef.current.dispatcher.dispatch({ kind: 'glspRedo' });
+  }, []);
 
   // ---- navigation (the selection itself is in SelectionProvider) ----------
   const [modelTab, setModelTab] = useState<ModelTab>('diagram');
@@ -1019,15 +1119,15 @@ function WorkbenchState({
         projectSource: source,
         aside,
       }));
-      undoStack.current = [];
-      redoStack.current = [];
+      // the model in the store in the same update as the mode it opens in (#419)
+      startSession(text);
       setRuns([]);
       setAnalysisRun(null);
       clearSelection();
       setConversion(null);
       forceHistory((n) => n + 1);
     },
-    [leaving, adoptSettings, clearSelection],
+    [leaving, adoptSettings, clearSelection, startSession],
   );
 
   // the saved text of each model of the open project left for another (#329)
@@ -1268,8 +1368,7 @@ function WorkbenchState({
       projectSource: null,
       aside: undefined,
     }));
-    undoStack.current = [];
-    redoStack.current = [];
+    startSession('');
     setRuns([]);
     setAnalysisRun(null);
     clearSelection();
@@ -1277,7 +1376,7 @@ function WorkbenchState({
     setProject(null);
     setModelPath(null);
     forceHistory((n) => n + 1);
-  }, [leaving, adoptSettings, clearSelection]);
+  }, [leaving, adoptSettings, clearSelection, startSession]);
 
   const renameFile = useCallback((fileName: string) => {
     // the entry under the old name is replaced by the next Recent sync; a renamed
@@ -1322,12 +1421,11 @@ function WorkbenchState({
     istar?: ReturnType<typeof parseModel>;
   } => {
     if (!model.text.trim()) return { error: null };
-    try {
-      return { error: null, istar: parseModel(model.text) };
-    } catch (error) {
-      return { error: jsonProblem(model.text, error as Error) };
-    }
-  }, [model.text]);
+    const read = readText(model.text);
+    return 'model' in read
+      ? { error: null, istar: read.model }
+      : { error: jsonProblem(model.text, read.error) };
+  }, [model.text, readText]);
   // the tree: goal-tree's view of the model, read with the engine's grammar; the last one
   // of the same file stays while the JSON is being fixed
   const [served, setServed] = useState<{
@@ -2376,8 +2474,10 @@ function WorkbenchState({
     markSaved,
     undo,
     redo,
-    canUndo: undoStack.current.length > 0,
-    canRedo: redoStack.current.length > 0,
+    canUndo: session.store.canUndo(),
+    canRedo: session.store.canRedo(),
+    session,
+    dispatcherFor: session.dispatcherFor,
     recent,
     forgetRecent,
     tree,

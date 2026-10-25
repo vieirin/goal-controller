@@ -170,19 +170,6 @@ export const setNodeText = (
   );
 
 /** Set (value) or remove (null) a custom property. */
-/** Set (colour) or clear (null) an element's fill, kept in the diagram like piStar does. */
-export const setNodeColor = (
-  text: string,
-  iStarId: string,
-  color: string | null,
-): string =>
-  rewrite(text, (model) =>
-    updateElement(model, findNode(model, iStarId).id, {
-      // undefined removes the key
-      display: { backgroundColor: color ?? undefined },
-    }),
-  );
-
 export const setNodeProperty = (
   text: string,
   iStarId: string,

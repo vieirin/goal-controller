@@ -32,7 +32,7 @@ import { type SelectedPart, useWorkbench } from '../../WorkbenchContext';
 import { CreatableSelect } from '../../ui';
 import {
   PropertyRow,
-  useEditModel,
+  useEditModelText,
   type PropertyEditor,
 } from '../shared/inspector';
 import DefinitionValueEditor, {
@@ -50,7 +50,7 @@ export default function PartInspector({
   part: SelectedPart;
 }) {
   const wb = useWorkbench();
-  const edit = useEditModel();
+  const edit = useEditModelText();
   const support = useLanguageSupport(engine);
   const definition = ENGINE_DIALECTS[engine];
   const registry = ENGINE_CHECKS[engine] as Readonly<

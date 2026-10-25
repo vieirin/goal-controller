@@ -240,20 +240,21 @@ describe('Add to project in the workbench (#329)', () => {
   });
   afterEach(() => vi.unstubAllGlobals());
 
-  // #419: WorkbenchCanvas.tsx loads the new framework's model into the
-  // store via a useEffect, one render after extensions/mode (derived
-  // synchronously from wb.text) already switch frameworks; istar-ts's
-  // ElementNode renders in that render with the new registry against the
-  // still-old model and crashes on registry.elements[oldKind]. M1's
-  // single-store/dispatcher architecture removes the two-state race.
-  it.skip('adds a KAOS file to an open NFR project: both models open, each with its own palette', async () => {
+  // #419: the model the canvas draws and the mode whose palette it draws it
+  // with change in one update (a session per opened model, #410)
+  it('adds a KAOS file to an open NFR project: both models open, each with its own palette', async () => {
     const { wb, container } = workbench();
     await act(() => wb().openModelFile('nfr-welcome.txt', NFR_WELCOME));
     await waitFor(() => expect(wb().mode).toBe('nfr'));
+    // the palette is the dispatcher's answer: async (istar-ts 0.15)
+    await waitFor(() =>
+      expect(
+        paletteOf(container).some((t) =>
+          t.startsWith('Adding Operationalization'),
+        ),
+      ).toBe(true),
+    );
     const nfrPalette = paletteOf(container);
-    expect(
-      nfrPalette.some((t) => t.startsWith('Adding Operationalization')),
-    ).toBe(true);
     await act(() => wb().addModelFile('kaos-welcome.txt', KAOS_WELCOME));
     // no switch asked: it is added, and opened in KAOS
     expect(wb().frameworkSwitch).toBeNull();
