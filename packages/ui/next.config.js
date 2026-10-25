@@ -10,6 +10,9 @@ const ISTAR_CORE = require.resolve('@istar-ts/core');
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'export',
+  // e2e runs its own dev server under a dedicated distDir (NEXT_DIST_DIR), so it
+  // never writes into a running `next dev`'s .next
+  distDir: process.env.NEXT_DIST_DIR || '.next',
   basePath,
   assetPrefix: basePath || undefined,
   trailingSlash: true,
