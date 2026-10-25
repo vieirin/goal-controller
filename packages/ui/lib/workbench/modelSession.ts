@@ -9,6 +9,8 @@
 import {
   createActionDispatcher,
   type ActionDispatcher,
+  type ActionGuard,
+  type ActionPostGuard,
   type DispatchOptions,
   type IstarAction,
   type ModelSourceChangedAction,
@@ -51,6 +53,15 @@ export type ModelSession = {
    * iStar 2.0's. The dispatcher reads it on each request.
    */
   setPalette(palette: AnyPaletteDescription | null): void;
+  /**
+   * The mode's rules, rejected before an operation applies (goal-controller#412):
+   * the dispatcher's own `guards` is fixed at creation, so these are the ones a
+   * single guard in it delegates to, read fresh on each dispatch. Replaced
+   * whole (not merged) each time the mode's diagram sets them; none, between.
+   */
+  setGuards(guards: readonly ActionGuard<string, string>[]): void;
+  /** Like `setGuards`, for rules checked after an operation applies. */
+  setPostGuards(guards: readonly ActionPostGuard<string, string>[]): void;
   /** the store's edits (not undo, redo or load), but the quiet ones */
   subscribeEdits(
     listener: (event: ModelChangeEvent<string, string>) => void,
@@ -71,11 +82,26 @@ export const createModelSession = (
   // extensions, PaletteBridge): the dispatcher asks for it on each request
   // (istar-ts#202), so a dialect change doesn't need a new dispatcher
   let palette: AnyPaletteDescription = DEFAULT_PALETTE;
+  // the mode's own guards (oneActorOnly, an edgeV2 check, #412): set by
+  // whichever diagram is showing the model, read fresh on each dispatch
+  // (the dispatcher's own `guards`/`postGuards` are fixed at creation)
+  let modeGuards: readonly ActionGuard<string, string>[] = [];
+  let modePostGuards: readonly ActionPostGuard<string, string>[] = [];
   // sendModel: each sourceModelChanged carries the model and canUndo/canRedo,
   // for a mirror that follows it from another thread (the engine worker, #413)
   const dispatcher = createActionDispatcher(store, {
     palette: () => palette,
-    guards: [pistarExtMetamodelGuard],
+    guards: [
+      pistarExtMetamodelGuard,
+      (operation, before) =>
+        modeGuards.flatMap((guard) => guard(operation, before) ?? []),
+    ],
+    postGuards: [
+      (operation, after, before) =>
+        modePostGuards.flatMap(
+          (guard) => guard(operation, after, before) ?? [],
+        ),
+    ],
     sendModel: true,
   });
   // the surface a sourceModelChanged came from, from the dispatch's own
@@ -123,6 +149,12 @@ export const createModelSession = (
     },
     setPalette: (next) => {
       palette = next ?? DEFAULT_PALETTE;
+    },
+    setGuards: (guards) => {
+      modeGuards = guards;
+    },
+    setPostGuards: (guards) => {
+      modePostGuards = guards;
     },
     subscribeEdits: (listener) =>
       store.subscribe((event) => {

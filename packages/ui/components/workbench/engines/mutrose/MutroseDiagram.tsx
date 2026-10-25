@@ -2,6 +2,7 @@
 
 import { ENGINE_DIALECTS } from '@/lib/workbench/engineDialects';
 import { nextRtId } from '@/lib/workbench/pistar';
+import type { ActionGuard } from '@istar-ts/actions';
 import {
   DefaultElementComponent,
   type ElementComponentProps,
@@ -107,12 +108,12 @@ export const MUTROSE_PALETTE: readonly IstarExtension[] = [mutrosePalette];
 const mutroseOneActor = oneActorOnly(
   'MutRoSe reads a single actor (its mission): add goals and tasks inside the existing one.',
 );
+const MUTROSE_GUARDS: readonly ActionGuard<string, string>[] = [
+  mutroseOneActor,
+];
 
 export default function MutroseDiagram() {
   return (
-    <WorkbenchCanvas
-      extensions={MUTROSE_EXTENSIONS}
-      rejectEdit={mutroseOneActor}
-    />
+    <WorkbenchCanvas extensions={MUTROSE_EXTENSIONS} guards={MUTROSE_GUARDS} />
   );
 }

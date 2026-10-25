@@ -31,7 +31,7 @@ import {
   treeProblems,
 } from '@/lib/workbench/localProblems';
 import type { GoalView } from '@goal-controller/goal-tree';
-import type { PistarFile } from '@istar-ts/core';
+import type { GoalDiagnostic, PistarFile } from '@istar-ts/core';
 import {
   emptyModel,
   fileMetamodelForText,
@@ -372,6 +372,16 @@ export type Workbench = {
   session: ModelSession;
   /** the dispatcher an editor sends its actions through, tagged with its surface */
   dispatcherFor: (surface: IstarSurface) => ActionDispatcher<string, string>;
+  /**
+   * The inspector's last rejected edit (a guard's diagnostics), shown next to
+   * the model until dismissed or replaced by another rejection: the inspector
+   * surface has no `editor.notify` of its own (`useIstarEditor`'s, the canvas
+   * uses), unlike the canvas (@istar-ts/react notifies there itself) and
+   * SourceView (its own inline diagnostics, goal-controller#412).
+   */
+  editRejected: readonly GoalDiagnostic[];
+  notifyEditRejected: (diagnostics: readonly GoalDiagnostic[]) => void;
+  dismissEditRejected: () => void;
   recent: RecentFile[];
   /** `id`: the entry's recentId */
   forgetRecent: (id: string) => void;
@@ -1734,6 +1744,16 @@ function WorkbenchState({
     [parsedResources, engine, resourceTexts],
   );
   const [resourceNotice, setResourceNotice] = useState<string | null>(null);
+  // the inspector's rejections (guards #412): no editor.notify of its own, so
+  // kept here and shown next to the model until dismissed or replaced
+  const [editRejected, setEditRejected] = useState<readonly GoalDiagnostic[]>(
+    [],
+  );
+  const notifyEditRejected = useCallback(
+    (diagnostics: readonly GoalDiagnostic[]) => setEditRejected(diagnostics),
+    [],
+  );
+  const dismissEditRejected = useCallback(() => setEditRejected([]), []);
 
   /** the open project, with the model as it is now (its edits) */
   const currentProject = useCallback((): Project | null => {
@@ -2581,6 +2601,9 @@ function WorkbenchState({
     canRedo: session.store.canRedo(),
     session,
     dispatcherFor: session.dispatcherFor,
+    editRejected,
+    notifyEditRejected,
+    dismissEditRejected,
     recent,
     forgetRecent,
     tree,
