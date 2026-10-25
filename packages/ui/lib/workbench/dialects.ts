@@ -165,6 +165,14 @@ export const declaresKinds = (mode: string | null, framework: Framework) =>
   (mode !== null && mode in ENGINE_FILE_KINDS) ||
   framework !== DEFAULT_FRAMEWORK;
 
+/**
+ * Whether `istar.replaceModel` should apply `text`'s own `"metamodel"` block
+ * (its `fileMetamodel` argument): as `parseModel` would, by the text's own
+ * recorded mode and framework.
+ */
+export const fileMetamodelForText = (text: string): boolean =>
+  declaresKinds(recordedMode(text), frameworkOfModel(text));
+
 /*
  * A model read with a dialect is typed as an iStar 2.0 one: the workbench's
  * helpers switch on iStar's kinds and pass any other through, and the model

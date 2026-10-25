@@ -144,8 +144,11 @@ export default function ModelSettingsModal() {
       if (target === 'pistar') {
         // kept on the host-side replace (goal-controller#411): this path
         // only runs switching into iStar 2.0 from a DSM3-goals framework
-        // (KAOS, NFR), whose `tool`/`metamodelVersion` the diff can't
-        // express into an action either (see modelDiff.ts's module doc)
+        // (KAOS, NFR). `istar.updateModelExtra` moves `tool` and
+        // `metamodelVersion`, but the switch also adds the root `istar`
+        // field ("2.0"), which no action writes (core's own, rejected by
+        // `updateModelExtra`'s `set`/`remove` with `reserved-key`) — filed
+        // with the orchestrator for istar-ts (beta.5)
         wb.setText(empty, 'convert');
         wb.requestMode('pistar');
       } else wb.applyConversion(target, writeModelMode(empty, target));

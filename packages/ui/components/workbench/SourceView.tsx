@@ -3,10 +3,11 @@
 import { setDiagnostics, type Diagnostic } from '@codemirror/lint';
 import { EditorView } from '@codemirror/view';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import type { GoalDiagnostic, PistarFile } from '@istar-ts/core';
 import { setRangeMarks } from '@/lib/workbench/codemirror';
 import { sourcePosition } from '@/lib/workbench/localProblems';
 import { nodeRanges } from '@/lib/workbench/pistar';
-import { applyTextThroughActions } from '@/lib/workbench/modelDiff';
+import { fileMetamodelForText } from '@/lib/workbench/dialects';
 import CodeEditor from './CodeEditor';
 import { useSelection, useWorkbench } from './WorkbenchContext';
 import { useShell } from './shell';
@@ -36,10 +37,12 @@ export default function SourceView() {
   const rangesRef = useRef(ranges);
   rangesRef.current = ranges;
 
-  // raw JSON edits: diffed against the live model and dispatched as one
-  // compound, a settle delay after the last keystroke, so a compound isn't
-  // dispatched per character. What the diff can't express (or that doesn't
-  // parse) falls back to the old host-side replace (goal-controller#411).
+  // raw JSON edits: dispatched whole, as one istar.replaceModel, a settle
+  // delay after the last keystroke, so a dispatch isn't made per character.
+  // Text that doesn't parse as JSON falls back to the old host-side replace,
+  // kept as typed (goal-controller#411); a dispatch the vocabulary rejects
+  // (an unknown kind, a guard) falls back the same way, its diagnostics
+  // shown inline where JSON parse problems already are.
   const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(
     () => () => {
@@ -47,16 +50,31 @@ export default function SourceView() {
     },
     [],
   );
+  const [rejected, setRejected] = useState<readonly GoalDiagnostic[]>([]);
   const onChange = (value: string) => {
     if (settleTimer.current) clearTimeout(settleTimer.current);
     settleTimer.current = setTimeout(() => {
       settleTimer.current = null;
-      void applyTextThroughActions(
-        latest.current.dispatcherFor('inspector'),
-        latest.current.session.store,
-        value,
-        () => latest.current.setText(value, 'source'),
-      );
+      setRejected([]);
+      let model: PistarFile;
+      try {
+        model = JSON.parse(value);
+      } catch {
+        latest.current.setText(value, 'source');
+        return;
+      }
+      void latest.current
+        .dispatcherFor('inspector')
+        .dispatch({
+          kind: 'istar.replaceModel',
+          model,
+          fileMetamodel: fileMetamodelForText(value),
+        })
+        .then((result) => {
+          if (result.ok) return;
+          setRejected(result.diagnostics);
+          latest.current.setText(value, 'source');
+        });
     }, SETTLE_DELAY);
   };
 
@@ -109,7 +127,7 @@ export default function SourceView() {
     if (!view) return;
     const doc = view.state.doc;
     const diagnostics: Diagnostic[] = [];
-    for (const problem of problems) {
+    for (const problem of [...problems, ...rejected]) {
       const at = sourcePosition(problem);
       if (at && at.line <= doc.lines) {
         const line = doc.line(at.line);
@@ -143,7 +161,7 @@ export default function SourceView() {
       }
     }
     view.dispatch(setDiagnostics(view.state, diagnostics));
-  }, [view, problems, ranges, tree]);
+  }, [view, problems, rejected, ranges, tree]);
 
   // "go to line" requests (from Problems)
   useEffect(() => {

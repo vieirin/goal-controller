@@ -31,9 +31,13 @@ import {
   treeProblems,
 } from '@/lib/workbench/localProblems';
 import type { GoalView } from '@goal-controller/goal-tree';
-import { emptyModel, parseModel } from '@/lib/workbench/dialects';
+import type { PistarFile } from '@istar-ts/core';
+import {
+  emptyModel,
+  fileMetamodelForText,
+  parseModel,
+} from '@/lib/workbench/dialects';
 import { serializeModel } from '@/lib/workbench/pistar';
-import { applyTextThroughActions } from '@/lib/workbench/modelDiff';
 import {
   createModelSession,
   type ModelChanged,
@@ -67,12 +71,14 @@ import {
 import {
   archiveBaseName,
   copyProject,
+  EMBEDDED_KEY,
   exportArchive,
   fileStore,
   freeName,
   importArchive,
   importFiles,
   indexedDbHandles,
+  MANIFEST_VERSION,
   memoryStore,
   modelText,
   importedProjectFiles,
@@ -920,12 +926,29 @@ function WorkbenchState({
             next,
             baseOptionsRef.current,
           );
+          if (written === text) return;
           if (ownStep) lastPush.current = 0;
-          // kept on the host-side replace (goal-controller#411): the engine
-          // options live in the model's top-level `project` key, which is
-          // `model.extra` to istar-ts (no action writes it, only its own
-          // `diagram.customProperties`-backed mode/framework record does)
-          setText(written, 'settings');
+          // the engine options live in the model's top-level `project` key
+          // (EMBEDDED_KEY), `model.extra` to istar-ts: one `istar.updateModelExtra`
+          const kept = optionsToKeep(target, next, baseOptionsRef.current);
+          void sessionRef.current
+            .dispatcherFor('inspector')
+            .dispatch(
+              Object.keys(kept).length > 0
+                ? {
+                    kind: 'istar.updateModelExtra',
+                    set: {
+                      [EMBEDDED_KEY]: {
+                        version: MANIFEST_VERSION,
+                        options: kept,
+                      },
+                    },
+                  }
+                : { kind: 'istar.updateModelExtra', remove: [EMBEDDED_KEY] },
+            )
+            .then((result) => {
+              if (!result.ok) setText(written, 'settings');
+            });
           return;
         } catch {
           // not JSON: kept in the workbench
@@ -994,12 +1017,17 @@ function WorkbenchState({
         if (target !== 'pistar' && text.trim() && recorded !== target) {
           try {
             const written = writeModelMode(text, target);
-            void applyTextThroughActions(
-              sessionRef.current.dispatcherFor('inspector'),
-              sessionRef.current.store,
-              written,
-              () => setText(written, 'convert'),
-            );
+            const model: PistarFile = JSON.parse(written);
+            void sessionRef.current
+              .dispatcherFor('inspector')
+              .dispatch({
+                kind: 'istar.replaceModel',
+                model,
+                fileMetamodel: fileMetamodelForText(written),
+              })
+              .then((result) => {
+                if (!result.ok) setText(written, 'convert');
+              });
           } catch {
             // a model that does not parse keeps its text
           }
