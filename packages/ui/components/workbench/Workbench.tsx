@@ -10,6 +10,7 @@ import {
   PanelRightOpen,
   Unlock,
   Upload,
+  X,
 } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -458,6 +459,19 @@ function ModelColumn() {
       aria-label='Goal model'
     >
       <OpenInspectorOnSelect open={() => setInspectorOpen(true)} />
+      {wb.editRejected.length > 0 && (
+        <p
+          role='alert'
+          className='flex items-start gap-2 border-b border-line bg-danger-soft px-3 py-1.5 text-2xs text-danger'
+        >
+          <span className='flex-1'>{wb.editRejected[0]?.message}</span>
+          <IconButton
+            icon={X}
+            label='Dismiss'
+            onClick={wb.dismissEditRejected}
+          />
+        </p>
+      )}
       <Tabs
         label='Model views'
         tabs={tabs}

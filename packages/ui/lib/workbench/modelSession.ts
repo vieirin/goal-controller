@@ -9,6 +9,8 @@
 import {
   createActionDispatcher,
   type ActionDispatcher,
+  type ActionGuard,
+  type ActionPostGuard,
   type DispatchOptions,
   type IstarAction,
   type ModelSourceChangedAction,
@@ -24,6 +26,7 @@ import {
 import type { IstarSurface } from '@istar-ts/react';
 import type { AnyModel } from '@goal-controller/lib';
 import { pistarExtMetamodelGuard } from './dialects';
+import { isGuardRejection } from './guardDiagnostics';
 
 /** A change of the model made through the dispatcher, or by undo/redo. */
 export type ModelChanged = {
@@ -51,6 +54,15 @@ export type ModelSession = {
    * iStar 2.0's. The dispatcher reads it on each request.
    */
   setPalette(palette: AnyPaletteDescription | null): void;
+  /**
+   * The mode's rules, rejected before an operation applies (goal-controller#412):
+   * the dispatcher's own `guards` is fixed at creation, so these are the ones a
+   * single guard in it delegates to, read fresh on each dispatch. Replaced
+   * whole (not merged) each time the mode's diagram sets them; none, between.
+   */
+  setGuards(guards: readonly ActionGuard<string, string>[]): void;
+  /** Like `setGuards`, for rules checked after an operation applies. */
+  setPostGuards(guards: readonly ActionPostGuard<string, string>[]): void;
   /** the store's edits (not undo, redo or load), but the quiet ones */
   subscribeEdits(
     listener: (event: ModelChangeEvent<string, string>) => void,
@@ -71,11 +83,26 @@ export const createModelSession = (
   // extensions, PaletteBridge): the dispatcher asks for it on each request
   // (istar-ts#202), so a dialect change doesn't need a new dispatcher
   let palette: AnyPaletteDescription = DEFAULT_PALETTE;
+  // the mode's own guards (oneActorOnly, an edgeV2 check, #412): set by
+  // whichever diagram is showing the model, read fresh on each dispatch
+  // (the dispatcher's own `guards`/`postGuards` are fixed at creation)
+  let modeGuards: readonly ActionGuard<string, string>[] = [];
+  let modePostGuards: readonly ActionPostGuard<string, string>[] = [];
   // sendModel: each sourceModelChanged carries the model and canUndo/canRedo,
   // for a mirror that follows it from another thread (the engine worker, #413)
   const dispatcher = createActionDispatcher(store, {
     palette: () => palette,
-    guards: [pistarExtMetamodelGuard],
+    guards: [
+      pistarExtMetamodelGuard,
+      (operation, before) =>
+        modeGuards.flatMap((guard) => guard(operation, before) ?? []),
+    ],
+    postGuards: [
+      (operation, after, before) =>
+        modePostGuards.flatMap(
+          (guard) => guard(operation, after, before) ?? [],
+        ),
+    ],
     sendModel: true,
   });
   // the surface a sourceModelChanged came from, from the dispatch's own
@@ -124,6 +151,12 @@ export const createModelSession = (
     setPalette: (next) => {
       palette = next ?? DEFAULT_PALETTE;
     },
+    setGuards: (guards) => {
+      modeGuards = guards;
+    },
+    setPostGuards: (guards) => {
+      modePostGuards = guards;
+    },
     subscribeEdits: (listener) =>
       store.subscribe((event) => {
         if (event.source === 'edit' && !quiet) listener(event);
@@ -145,17 +178,27 @@ export const createModelSession = (
  * disposed by `startSession` swapping to another one while this dispatch was
  * in flight, goal-controller#431): a rejected edit on a file the user has
  * since navigated away from must not land on whatever is open now.
+ *
+ * `onRejected`'s second argument says whether a caller may still fall back to
+ * applying the raw text unchecked (goal-controller#439 review): true for a
+ * rejection the vocabulary itself made (an unparseable model, an unknown
+ * action), false for one of goal-controller's own guards — falling back to
+ * that would apply through the back door exactly what the guard just refused.
  */
 export function dispatchOrFallback<A extends IstarAction<string, string>>(
   session: ModelSession,
   surface: IstarSurface,
   action: A,
-  onRejected: (diagnostics: readonly GoalDiagnostic[]) => void,
+  onRejected: (
+    diagnostics: readonly GoalDiagnostic[],
+    canFallBack: boolean,
+  ) => void,
 ): void {
   void session
     .dispatcherFor(surface)
     .dispatch(action)
     .then((result) => {
-      if (!result.ok && !session.disposed) onRejected(result.diagnostics);
+      if (!result.ok && !session.disposed)
+        onRejected(result.diagnostics, !isGuardRejection(result.diagnostics));
     });
 }

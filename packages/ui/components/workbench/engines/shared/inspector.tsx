@@ -793,17 +793,26 @@ export function SelectedNode({
  * rejection leaves the model as it was, its diagnostics in the result.
  */
 export const useEditModel = () => {
-  const { dispatcherFor } = useWorkbench();
+  const { session, dispatcherFor, notifyEditRejected } = useWorkbench();
   return (
     ...operations: IstarOperation<string, string>[]
   ): Promise<ActionResult> => {
     const [first, ...rest] = operations;
     if (!first) return Promise.resolve({ ok: true, createdIds: [] });
-    return dispatcherFor('inspector').dispatch(
-      rest.length === 0
-        ? first
-        : { kind: 'compound', operationList: operations },
-    );
+    return dispatcherFor('inspector')
+      .dispatch(
+        rest.length === 0
+          ? first
+          : { kind: 'compound', operationList: operations },
+      )
+      .then((result) => {
+        // the inspector has no editor.notify of its own (the canvas's
+        // @istar-ts/react notifies there itself): shown next to the model
+        // instead, unless the session moved on while this was in flight
+        if (!result.ok && !session.disposed)
+          notifyEditRejected(result.diagnostics);
+        return result;
+      });
   };
 };
 

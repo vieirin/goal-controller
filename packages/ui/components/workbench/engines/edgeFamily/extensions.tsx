@@ -2,6 +2,7 @@
 
 import { ENGINE_DIALECTS } from '@/lib/workbench/engineDialects';
 import { firstResourceIssue } from '@/lib/workbench/edgeProperties';
+import type { ActionPostGuard } from '@istar-ts/actions';
 import {
   DefaultElementComponent,
   type ElementComponentProps,
@@ -131,3 +132,37 @@ export const edgePalette: IstarExtension = {
 export const edgeOneActor = oneActorOnly(
   'The Edge engines read a single actor: add goals, tasks and resources inside the existing one.',
 );
+
+/**
+ * A resource's bounds (goal-controller#412): today only a badge (`resourceVariable`,
+ * above) and, at transform time, the mapper throwing it into `[INVALID RESOURCE]`
+ * (packages/lib/src/engines/edgeFamily/checks.ts, `firstResourceIssue`). Reads one
+ * element's own properties, no tree and no PRISM generation, so it is cheap enough to
+ * run on every `istar.updateProperties`: the "P9 shield" for edgeV2 (#408), wired to
+ * edgeV2 only (the EdgeV2Diagram guard list), per the migration plan.
+ *
+ * A warning, never an error (goal-controller#439 review): the Inspector dispatches one
+ * property key per edit, so an `int` resource's `initialValue`/`lowerBound`/`upperBound`
+ * only ever reach a valid combination one field at a time — every intermediate state
+ * would otherwise be rejected, and a bool→int switch could never be completed through
+ * that UI at all. The edit applies; the issue is returned with the result and still
+ * shown (the badge above, from the same check, independent of this guard).
+ */
+export const edgeV2ResourceBoundsGuard: ActionPostGuard<string, string> = (
+  operation,
+  modelAfter,
+) => {
+  if (operation.kind !== 'istar.updateProperties') return;
+  const element = modelAfter.elements.get(operation.elementId);
+  if (!element || element.kind !== 'istar.Resource') return;
+  const issue = firstResourceIssue(element.customProperties ?? {});
+  if (!issue) return;
+  return [
+    {
+      elementId: operation.elementId,
+      severity: 'warning',
+      message: issue,
+      source: 'edgev2',
+    },
+  ];
+};

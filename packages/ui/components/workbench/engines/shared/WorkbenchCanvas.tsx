@@ -1,6 +1,6 @@
 'use client';
 
-import type { ModelChangeEvent } from '@istar-ts/core';
+import type { ActionGuard, ActionPostGuard } from '@istar-ts/actions';
 import {
   IstarCanvas,
   IstarPalette,
@@ -41,11 +41,6 @@ import type { ModelSession } from '@/lib/workbench/modelSession';
  * model, the text follows from it, and the selection follows the workbench's.
  * Each mode's diagram (engines/<engine>/, engines/pistar/) declares what it adds.
  */
-
-/** Why an edit is taken back out (shown as an error notice), or null to keep it. */
-export type RejectEdit = (
-  event: ModelChangeEvent<string, string>,
-) => string | null;
 
 /**
  * Keeps the diagram fitted to its container until the user pans or zooms it: the
@@ -124,22 +119,6 @@ const isInView = (iStarId: string): boolean => {
   );
 };
 
-/** Hands the editor's notice function to the canvas, which sits outside the provider. */
-function NotifyBridge({
-  notify,
-}: {
-  notify: RefObject<((message: string) => void) | null>;
-}) {
-  const editor = useIstarEditor();
-  useEffect(() => {
-    notify.current = (message) => editor.notify(message, 'error');
-    return () => {
-      notify.current = null;
-    };
-  }, [editor, notify]);
-  return null;
-}
-
 /**
  * Gives the workbench's dispatcher the palette this canvas draws (its registry,
  * with the mode's extensions), before the editor asks for it: the dispatcher
@@ -160,6 +139,34 @@ function PaletteBridge({
     session.setPalette(paletteDescriptionFor(registry, extensions));
     return () => session.setPalette(null);
   }, [session, registry, extensions]);
+  return null;
+}
+
+/**
+ * Gives the session the mode's guards (oneActorOnly, an edgeV2 check,
+ * goal-controller#412): rejected before an edit applies, not undone after.
+ * The session's own per-mode registry (`WorkbenchContext`, goal-controller#439
+ * review) already sets these by `wb.mode`, so they stay in force even while
+ * no diagram is mounted (the Source tab); this only reaffirms the same ones
+ * on each render of the mode's diagram, and must not clear them on unmount —
+ * that would undo the registry's own, read fresh by the dispatcher on the
+ * very next edit, from whatever surface (the Inspector) is still mounted.
+ */
+function GuardsBridge({
+  session,
+  guards,
+  postGuards,
+}: {
+  session: ModelSession;
+  guards: readonly ActionGuard<string, string>[];
+  postGuards: readonly ActionPostGuard<string, string>[];
+}) {
+  useLayoutEffect(() => {
+    session.setGuards(guards);
+  }, [session, guards]);
+  useLayoutEffect(() => {
+    session.setPostGuards(postGuards);
+  }, [session, postGuards]);
   return null;
 }
 
@@ -231,10 +238,14 @@ function SelectionSync({
   return null;
 }
 
+const NO_GUARDS: readonly ActionGuard<string, string>[] = [];
+const NO_POST_GUARDS: readonly ActionPostGuard<string, string>[] = [];
+
 export default function WorkbenchCanvas({
   extensions,
   aside,
-  rejectEdit,
+  guards = NO_GUARDS,
+  postGuards = NO_POST_GUARDS,
   paletteOnTop = false,
   paletteEnd,
   fitKey = '',
@@ -243,8 +254,10 @@ export default function WorkbenchCanvas({
   extensions: readonly IstarExtension<string, string>[];
   /** beside the canvas (piStar mode: the editor's own inspector) */
   aside?: ReactNode;
-  /** edits the mode does not allow are undone right away, with this notice */
-  rejectEdit?: RejectEdit;
+  /** the mode's rules, rejected before they apply (oneActorOnly, goal-controller#412) */
+  guards?: readonly ActionGuard<string, string>[];
+  /** like `guards`, checked after the operation applies (an edgeV2 check, #412) */
+  postGuards?: readonly ActionPostGuard<string, string>[];
   /** the palette as a bar on top (piStar mode); otherwise on the left, on top in full screen */
   paletteOnTop?: boolean;
   /** fits the diagram again when it changes (a different palette) */
@@ -257,9 +270,6 @@ export default function WorkbenchCanvas({
   // the store keeps the last model that parsed: shown, read-only, while the text doesn't
   const parsed = !wb.jsonError;
   const { session } = wb;
-  const reject = useRef(rejectEdit);
-  reject.current = rejectEdit;
-  const notify = useRef<((message: string) => void) | null>(null);
   const canvas = useRef<IstarCanvasHandle>(null);
   const shown = !!wb.text.trim();
 
@@ -269,19 +279,6 @@ export default function WorkbenchCanvas({
     container,
     `${wb.fileName}|${modelReadOnly}|${fitKey}`,
     shown,
-  );
-  // an edit the mode does not allow is undone right after (guards replace this, #412)
-  useEffect(
-    () =>
-      session.subscribeEdits((event) => {
-        const rejected = reject.current?.(event) ?? null;
-        if (!rejected) return;
-        queueMicrotask(() => {
-          void session.dispatcherFor('canvas').dispatch({ kind: 'glspUndo' });
-          notify.current?.(rejected);
-        });
-      }),
-    [session],
   );
 
   // what the canvas badges: the elements' errors and warnings, by the diagram's
@@ -354,7 +351,11 @@ export default function WorkbenchCanvas({
       >
         <PaletteBridge session={session} extensions={extensions} />
         <SelectionSync canvas={canvas} />
-        <NotifyBridge notify={notify} />
+        <GuardsBridge
+          session={session}
+          guards={guards}
+          postGuards={postGuards}
+        />
         {/* piStar mode and full screen: piStar's bar on top; read-only has none */}
         {paletteEnd &&
         !modelReadOnly &&
