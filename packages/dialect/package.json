@@ -11,11 +11,11 @@
     "clean": "rm -rf out tsconfig.tsbuildinfo"
   },
   "dependencies": {
-    "@istar-ts/dsm3-kaos": "0.15.0-beta.0",
-    "@istar-ts/dsm3-nfr": "0.15.0-beta.0"
+    "@istar-ts/dsm3-kaos": "0.15.0-beta.3",
+    "@istar-ts/dsm3-nfr": "0.15.0-beta.3"
   },
   "devDependencies": {
-    "@istar-ts/core": "0.15.0-beta.0",
+    "@istar-ts/core": "0.15.0-beta.3",
     "@types/chai": "^4.3.11",
     "@types/mocha": "^10.0.6",
     "@types/node": "^22.6.0",

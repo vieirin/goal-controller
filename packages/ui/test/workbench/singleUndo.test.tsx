@@ -11,7 +11,7 @@ import {
   render,
   waitFor,
 } from '@testing-library/react';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
@@ -51,8 +51,11 @@ const workbench = (
   let wb: Workbench | null = null;
   let editor: IstarEditor | null = null;
   const Probe = () => {
-    wb = useWorkbench();
-    const node = [...(wb.tree?.nodes.values() ?? [])].find(
+    const current = useWorkbench();
+    useEffect(() => {
+      wb = current;
+    });
+    const node = [...(current.tree?.nodes.values() ?? [])].find(
       (n) => n.iStarId === iStarId,
     );
     return node && field ? (
@@ -60,7 +63,10 @@ const workbench = (
     ) : null;
   };
   const EditorProbe = () => {
-    editor = useIstarEditor();
+    const current = useIstarEditor();
+    useEffect(() => {
+      editor = current;
+    });
     return null;
   };
   const tree = (

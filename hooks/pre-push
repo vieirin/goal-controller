@@ -19,16 +19,14 @@ while read -r local_ref local_sha remote_ref remote_sha; do
     continue
   fi
   if [ "$remote_sha" = "$ZERO" ]; then
-    if git rev-parse --verify origin/main >/dev/null 2>&1; then
-      range="$(git merge-base origin/main "$local_sha")..$local_sha"
-    else
-      range="$local_sha"
-    fi
-  else
-    range="$remote_sha..$local_sha"
+    # A new branch: only the commits no origin branch has yet, so a branch cut
+    # from another pushed branch (an integration branch) is checked for its own
+    # commits, not for everything since main
+    git log --name-only --format= "$local_sha" --not --remotes=origin
+    continue
   fi
 
-  git diff --name-only "$range"
+  git diff --name-only "$remote_sha..$local_sha"
 done | awk 'NF && !seen[$0]++' >"$ALL"
 
 # Lint/format: source-like files that still exist in the tree.
