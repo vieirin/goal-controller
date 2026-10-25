@@ -39,6 +39,20 @@ export type GoalDiagnosticData = {
   check?: string;
 };
 
+/**
+ * A quick fix's action, as the client's dispatcher applies it (plain JSON:
+ * goal-controller#416): the server names the operation and what it knows
+ * (the element kind, a default name); the client fills in `location`, since
+ * it is the one holding the model `suggestPosition` reads.
+ */
+export type GoalCodeActionData = {
+  readonly kind: 'createNode';
+  /** `@istar-ts/core`'s kind id, e.g. `istar.Goal` */
+  readonly elementTypeId: string;
+  readonly containerId?: string;
+  readonly args: { readonly name: string };
+};
+
 /** An inspector field's document: one element's property value. */
 export const fieldUri = (id: string, key: string): string =>
   `file:///fields/${encodeURIComponent(id)}/${encodeURIComponent(key)}.goal`;

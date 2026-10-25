@@ -6,7 +6,11 @@ import {
   fieldUri,
   type CheckContext,
 } from '../src/index.js';
-import { createGoalLspServices, serverDiagnostics } from '../src/lsp/server.js';
+import {
+  createGoalLspServices,
+  serverCodeActions,
+  serverDiagnostics,
+} from '../src/lsp/server.js';
 import { toy } from '../../dialect/test/support/toy.js';
 
 const context: DefinitionContext = {
@@ -136,6 +140,41 @@ describe('the language server', () => {
       'R1: Fuel {int 0..9 = 5}',
     );
     expect(seen[0]!.projectResources).to.deep.equal(projectResources);
+  });
+
+  // T9 is its own element line, naming no element of the context: notInDiagram
+  const notInDiagramDoc = 'G1: Go [G2;T1]\nG2: Wait\nT1: Do\nT9: Lift';
+
+  it('offers a createNode quick fix for a notInDiagram diagnostic (goal-controller#416)', async () => {
+    const { shared, store } = createGoalLspServices();
+    store.set({ dialect: toy, context });
+    const from = notInDiagramDoc.indexOf('T9');
+    const to = from + 'T9'.length;
+    const actions = await serverCodeActions(
+      shared,
+      'file:///notation.goal',
+      notInDiagramDoc,
+      { from, to },
+    );
+    expect(actions).to.have.length(1);
+    expect(actions[0]!.title).to.include('T9');
+    expect(actions[0]!.data).to.deep.equal({
+      kind: 'createNode',
+      elementTypeId: 'istar.Task',
+      args: { name: 'T9: Task' },
+    });
+  });
+
+  it('offers no quick fix away from the diagnostic, or for a diagnostic without one', async () => {
+    const { shared, store } = createGoalLspServices();
+    store.set({ dialect: toy, context });
+    const elsewhere = await serverCodeActions(
+      shared,
+      'file:///notation.goal',
+      notInDiagramDoc,
+      { from: 0, to: 2 },
+    );
+    expect(elsewhere).to.deep.equal([]);
   });
 
   it('reads an inspector field with its property’s value type', async () => {

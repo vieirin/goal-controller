@@ -170,6 +170,8 @@ export type Diagnostic = {
   key?: string;
   /** the named check that said it (an engine's), if one did */
   check?: string;
+  /** which of the dialect's problems it is (`AnyDialect['problems']`'s key): a quick fix's handle */
+  code?: string;
 };
 
 /**
@@ -261,6 +263,7 @@ const problem = (
   to,
   severity: definition.problems[kind].severity,
   message,
+  code: kind,
 });
 
 /**

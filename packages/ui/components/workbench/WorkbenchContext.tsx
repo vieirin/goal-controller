@@ -1,6 +1,9 @@
 'use client';
 
-import { useServiceDiagnostics } from '@/lib/workbench/diagnosticsStore';
+import {
+  publishDiagnostics,
+  useServiceDiagnostics,
+} from '@/lib/workbench/diagnosticsStore';
 import {
   ENGINE_ANALYSES,
   ENGINE_LABEL,
@@ -650,6 +653,10 @@ const COALESCE_MS = 600;
 // restarted, and the analysis it was on fails
 export const ANALYSIS_SLOW_MS = 10_000;
 export const ANALYSIS_UNRESPONSIVE_MS = 50_000;
+// the diagnosticsStore "service" key the engine worker's problems publish
+// under (goal-controller#433): not a Problem.source (each one already
+// carries its own, set by `analyze`), just this store's replace-bookkeeping
+const ENGINE_DIAGNOSTICS_SERVICE = 'engine';
 
 /** A model text read (blank: an empty model), or why it can't be. */
 type ReadText = { model: AnyModel } | { error: Error };
@@ -2379,8 +2386,26 @@ function WorkbenchState({
   }, [outputsOf, project?.store, pistar]);
 
   // ---- problems ----------------------------------------------------------------
-  // what the language services say of the open documents (editors, fields)
+  // what the language services say of the open documents (editors, fields),
+  // and the engine worker's own analysis (goal-controller#433): its
+  // per-element findings publish to the same store (which, like its
+  // comment says, holds diagnostics about elements only), under the
+  // current session's id so a session switch retracts the old one's
+  // rather than leaving it stuck. A run-wide finding (no element: a crash,
+  // a parse failure) has nowhere to anchor in that store, so it stays on
+  // the direct path below, as it always was.
   const serviceProblems = useServiceDiagnostics();
+  useEffect(() => {
+    const document = String(session.id);
+    publishDiagnostics(
+      ENGINE_DIAGNOSTICS_SERVICE,
+      document,
+      analysis && !parsed.error
+        ? analysis.problems.filter((problem) => problem.elementId !== undefined)
+        : [],
+    );
+    return () => publishDiagnostics(ENGINE_DIAGNOSTICS_SERVICE, document, []);
+  }, [analysis, parsed.error, session.id]);
   const problems = useMemo(() => {
     const list: Problem[] = [];
     if (parsed.error) list.push(parsed.error);
@@ -2417,7 +2442,12 @@ function WorkbenchState({
           ...modelLanguageProblems(engine, tree, variables, projectResources),
         );
     }
-    if (analysis && !parsed.error) list.push(...analysis.problems);
+    if (analysis && !parsed.error)
+      list.push(
+        ...analysis.problems.filter(
+          (problem) => problem.elementId === undefined,
+        ),
+      );
     if (current && !stale) {
       const checked = new Set(
         list

@@ -27,6 +27,7 @@ import {
   DefaultDefinitionProvider,
   DefaultDocumentUpdateHandler,
   AstNodeHoverProvider,
+  type CodeActionProvider,
   type DefaultSharedModuleContext,
   type LangiumServices,
   type LangiumSharedServices,
@@ -34,11 +35,14 @@ import {
   type PartialLangiumSharedServices,
 } from 'langium/lsp';
 import {
+  CodeActionKind,
   CompletionItemKind,
   DiagnosticSeverity,
   InsertTextFormat,
   LocationLink,
   type CancellationToken,
+  type CodeAction,
+  type CodeActionParams,
   type CompletionList,
   type CompletionParams,
   type DefinitionParams,
@@ -50,8 +54,10 @@ import {
 import type { TextDocument } from 'langium';
 import {
   hasIds,
+  ISTAR_KIND_OF,
   type AnyDialect,
   type DefinitionContext,
+  type ElementKind,
 } from '@goal-controller/dialect';
 import {
   GoalGeneratedModule,
@@ -76,9 +82,11 @@ import {
 import { definitionAt, fieldHover, hoverAt } from '../notation/navigation.js';
 import { START } from '../notation/highlight.js';
 import { fieldPropertyOf } from '../notation/values.js';
+import { kindOfId } from '../notation/scope.js';
 import {
   readFieldUri,
   GOAL_CONTEXT_NOTIFICATION,
+  type GoalCodeActionData,
   type GoalContextParams,
   type GoalDiagnosticData,
 } from './protocol.js';
@@ -204,7 +212,7 @@ export const createGoalLspServices = (
     diagnostics: Diagnostic[],
   ): LspDiagnostic[] =>
     diagnostics.map(
-      ({ from, to, severity, message, elementId, key, check }) => ({
+      ({ from, to, severity, message, elementId, key, check, code }) => ({
         range: {
           start: document.textDocument.positionAt(from),
           end: document.textDocument.positionAt(to),
@@ -212,6 +220,8 @@ export const createGoalLspServices = (
         severity: SEVERITY[severity],
         message,
         source: 'goal',
+        // the dialect's problem kind (`notInDiagram`, …): a quick fix's handle
+        ...(code !== undefined && { code }),
         // the anchoring contract: the element (and property) it is about
         ...(elementId !== undefined && {
           data: {
@@ -370,6 +380,51 @@ export const createGoalLspServices = (
     }
   }
 
+  const capitalize = (text: string): string =>
+    text.charAt(0).toUpperCase() + text.slice(1);
+
+  /**
+   * A quick fix for a diagnostic the client's range overlaps: one action per
+   * code this provider knows (goal-controller#416). `notInDiagram`'s names
+   * the missing element's kind (from its written id, the dialect's prefixes)
+   * and leaves `location` for the client to fill in with `suggestPosition`,
+   * since only it holds the model that function reads.
+   */
+  class GoalCodeActionProvider implements CodeActionProvider {
+    getCodeActions(
+      document: LangiumDocument,
+      params: CodeActionParams,
+    ): CodeAction[] | undefined {
+      const found = store.for(document.uri);
+      if (!found) return undefined;
+      const text = document.textDocument.getText();
+      const from = document.textDocument.offsetAt(params.range.start);
+      const to = document.textDocument.offsetAt(params.range.end);
+      const actions: CodeAction[] = [];
+      for (const diagnostic of diagnose(document)) {
+        if (diagnostic.code !== 'notInDiagram') continue;
+        const dFrom = document.textDocument.offsetAt(diagnostic.range.start);
+        const dTo = document.textDocument.offsetAt(diagnostic.range.end);
+        if (dTo <= from || dFrom >= to) continue;
+        const writtenId = text.slice(dFrom, dTo);
+        const kind = kindOfId(found.dialect, writtenId);
+        if (kind === undefined || !(kind in ISTAR_KIND_OF)) continue;
+        const elementTypeId = ISTAR_KIND_OF[kind as ElementKind];
+        actions.push({
+          title: `Add ${writtenId} in the diagram`,
+          kind: CodeActionKind.QuickFix,
+          diagnostics: [diagnostic],
+          data: {
+            kind: 'createNode',
+            elementTypeId,
+            args: { name: `${writtenId}: ${capitalize(kind)}` },
+          } satisfies GoalCodeActionData,
+        });
+      }
+      return actions;
+    }
+  }
+
   const shared = inject(
     createDefaultSharedModule(context),
     GoalGeneratedSharedModule,
@@ -398,6 +453,7 @@ export const createGoalLspServices = (
         CompletionProvider: (services) => new GoalCompletionProvider(services),
         HoverProvider: (services) => new GoalHoverProvider(services),
         DefinitionProvider: (services) => new GoalDefinitionProvider(services),
+        CodeActionProvider: () => new GoalCodeActionProvider(),
       },
     } as Module<GoalLspServices, PartialLangiumServices>,
   );
@@ -465,6 +521,7 @@ export const serverDiagnostics = async (
       ...(data && { elementId: data.elementId }),
       ...(data?.key !== undefined && { key: data.key }),
       ...(data?.check !== undefined && { check: data.check }),
+      ...(d.code !== undefined && { code: String(d.code) }),
     };
   }) satisfies Diagnostic[];
   LangiumDocuments.deleteDocument(parsed);
@@ -505,5 +562,42 @@ export const serverCompletions = async (
         ? item.textEdit.newText
         : item.label,
     snippet: item.insertTextFormat === InsertTextFormat.Snippet,
+  }));
+};
+
+/**
+ * The quick fixes the server offers over a span of a text at a URI (no
+ * connection needed, as `serverDiagnostics`): each action's title and its
+ * data (goal-controller#416's `GoalCodeActionData`, the client's to apply).
+ */
+export const serverCodeActions = async (
+  shared: LangiumSharedServices,
+  uri: string,
+  text: string,
+  span: { from: number; to: number },
+): Promise<{ title: string; data: GoalCodeActionData }[]> => {
+  const { LangiumDocumentFactory, LangiumDocuments, DocumentBuilder } =
+    shared.workspace;
+  const parsed = URI.parse(uri);
+  if (LangiumDocuments.hasDocument(parsed))
+    LangiumDocuments.deleteDocument(parsed);
+  const document = LangiumDocumentFactory.fromString(text, parsed);
+  LangiumDocuments.addDocument(document);
+  await DocumentBuilder.build([document]);
+  const provider = (
+    shared.ServiceRegistry.getServices(parsed) as LangiumServices
+  ).lsp.CodeActionProvider;
+  const actions = await provider?.getCodeActions(document, {
+    textDocument: { uri },
+    range: {
+      start: document.textDocument.positionAt(span.from),
+      end: document.textDocument.positionAt(span.to),
+    },
+    context: { diagnostics: [] },
+  });
+  LangiumDocuments.deleteDocument(parsed);
+  return (actions ?? []).map((action) => ({
+    title: (action as CodeAction).title,
+    data: (action as CodeAction).data as GoalCodeActionData,
   }));
 };
