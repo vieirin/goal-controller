@@ -194,9 +194,7 @@ export const setLinkProperty = (
     const properties = { ...link.customProperties };
     if (value === null) delete properties[key];
     else properties[key] = value;
-    return updateLink(model, linkId, {
-      customProperties: Object.keys(properties).length ? properties : null,
-    });
+    return updateLink(model, linkId, { customProperties: properties });
   });
 
 // ---------------------------------------------------------------------------
