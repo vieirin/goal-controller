@@ -18,6 +18,7 @@ import {
 import type { EngineWorkerResponse } from '@/lib/workbench/engineWorkerProtocol';
 import type { AnalyzeResponse } from '@/lib/workbench/types';
 import { writeModelMode } from '@/lib/workbench/pistar';
+import { analysisKey } from '@/lib/workbench/signature';
 
 // recorded as edgev2 (not piStar mode): analysis only runs for an engine
 const ISTAR = writeModelMode(
@@ -33,6 +34,8 @@ const G1 = '117b97d7-775b-41a9-8fec-9e923edde772';
 class FakeWorker {
   onmessage: ((event: MessageEvent<EngineWorkerResponse>) => void) | null =
     null;
+  onerror: ((event: ErrorEvent) => void) | null = null;
+  onmessageerror: ((event: MessageEvent) => void) | null = null;
   readonly posted: unknown[] = [];
   terminate = vi.fn();
   postMessage(data: unknown): void {
@@ -40,6 +43,12 @@ class FakeWorker {
   }
   respond(message: EngineWorkerResponse): void {
     this.onmessage?.({ data: message } as MessageEvent<EngineWorkerResponse>);
+  }
+  crash(message: string): void {
+    this.onerror?.({ message, preventDefault: () => {} } as ErrorEvent);
+  }
+  sendUnreadable(): void {
+    this.onmessageerror?.({} as MessageEvent);
   }
 }
 
@@ -134,5 +143,95 @@ describe('the engine worker (#413)', () => {
         wb().problems.some((p) => p.elementId === G1 && p.message === 'bad'),
       ).toBe(true),
     );
+  });
+
+  const lastTransformRequestId = (worker: FakeWorker): number => {
+    const sent = worker.posted
+      .filter(
+        (
+          message,
+        ): message is { type: 'transform'; options: { requestId: number } } =>
+          (message as { type: string }).type === 'transform',
+      )
+      .at(-1);
+    if (!sent) throw new Error('no transform message was posted');
+    return sent.options.requestId;
+  };
+
+  it('an engine throw comes back as a failed run, not a hang (goal-controller#432 review)', async () => {
+    const { wb } = workbench();
+    await act(() => wb().openModelFile('simpleChoice.txt', ISTAR));
+    const worker = workers[0]!;
+    // variables ready: the key the worker would have answered with
+    await act(async () => {
+      worker.respond({
+        type: 'analyzed',
+        key: analysisKey(ISTAR, 'edgev2'),
+        data: response,
+      });
+    });
+    await waitFor(() => expect(wb().analyzing).toBe(false));
+
+    act(() => wb().generate());
+    await waitFor(() => expect(wb().generating).toBe(true));
+    const requestId = lastTransformRequestId(worker);
+    await act(async () => {
+      worker.respond({
+        type: 'transformed',
+        outcome: {
+          requestId,
+          modelSignature: analysisKey(ISTAR, 'edgev2'),
+          ok: false,
+          error: 'the engine threw',
+        },
+      });
+    });
+    await waitFor(() => expect(wb().generating).toBe(false));
+    expect(wb().runs[0]?.error).toBe('the engine threw');
+    expect(wb().runs[0]?.files).toBeNull();
+  });
+
+  it('a worker crash fails every pending transform, clears analyzing/generating, and respawns (goal-controller#432 review)', async () => {
+    const { wb } = workbench();
+    await act(() => wb().openModelFile('simpleChoice.txt', ISTAR));
+    const worker = workers[0]!;
+    await act(async () => {
+      worker.respond({
+        type: 'analyzed',
+        key: analysisKey(ISTAR, 'edgev2'),
+        data: response,
+      });
+    });
+    await waitFor(() => expect(wb().analyzing).toBe(false));
+
+    act(() => wb().generate());
+    await waitFor(() => expect(wb().generating).toBe(true));
+
+    await act(async () => {
+      worker.crash('the engine worker died');
+    });
+
+    await waitFor(() => expect(wb().generating).toBe(false));
+    expect(wb().runs[0]?.error).toBe('the engine worker died');
+    await waitFor(() =>
+      expect(
+        wb().problems.some((p) => p.message === 'the engine worker died'),
+      ).toBe(true),
+    );
+    expect(wb().analyzing).toBe(false);
+
+    // a fresh worker, reconnected and reconfigured, for the next request
+    await waitFor(() => expect(workers).toHaveLength(2));
+    const respawned = workers[1]!;
+    expect(
+      respawned.posted.some(
+        (message) => (message as { type: string }).type === 'connect',
+      ),
+    ).toBe(true);
+    expect(
+      respawned.posted.some(
+        (message) => (message as { type: string }).type === 'configure',
+      ),
+    ).toBe(true);
   });
 });

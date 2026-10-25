@@ -638,6 +638,9 @@ const useDebounced = <T,>(value: T, ms: number): T => {
 };
 
 const COALESCE_MS = 600;
+// a backstop against a stuck analysis (goal-controller#432 review): well past
+// the worker's own debounce (engineWorker.ts's ANALYSIS_DEBOUNCE_MS)
+const ANALYSIS_TIMEOUT_MS = 10_000;
 
 /** A model text read (blank: an empty model), or why it can't be. */
 type ReadText = { model: AnyModel } | { error: Error };
@@ -1463,6 +1466,27 @@ function WorkbenchState({
       setAnalyzed(data ? { key, data } : null),
     [],
   );
+  // keeps the last variables and known properties, but always surfaces the failure
+  const surfaceAnalysisFailure = useCallback(
+    (key: string, message: string) =>
+      setAnalyzed((prev) => ({
+        key,
+        data: {
+          success: true,
+          variables: prev?.data.variables ?? [],
+          knownProperties: prev?.data.knownProperties ?? {
+            goal: [],
+            task: [],
+            resource: [],
+            quality: [],
+          },
+          problems: [
+            { severity: 'error', source: ENGINE_LABEL[engine], message },
+          ],
+        },
+      })),
+    [engine],
+  );
   const workerAnalysis = engineWorker.analysis;
   useEffect(() => {
     if (!workerAnalysis) return;
@@ -1470,28 +1494,8 @@ function WorkbenchState({
       setAnalysis(workerAnalysis.data, workerAnalysis.key);
       return;
     }
-    // keep the last variables and known properties, but always surface the failure
-    setAnalyzed((prev) => ({
-      key: workerAnalysis.key,
-      data: {
-        success: true,
-        variables: prev?.data.variables ?? [],
-        knownProperties: prev?.data.knownProperties ?? {
-          goal: [],
-          task: [],
-          resource: [],
-          quality: [],
-        },
-        problems: [
-          {
-            severity: 'error',
-            source: ENGINE_LABEL[engine],
-            message: workerAnalysis.message,
-          },
-        ],
-      },
-    }));
-  }, [workerAnalysis, engine]);
+    surfaceAnalysisFailure(workerAnalysis.key, workerAnalysis.message);
+  }, [workerAnalysis, surfaceAnalysisFailure]);
   useEffect(() => {
     if (!model.text.trim() || pistar) setAnalysis(null);
   }, [model.text, pistar, setAnalysis]);
@@ -1503,6 +1507,29 @@ function WorkbenchState({
     !parsed.error &&
     !!model.text.trim() &&
     analyzed?.key !== analysisKey(model.text, engine);
+  // a crashed worker (goal-controller#432 review) never finishes the
+  // analysis it was mid-way through; surface it under the key this thread
+  // is waiting for so `analyzing` clears instead of spinning forever
+  const crashed = engineWorker.crashed;
+  useEffect(() => {
+    if (!crashed) return;
+    surfaceAnalysisFailure(analysisKey(model.text, engine), crashed.message);
+    // model.text/engine: the key at the moment of the crash, not re-read later
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [crashed, surfaceAnalysisFailure]);
+  // a backstop for a worker that is alive but never answers (goal-controller#432
+  // review): restarts on every text/engine change, cleared once `analyzing` does
+  useEffect(() => {
+    if (!analyzing) return undefined;
+    const key = analysisKey(model.text, engine);
+    const timer = setTimeout(() => {
+      surfaceAnalysisFailure(
+        key,
+        `Analysis did not finish within ${ANALYSIS_TIMEOUT_MS / 1000}s.`,
+      );
+    }, ANALYSIS_TIMEOUT_MS);
+    return () => clearTimeout(timer);
+  }, [analyzing, model.text, engine, surfaceAnalysisFailure]);
   // PRISM generation needs the model's variables: until they are known the
   // engine would fill in placeholders (0.5, MISSING_VARIABLE_DEFINITION)
   const variablesReady =
@@ -2093,10 +2120,10 @@ function WorkbenchState({
       engine: runEngine,
       options: runOptions,
       values: runValues,
-      inputsSignature: signature,
+      inputsSignature: requestedSignature,
       runs: priorRuns,
     } = latest.current;
-    if (!text.trim() || signature === null) return;
+    if (!text.trim() || requestedSignature === null) return;
     // an analysis engine generates nothing (its values are Analyse's)
     if (!generatesFiles(runEngine)) return;
     if (!latest.current.variablesReady) {
@@ -2121,6 +2148,18 @@ function WorkbenchState({
       })
       .then((outcome) => {
         runId.current += 1;
+        // labeled with what the worker actually ran against, not what this
+        // thread guessed when it asked (goal-controller#432 review): the
+        // worker's own model may have moved on by the time it answers
+        const signature =
+          outcome.modelSignature === null
+            ? requestedSignature
+            : JSON.stringify([
+                outcome.modelSignature,
+                runEngine,
+                optionsFor(runEngine, runOptions),
+                isPrismEngine(runEngine) ? runValues : null,
+              ]);
         const run: Run = outcome.ok
           ? {
               id: runId.current,

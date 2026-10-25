@@ -17,7 +17,7 @@ import { toPistar } from '@istar-ts/core';
 import { analyze } from '@/services/analyze';
 import { transform } from '@/services/transform';
 import type { TransformEngine } from '@/lib/types';
-import { analysisKey } from './signature';
+import { analysisKey, modelSignature } from './signature';
 import type {
   EngineWorkerRequest,
   EngineWorkerResponse,
@@ -67,23 +67,30 @@ const connect = (port: MessagePort): void => {
   void next.ready.then(scheduleAnalysis);
 };
 
-const runTransform = (
-  requestId: number,
-  options: TransformRequestOptions,
-): void => {
+const runTransform = (options: TransformRequestOptions): void => {
+  const { requestId, ...rest } = options;
+  let modelJson: string | null = null;
   let outcome: TransformOutcome;
   try {
     if (!mirror) throw new Error('the engine worker has no mirror to read yet');
-    const modelJson = toPistar(mirror.getModel());
-    const result = transform({ ...options, modelJson });
-    outcome = { ok: true, files: result.files, report: result.report };
+    modelJson = toPistar(mirror.getModel());
+    const result = transform({ ...rest, modelJson });
+    outcome = {
+      requestId,
+      modelSignature: modelSignature(modelJson),
+      ok: true,
+      files: result.files,
+      report: result.report,
+    };
   } catch (error) {
     outcome = {
+      requestId,
+      modelSignature: modelJson === null ? null : modelSignature(modelJson),
       ok: false,
       error: error instanceof Error ? error.message : String(error),
     };
   }
-  post({ type: 'transformed', requestId, outcome });
+  post({ type: 'transformed', outcome });
 };
 
 scope.onmessage = (event: MessageEvent<EngineWorkerRequest>) => {
@@ -99,5 +106,5 @@ scope.onmessage = (event: MessageEvent<EngineWorkerRequest>) => {
     scheduleAnalysis();
     return;
   }
-  runTransform(message.requestId, message.options);
+  runTransform(message.options);
 };

@@ -9,12 +9,30 @@ import type { TransformOptions } from '@/services/transform';
 import type { TransformEngine } from '@/lib/types';
 import type { AnalyzeResponse } from './types';
 
-/** `transform`'s options, minus the text: the worker reads its own mirror's. */
-export type TransformRequestOptions = Omit<TransformOptions, 'modelJson'>;
+/**
+ * `transform`'s options, minus the text: the worker reads its own mirror's.
+ * `requestId` lets the main thread match a `transformed` response back to
+ * the call that asked for it, and drop one that arrives superseded or for a
+ * session it no longer belongs to (goal-controller#432 review).
+ */
+export type TransformRequestOptions = Omit<TransformOptions, 'modelJson'> & {
+  readonly requestId: number;
+};
 
-export type TransformOutcome =
+/**
+ * `modelSignature`: the content signature (`signature.ts`'s `modelSignature`)
+ * of the model the worker actually transformed, echoed back so the main
+ * thread can label the resulting `Run` with what it was *really* generated
+ * from, not the signature it had when it asked (goal-controller#432 review).
+ * `null` only when the worker never reached the mirror (no model to sign).
+ */
+export type TransformOutcome = {
+  requestId: number;
+  modelSignature: string | null;
+} & (
   | { ok: true; files: EngineOutputFile[]; report: LoggerReport | null }
-  | { ok: false; error: string };
+  | { ok: false; error: string }
+);
 
 /** Sent once, with the mirror's `MessagePort` transferred alongside it. */
 export type EngineWorkerConnect = {
@@ -32,7 +50,6 @@ export type EngineWorkerRequest =
     }
   | {
       readonly type: 'transform';
-      readonly requestId: number;
       readonly options: TransformRequestOptions;
     };
 
@@ -50,6 +67,5 @@ export type EngineWorkerResponse =
     }
   | {
       readonly type: 'transformed';
-      readonly requestId: number;
       readonly outcome: TransformOutcome;
     };
