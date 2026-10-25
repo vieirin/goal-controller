@@ -25,6 +25,7 @@ import { taskModule } from './modules/taskModule/taskModule';
 const treeOrderModules = (
   gm: EdgeGoalTree,
   variables: Record<string, boolean | number>,
+  generateDecisionVars: boolean,
 ): string => {
   const emitted = new Set<string>();
   const modules: string[] = [];
@@ -41,7 +42,7 @@ const treeOrderModules = (
       return;
     }
     orderedChildren(node).forEach(visit);
-    modules.push(goalModule(node));
+    modules.push(goalModule(node, generateDecisionVars));
   };
   const goals = GoalTree.allByType(gm, 'goal');
   const byNumericId = (a: { id: string }, b: { id: string }): number =>
@@ -60,6 +61,7 @@ const edgeDTMCTemplate = ({
   clean = false,
   variables = {},
   generateDecisionVars = true,
+  evolvableDecisionVars = false,
   discretisation = DEFAULT_DISCRETISATION,
   taskLayout = DEFAULT_TASK_LAYOUT,
 }: {
@@ -68,6 +70,8 @@ const edgeDTMCTemplate = ({
   clean?: boolean;
   variables?: Record<string, boolean | number>;
   generateDecisionVars?: boolean;
+  /** EvoChecker evolvable parameters (`evolve int … [0..N's value]`) instead of undefined consts; ignored with generateDecisionVars off */
+  evolvableDecisionVars?: boolean;
   /** @deprecated Ignored by edgeV2 (kept for call-site compatibility); use discretisation */
   achievabilitySpace?: number;
   /** N in X_achievable*N > decision_X (default 10) */
@@ -78,6 +82,7 @@ const edgeDTMCTemplate = ({
   const decisions = decisionVariablesTemplate({
     gm,
     enabled: generateDecisionVars,
+    evolvable: evolvableDecisionVars,
     discretisation,
   });
   const system = systemModule({ gm, previousOutput, clean, variables });
@@ -89,7 +94,7 @@ const edgeDTMCTemplate = ({
 
 ${decisions}
 
-${goalModules({ gm })}
+${goalModules({ gm, generateDecisionVars })}
 
 ${changeManagerModule({ gm, variables })}
 
@@ -102,7 +107,7 @@ ${rewardsSection}`;
 
 ${decisions}
 
-${treeOrderModules(gm, variables)}
+${treeOrderModules(gm, variables, generateDecisionVars)}
 
 ${system}
 ${rewardsSection}`;
@@ -115,6 +120,7 @@ export const generateValidatedPrismModel = ({
   clean = false,
   variables = {},
   generateDecisionVars = true,
+  evolvableDecisionVars = false,
   discretisation = DEFAULT_DISCRETISATION,
   taskLayout = DEFAULT_TASK_LAYOUT,
   writeReport = true,
@@ -125,6 +131,8 @@ export const generateValidatedPrismModel = ({
   clean?: boolean;
   variables?: Record<string, boolean | number>;
   generateDecisionVars?: boolean;
+  /** EvoChecker evolvable parameters (`evolve int … [0..N's value]`) instead of undefined consts; ignored with generateDecisionVars off */
+  evolvableDecisionVars?: boolean;
   /** @deprecated Ignored by edgeV2 (kept for call-site compatibility); use discretisation */
   achievabilitySpace?: number;
   /** N in X_achievable*N > decision_X (default 10) */
@@ -144,6 +152,7 @@ export const generateValidatedPrismModel = ({
     clean,
     variables,
     generateDecisionVars,
+    evolvableDecisionVars,
     discretisation,
     taskLayout,
   });

@@ -26,6 +26,7 @@ describe('engine options', () => {
         'discretisation',
         'taskLayout',
         'generateDecisionVars',
+        'evolvableDecisionVars',
         'clean',
         'reduce',
       ],
@@ -49,6 +50,7 @@ describe('engine options', () => {
     expect(DEFAULT_OPTIONS).toEqual({
       achievabilitySpace: 4,
       generateDecisionVars: true,
+      evolvableDecisionVars: false,
       clean: false,
       reduce: false,
       discretisation: 10,

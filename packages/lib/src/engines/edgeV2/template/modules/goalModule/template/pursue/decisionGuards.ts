@@ -11,16 +11,20 @@ import {
 
 export type PursueStatement = { left: string; right: string };
 
-/** G{id}_achievable*N > decision_G{id} */
-export const shouldPursue = (nodeId: string): string =>
-  `${achievableFormulaVariable(nodeId)}*${N} > ${decisionVariableName(nodeId)}`;
+/** G{id}_achievable*N > decision_G{id}; empty (true) with Decision variables off */
+export const shouldPursue = (nodeId: string, enabled = true): string =>
+  enabled
+    ? `${achievableFormulaVariable(nodeId)}*${N} > ${decisionVariableName(nodeId)}`
+    : '';
 
 export const parentShouldPursue = shouldPursue;
 export const childShouldPursue = shouldPursue;
 
-/** G{id}_achievable*N <= decision_G{id} */
-export const shouldSkip = (nodeId: string): string =>
-  `${achievableFormulaVariable(nodeId)}*${N} <= ${decisionVariableName(nodeId)}`;
+/** G{id}_achievable*N <= decision_G{id}; empty (true) with Decision variables off */
+export const shouldSkip = (nodeId: string, enabled = true): string =>
+  enabled
+    ? `${achievableFormulaVariable(nodeId)}*${N} <= ${decisionVariableName(nodeId)}`
+    : '';
 
 export const parentShouldSkip = shouldSkip;
 
@@ -38,30 +42,23 @@ export const otherChildrenIdle = (
 export const childrenIdle = (childIds: string[]): string =>
   childIds.map((id) => `${stateVariable(id)}=0`).join(' & ');
 
-/** (G1_achievable/(G1_achievable+G2_achievable))*N > _decision_G0 */
-const shareAboveDecision = (
-  parentGoalId: string,
-  childIds: string[],
-  childId: string,
-): string =>
-  `(${achievableFormulaVariable(childId)}/(${childIds
-    .map(achievableFormulaVariable)
-    .join('+')}))*${N} > ${selectionDecisionVariableName(parentGoalId)}`;
-
-/** G1_relative*N > _decision_G0 (achievement-aware share, AND anyOrder) */
-const relativeAboveDecision = (parentGoalId: string, childId: string): string =>
-  `${relativeFormulaVariable(childId)}*${N} > ${selectionDecisionVariableName(parentGoalId)}`;
+/** G{id}_relative*N > _decision_G{id}: achievement-aware share vs the child's own threshold. */
+const childShareAboveDecision = (childId: string): string =>
+  `${relativeFormulaVariable(childId)}*${N} > ${selectionDecisionVariableName(childId)}`;
 
 /**
  * Priority cascade used by the EDGE reference to pick one child: the child's
- * share must reach `_decision_G<parent>` and every higher-priority (earlier)
- * child's share must not.
- *   child i: share_i*N > _d & !(share_0*N > _d) & … & !(share_{i-1}*N > _d)
+ * own achievement-aware share must reach its own `_decision_G<child>` and
+ * every higher-priority (earlier) child's share must not reach *its own*
+ * threshold (EDGE-XT 3094b5d; goal-controller deliberately uses each
+ * sibling's own threshold in the negation, not the current child's).
+ *   child i: share_i*N > _d_i & !(share_0*N > _d_0) & … & !(share_{i-1}*N > _d_{i-1})
+ * Empty (true) with Decision variables off.
  */
 const cascade = (
   orderedChildIds: string[],
   childId: string,
-  above: (id: string) => string,
+  enabled: boolean,
 ): string => {
   const index = orderedChildIds.indexOf(childId);
   if (index < 0) {
@@ -69,31 +66,29 @@ const cascade = (
       `Child ${childId} not in children [${orderedChildIds.join(', ')}]`,
     );
   }
+  if (!enabled) {
+    return '';
+  }
   return [
-    above(childId),
-    ...orderedChildIds.slice(0, index).map((id) => `!(${above(id)})`),
+    childShareAboveDecision(childId),
+    ...orderedChildIds
+      .slice(0, index)
+      .map((id) => `!(${childShareAboveDecision(id)})`),
   ].join(' & ');
 };
 
-/** OR goals: share of raw achievabilities (reference non-idempotent / committed / preferred). */
+/**
+ * Child selection for OR (non-idempotent / committed / preferred) and AND
+ * anyOrder (flexible) goals alike: each child's achievement-aware share vs
+ * its own threshold, with priority to earlier children.
+ */
 export const selectChildByDecision = (
-  parentGoalId: string,
   orderedChildIds: string[],
   childId: string,
-): string =>
-  cascade(orderedChildIds, childId, (id) =>
-    shareAboveDecision(parentGoalId, orderedChildIds, id),
-  );
+  enabled = true,
+): string => cascade(orderedChildIds, childId, enabled);
 
-/** AND anyOrder: share of not-yet-achieved siblings (reference flexible). */
-export const selectChildByRelativeDecision = (
-  parentGoalId: string,
-  orderedChildIds: string[],
-  childId: string,
-): string =>
-  cascade(orderedChildIds, childId, (id) =>
-    relativeAboveDecision(parentGoalId, id),
-  );
+export const selectChildByRelativeDecision = selectChildByDecision;
 
 /** Append non-empty guard fragments with & */
 export const joinGuards = (

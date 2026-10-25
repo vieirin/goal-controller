@@ -57,7 +57,10 @@ const removeRepeatedConditions = (condition: string): string => {
 const appendGuards = (baseLeft: string, extra: string): string =>
   extra ? `${baseLeft} & ${extra}` : baseLeft;
 
-export const pursueStatements = (goal: EdgeGoalNode): string[] => {
+export const pursueStatements = (
+  goal: EdgeGoalNode,
+  generateDecisionVars = true,
+): string[] => {
   const logger = getLogger();
   const pursueLogger = logger.pursue;
 
@@ -135,29 +138,51 @@ export const pursueStatements = (goal: EdgeGoalNode): string[] => {
           switch (kind) {
             case 'sequence':
               return withGuard(
-                pursueAndSequentialGoal(goal, childIds, child.id),
+                pursueAndSequentialGoal(
+                  goal,
+                  childIds,
+                  child.id,
+                  generateDecisionVars,
+                ),
               );
             case 'anyOrder':
-              return withGuard(pursueAndAnyOrderGoal(goal, childIds, child.id));
+              return withGuard(
+                pursueAndAnyOrderGoal(
+                  goal,
+                  childIds,
+                  child.id,
+                  generateDecisionVars,
+                ),
+              );
             case 'interleaved':
               pursueLogger.executionDetail.interleaved();
-              return withGuard(childShouldPursue(child.id));
+              return withGuard(
+                childShouldPursue(child.id, generateDecisionVars),
+              );
             case 'alternative':
-              return withGuard(pursueAlternativeGoal(goal, child.id));
+              return withGuard(
+                pursueAlternativeGoal(goal, child.id, generateDecisionVars),
+              );
             case 'choice':
-              return pursueChoiceGoal(goal, childIds, child.id).map(
-                (fragment) => ({
-                  left: appendGuards(left, fragment.left),
-                  right: fragment.right,
-                }),
-              );
+              return pursueChoiceGoal(
+                goal,
+                childIds,
+                child.id,
+                generateDecisionVars,
+              ).map((fragment) => ({
+                left: appendGuards(left, fragment.left),
+                right: fragment.right,
+              }));
             case 'degradation':
-              return pursueDegradationGoal(goal, childIds, child.id).map(
-                (fragment) => ({
-                  left: appendGuards(left, fragment.left),
-                  right: fragment.right,
-                }),
-              );
+              return pursueDegradationGoal(
+                goal,
+                childIds,
+                child.id,
+                generateDecisionVars,
+              ).map((fragment) => ({
+                left: appendGuards(left, fragment.left),
+                right: fragment.right,
+              }));
           }
         };
 

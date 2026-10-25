@@ -29,7 +29,10 @@ import {
  *     <earlier retries exhausted> & !g0_achieved & g0_state=1 & g{c}_state=0 & g{c}_failed<K & G{c}_achievable*N <= decision_G{c}
  *     <all retries exhausted> & !g0_achieved & g0_state=1 & <children idle> & G0_achievable*N <= decision_G0
  */
-export const skipLines = (goal: EdgeGoalNode): string[] => {
+export const skipLines = (
+  goal: EdgeGoalNode,
+  generateDecisionVars = true,
+): string[] => {
   const childIds = orderedChildIds(goal);
   const base = [`!${achievedFormula(goal.id)}`, `${stateVariable(goal.id)}=1`];
   const allIdle = childrenIdle(childIds);
@@ -38,19 +41,34 @@ export const skipLines = (goal: EdgeGoalNode): string[] => {
     case 'sequence':
     case 'anyOrder':
     case 'alternative':
-      return [joinGuards(...base, allIdle, parentShouldSkip(goal.id))];
-    case 'interleaved':
       return [
         joinGuards(
           ...base,
           allIdle,
-          `!(${childIds.map(childShouldPursue).join(' | ')})`,
+          parentShouldSkip(goal.id, generateDecisionVars),
         ),
       ];
+    case 'interleaved': {
+      const pursueTerms = childIds
+        .map((id) => childShouldPursue(id, generateDecisionVars))
+        .filter((term) => term.length > 0);
+      return [
+        joinGuards(
+          ...base,
+          allIdle,
+          pursueTerms.length > 0 ? `!(${pursueTerms.join(' | ')})` : null,
+        ),
+      ];
+    }
     case 'choice': {
       const chosen = chosenVariable(goal.id);
       return [
-        joinGuards(`${chosen}=0`, ...base, allIdle, parentShouldSkip(goal.id)),
+        joinGuards(
+          `${chosen}=0`,
+          ...base,
+          allIdle,
+          parentShouldSkip(goal.id, generateDecisionVars),
+        ),
         // The reference guards this line with `g0_state=1 & g0_state=0`, which
         // can never hold; the committed child being idle is what is meant.
         ...childIds.map((id, index) =>
@@ -58,7 +76,7 @@ export const skipLines = (goal: EdgeGoalNode): string[] => {
             ...base,
             `${stateVariable(id)}=0`,
             `${chosen}=${index + 1}`,
-            shouldSkip(id),
+            shouldSkip(id, generateDecisionVars),
           ),
         ),
       ];
@@ -72,24 +90,27 @@ export const skipLines = (goal: EdgeGoalNode): string[] => {
             ...base,
             `${stateVariable(id)}=0`,
             hasFailedLessThanNTimes(id, retries),
-            shouldSkip(id),
+            shouldSkip(id, generateDecisionVars),
           ),
         ),
         joinGuards(
           retriesExhausted(goal),
           ...base,
           allIdle,
-          parentShouldSkip(goal.id),
+          parentShouldSkip(goal.id, generateDecisionVars),
         ),
       ];
     }
   }
 };
 
-export const skipStatement = (goal: EdgeGoalNode): string => {
+export const skipStatement = (
+  goal: EdgeGoalNode,
+  generateDecisionVars = true,
+): string => {
   const logger = getLogger();
   const updateStatement = `(${stateVariable(goal.id)}'=0);`;
-  return skipLines(goal)
+  return skipLines(goal, generateDecisionVars)
     .map((leftStatement) => {
       const prismLabelStatement = `[skip_${goal.id}] ${leftStatement} -> ${updateStatement}`;
       logger.skip(goal.id, leftStatement, updateStatement, prismLabelStatement);
