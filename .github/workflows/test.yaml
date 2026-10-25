@@ -2,9 +2,9 @@ name: Test
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, migration/istar-ts]
   pull_request:
-    branches: [main, develop]
+    branches: [main, develop, migration/istar-ts]
   workflow_dispatch:
 
 jobs:
