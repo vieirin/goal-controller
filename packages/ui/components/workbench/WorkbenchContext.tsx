@@ -166,8 +166,9 @@ export type FrameworkSwitch = {
 
 /** What a model converts to: an engine, or a modelling dialect (piStar mode needs none). */
 export type ConversionTarget = TransformEngine | ModellingMode;
-import { modelSignature } from '@/lib/workbench/signature';
-import { analyze, transform, treeView } from '@/services';
+import { analysisKey, modelSignature } from '@/lib/workbench/signature';
+import { treeView } from '@/services';
+import { useEngineWorker } from '@/lib/workbench/engineWorkerClient';
 import {
   loadPreferences,
   loadRecent,
@@ -626,9 +627,6 @@ function SelectionProvider({ children }: { children: ReactNode }) {
 
 const defaultValue = (variable: VariableInfo): boolean | number =>
   variable.kind === 'context' ? false : 0.8;
-
-const analysisKey = (text: string, engine: TransformEngine): string =>
-  `${engine}\n${text}`;
 
 const useDebounced = <T,>(value: T, ms: number): T => {
   const [debounced, setDebounced] = useState(value);
@@ -1450,8 +1448,11 @@ function WorkbenchState({
     [tree],
   );
 
-  // ---- analysis (server, debounced) ------------------------------------------
-  const debouncedText = useDebounced(model.text, 400);
+  // ---- analysis (engine worker, #413) ----------------------------------------
+  // the worker holds a mirror of the model and reruns analysis on its own,
+  // debounced the way the inline call used to be; this thread only reads
+  // what it posts back
+  const engineWorker = useEngineWorker(session.dispatcher, engine, pistar);
   const [analyzed, setAnalyzed] = useState<{
     key: string;
     data: AnalyzeResponse;
@@ -1462,50 +1463,46 @@ function WorkbenchState({
       setAnalyzed(data ? { key, data } : null),
     [],
   );
-  const [analyzing, setAnalyzing] = useState(false);
+  const workerAnalysis = engineWorker.analysis;
   useEffect(() => {
-    // piStar mode has no engine to analyse for; a model just opened waits for
-    // its text, not the last one's read with its engine
-    if (
-      pistar ||
-      debouncedText !== model.text ||
-      !debouncedText.trim() ||
-      modelSignature(debouncedText) === null
-    )
+    if (!workerAnalysis) return;
+    if (workerAnalysis.ok) {
+      setAnalysis(workerAnalysis.data, workerAnalysis.key);
       return;
-    setAnalyzing(true);
-    const key = analysisKey(debouncedText, engine);
-    try {
-      setAnalysis(analyze(debouncedText, engine), key);
-    } catch (error) {
-      // keep the last variables and known properties, but always surface the failure
-      setAnalyzed((prev) => ({
-        key,
-        data: {
-          success: true,
-          variables: prev?.data.variables ?? [],
-          knownProperties: prev?.data.knownProperties ?? {
-            goal: [],
-            task: [],
-            resource: [],
-            quality: [],
-          },
-          problems: [
-            {
-              severity: 'error',
-              source: ENGINE_LABEL[engine],
-              message: error instanceof Error ? error.message : String(error),
-            },
-          ],
-        },
-      }));
-    } finally {
-      setAnalyzing(false);
     }
-  }, [debouncedText, model.text, engine, pistar, setAnalysis]);
+    // keep the last variables and known properties, but always surface the failure
+    setAnalyzed((prev) => ({
+      key: workerAnalysis.key,
+      data: {
+        success: true,
+        variables: prev?.data.variables ?? [],
+        knownProperties: prev?.data.knownProperties ?? {
+          goal: [],
+          task: [],
+          resource: [],
+          quality: [],
+        },
+        problems: [
+          {
+            severity: 'error',
+            source: ENGINE_LABEL[engine],
+            message: workerAnalysis.message,
+          },
+        ],
+      },
+    }));
+  }, [workerAnalysis, engine]);
   useEffect(() => {
     if (!model.text.trim() || pistar) setAnalysis(null);
   }, [model.text, pistar, setAnalysis]);
+  // true from the moment the text changes until the worker catches up to it
+  // (its key, by content: the worker's own serialization never matches
+  // `model.text` byte for byte, see `analysisKey`)
+  const analyzing =
+    !pistar &&
+    !parsed.error &&
+    !!model.text.trim() &&
+    analyzed?.key !== analysisKey(model.text, engine);
   // PRISM generation needs the model's variables: until they are known the
   // engine would fill in placeholders (0.5, MISSING_VARIABLE_DEFINITION)
   const variablesReady =
@@ -2086,6 +2083,9 @@ function WorkbenchState({
   // a generation asked for before the variables were known runs once they are
   const [pendingGenerate, setPendingGenerate] = useState(false);
 
+  // the actual transform() call runs in the engine worker (#413), against
+  // its mirror's current model; this thread only sends the options text
+  // can't carry (fileName, the engine's options, PRISM's variable values)
   const generate = useCallback(() => {
     const {
       text,
@@ -2110,44 +2110,42 @@ function WorkbenchState({
     const previousOutput = runOptions.clean
       ? undefined
       : previousOutputOf(priorRuns, runEngine);
-    let run: Run;
-    try {
-      const result = transform({
-        modelJson: text,
+    void engineWorker
+      .transform({
         engine: runEngine,
         fileName: fileName.replace(/\.(txt|json)$/i, '') || 'model',
         previousOutput,
         ...optionsFor(runEngine, runOptions),
         ...(isPrismEngine(runEngine) &&
           Object.keys(runValues).length > 0 && { variables: runValues }),
+      })
+      .then((outcome) => {
+        runId.current += 1;
+        const run: Run = outcome.ok
+          ? {
+              id: runId.current,
+              at: Date.now(),
+              engine: runEngine,
+              durationMs: performance.now() - started,
+              signature,
+              files: outcome.files,
+              report: outcome.report,
+              error: null,
+            }
+          : {
+              id: runId.current,
+              at: Date.now(),
+              engine: runEngine,
+              durationMs: performance.now() - started,
+              signature,
+              files: null,
+              report: null,
+              error: outcome.error,
+            };
+        setRuns((prev) => [run, ...prev].slice(0, 20));
+        setGenerating(false);
       });
-      runId.current += 1;
-      run = {
-        id: runId.current,
-        at: Date.now(),
-        engine: runEngine,
-        durationMs: performance.now() - started,
-        signature,
-        files: result.files,
-        report: result.report,
-        error: null,
-      };
-    } catch (error) {
-      runId.current += 1;
-      run = {
-        id: runId.current,
-        at: Date.now(),
-        engine: runEngine,
-        durationMs: performance.now() - started,
-        signature,
-        files: null,
-        report: null,
-        error: error instanceof Error ? error.message : String(error),
-      };
-    }
-    setRuns((prev) => [run, ...prev].slice(0, 20));
-    setGenerating(false);
-  }, []);
+  }, [engineWorker.transform]);
 
   useEffect(() => {
     if (pendingGenerate && variablesReady) generate();
