@@ -8,6 +8,7 @@
  */
 import { act, cleanup, render, waitFor } from '@testing-library/react';
 import { readFileSync } from 'node:fs';
+import { useEffect } from 'react';
 import { join } from 'node:path';
 import {
   afterEach,
@@ -96,7 +97,10 @@ afterEach(() => cleanup());
 const workbench = () => {
   let wb: Workbench | null = null;
   const Probe = () => {
-    wb = useWorkbench();
+    const current = useWorkbench();
+    useEffect(() => {
+      wb = current;
+    });
     return null;
   };
   const view = render(
@@ -136,7 +140,7 @@ describe('a model added to a project (#329, lib/project)', () => {
       { mode: 'nfr', framework: 'nfr', options: {} },
       { mode: 'kaos', framework: 'kaos', options: {} },
     ]);
-    expect(Object.keys(changes).sort()).toEqual([
+    expect(Object.keys(changes).toSorted()).toEqual([
       'kaos-welcome.txt',
       PROJECT_FILE,
     ]);

@@ -7,6 +7,7 @@
  */
 import { act, cleanup, render, waitFor } from '@testing-library/react';
 import { readFileSync } from 'node:fs';
+import { useEffect } from 'react';
 import { join } from 'node:path';
 import { KAOS_FILL } from '@istar-ts/dsm3-kaos/metamodel';
 import { afterEach, beforeAll, describe, expect, it } from 'vitest';
@@ -82,7 +83,10 @@ afterEach(() => cleanup());
 const workbench = (diagram = false) => {
   let wb: Workbench | null = null;
   const Probe = () => {
-    wb = useWorkbench();
+    const current = useWorkbench();
+    useEffect(() => {
+      wb = current;
+    });
     return null;
   };
   const view = render(
@@ -215,7 +219,10 @@ describe('a framework model’s Notation tab (#171)', () => {
     const withIds = `${JSON.stringify(json, null, 2)}\n`;
     let wb: Workbench | null = null;
     const Probe = () => {
-      wb = useWorkbench();
+      const current = useWorkbench();
+      useEffect(() => {
+        wb = current;
+      });
       return null;
     };
     const { container } = render(
