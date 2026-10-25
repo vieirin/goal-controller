@@ -2,6 +2,7 @@
 
 import { X } from 'lucide-react';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
+import type { PistarFile } from '@istar-ts/core';
 import { FRAMEWORKS, type Framework } from '@goal-controller/dialect';
 import {
   MODELLING_LABEL,
@@ -15,6 +16,8 @@ import {
 } from '@/lib/workbench/frameworks';
 import { frameworkOfMode, writeModelMode } from '@/lib/workbench/pistar';
 import { ENGINES, hasOptions } from '@/lib/workbench/engineDialects';
+import { fileMetamodelForText } from '@/lib/workbench/dialects';
+import { dispatchOrFallback } from '@/lib/workbench/modelSession';
 import type { ModelSettings } from '@/lib/workbench/types';
 import { EngineOptionFields } from './TopBar';
 import {
@@ -142,7 +145,19 @@ export default function ModelSettingsModal() {
       // a new model in another framework: that framework's empty model
       const empty = emptyModelText(framework);
       if (target === 'pistar') {
-        wb.setText(empty, 'convert');
+        // a whole-model swap: `updateModelExtra` can't add the root `istar`
+        // field a DSM3-goals model lacks (core's own, a reserved key)
+        const model: PistarFile = JSON.parse(empty);
+        dispatchOrFallback(
+          wb.session,
+          'inspector',
+          {
+            kind: 'istar.replaceModel',
+            model,
+            fileMetamodel: fileMetamodelForText(empty),
+          },
+          () => wb.setText(empty, 'convert'),
+        );
         wb.requestMode('pistar');
       } else wb.applyConversion(target, writeModelMode(empty, target));
       return;

@@ -254,10 +254,28 @@ describe('PartInspector dispatches istar.updateProperties (#411, goal-controller
       expect(wb().canUndo).toBe(true);
     });
 
-    // istar-ts: updateProperties must keep customProperties: {} (pending upstream issue)
-    it.todo(
-      'removing the last custom property keeps "customProperties": {} in the exported piStar, matching setNodeProperty (the orchestrator has reported this upstream)',
-    );
+    it('removing the last custom property keeps "customProperties": {}, matching setNodeProperty byte for byte (istar-ts#219)', async () => {
+      const { wb } = await openedPart({ type: 'actor', id: ACTOR });
+      const before = wb().text;
+      const dispatch = vi.spyOn(wb().dispatcherFor('inspector'), 'dispatch');
+
+      // the actor's only custom property (ACTOR's "Description"): PartInspector
+      // never shows it as a removable row (it is excluded from the generic
+      // list), so this removes it directly, as `istar.updateProperties` would
+      // for any other property
+      const result = await setProperty(wb(), ACTOR, 'Description', null);
+      expect(result.ok).toBe(true);
+
+      expect(dispatch).toHaveBeenCalledTimes(1);
+      expect(wb().text).toContain('"customProperties": {}');
+      expect(wb().text).toBe(
+        setNodeProperty(before, ACTOR, 'Description', null),
+      );
+
+      await undo(wb());
+      expect(wb().text).toBe(before);
+      expect(wb().canUndo).toBe(false);
+    });
   });
 
   describe('a link', () => {

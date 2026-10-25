@@ -77,9 +77,9 @@ describe('links and actors in the view (#107)', () => {
     expect(model.links[0].customProperties).to.deep.equal({ weight: '9' });
   });
 
-  it('removes a link’s last property, and its customProperties with it', () => {
+  it('removes a link’s last property, keeping its customProperties as {} (istar-ts#219)', () => {
     const model = JSON.parse(setLinkProperty(TOY_MODEL, 'l1', 'weight', null));
-    expect(model.links[0]).not.to.have.property('customProperties');
+    expect(model.links[0].customProperties).to.deep.equal({});
     expect(model.links[0].label).to.equal('help');
   });
 

@@ -17,6 +17,7 @@ import {
   createModelStore,
   DEFAULT_PALETTE,
   type AnyPaletteDescription,
+  type GoalDiagnostic,
   type ModelChangeEvent,
   type ModelStore,
 } from '@istar-ts/core';
@@ -54,6 +55,8 @@ export type ModelSession = {
   subscribeEdits(
     listener: (event: ModelChangeEvent<string, string>) => void,
   ): () => void;
+  /** set once `dispose` runs: `startSession` disposes the old one synchronously */
+  readonly disposed: boolean;
   dispose(): void;
 };
 
@@ -80,6 +83,7 @@ export const createModelSession = (
   const surfaceOf = (origin: string | undefined): IstarSurface | null =>
     origin === 'canvas' || origin === 'inspector' ? origin : null;
   let quiet = false;
+  let disposed = false;
   const unsubscribe = dispatcher.subscribe((action) => {
     if (action.kind !== 'sourceModelChanged' || quiet) return;
     onChange({
@@ -124,9 +128,34 @@ export const createModelSession = (
       store.subscribe((event) => {
         if (event.source === 'edit' && !quiet) listener(event);
       }),
+    get disposed() {
+      return disposed;
+    },
     dispose: () => {
+      disposed = true;
       unsubscribe();
       dispatcher.dispose();
     },
   };
 };
+
+/**
+ * Dispatches `action` on `session`; if it's rejected, runs `onRejected` with
+ * its diagnostics — but only if `session` is still the open model's (not
+ * disposed by `startSession` swapping to another one while this dispatch was
+ * in flight, goal-controller#431): a rejected edit on a file the user has
+ * since navigated away from must not land on whatever is open now.
+ */
+export function dispatchOrFallback<A extends IstarAction<string, string>>(
+  session: ModelSession,
+  surface: IstarSurface,
+  action: A,
+  onRejected: (diagnostics: readonly GoalDiagnostic[]) => void,
+): void {
+  void session
+    .dispatcherFor(surface)
+    .dispatch(action)
+    .then((result) => {
+      if (!result.ok && !session.disposed) onRejected(result.diagnostics);
+    });
+}
