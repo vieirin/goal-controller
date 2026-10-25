@@ -53,14 +53,18 @@ export async function startGlspServer(
     contributions: [contribution],
   });
   await server.mcp.ready;
+  // optional in IstarGlspMcpServer only because the type is shared with
+  // serveOnPort's: the no-port overload used here always goes through
+  // serveHeadless, which always sets it (@istar-ts/glsp dist/browser.js).
+  const { sessionId } = server;
+  if (sessionId === undefined) {
+    throw new Error('serveIstarGlsp (headless) returned no sessionId');
+  }
   return {
     mcp: {
       url: server.mcp.url,
       fetch: server.mcp.fetch,
-      // optional in IstarGlspMcpServer only because the type is shared with
-      // serveOnPort's: the no-port overload used here always goes through
-      // serveHeadless, which always sets it (@istar-ts/glsp dist/browser.js).
-      sessionId: server.sessionId!,
+      sessionId,
     },
     dispose: () => server.close(),
   };
