@@ -4,8 +4,13 @@ const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
 // one @istar-ts/core (goal-controller#171): goal-tree's out/ requires its
 // CommonJS build, the UI and the @istar-ts packages import its ESM one; two
-// copies hold two of each metamodel (ISTAR_2_0...), so every import gets the first
+// copies hold two of each metamodel (ISTAR_2_0...), so every import gets the first.
+// react now depends on actions and gmodel, so they need the same treatment.
 const ISTAR_CORE = require.resolve('@istar-ts/core');
+const ISTAR_ACTIONS = require.resolve('@istar-ts/actions');
+const ISTAR_GMODEL = require.resolve('@istar-ts/gmodel');
+const ISTAR_GLSP = require.resolve('@istar-ts/glsp');
+const ISTAR_AGENT = require.resolve('@istar-ts/agent');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -22,6 +27,10 @@ const nextConfig = {
     config.resolve.alias = {
       ...config.resolve.alias,
       '@istar-ts/core$': ISTAR_CORE,
+      '@istar-ts/actions$': ISTAR_ACTIONS,
+      '@istar-ts/gmodel$': ISTAR_GMODEL,
+      '@istar-ts/glsp$': ISTAR_GLSP,
+      '@istar-ts/agent$': ISTAR_AGENT,
     };
     if (!isServer) {
       config.resolve.fallback = {
@@ -41,6 +50,10 @@ const nextConfig = {
   turbopack: {
     resolveAlias: {
       '@istar-ts/core': `./${path.relative(__dirname, ISTAR_CORE)}`,
+      '@istar-ts/actions': `./${path.relative(__dirname, ISTAR_ACTIONS)}`,
+      '@istar-ts/gmodel': `./${path.relative(__dirname, ISTAR_GMODEL)}`,
+      '@istar-ts/glsp': `./${path.relative(__dirname, ISTAR_GLSP)}`,
+      '@istar-ts/agent': `./${path.relative(__dirname, ISTAR_AGENT)}`,
       fs: { browser: './services/empty.js' },
       path: { browser: './services/empty.js' },
     },
