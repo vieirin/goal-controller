@@ -20,6 +20,7 @@ When working on edgeV2, leave `engines/edge/` untouched: read it for reference, 
 - One area of lib (fast, quiet): `pnpm --filter @goal-controller/lib run test:only 'test/engines/edgeV2/**/*.test.ts'`. Plain `mocha <spec>` in lib runs the whole suite, because `.mocharc.json` adds its own spec.
 - Package suites: `pnpm --filter @goal-controller/<pkg> run test` (lib ≈ 1.4k tests; run it once before reporting, not per edit). ui: `pnpm --filter @goal-controller/ui exec vitest run <file>`.
 - Typecheck lib: `cd packages/lib && pnpm exec tsc --noEmit -p .`. Lint: `pnpm run lint`. Format: `pnpm run format:check`.
+- Workbench smoke e2e (Playwright, own port/distDir, never `:3000`): `pnpm run e2e` (headless), `pnpm run e2e:headed`, `pnpm run e2e:ui`; once per machine, `pnpm --filter @goal-controller/ui exec playwright install chromium`.
 - Reference-tool checks: `pnpm run stress:<goda|grl|cgm|istardt|tropos4as|kaos>`.
 
 ## Reading
