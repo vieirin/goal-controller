@@ -6,15 +6,16 @@ import { setLineMarks } from '@/lib/workbench/codemirror';
 import type { LanguageSupport } from '@/lib/workbench/languageSupport';
 import { notationRange } from '@/lib/workbench/poolDocuments';
 import {
-  applyNotationEdits,
   lineKeys,
   notationDocument,
   notationEdits,
+  notationEditOperations,
 } from '@/lib/workbench/notationDocument';
 import { type AnyDialect, type DocumentTree } from '@goal-controller/dialect';
 import CodeEditor from '../../CodeEditor';
 import { useSelection, useWorkbench } from '../../WorkbenchContext';
 import { useShell } from '../../shell';
+import { useEditModel } from '../shared/inspector';
 
 const DOCUMENT_URI = 'file:///model.notation';
 const EDIT_DELAY_MS = 300;
@@ -48,6 +49,9 @@ export default function NotationEditor({
   const latestSelected = useRef(selected);
   latestSelected.current = selected;
   const [view, setView] = useState<EditorView | null>(null);
+  const edit = useEditModel();
+  const latestEdit = useRef(edit);
+  latestEdit.current = edit;
 
   const canonical = useMemo(
     () => (tree ? notationDocument(definition, tree) : { text: '', ids: [] }),
@@ -55,8 +59,15 @@ export default function NotationEditor({
   );
   // the view's own edits are not written back over what is being typed
   const [doc, setDoc] = useState(canonical.text);
+  // set right before dispatching this editor's own edit, so the sync below
+  // doesn't fight the user's typing; cleared once the model change it
+  // caused (or its rejection) is seen
+  const ownEdit = useRef(false);
   useEffect(() => {
-    if (wb.changeSource === 'notation') return;
+    if (ownEdit.current) {
+      ownEdit.current = false;
+      return;
+    }
     setDoc(canonical.text);
     // same text as before (e.g. undo after typing an unknown id): still reset the editor
     const shown = view?.state.doc.toString();
@@ -86,12 +97,16 @@ export default function NotationEditor({
     if (pending.current) clearTimeout(pending.current);
     pending.current = setTimeout(() => {
       pending.current = null;
-      const { text, setText } = latest.current;
       const current = latestTree.current;
       if (!current) return;
       const edits = notationEdits(definition, value, current);
       if (edits.length === 0) return;
-      setText(applyNotationEdits(text, edits), 'notation');
+      ownEdit.current = true;
+      void latestEdit
+        .current(...notationEditOperations(edits))
+        .then((result) => {
+          if (!result.ok) ownEdit.current = false;
+        });
     }, EDIT_DELAY_MS);
   };
 

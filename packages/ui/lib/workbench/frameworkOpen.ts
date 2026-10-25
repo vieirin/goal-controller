@@ -119,12 +119,33 @@ export const nextFrameworkId = (
   return `${prefix}${max + 1}`;
 };
 
+/** An element renamed with its kind's id, by the id `applyLabelEdit` takes (`labelId`). */
+export type FrameworkIdEdit = { elementId: string; name: string };
+
+/** Every element of `model` renamed with its kind's id, in the model's order. */
+const frameworkIdRenames = (
+  model: AnyModel,
+  definition: Pick<AnyDialect, 'elements'>,
+): { model: AnyModel; renames: FrameworkIdEdit[] } => {
+  const renames: FrameworkIdEdit[] = [];
+  for (const element of model.elements.values()) {
+    const prefix = definition.elements[element.kind]?.prefix;
+    if (!prefix || ID_OF_NAME.test(element.name)) continue;
+    const name = `${nextFrameworkId(model, prefix)}: ${element.name.trim()}`;
+    model = updateElement(model, element.id, { name });
+    renames.push({ elementId: element.id, name });
+  }
+  return { model, renames };
+};
+
 /**
  * A framework model whose elements' names start with their kind's id
  * (DSM3's files have none, `G1: Reliability`), in the model's order, each
  * prefix numbered on from its highest; null when every listed element has
  * one already (or the text isn't a model). Its Notation lines then name
- * their elements.
+ * their elements. Non-UI callers only (goal-controller#411): the view
+ * dispatches `frameworkIdEdits` instead, to edit the live model rather
+ * than rewrite the text.
  */
 export const withFrameworkIds = (
   text: string,
@@ -136,14 +157,25 @@ export const withFrameworkIds = (
   } catch {
     return null;
   }
-  let changed = false;
-  for (const element of model.elements.values()) {
-    const prefix = definition.elements[element.kind]?.prefix;
-    if (!prefix || ID_OF_NAME.test(element.name)) continue;
-    model = updateElement(model, element.id, {
-      name: `${nextFrameworkId(model, prefix)}: ${element.name.trim()}`,
-    });
-    changed = true;
+  const { model: next, renames } = frameworkIdRenames(model, definition);
+  return renames.length ? serializeModel(next, text) : null;
+};
+
+/**
+ * The same renames as `withFrameworkIds`, as `applyLabelEdit` operations'
+ * `labelId`/`text` (goal-controller#411), for the view to dispatch as one
+ * compound; null: none (or the text isn't a model).
+ */
+export const frameworkIdEdits = (
+  text: string,
+  definition: Pick<AnyDialect, 'elements'>,
+): readonly FrameworkIdEdit[] | null => {
+  let model: AnyModel;
+  try {
+    model = parseModel(text);
+  } catch {
+    return null;
   }
-  return changed ? serializeModel(model, text) : null;
+  const { renames } = frameworkIdRenames(model, definition);
+  return renames.length ? renames : null;
 };
