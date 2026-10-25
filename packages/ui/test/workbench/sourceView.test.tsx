@@ -345,4 +345,49 @@ describe('SourceView dispatches actions (#411)', () => {
 
     expect(wb().text).toBe(ANOTHER_MODEL);
   });
+
+  it.each(['edge', 'edgev2'] as const)(
+    'a GUARD rejection (a second actor, %s) never falls back: the model stays untouched, its diagnostics shown (#439)',
+    async (mode) => {
+      const { wb, container } = await opened(writeModelMode(ISTAR, mode));
+      await waitFor(() => expect(wb().mode).toBe(mode));
+      vi.useFakeTimers();
+      const beforeModel = wb().session.store.getModel();
+      const before = wb().text;
+      const dispatch = vi.spyOn(wb().dispatcherFor('inspector'), 'dispatch');
+      const textarea =
+        container.querySelector<HTMLTextAreaElement>('textarea')!;
+
+      const twoActors = edited((p) => {
+        (p.actors as unknown[]).push({
+          id: 'second-actor',
+          text: 'Actor 2',
+          type: 'istar.Actor',
+          x: 500,
+          y: 500,
+          customProperties: { Description: '' },
+          nodes: [],
+        });
+      });
+
+      fireEvent.change(textarea, { target: { value: twoActors } });
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(500);
+      });
+
+      expect(dispatch).toHaveBeenCalledTimes(1);
+      const result = await dispatch.mock.results[0]!.value;
+      expect(result.ok).toBe(false);
+      expect(
+        result.diagnostics.some((d: { message: string }) =>
+          d.message.includes('single actor'),
+        ),
+      ).toBe(true);
+
+      // the model is untouched; the editor still shows what was pasted
+      expect(wb().session.store.getModel()).toBe(beforeModel);
+      expect(wb().text).toBe(twoActors);
+      expect(before).not.toBe(twoActors);
+    },
+  );
 });

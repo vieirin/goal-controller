@@ -140,6 +140,13 @@ export const edgeOneActor = oneActorOnly(
  * element's own properties, no tree and no PRISM generation, so it is cheap enough to
  * run on every `istar.updateProperties`: the "P9 shield" for edgeV2 (#408), wired to
  * edgeV2 only (the EdgeV2Diagram guard list), per the migration plan.
+ *
+ * A warning, never an error (goal-controller#439 review): the Inspector dispatches one
+ * property key per edit, so an `int` resource's `initialValue`/`lowerBound`/`upperBound`
+ * only ever reach a valid combination one field at a time — every intermediate state
+ * would otherwise be rejected, and a bool→int switch could never be completed through
+ * that UI at all. The edit applies; the issue is returned with the result and still
+ * shown (the badge above, from the same check, independent of this guard).
  */
 export const edgeV2ResourceBoundsGuard: ActionPostGuard<string, string> = (
   operation,
@@ -153,7 +160,7 @@ export const edgeV2ResourceBoundsGuard: ActionPostGuard<string, string> = (
   return [
     {
       elementId: operation.elementId,
-      severity: 'error',
+      severity: 'warning',
       message: issue,
       source: 'edgev2',
     },

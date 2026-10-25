@@ -145,9 +145,12 @@ function PaletteBridge({
 /**
  * Gives the session the mode's guards (oneActorOnly, an edgeV2 check,
  * goal-controller#412): rejected before an edit applies, not undone after.
- * Like `PaletteBridge`, set fresh on each render of the mode's diagram so a
- * mode change without a new session (a pistar toggle, a conversion) still
- * gets the right ones.
+ * The session's own per-mode registry (`WorkbenchContext`, goal-controller#439
+ * review) already sets these by `wb.mode`, so they stay in force even while
+ * no diagram is mounted (the Source tab); this only reaffirms the same ones
+ * on each render of the mode's diagram, and must not clear them on unmount —
+ * that would undo the registry's own, read fresh by the dispatcher on the
+ * very next edit, from whatever surface (the Inspector) is still mounted.
  */
 function GuardsBridge({
   session,
@@ -160,11 +163,9 @@ function GuardsBridge({
 }) {
   useLayoutEffect(() => {
     session.setGuards(guards);
-    return () => session.setGuards([]);
   }, [session, guards]);
   useLayoutEffect(() => {
     session.setPostGuards(postGuards);
-    return () => session.setPostGuards([]);
   }, [session, postGuards]);
   return null;
 }

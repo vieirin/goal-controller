@@ -1,23 +1,36 @@
 'use client';
 
 import { nextRtId } from '@/lib/workbench/pistar';
-import { isActorIn, isActorKindIn, metamodelOf } from '@istar-ts/core';
-import type { ActionGuard } from '@istar-ts/actions';
+import { GUARD_REJECTION_CODE } from '@/lib/workbench/guardDiagnostics';
+import { isActorIn, metamodelOf } from '@istar-ts/core';
+import type { ActionPostGuard } from '@istar-ts/actions';
 import type { IstarExtension } from '@istar-ts/react';
 
 /**
- * An engine that reads one actor: a second one is rejected before it is
- * added, saying so (goal-controller#412: a dispatcher guard, not a post-hoc
- * undo).
+ * An engine that reads one actor: a second one is rejected, saying so
+ * (goal-controller#412). A postGuard on the resulting model's own actor
+ * count, not a pre-guard gated on `createNode` (goal-controller#439 review):
+ * `istar.replaceModel` (a SourceView paste) and a compound's children reach
+ * this the same way `createNode` does, so a second actor can't get in
+ * through any of them.
  */
 export const oneActorOnly =
-  (message: string): ActionGuard<string, string> =>
-  (operation, model) => {
-    if (operation.kind !== 'createNode') return;
-    const metamodel = metamodelOf(model);
-    if (!isActorKindIn(metamodel, operation.elementTypeId)) return;
-    if ([...model.elements.values()].some(isActorIn(metamodel)))
-      return [{ elementId: '', severity: 'error', message, source: 'shield' }];
+  (message: string): ActionPostGuard<string, string> =>
+  (_operation, modelAfter) => {
+    const metamodel = metamodelOf(modelAfter);
+    const actors = [...modelAfter.elements.values()].filter(
+      isActorIn(metamodel),
+    );
+    if (actors.length > 1)
+      return [
+        {
+          elementId: '',
+          severity: 'error',
+          message,
+          source: 'shield',
+          code: GUARD_REJECTION_CODE,
+        },
+      ];
   };
 
 /**

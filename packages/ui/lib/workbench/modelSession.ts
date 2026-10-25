@@ -26,6 +26,7 @@ import {
 import type { IstarSurface } from '@istar-ts/react';
 import type { AnyModel } from '@goal-controller/lib';
 import { pistarExtMetamodelGuard } from './dialects';
+import { isGuardRejection } from './guardDiagnostics';
 
 /** A change of the model made through the dispatcher, or by undo/redo. */
 export type ModelChanged = {
@@ -177,17 +178,27 @@ export const createModelSession = (
  * disposed by `startSession` swapping to another one while this dispatch was
  * in flight, goal-controller#431): a rejected edit on a file the user has
  * since navigated away from must not land on whatever is open now.
+ *
+ * `onRejected`'s second argument says whether a caller may still fall back to
+ * applying the raw text unchecked (goal-controller#439 review): true for a
+ * rejection the vocabulary itself made (an unparseable model, an unknown
+ * action), false for one of goal-controller's own guards — falling back to
+ * that would apply through the back door exactly what the guard just refused.
  */
 export function dispatchOrFallback<A extends IstarAction<string, string>>(
   session: ModelSession,
   surface: IstarSurface,
   action: A,
-  onRejected: (diagnostics: readonly GoalDiagnostic[]) => void,
+  onRejected: (
+    diagnostics: readonly GoalDiagnostic[],
+    canFallBack: boolean,
+  ) => void,
 ): void {
   void session
     .dispatcherFor(surface)
     .dispatch(action)
     .then((result) => {
-      if (!result.ok && !session.disposed) onRejected(result.diagnostics);
+      if (!result.ok && !session.disposed)
+        onRejected(result.diagnostics, !isGuardRejection(result.diagnostics));
     });
 }

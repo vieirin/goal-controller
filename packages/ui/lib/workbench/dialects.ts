@@ -32,6 +32,7 @@ import {
   type Framework,
   type ModelExtension,
 } from '@goal-controller/dialect';
+import { GUARD_REJECTION_CODE } from './guardDiagnostics';
 import { istar4RationalAgents, type AnyModel } from '@goal-controller/lib';
 // the mode a model records: read by the project module, the one place that knows where
 import { recordedMode } from '../project';
@@ -120,6 +121,7 @@ export const pistarExtMetamodelGuard: ActionGuard<string, string> = (
         severity: 'error',
         message: error instanceof Error ? error.message : String(error),
         source: 'pistarext',
+        code: GUARD_REJECTION_CODE,
       },
     ];
   }

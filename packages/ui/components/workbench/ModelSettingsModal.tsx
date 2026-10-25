@@ -156,7 +156,8 @@ export default function ModelSettingsModal() {
             model,
             fileMetamodel: fileMetamodelForText(empty),
           },
-          () => wb.setText(empty, 'convert'),
+          (_, canFallBack) =>
+            wb.setText(empty, 'convert', { skipStore: !canFallBack }),
         );
         wb.requestMode('pistar');
       } else wb.applyConversion(target, writeModelMode(empty, target));

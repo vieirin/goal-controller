@@ -38,6 +38,7 @@ import {
   parseModel,
 } from '@/lib/workbench/dialects';
 import { serializeModel } from '@/lib/workbench/pistar';
+import { guardsForMode } from './engines/modeGuards';
 import {
   createModelSession,
   dispatchOrFallback,
@@ -354,9 +355,16 @@ export type Workbench = {
   /**
    * the text as the model's, read into the store as one undoable edit (bursts
    * coalesced); a text that doesn't parse is kept, the store left as it was.
-   * The editors not yet ported to actions write through it (#411)
+   * The editors not yet ported to actions write through it (#411). `skipStore`
+   * (#439): the text is shown as given (so it isn't reset under the caller),
+   * but never read into the store — for a dispatch a guard rejected, whose
+   * raw text a quiet `store.replace` would otherwise apply unchecked.
    */
-  setText: (text: string, source: ChangeSource) => void;
+  setText: (
+    text: string,
+    source: ChangeSource,
+    options?: { skipStore?: boolean },
+  ) => void;
   renameFile: (fileName: string) => void;
   markSaved: () => void;
   /** `glspUndo` on the dispatcher: the one undo history (#410) */
@@ -775,6 +783,8 @@ function WorkbenchState({
   );
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
+  // what a model is for: an engine's rules, a dialect's, or free piStar (#412, #439)
+  const mode: ModelMode = pistar ? (dialect ?? 'pistar') : engine;
   // the workbench's own state; the model's options are in its text (applySettings)
   const adoptSettings = useCallback((next: ModelSettings) => {
     setEngineState(next.engine);
@@ -793,6 +803,18 @@ function WorkbenchState({
   const [, forceHistory] = useState(0);
   // read after loadPreferences, which may move an old autosave into Recent
   const [recent, setRecent] = useState<RecentFile[]>(() => loadRecent());
+
+  // the inspector's rejections (guards #412): no editor.notify of its own, so
+  // kept here and shown next to the model until dismissed, replaced, or the
+  // next successful dispatch, model switch or mode change clears it (#439)
+  const [editRejected, setEditRejected] = useState<readonly GoalDiagnostic[]>(
+    [],
+  );
+  const notifyEditRejected = useCallback(
+    (diagnostics: readonly GoalDiagnostic[]) => setEditRejected(diagnostics),
+    [],
+  );
+  const dismissEditRejected = useCallback(() => setEditRejected([]), []);
 
   // latest text, updated synchronously so the text and the store stay in step
   // outside state updaters (React may run updaters twice)
@@ -830,6 +852,9 @@ function WorkbenchState({
   // the dispatcher's sourceModelChanged: an edit (canvas, inspector), undo or redo
   const onModelChanged = useCallback(
     ({ model: next, action, surface }: ModelChanged) => {
+      // a guard rejection never reaches here (the dispatcher throws before any
+      // store change): every call is a successful dispatch, from any surface
+      setEditRejected([]);
       const text =
         textOf.current.get(next) ?? serializeModel(next, textRef.current);
       textOf.current.set(next, text);
@@ -874,6 +899,21 @@ function WorkbenchState({
       }, 0);
     };
   }, []);
+  // the mode's own guards (oneActorOnly, the edgeV2 resource-bounds check,
+  // goal-controller#412): the session's, not whichever diagram happens to be
+  // mounted (the Source tab unmounts the diagram entirely, #439 review) —
+  // set here on the session itself, read fresh by its dispatcher on every
+  // dispatch regardless of which surface or tab made it.
+  useEffect(() => {
+    const { guards, postGuards } = guardsForMode(mode);
+    session.setGuards(guards);
+    session.setPostGuards(postGuards);
+  }, [session, mode]);
+  // a mode change (a pistar toggle, a conversion) starts over: an edit
+  // rejected under the previous mode's guards no longer applies (#439)
+  useEffect(() => {
+    setEditRejected([]);
+  }, [mode]);
   /** a new session for an opened model (none: an empty one): its history starts empty */
   const startSession = useCallback(
     (text: string) => {
@@ -885,31 +925,34 @@ function WorkbenchState({
       sessionRef.current = next;
       lastReplaced.current = null;
       setSession(next);
+      setEditRejected([]);
     },
     [readText, newSession],
   );
 
   const setText = useCallback(
-    (text: string, source: ChangeSource) => {
+    (text: string, source: ChangeSource, options?: { skipStore?: boolean }) => {
       if (textRef.current === text) return;
-      const now = Date.now();
-      const read = readText(text);
-      if ('model' in read) {
-        const { store, quietly } = sessionRef.current;
-        // coalesce bursts (typing) into one undo step: the burst's last
-        // replace is taken back and made again with this text's model
-        const burst =
-          now - lastPush.current <= COALESCE_MS &&
-          lastReplaced.current === store.getModel() &&
-          store.canUndo();
-        quietly(() => {
-          if (burst) store.undo();
-          store.replace(read.model);
-        });
-        lastReplaced.current = read.model;
-        textOf.current.set(read.model, text);
+      if (!options?.skipStore) {
+        const now = Date.now();
+        const read = readText(text);
+        if ('model' in read) {
+          const { store, quietly } = sessionRef.current;
+          // coalesce bursts (typing) into one undo step: the burst's last
+          // replace is taken back and made again with this text's model
+          const burst =
+            now - lastPush.current <= COALESCE_MS &&
+            lastReplaced.current === store.getModel() &&
+            store.canUndo();
+          quietly(() => {
+            if (burst) store.undo();
+            store.replace(read.model);
+          });
+          lastReplaced.current = read.model;
+          textOf.current.set(read.model, text);
+        }
+        lastPush.current = now;
       }
-      lastPush.current = now;
       commit(text, source);
     },
     [commit, readText],
@@ -966,7 +1009,8 @@ function WorkbenchState({
                   },
                 }
               : { kind: 'istar.updateModelExtra', remove: [EMBEDDED_KEY] },
-            () => setText(written, 'settings'),
+            (_, canFallBack) =>
+              setText(written, 'settings', { skipStore: !canFallBack }),
           );
           return;
         } catch {
@@ -1045,7 +1089,8 @@ function WorkbenchState({
                 model,
                 fileMetamodel: fileMetamodelForText(written),
               },
-              () => setText(written, 'convert'),
+              (_, canFallBack) =>
+                setText(written, 'convert', { skipStore: !canFallBack }),
             );
           } catch {
             // a model that does not parse keeps its text
@@ -1744,16 +1789,6 @@ function WorkbenchState({
     [parsedResources, engine, resourceTexts],
   );
   const [resourceNotice, setResourceNotice] = useState<string | null>(null);
-  // the inspector's rejections (guards #412): no editor.notify of its own, so
-  // kept here and shown next to the model until dismissed or replaced
-  const [editRejected, setEditRejected] = useState<readonly GoalDiagnostic[]>(
-    [],
-  );
-  const notifyEditRejected = useCallback(
-    (diagnostics: readonly GoalDiagnostic[]) => setEditRejected(diagnostics),
-    [],
-  );
-  const dismissEditRejected = useCallback(() => setEditRejected([]), []);
 
   /** the open project, with the model as it is now (its edits) */
   const currentProject = useCallback((): Project | null => {
@@ -2610,7 +2645,7 @@ function WorkbenchState({
     jsonError: parsed.error,
     engine,
     engineLocked: lockedEngine !== null,
-    mode: pistar ? (dialect ?? 'pistar') : engine,
+    mode,
     recordedEngine,
     requestMode,
     conversion,
