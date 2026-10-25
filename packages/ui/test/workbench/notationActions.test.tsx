@@ -15,6 +15,7 @@ import {
 import React, { useEffect } from 'react';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import type { CompoundOperation } from '@istar-ts/actions';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   useWorkbench,
@@ -171,23 +172,48 @@ describe('the Notation view dispatches actions (#411)', () => {
     expect(wb().text).toBe(before);
   });
 
-  it('typing an edit that is rejected does not swallow a later, real change', async () => {
+  it('typing an unrecognized id dispatches nothing', async () => {
     const { wb } = await opened(<NotationView engine='edgev2' />);
+    const dispatch = vi.spyOn(wb().dispatcherFor('inspector'), 'dispatch');
     const textarea = await waitFor(() => {
       const found = notationTextarea();
       expect(found.value).toContain('G1: Goal [+]');
       return found;
     });
-    // an unknown id: notationEdits reads no edit from it, so nothing is dispatched;
-    // the next, real edit must still refresh the editor from the canonical text
+    // an unknown id: notationEdits reads no edit from it, so nothing is dispatched
     fireEvent.change(textarea, { target: { value: 'ZZ: Nothing\n' } });
     await afterDebounce();
+    expect(dispatch).not.toHaveBeenCalled();
+  });
+
+  it('a rejected edit clears ownEdit so a later, real change still dispatches', async () => {
+    const { wb } = await opened(<NotationView engine='edgev2' />);
+    const dispatch = vi
+      .spyOn(wb().dispatcherFor('inspector'), 'dispatch')
+      .mockResolvedValueOnce({ ok: false, diagnostics: [] });
+    const textarea = await waitFor(() => {
+      const found = notationTextarea();
+      expect(found.value).toContain('G1: Goal [+]');
+      return found;
+    });
+    // a real edit, parseable by notationEdits, but the dispatcher rejects it
+    // (e.g. the element went stale between render and debounce)
+    fireEvent.change(textarea, {
+      target: {
+        value: textarea.value.replace('G1: Goal [+]', 'G1: Rejected [+]'),
+      },
+    });
+    await afterDebounce();
+    expect(dispatch).toHaveBeenCalledTimes(1);
+    expect(element(wb(), G1)?.name).toBe('G1: Goal [+]');
+
     fireEvent.change(textarea, {
       target: {
         value: textarea.value.replace('G1: Goal [+]', 'G1: Second [+]'),
       },
     });
     await afterDebounce();
+    expect(dispatch).toHaveBeenCalledTimes(2);
     expect(element(wb(), G1)?.name).toBe('G1: Second [+]');
   });
 });
@@ -269,10 +295,7 @@ describe('a framework model’s missing ids are given as one compound (#411)', (
     });
 
     expect(dispatch).toHaveBeenCalledTimes(1);
-    const dispatched = dispatch.mock.calls[0]![0] as {
-      kind: string;
-      operationList: { kind: string }[];
-    };
+    const dispatched = dispatch.mock.calls[0]![0] as CompoundOperation;
     expect(dispatched.kind).toBe('compound');
     expect(dispatched.operationList.length).toBeGreaterThan(1);
     expect(

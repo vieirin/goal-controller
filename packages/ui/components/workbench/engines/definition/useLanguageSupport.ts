@@ -16,6 +16,7 @@ import { contextOf, savedLines } from '@/lib/workbench/notationDocument';
 import { poolEditOperations } from '@/lib/workbench/poolDocuments';
 import type { PoolHost } from '@/lib/workbench/poolSupport';
 import { useWorkbench } from '../../WorkbenchContext';
+import { useEditModel } from '../shared/inspector';
 
 // one support per mode and definition when no provider is there (tests, other hosts)
 const fallback = new Map<ServiceMode, WeakMap<AnyDialect, LanguageSupport>>();
@@ -92,6 +93,9 @@ export const useProjectWorkspace = (engine: DialectEngine | null): void => {
   );
   const latest = useRef(wb);
   latest.current = wb;
+  const edit = useEditModel();
+  const latestEdit = useRef(edit);
+  latestEdit.current = edit;
   const host = useMemo<PoolHost>(
     () => ({
       navigate: (location) => latest.current.revealLocation(location),
@@ -109,14 +113,7 @@ export const useProjectWorkspace = (engine: DialectEngine | null): void => {
         });
         for (const [path, next] of Object.entries(changed))
           now.setResourceText(path, next);
-        if (operations.length > 0)
-          void now
-            .dispatcherFor('inspector')
-            .dispatch(
-              operations.length === 1
-                ? operations[0]!
-                : { kind: 'compound', operationList: operations },
-            );
+        if (operations.length > 0) void latestEdit.current(...operations);
         return null;
       },
     }),
