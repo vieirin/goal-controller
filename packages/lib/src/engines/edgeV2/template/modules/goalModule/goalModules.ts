@@ -19,7 +19,13 @@ export const goalNumberId = (goalId: string): string => {
   return match[1];
 };
 
-export const goalModules = ({ gm }: { gm: EdgeGoalTree }): string => {
+export const goalModules = ({
+  gm,
+  generateDecisionVars = true,
+}: {
+  gm: EdgeGoalTree;
+  generateDecisionVars?: boolean;
+}): string => {
   const goals = GoalTree.allByType(gm, 'goal');
   return `
 ${goals
@@ -27,7 +33,7 @@ ${goals
     (a: EdgeGoalNode, b: EdgeGoalNode) =>
       Number(goalNumberId(a.id)) - Number(goalNumberId(b.id)),
   )
-  .map(goalModule)
+  .map((goal) => goalModule(goal, generateDecisionVars))
   .join('\n\n')}
 `;
 };

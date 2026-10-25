@@ -11,16 +11,20 @@ import {
 
 export type PursueStatement = { left: string; right: string };
 
-/** G{id}_achievable*N > decision_G{id} */
-export const shouldPursue = (nodeId: string): string =>
-  `${achievableFormulaVariable(nodeId)}*${N} > ${decisionVariableName(nodeId)}`;
+/** G{id}_achievable*N > decision_G{id}; empty (true) with Decision variables off */
+export const shouldPursue = (nodeId: string, enabled = true): string =>
+  enabled
+    ? `${achievableFormulaVariable(nodeId)}*${N} > ${decisionVariableName(nodeId)}`
+    : '';
 
 export const parentShouldPursue = shouldPursue;
 export const childShouldPursue = shouldPursue;
 
-/** G{id}_achievable*N <= decision_G{id} */
-export const shouldSkip = (nodeId: string): string =>
-  `${achievableFormulaVariable(nodeId)}*${N} <= ${decisionVariableName(nodeId)}`;
+/** G{id}_achievable*N <= decision_G{id}; empty (true) with Decision variables off */
+export const shouldSkip = (nodeId: string, enabled = true): string =>
+  enabled
+    ? `${achievableFormulaVariable(nodeId)}*${N} <= ${decisionVariableName(nodeId)}`
+    : '';
 
 export const parentShouldSkip = shouldSkip;
 
@@ -49,13 +53,21 @@ const childShareAboveDecision = (childId: string): string =>
  * threshold (EDGE-XT 3094b5d; goal-controller deliberately uses each
  * sibling's own threshold in the negation, not the current child's).
  *   child i: share_i*N > _d_i & !(share_0*N > _d_0) & … & !(share_{i-1}*N > _d_{i-1})
+ * Empty (true) with Decision variables off.
  */
-const cascade = (orderedChildIds: string[], childId: string): string => {
+const cascade = (
+  orderedChildIds: string[],
+  childId: string,
+  enabled: boolean,
+): string => {
   const index = orderedChildIds.indexOf(childId);
   if (index < 0) {
     throw new Error(
       `Child ${childId} not in children [${orderedChildIds.join(', ')}]`,
     );
+  }
+  if (!enabled) {
+    return '';
   }
   return [
     childShareAboveDecision(childId),
@@ -73,7 +85,8 @@ const cascade = (orderedChildIds: string[], childId: string): string => {
 export const selectChildByDecision = (
   orderedChildIds: string[],
   childId: string,
-): string => cascade(orderedChildIds, childId);
+  enabled = true,
+): string => cascade(orderedChildIds, childId, enabled);
 
 export const selectChildByRelativeDecision = selectChildByDecision;
 

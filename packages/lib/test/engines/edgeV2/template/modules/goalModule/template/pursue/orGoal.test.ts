@@ -87,6 +87,13 @@ describe('edgeV2 OR child selection (EDGE-XT 3094b5d)', () => {
         'G0_achievable*N > decision_G0 & g1_state=0 & G2_relative*N > _decision_G2 & !(G1_relative*N > _decision_G1)',
       );
     });
+
+    it('drops the decision terms with Decision variables off', () => {
+      assert.strictEqual(
+        pursueAlternativeGoal(goal, 'G2', false),
+        'g1_state=0',
+      );
+    });
   });
 
   describe('pursueChoiceGoal (reference committed)', () => {
@@ -109,6 +116,17 @@ describe('edgeV2 OR child selection (EDGE-XT 3094b5d)', () => {
         continueChosen?.left,
         'g0_chosen=2 & G2_achievable*N > decision_G2',
       );
+    });
+
+    it('drops the decision terms with Decision variables off', () => {
+      const [chooseOnce, continueChosen] = pursueChoiceGoal(
+        goal,
+        ['G1', 'G2'],
+        'G2',
+        false,
+      );
+      assert.strictEqual(chooseOnce?.left, 'g0_chosen=0 & g1_state=0');
+      assert.strictEqual(continueChosen?.left, 'g0_chosen=2');
     });
   });
 
@@ -138,6 +156,16 @@ describe('edgeV2 OR child selection (EDGE-XT 3094b5d)', () => {
         fallbackG2?.left,
         'g1_failed=2 & G0_achievable*N > decision_G0 & g1_state=0 & G2_relative*N > _decision_G2 & !(G1_relative*N > _decision_G1)',
       );
+    });
+
+    it('drops the decision terms with Decision variables off', () => {
+      const [, fallbackG1] = pursueDegradationGoal(
+        goal,
+        ['G1', 'G2'],
+        'G1',
+        false,
+      );
+      assert.strictEqual(fallbackG1?.left, 'g1_failed=2 & g2_state=0');
     });
   });
 

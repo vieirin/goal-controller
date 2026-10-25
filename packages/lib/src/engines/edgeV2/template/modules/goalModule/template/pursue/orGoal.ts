@@ -23,6 +23,7 @@ import {
 export const pursueAlternativeGoal = (
   goal: EdgeGoalNode,
   currentChildId: string,
+  generateDecisionVars = true,
 ): string => {
   const children = orderedChildIds(goal);
   const { alternative: alternativeLogger } = getLogger().pursue.executionDetail;
@@ -33,9 +34,9 @@ export const pursueAlternativeGoal = (
   );
 
   return joinGuards(
-    parentShouldPursue(goal.id),
+    parentShouldPursue(goal.id, generateDecisionVars),
     otherChildrenIdle(children, currentChildId),
-    selectChildByDecision(children, currentChildId),
+    selectChildByDecision(children, currentChildId, generateDecisionVars),
   );
 };
 
@@ -48,6 +49,7 @@ export const pursueChoiceGoal = (
   goal: EdgeGoalNode,
   orderedChildren: string[],
   currentChildId: string,
+  generateDecisionVars = true,
 ): PursueStatement[] => {
   if (goal.relationToChildren === 'and') {
     throw new Error(
@@ -73,9 +75,13 @@ export const pursueChoiceGoal = (
   const chooseOnce: PursueStatement = {
     left: joinGuards(
       `${chosen}=0`,
-      parentShouldPursue(goal.id),
+      parentShouldPursue(goal.id, generateDecisionVars),
       otherChildrenIdle(orderedChildren, currentChildId),
-      selectChildByDecision(orderedChildren, currentChildId),
+      selectChildByDecision(
+        orderedChildren,
+        currentChildId,
+        generateDecisionVars,
+      ),
     ),
     right: `(${chosen}'=${chosenIndex})`,
   };
@@ -83,7 +89,7 @@ export const pursueChoiceGoal = (
   const continueChosen: PursueStatement = {
     left: joinGuards(
       `${chosen}=${chosenIndex}`,
-      childShouldPursue(currentChildId),
+      childShouldPursue(currentChildId, generateDecisionVars),
     ),
     right: 'true',
   };
@@ -114,6 +120,7 @@ export const pursueDegradationGoal = (
   goal: EdgeGoalNode,
   degradationList: string[],
   currentChildId: string,
+  generateDecisionVars = true,
 ): PursueStatement[] => {
   if (goal.relationToChildren === 'and') {
     throw new Error(
@@ -137,7 +144,7 @@ export const pursueDegradationGoal = (
       left: joinGuards(
         retriesExhausted(goal, position),
         hasFailedLessThanNTimes(currentChildId, retries),
-        childShouldPursue(currentChildId),
+        childShouldPursue(currentChildId, generateDecisionVars),
       ),
       right: `(${failed}'=${failed}+1)`,
     });
@@ -146,9 +153,13 @@ export const pursueDegradationGoal = (
   statements.push({
     left: joinGuards(
       retriesExhausted(goal),
-      parentShouldPursue(goal.id),
+      parentShouldPursue(goal.id, generateDecisionVars),
       otherChildrenIdle(degradationList, currentChildId),
-      selectChildByDecision(degradationList, currentChildId),
+      selectChildByDecision(
+        degradationList,
+        currentChildId,
+        generateDecisionVars,
+      ),
     ),
     right: 'true',
   });

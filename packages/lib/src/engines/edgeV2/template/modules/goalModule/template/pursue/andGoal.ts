@@ -30,6 +30,7 @@ export const pursueAndSequentialGoal = (
   goal: EdgeGoalNode,
   sequence: string[],
   childId: string,
+  generateDecisionVars = true,
 ): string => {
   if (goal.relationToChildren === 'or') {
     throw new Error(
@@ -47,7 +48,7 @@ export const pursueAndSequentialGoal = (
     .join(separator('and'));
 
   return joinGuards(
-    parentShouldPursue(goal.id),
+    parentShouldPursue(goal.id, generateDecisionVars),
     priors,
     otherChildrenIdle(sequence, childId),
   );
@@ -64,6 +65,7 @@ export const pursueAndAnyOrderGoal = (
   goal: EdgeGoalNode,
   anyOrder: string[],
   childId: string,
+  generateDecisionVars = true,
 ): string => {
   if (goal.relationToChildren === 'or') {
     throw new Error(
@@ -84,8 +86,8 @@ export const pursueAndAnyOrderGoal = (
   );
 
   return joinGuards(
-    parentShouldPursue(goal.id),
+    parentShouldPursue(goal.id, generateDecisionVars),
     otherChildrenIdle(anyOrder, childId),
-    selectChildByRelativeDecision(anyOrder, childId),
+    selectChildByRelativeDecision(anyOrder, childId, generateDecisionVars),
   );
 };

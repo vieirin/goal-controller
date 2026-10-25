@@ -25,6 +25,7 @@ import { taskModule } from './modules/taskModule/taskModule';
 const treeOrderModules = (
   gm: EdgeGoalTree,
   variables: Record<string, boolean | number>,
+  generateDecisionVars: boolean,
 ): string => {
   const emitted = new Set<string>();
   const modules: string[] = [];
@@ -41,7 +42,7 @@ const treeOrderModules = (
       return;
     }
     orderedChildren(node).forEach(visit);
-    modules.push(goalModule(node));
+    modules.push(goalModule(node, generateDecisionVars));
   };
   const goals = GoalTree.allByType(gm, 'goal');
   const byNumericId = (a: { id: string }, b: { id: string }): number =>
@@ -89,7 +90,7 @@ const edgeDTMCTemplate = ({
 
 ${decisions}
 
-${goalModules({ gm })}
+${goalModules({ gm, generateDecisionVars })}
 
 ${changeManagerModule({ gm, variables })}
 
@@ -102,7 +103,7 @@ ${rewardsSection}`;
 
 ${decisions}
 
-${treeOrderModules(gm, variables)}
+${treeOrderModules(gm, variables, generateDecisionVars)}
 
 ${system}
 ${rewardsSection}`;
