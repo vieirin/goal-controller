@@ -45,3 +45,11 @@ jobs:
         if: steps.affected.outputs.run == 'true'
         run: pnpm test
 
+      - name: Install Playwright Chromium
+        if: steps.affected.outputs.run == 'true'
+        run: pnpm --filter @goal-controller/ui exec playwright install --with-deps chromium
+
+      - name: Run e2e
+        if: steps.affected.outputs.run == 'true'
+        run: pnpm --filter @goal-controller/ui run e2e
+
