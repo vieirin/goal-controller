@@ -11,6 +11,7 @@ import {
   render,
   waitFor,
 } from '@testing-library/react';
+import React from 'react';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
@@ -45,6 +46,7 @@ afterEach(() => cleanup());
 const workbench = (
   field?: (node: GoalViewNode) => React.ReactNode,
   iStarId = G1,
+  strict = false,
 ) => {
   let wb: Workbench | null = null;
   let editor: IstarEditor | null = null;
@@ -61,17 +63,29 @@ const workbench = (
     editor = useIstarEditor();
     return null;
   };
-  const view = render(
+  const tree = (
     <WorkbenchProvider lockedEngine={null}>
       <Probe />
       <WorkbenchCanvas extensions={[]} aside={<EditorProbe />} />
-    </WorkbenchProvider>,
+    </WorkbenchProvider>
   );
-  return { wb: () => wb!, editor: () => editor!, container: view.container };
+  const view = render(
+    strict ? <React.StrictMode>{tree}</React.StrictMode> : tree,
+  );
+  return {
+    wb: () => wb!,
+    editor: () => editor!,
+    container: view.container,
+    unmount: view.unmount,
+  };
 };
 
-const opened = async (field?: (node: GoalViewNode) => React.ReactNode) => {
-  const view = workbench(field);
+const opened = async (
+  field?: (node: GoalViewNode) => React.ReactNode,
+  iStarId = G1,
+  strict = false,
+) => {
+  const view = workbench(field, iStarId, strict);
   await act(() => view.wb().openModelFile('simpleChoice.txt', ISTAR));
   await waitFor(() => expect(view.wb().tree).not.toBeNull());
   await waitFor(() => expect(view.editor()).not.toBeNull());
@@ -313,5 +327,47 @@ describe('one undo history, the dispatcher’s (#410)', () => {
     expect(wb().session).not.toBe(first);
     expect(wb().canUndo).toBe(false);
     expect(element(wb(), G1)?.name).toBe('G1: Goal [+]');
+  });
+
+  it('unmounting the provider disposes the current session (#426 review)', async () => {
+    const { wb, unmount } = await opened();
+    const session = wb().session;
+    const dispose = vi.spyOn(session, 'dispose');
+
+    unmount();
+    // the cleanup schedules the dispose (a Strict Mode remount could cancel
+    // it): a real unmount leaves nothing to cancel it, so it runs
+    expect(dispose).not.toHaveBeenCalled();
+    await waitFor(() => expect(dispose).toHaveBeenCalledTimes(1));
+  });
+
+  it('a Strict Mode double-mount keeps the session alive, undo history included', async () => {
+    const { wb, container } = await opened(undefined, G1, true);
+    const session = wb().session;
+    const dispose = vi.spyOn(session, 'dispose');
+    const before = wb().text;
+
+    const { x, y } = element(wb(), G2)!;
+    await act(async () => {
+      const result = await wb()
+        .dispatcherFor('canvas')
+        .dispatch({
+          kind: 'changeBounds',
+          newBounds: [{ elementId: G2, newPosition: { x: x + 40, y: y + 10 } }],
+        });
+      expect(result.ok).toBe(true);
+    });
+    // the second Strict Mode mount's cleanup never got to run the scheduled
+    // dispose: it was cancelled, so the session that's rendering is the one
+    // that just handled this dispatch
+    expect(dispose).not.toHaveBeenCalled();
+    expect(wb().session).toBe(session);
+    expect(element(wb(), G2)).toMatchObject({ x: x + 40, y: y + 10 });
+    expect(JSON.parse(wb().text)).not.toEqual(JSON.parse(before));
+
+    await commandZ(container);
+    expect(element(wb(), G2)).toMatchObject({ x, y });
+    expect(wb().text).toBe(before);
+    expect(wb().canUndo).toBe(false);
   });
 });

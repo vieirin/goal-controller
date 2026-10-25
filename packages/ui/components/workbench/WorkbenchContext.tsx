@@ -828,6 +828,24 @@ function WorkbenchState({
   );
   const [session, setSession] = useState(() => newSession(emptyModel()));
   const sessionRef = useRef(session);
+  // disposes the session that's current when the provider unmounts for real.
+  // Strict Mode mounts, cleans up, and remounts the same session: the
+  // cleanup only *schedules* the dispose, so the second mount can cancel it
+  // before the session it's about to keep using is torn down.
+  const disposeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (disposeTimer.current !== null) {
+      clearTimeout(disposeTimer.current);
+      disposeTimer.current = null;
+    }
+    return () => {
+      const current = sessionRef.current;
+      disposeTimer.current = setTimeout(() => {
+        disposeTimer.current = null;
+        current.dispose();
+      }, 0);
+    };
+  }, []);
   /** a new session for an opened model (none: an empty one): its history starts empty */
   const startSession = useCallback(
     (text: string) => {

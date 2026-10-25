@@ -90,6 +90,9 @@ export const createModelSession = (
     if (action.kind !== 'sourceModelChanged' || quiet) return;
     onChange({ model: store.getModel(), action, surface });
   });
+  // TODO(istar-ts#213): relies on a local dispatch notifying synchronously
+  // (true today, documented in #213). From beta.3 on, read event.origin from
+  // dispatch(action, { origin }) instead.
   const tagged = (tag: IstarSurface): ActionDispatcher<string, string> => ({
     dispatch<A extends IstarAction<string, string>>(action: A) {
       const outer = surface;
