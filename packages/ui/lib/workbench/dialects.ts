@@ -70,7 +70,7 @@ const HOSTS = Object.fromEntries(
  */
 export const modelExtensionOf = (model: AnyModel): ModelExtension => {
   const block = fileMetamodelOf(model);
-  return block ? (block as ModelExtension) : { name: MODEL_NAMESPACE };
+  return block ?? { name: MODEL_NAMESPACE };
 };
 
 /** A dialect as one model has it: with what the model adds. */
@@ -201,7 +201,7 @@ export const parseModel = (
     fileMetamodel: true,
   });
   const block = fileMetamodelOf(model);
-  if (block) withModelEntries(DIALECTS[mode], block as ModelExtension);
+  if (block) withModelEntries(DIALECTS[mode], block);
   return model;
 };
 

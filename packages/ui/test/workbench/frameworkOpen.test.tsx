@@ -243,7 +243,7 @@ describe('a framework model’s Notation tab (#171)', () => {
     expect(lines).toContain('      DP1: Internet connection available');
   });
 
-  it('reads the store’s model, not wb.text: a direct dispatch updates its lines with no parse (#449)', async () => {
+  it('reads the store’s model, not wb.text: a direct dispatch updates its lines with zero parses (#449, #451 review)', async () => {
     const json = JSON.parse(KAOS_WELCOME);
     const count = new Map<string, number>();
     const prefix: Record<string, string> = {
@@ -290,9 +290,10 @@ describe('a framework model’s Notation tab (#171)', () => {
       });
     });
     await waitFor(() => expect(container.textContent).toContain('G5: Renamed'));
-    // the model the lines are read from is the store's own: the one parse
-    // left is the browser's own JSON check (jsonError), not the tree's
-    expect(parseModelSpy).toHaveBeenCalledTimes(1);
+    // the model the lines are read from is the store's own, and the text is
+    // just its serialization: no browser-side JSON check reruns either
+    // (jsonError is set to null directly for a store-derived edit)
+    expect(parseModelSpy).not.toHaveBeenCalled();
   });
 });
 
