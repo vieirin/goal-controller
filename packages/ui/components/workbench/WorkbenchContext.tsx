@@ -842,7 +842,6 @@ function WorkbenchState({
     },
     [readText, newSession],
   );
-  useEffect(() => () => sessionRef.current.dispose(), []);
 
   const setText = useCallback(
     (text: string, source: ChangeSource) => {

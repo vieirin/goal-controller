@@ -76,7 +76,12 @@ export const createModelSession = (
       return palette.groups;
     },
   };
-  const dispatcher = createActionDispatcher(store, { palette: current });
+  // sendModel: each sourceModelChanged carries the model and canUndo/canRedo,
+  // for a mirror that follows it from another thread (the engine worker, #413)
+  const dispatcher = createActionDispatcher(store, {
+    palette: current,
+    sendModel: true,
+  });
   // set while a surface's dispatch runs: the dispatcher applies an operation,
   // and emits its sourceModelChanged, before dispatch's first await
   let surface: IstarSurface | null = null;
