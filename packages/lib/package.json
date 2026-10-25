@@ -22,8 +22,8 @@
     "@goal-controller/dialect": "workspace:*",
     "@goal-controller/goal-language": "workspace:*",
     "@goal-controller/goal-tree": "workspace:*",
-    "@istar-ts/dsm3-kaos": "0.15.0-beta.4",
-    "@istar-ts/dsm3-nfr": "0.15.0-beta.4",
+    "@istar-ts/dsm3-kaos": "0.15.0-beta.8",
+    "@istar-ts/dsm3-nfr": "0.15.0-beta.8",
     "@rgrove/parse-xml": "4.2.3",
     "inquirer": "^12.5.2",
     "jsonc-parser": "^3.3",
@@ -35,7 +35,7 @@
     "zod": "^4.1"
   },
   "devDependencies": {
-    "@istar-ts/core": "0.15.0-beta.4",
+    "@istar-ts/core": "0.15.0-beta.8",
     "@types/chai": "^4.3.11",
     "@types/inquirer": "^9.0.7",
     "@types/lodash": "^4.14.197",

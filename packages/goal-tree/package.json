@@ -14,7 +14,7 @@
   "dependencies": {
     "@goal-controller/dialect": "workspace:*",
     "@goal-controller/goal-language": "workspace:*",
-    "@istar-ts/core": "0.15.0-beta.4",
+    "@istar-ts/core": "0.15.0-beta.8",
     "lodash": "^4.17.21"
   },
   "devDependencies": {

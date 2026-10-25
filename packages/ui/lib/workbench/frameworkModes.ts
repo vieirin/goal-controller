@@ -5,7 +5,13 @@
  * (`diagram.customProperties.engine`), and read with its framework's root
  * (`hostFor`; the framework recorded beside the mode).
  */
-import { kaos, nfr } from '@goal-controller/lib';
+import {
+  kaos,
+  kaosAgentContext,
+  nfr,
+  nfrAgentContext,
+  type EngineContext,
+} from '@goal-controller/lib';
 import type { AnyDialect, Framework } from '@goal-controller/dialect';
 import { DIALECT_LABEL, isDialectMode, type DialectMode } from './dialects';
 import { FRAMEWORK_ENGINE_DIALECTS, isFrameworkEngine } from './engineDialects';
@@ -18,6 +24,11 @@ export const FRAMEWORK_DIALECTS = { kaos, nfr } as const satisfies Record<
 >;
 
 export type FrameworkMode = keyof typeof FRAMEWORK_DIALECTS;
+
+/** Each framework dialect's part of an agent's context (goal-controller#415): lib's binding's. */
+export const FRAMEWORK_AGENT_CONTEXTS: Readonly<
+  Record<FrameworkMode, EngineContext>
+> = { kaos: kaosAgentContext, nfr: nfrAgentContext };
 
 export const isFrameworkMode = (mode: unknown): mode is FrameworkMode =>
   typeof mode === 'string' && mode in FRAMEWORK_DIALECTS;

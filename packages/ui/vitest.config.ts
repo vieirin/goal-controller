@@ -22,10 +22,11 @@ export default defineConfig({
       '@istar-ts/core': require.resolve('@istar-ts/core'),
       '@istar-ts/actions': require.resolve('@istar-ts/actions'),
       '@istar-ts/gmodel': require.resolve('@istar-ts/gmodel'),
-      // the more specific entry first: the bare one's replacement is a file
-      // (dist/index.js), and a prefix match would append "/browser" to it
+      // the more specific entries first: the bare one's replacement is a
+      // file (dist/index.js), and a prefix match would append "/browser" to it
       '@istar-ts/glsp/browser': require.resolve('@istar-ts/glsp/browser'),
       '@istar-ts/glsp': require.resolve('@istar-ts/glsp'),
+      '@istar-ts/agent/glsp': require.resolve('@istar-ts/agent/glsp'),
       '@istar-ts/agent': require.resolve('@istar-ts/agent'),
     },
   },

@@ -12,11 +12,11 @@ import { goalView } from '@goal-controller/goal-tree';
 import {
   checkContextOf,
   documentDiagnostics,
+  notationContextOf,
 } from '@goal-controller/goal-language';
 import { situated } from '../engines/variants/toy';
 import { SITUATED_MODEL } from '../engines/variants/toyModel';
 import {
-  contextOf,
   notationDocument,
   notationEdits,
 } from '../../../ui/lib/workbench/notationDocument';
@@ -35,9 +35,11 @@ const view = (text = MODEL) =>
 
 const messages = (doc: string) => {
   const tree = view();
-  return documentDiagnostics(situated, doc, contextOf(situated, tree, [])).map(
-    (d) => [doc.slice(d.from, d.to), d.message],
-  );
+  return documentDiagnostics(
+    situated,
+    doc,
+    notationContextOf(situated, { tree, variables: [] }),
+  ).map((d) => [doc.slice(d.from, d.to), d.message]);
 };
 
 describe('a context on links (#152)', () => {
@@ -76,7 +78,10 @@ describe('a context on links (#152)', () => {
   });
 
   it('gives a check the link, its target the dependum', () => {
-    const check = checkContextOf(contextOf(situated, view(), []), 'T1');
+    const check = checkContextOf(
+      notationContextOf(situated, { tree: view(), variables: [] }),
+      'T1',
+    );
     expect(check.readLink?.('d1')).to.include({ source: 'T1', target: 'G5' });
     expect(check.readElement?.('G5')).to.include({
       kind: 'goal',

@@ -53,6 +53,7 @@ import {
   type GlspMcpHandle,
   type GlspServer,
 } from '@/lib/workbench/glspServer';
+import type { AgentWorkspace } from '@/lib/workbench/agent/hostTools';
 import type { ActionDispatcher } from '@istar-ts/actions';
 import type { IstarSurface } from '@istar-ts/react';
 import { frameworkProblems } from '@/lib/workbench/frameworkProblems';
@@ -397,6 +398,8 @@ export type Workbench = {
   setGlspEnabled: (enabled: boolean) => void;
   /** the in-page MCP handle, once the GLSP server has started; none while it hasn't */
   glspMcp: GlspMcpHandle | null;
+  /** what M6's host tools read of the open project, as it is now (goal-controller#415) */
+  agentWorkspace: () => AgentWorkspace;
   /**
    * The inspector's last rejected edit (a guard's diagnostics), shown next to
    * the model until dismissed or replaced by another rejection: the inspector
@@ -941,18 +944,30 @@ function WorkbenchState({
   // disposed when turned off or the provider unmounts.
   const [glspEnabled, setGlspEnabled] = useState(false);
   const [glspMcp, setGlspMcp] = useState<GlspMcpHandle | null>(null);
+  // the model's view and the project's resources, for M6's host tools'
+  // pool-lookup and validate-notation (goal-controller#415): read fresh on
+  // each call, not captured by the effect below (declared, each render,
+  // after the tree, the resources and the variables are, further down).
+  const workspaceRef = useRef<() => AgentWorkspace>(() => ({
+    tree: null,
+    resources: [],
+    variables: [],
+  }));
+  const agentWorkspace = useCallback(() => workspaceRef.current(), []);
   useEffect(() => {
     if (!glspEnabled) return undefined;
     let disposed = false;
     let server: GlspServer | null = null;
-    void startGlspServer(session).then((started) => {
-      if (disposed) {
-        started.dispose();
-        return;
-      }
-      server = started;
-      setGlspMcp(started.mcp);
-    });
+    void startGlspServer(session, mode, () => workspaceRef.current()).then(
+      (started) => {
+        if (disposed) {
+          started.dispose();
+          return;
+        }
+        server = started;
+        setGlspMcp(started.mcp);
+      },
+    );
     return () => {
       disposed = true;
       setGlspMcp(null);
@@ -2172,6 +2187,20 @@ function WorkbenchState({
     () => (isPrismEngine(engine) ? (analysis?.variables ?? []) : []),
     [analysis, engine],
   );
+  // what M6's host tools read, fresh on each call (goal-controller#415):
+  // the pool's documents, and what the Notation editor checks against
+  workspaceRef.current = () => ({
+    tree,
+    resources: resourceSlotsNow.flatMap((slot) =>
+      slot.paths.flatMap((path) =>
+        resourceTexts[path] === undefined
+          ? []
+          : [{ kind: slot.kind, path, text: resourceTexts[path] }],
+      ),
+    ),
+    variables,
+    projectResources,
+  });
   const [storedValues, setStoredValues] = useState<VariableValues>(
     initial.current?.variables ?? {},
   );
@@ -2707,6 +2736,7 @@ function WorkbenchState({
     glspEnabled,
     setGlspEnabled,
     glspMcp,
+    agentWorkspace,
     editRejected,
     notifyEditRejected,
     dismissEditRejected,

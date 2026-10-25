@@ -1,7 +1,14 @@
 'use client';
 
 import { ArrowUpRight, X } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import type { GoalViewNode } from '@goal-controller/goal-tree';
 import {
   constructDefinition,
@@ -10,6 +17,7 @@ import {
 } from '@goal-controller/dialect';
 import {
   checkContextOf,
+  notationContextOf,
   elementLine,
   isValidName,
 } from '@goal-controller/goal-language';
@@ -23,7 +31,6 @@ import {
   type PropertySpec,
 } from '@/lib/workbench/edgeProperties';
 import type { AnalyzeResponse } from '@/lib/workbench/types';
-import { contextOf } from '@/lib/workbench/notationDocument';
 import {
   ENGINE_LABEL,
   notationDefinitionOf,
@@ -54,11 +61,14 @@ export const useDraft = (
   const [draft, setDraft] = useState(value);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const commitRef = useRef(commit);
-  commitRef.current = commit;
   const editing = useRef(false);
   const latest = useRef(value);
   const current = useRef(value);
-  current.current = value;
+  // the latest commit and value, for the timers below: set once rendered
+  useLayoutEffect(() => {
+    commitRef.current = commit;
+    current.current = value;
+  });
   useEffect(() => {
     if (!editing.current) setDraft(value);
     else if (value === latest.current) editing.current = false;
@@ -982,12 +992,11 @@ export function PropertiesField({
     () =>
       checkContextOf(
         tree
-          ? contextOf(
-              notationDefinitionOf(engine),
+          ? notationContextOf(notationDefinitionOf(engine), {
               tree,
-              [],
-              wb.projectResources,
-            )
+              variables: [],
+              projectResources: wb.projectResources,
+            })
           : { elements: {}, variables: [] },
         node.key,
       ),

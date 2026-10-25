@@ -8,7 +8,9 @@
  * lands in the initial bundle: a page that never turns this on pays nothing.
  */
 import { metamodelOf } from '@istar-ts/core';
+import type { ModelMode } from './pistar';
 import type { ModelSession } from './modelSession';
+import type { AgentWorkspace } from './agent/hostTools';
 
 /** The in-page MCP handle (`startGlspServer`'s result): what M6's agent needs to reach it. */
 export type GlspMcpHandle = {
@@ -34,14 +36,28 @@ export type GlspServer = {
  * contribution built (`contributionFor`) from the model's current metamodel,
  * the session's palette and registry sizes (`PaletteBridge`'s, not
  * re-derived): matches the active mode's dialect, since the model, palette
- * and sizes are all the showing canvas's.
+ * and sizes are all the showing canvas's. `mode` and `getWorkspace`
+ * (goal-controller#415) build goal-controller's own context providers and
+ * host tools for M6's agent, registered next to istar's own MCP tools.
+ * `@istar-ts/glsp` and the agent's own modules are dynamically imported, so
+ * they never land in the initial bundle: a page that never turns this on
+ * pays nothing.
  */
 export async function startGlspServer(
   session: ModelSession,
+  mode: ModelMode,
+  getWorkspace: () => AgentWorkspace,
 ): Promise<GlspServer> {
-  const [{ contributionFor }, { serveIstarGlsp }] = await Promise.all([
+  const [
+    { contributionFor },
+    { serveIstarGlsp },
+    { contextProvidersFor },
+    { hostToolsFor },
+  ] = await Promise.all([
     import('@istar-ts/glsp'),
     import('@istar-ts/glsp/browser'),
+    import('./agent/context'),
+    import('./agent/hostTools'),
   ]);
   const contribution = contributionFor(metamodelOf(session.store.getModel()), {
     palette: session.getPalette(),
@@ -49,7 +65,10 @@ export async function startGlspServer(
   });
   const server = serveIstarGlsp({
     shared: { store: session.store, dispatcher: session.dispatcher },
-    mcp: true,
+    mcp: {
+      hostTools: hostToolsFor(mode, getWorkspace),
+      context: contextProvidersFor(mode),
+    },
     contributions: [contribution],
   });
   await server.mcp.ready;
