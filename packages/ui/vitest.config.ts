@@ -7,18 +7,23 @@
  * One @istar-ts/core, as next.config.js has it (goal-controller#171): its
  * CommonJS build, the one goal-tree's `out/` requires through Node. The
  * @istar-ts packages that import it are inlined so the alias reaches them.
+ * react now depends on actions and gmodel, so they get the same alias.
  */
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vitest/config';
 
+const require = createRequire(import.meta.url);
+
 export default defineConfig({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./', import.meta.url)),
-      '@istar-ts/core': createRequire(import.meta.url).resolve(
-        '@istar-ts/core',
-      ),
+      '@istar-ts/core': require.resolve('@istar-ts/core'),
+      '@istar-ts/actions': require.resolve('@istar-ts/actions'),
+      '@istar-ts/gmodel': require.resolve('@istar-ts/gmodel'),
+      '@istar-ts/glsp': require.resolve('@istar-ts/glsp'),
+      '@istar-ts/agent': require.resolve('@istar-ts/agent'),
     },
   },
   esbuild: { jsx: 'automatic' },
@@ -27,6 +32,10 @@ export default defineConfig({
     include: ['test/**/*.test.{ts,tsx}'],
     exclude: ['**/node_modules/**', '.next/**', 'out/**'],
     restoreMocks: true,
-    server: { deps: { inline: [/@istar-ts[\\/](react|dsm3-)/] } },
+    server: {
+      deps: {
+        inline: [/@istar-ts[\\/](react|dsm3-|actions|gmodel|glsp|agent)/],
+      },
+    },
   },
 });
