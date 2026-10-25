@@ -65,8 +65,7 @@ describe('the GLSP server hosted over a workbench session (#414)', () => {
     expect(names).toContain('create-nodes');
   });
 
-  // TODO(istar-ts#223): one MCP call = one undo step
-  it('create-nodes over MCP appears in the store, undoable with one glspUndo', async () => {
+  it('create-nodes over MCP (with text) appears in the store, undoable with one glspUndo', async () => {
     const { session, server, client } = await opened();
     const before = session.store.getModel();
 
@@ -79,6 +78,7 @@ describe('the GLSP server hosted over a workbench session (#414)', () => {
             elementTypeId: 'node:istar.Task',
             position: { x: 10, y: 10 },
             containerId: ACTOR,
+            text: 'Named by the agent',
           },
         ],
       },
@@ -88,6 +88,10 @@ describe('the GLSP server hosted over a workbench session (#414)', () => {
     const after = session.store.getModel();
     expect(after).not.toBe(before);
     expect(after.elements.size).toBe(before.elements.size + 1);
+    const named = [...after.elements.values()].find(
+      (element) => element.name === 'Named by the agent',
+    );
+    expect(named).toBeDefined();
 
     const undone = await session.dispatcher.dispatch({ kind: 'glspUndo' });
     expect(undone.ok).toBe(true);
