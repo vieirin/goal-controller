@@ -28,13 +28,8 @@ import {
   ENGINE_LABEL,
   notationDefinitionOf,
 } from '@/lib/workbench/engineDialects';
-import {
-  nodeTone,
-  setNodeColor,
-  setNodeProperty,
-  setNodeText,
-  setRefinement,
-} from '@/lib/workbench/pistar';
+import { nodeTone, setRefinement } from '@/lib/workbench/pistar';
+import type { ActionResult, IstarOperation } from '@istar-ts/actions';
 import { useSelection, useWorkbench } from '../../WorkbenchContext';
 import { useShell } from '../../shell';
 import { CreatableSelect, Button, NodeChip, Segmented, cx } from '../../ui';
@@ -791,8 +786,32 @@ export function SelectedNode({
   );
 }
 
-/** Writes an edit of the model text, as the inspector's. */
+/**
+ * Edits the model as the inspector (#410): one action on the workbench's
+ * dispatcher, through its inspector surface, so one undo step; several
+ * operations for one edit go as a `compound` (all applied, or none). A
+ * rejection leaves the model as it was, its diagnostics in the result.
+ */
 export const useEditModel = () => {
+  const { dispatcherFor } = useWorkbench();
+  return (
+    ...operations: IstarOperation<string, string>[]
+  ): Promise<ActionResult> => {
+    const [first, ...rest] = operations;
+    if (!first) return Promise.resolve({ ok: true, createdIds: [] });
+    return dispatcherFor('inspector').dispatch(
+      rest.length === 0
+        ? first
+        : { kind: 'compound', operationList: operations },
+    );
+  };
+};
+
+/**
+ * Writes an edit of the model text, as the inspector's: for the edits not yet
+ * ported to actions (DefinitionInspector, PartInspector, the refinement; #411).
+ */
+export const useEditModelText = () => {
   const wb = useWorkbench();
   return (update: (text: string) => string) =>
     wb.setText(update(wb.text), 'inspector');
@@ -802,17 +821,15 @@ export function NameField({ node }: { node: GoalViewNode }) {
   const definition = notationDefinitionOf(useWorkbench().engine);
   const edit = useEditModel();
   const name = useDraft(node.name, (next) =>
-    edit((text) =>
-      setNodeText(
-        text,
-        node.iStarId,
-        elementLine(definition, {
-          id: node.id,
-          name: next,
-          notation: node.notation,
-        }),
-      ),
-    ),
+    edit({
+      kind: 'applyLabelEdit',
+      labelId: node.iStarId,
+      text: elementLine(definition, {
+        id: node.id,
+        name: next,
+        notation: node.notation,
+      }),
+    }),
   );
   const valid = isValidName(definition, node.kind, name.draft);
   return (
@@ -835,7 +852,8 @@ export function NameField({ node }: { node: GoalViewNode }) {
 }
 
 export function RefinementField({ node }: { node: GoalViewNode }) {
-  const edit = useEditModel();
+  // TODO(istar-ts#199): one `istar.changeLinkKind` action (istar-ts 0.15.0-beta.1, #411)
+  const edit = useEditModelText();
   if (node.kind !== 'goal' || node.children.length === 0) return null;
   return (
     <Field
@@ -886,7 +904,12 @@ export function NodeColorField({
       color={node.color}
       fallback={fallback}
       onChange={(color) =>
-        edit((text) => setNodeColor(text, node.iStarId, color))
+        edit({
+          kind: 'istar.updateDisplay',
+          elementId: node.iStarId,
+          // undefined removes the key
+          patch: { backgroundColor: color ?? undefined },
+        })
       }
     />
   );
@@ -1007,7 +1030,12 @@ export function PropertiesField({
             }
             editor={editorFor?.(key)}
             onChange={(value) =>
-              edit((text) => setNodeProperty(text, node.iStarId, key, value))
+              edit({
+                kind: 'istar.updateProperties',
+                elementId: node.iStarId,
+                // null removes the key
+                properties: { [key]: value },
+              })
             }
           />
         ))}
@@ -1031,7 +1059,11 @@ export function PropertiesField({
         }
         onSelect={(key) => {
           if (!key || key in node.properties) return;
-          edit((text) => setNodeProperty(text, node.iStarId, key, ''));
+          void edit({
+            kind: 'istar.updateProperties',
+            elementId: node.iStarId,
+            properties: { [key]: '' },
+          });
         }}
       />
     </div>

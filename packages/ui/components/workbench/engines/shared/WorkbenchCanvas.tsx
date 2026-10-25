@@ -1,20 +1,18 @@
 'use client';
 
-import { serializeModel } from '@/lib/workbench/pistar';
-import { emptyModel, parseModel } from '@/lib/workbench/dialects';
-import type { AnyModel } from '@goal-controller/lib';
 import type { ModelChangeEvent } from '@istar-ts/core';
 import {
   IstarCanvas,
   IstarPalette,
   IstarProvider,
+  paletteDescriptionFor,
   useIstarEditor,
-  useIstarStore,
   type IstarCanvasHandle,
   type IstarExtension,
 } from '@istar-ts/react';
 import {
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   type KeyboardEvent,
@@ -35,11 +33,12 @@ import {
   shownStep,
 } from '@/lib/workbench/analysis';
 import { useShell } from '../../shell';
+import type { ModelSession } from '@/lib/workbench/modelSession';
 
 /**
- * The goal model as an editable iStar diagram (@istar-ts/react), kept in sync
- * with the workbench: edits are written to the model text, text changes from
- * elsewhere reload the diagram, and the selection follows the workbench's.
+ * The goal model as an editable iStar diagram (@istar-ts/react), a client of
+ * the workbench's store and dispatcher (#410): its edits are actions on the
+ * model, the text follows from it, and the selection follows the workbench's.
  * Each mode's diagram (engines/<engine>/, engines/pistar/) declares what it adds.
  */
 
@@ -47,16 +46,6 @@ import { useShell } from '../../shell';
 export type RejectEdit = (
   event: ModelChangeEvent<string, string>,
 ) => string | null;
-
-/** The model, read with the dialect it records (if any). */
-const tryParse = (text: string): AnyModel | null => {
-  if (!text.trim()) return emptyModel();
-  try {
-    return parseModel(text);
-  } catch {
-    return null;
-  }
-};
 
 /**
  * Keeps the diagram fitted to its container until the user pans or zooms it: the
@@ -151,6 +140,28 @@ function NotifyBridge({
   return null;
 }
 
+/**
+ * Gives the workbench's dispatcher the palette this canvas draws (its registry,
+ * with the mode's extensions), before the editor asks for it: the dispatcher
+ * is the workbench's, not one the editor made over its own registry.
+ * TODO(istar-ts#202): gone with istar-ts 0.15.0-beta.1 (#411).
+ */
+function PaletteBridge({
+  session,
+  extensions,
+}: {
+  session: ModelSession;
+  extensions: readonly IstarExtension<string, string>[];
+}) {
+  const { registry } = useIstarEditor();
+  // layout: before the provider's effect requests it
+  useLayoutEffect(() => {
+    session.setPalette(paletteDescriptionFor(registry, extensions));
+    return () => session.setPalette(null);
+  }, [session, registry, extensions]);
+  return null;
+}
+
 /** Two-way selection sync between the diagram (piStar ids) and the workbench (RT ids). */
 function SelectionSync({
   canvas,
@@ -242,7 +253,9 @@ export default function WorkbenchCanvas({
 }) {
   const wb = useWorkbench();
   const { modelFullscreen, modelReadOnly } = useShell();
-  const parsed = useMemo(() => tryParse(wb.text), [wb.text]);
+  // the store keeps the last model that parsed: shown, read-only, while the text doesn't
+  const parsed = !wb.jsonError;
+  const { session } = wb;
   const reject = useRef(rejectEdit);
   reject.current = rejectEdit;
   const notify = useRef<((message: string) => void) | null>(null);
@@ -256,39 +269,18 @@ export default function WorkbenchCanvas({
     `${wb.fileName}|${modelReadOnly}|${fitKey}`,
     shown,
   );
-  const { store } = useIstarStore(() => parsed ?? emptyModel());
-  // the text this diagram last wrote, so its own edits are not loaded back
-  const written = useRef<string | null>(null);
-  const latest = useRef(wb);
-  latest.current = wb;
-
-  // model text → diagram (a new file, the source view, the inspector, undo)
-  useEffect(() => {
-    if (!parsed || wb.text === written.current) return;
-    written.current = null;
-    store.load(parsed);
-  }, [parsed, wb.text, store]);
-
-  // diagram → model text
+  // an edit the mode does not allow is undone right after (guards replace this, #412)
   useEffect(
     () =>
-      store.subscribe((event) => {
-        if (event.source === 'load') return;
-        const rejected =
-          event.source === 'edit' ? (reject.current?.(event) ?? null) : null;
-        if (rejected) {
-          queueMicrotask(() => {
-            store.undo();
-            notify.current?.(rejected);
-          });
-          return;
-        }
-        const current = latest.current;
-        const text = serializeModel(event.model, current.text);
-        written.current = text;
-        current.setText(text, 'canvas');
+      session.subscribeEdits((event) => {
+        const rejected = reject.current?.(event) ?? null;
+        if (!rejected) return;
+        queueMicrotask(() => {
+          void session.dispatcherFor('canvas').dispatch({ kind: 'glspUndo' });
+          notify.current?.(rejected);
+        });
       }),
-    [store],
+    [session],
   );
 
   // what the canvas badges: the elements' errors and warnings, by the diagram's
@@ -319,7 +311,8 @@ export default function WorkbenchCanvas({
     [wb.analysisRun, wb.analysisStale],
   );
 
-  // one undo history for the whole workbench: ⌘Z here undoes the model text, not just the diagram
+  // one undo history for the whole workbench, the dispatcher's: ⌘Z here is a
+  // glspUndo, whichever editor made the edit (not caught again by the workbench's)
   const onKeyDownCapture = (event: KeyboardEvent) => {
     if (modelReadOnly || !(event.metaKey || event.ctrlKey)) return;
     if ((event.target as HTMLElement).closest('input, textarea')) return;
@@ -327,8 +320,9 @@ export default function WorkbenchCanvas({
     if (key !== 'z' && key !== 'y') return;
     event.preventDefault();
     event.stopPropagation();
-    if (key === 'y' || event.shiftKey) wb.redo();
-    else wb.undo();
+    void session.dispatcherFor('canvas').dispatch({
+      kind: key === 'y' || event.shiftKey ? 'glspRedo' : 'glspUndo',
+    });
   };
 
   if (!wb.text.trim()) {
@@ -348,11 +342,16 @@ export default function WorkbenchCanvas({
     >
       {selection && <style>{selection}</style>}
       <IstarProvider
-        store={store}
+        // a new session is another model: the editor starts over
+        key={session.id}
+        store={session.store}
+        dispatcher={session.dispatcherFor('canvas')}
+        dispatcherFor={session.dispatcherFor}
         diagnostics={diagnostics}
         extensions={extensions}
         readOnly={!parsed || modelReadOnly}
       >
+        <PaletteBridge session={session} extensions={extensions} />
         <SelectionSync canvas={canvas} />
         <NotifyBridge notify={notify} />
         {/* piStar mode and full screen: piStar's bar on top; read-only has none */}

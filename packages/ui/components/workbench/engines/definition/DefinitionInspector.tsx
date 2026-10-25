@@ -35,7 +35,7 @@ import {
   VariablesField,
   inputClass,
   useDraft,
-  useEditModel,
+  useEditModelText,
   type PropertyEditor,
 } from '../shared/inspector';
 import DefinitionValueEditor, {
@@ -59,7 +59,7 @@ function NotationField({
   const operators = useMemo(() => operatorsFor(definition), [definition]);
   const wb = useWorkbench();
   const { tree } = wb;
-  const edit = useEditModel();
+  const edit = useEditModelText();
   const notation = useDraft(node.notation ?? '', (next) =>
     edit((text) =>
       setNodeText(
