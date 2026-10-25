@@ -47,7 +47,7 @@ const BUTTON =
   'rounded border border-line bg-white px-1.5 py-0.5 text-2xs text-ink-soft hover:border-trace hover:text-ink';
 
 /** A goal's notation, with the operators, constructs and problems its definition declares. */
-function NotationField({
+export function NotationField({
   node,
   engine,
 }: {

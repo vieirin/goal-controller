@@ -112,7 +112,7 @@ export const pistarExtMetamodelGuard: ActionGuard<string, string> = (
 ) => {
   if (operation.kind !== 'istar.setFileMetamodel' || !operation.block) return;
   try {
-    withModelEntries(DIALECTS.pistarext, operation.block as ModelExtension);
+    withModelEntries(DIALECTS.pistarext, operation.block);
   } catch (error) {
     return [
       {
