@@ -33,6 +33,7 @@ import FrameworkSwitchDialog from './FrameworkSwitchDialog';
 import OutputPane from './OutputPane';
 import { ModelTabView, modelTabsFor } from './modelTabs';
 import TopBar, { addUpload, openUpload } from './TopBar';
+import AgentDrawer from './AgentDrawer';
 import {
   WorkbenchProvider,
   useSelection,
@@ -331,6 +332,7 @@ function ShellLayout() {
         }}
       >
         <TopBar />
+        <AgentDrawer />
         <Group orientation='vertical' className='min-h-0 flex-1'>
           <Panel id='main' defaultSize='75%' minSize='30%'>
             <Group orientation='horizontal' className='h-full'>

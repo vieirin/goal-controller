@@ -53,6 +53,7 @@ import {
   type GlspMcpHandle,
   type GlspServer,
 } from '@/lib/workbench/glspServer';
+import type { PoolWorkspace } from '@/lib/workbench/agent/hostTools';
 import type { ActionDispatcher } from '@istar-ts/actions';
 import type { IstarSurface } from '@istar-ts/react';
 import { frameworkProblems } from '@/lib/workbench/frameworkProblems';
@@ -941,11 +942,21 @@ function WorkbenchState({
   // disposed when turned off or the provider unmounts.
   const [glspEnabled, setGlspEnabled] = useState(false);
   const [glspMcp, setGlspMcp] = useState<GlspMcpHandle | null>(null);
+  // the model's view and the project's resources, for M6's host tools'
+  // pool-lookup and validate-notation (goal-controller#415): read fresh on
+  // each call, not captured by the effect below (declared, each render,
+  // after the tree and the resources are, further down this component).
+  const workspaceRef = useRef<() => PoolWorkspace>(() => ({
+    tree: null,
+    resources: [],
+  }));
   useEffect(() => {
     if (!glspEnabled) return undefined;
     let disposed = false;
     let server: GlspServer | null = null;
-    void startGlspServer(session).then((started) => {
+    void startGlspServer(session, engine, mode, () =>
+      workspaceRef.current(),
+    ).then((started) => {
       if (disposed) {
         started.dispose();
         return;
@@ -958,7 +969,7 @@ function WorkbenchState({
       setGlspMcp(null);
       server?.dispose();
     };
-  }, [glspEnabled, session, mode]);
+  }, [glspEnabled, session, mode, engine]);
   /** a new session for an opened model (none: an empty one): its history starts empty */
   const startSession = useCallback(
     (text: string) => {
@@ -1743,6 +1754,16 @@ function WorkbenchState({
   );
   const resourceTextsRef = useRef(resourceTexts);
   resourceTextsRef.current = resourceTexts;
+  workspaceRef.current = () => ({
+    tree,
+    resources: resourceSlotsNow.flatMap((slot) =>
+      slot.paths.flatMap((path) =>
+        resourceTexts[path] === undefined
+          ? []
+          : [{ kind: slot.kind, path, text: resourceTexts[path] }],
+      ),
+    ),
+  });
   // the store each text was read from (or written to): another project's
   // texts stay in state until its own are read
   const textStore = useRef(new Map<string, ProjectStore>());

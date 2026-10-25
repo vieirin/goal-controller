@@ -16,6 +16,13 @@ const mutroseOneActor = oneActorOnly(
 type ModeGuards = {
   readonly guards: readonly ActionGuard<string, string>[];
   readonly postGuards: readonly ActionPostGuard<string, string>[];
+  /**
+   * Plain-language statements of this mode's own rules, for M6's agent
+   * context (goal-controller#415): one sentence per rule, not the guard's
+   * rejection message (some, like `edgeV2ResourceBoundsGuard`, only compute
+   * one when a violation already happened).
+   */
+  readonly describe: readonly string[];
 };
 
 /**
@@ -25,13 +32,33 @@ type ModeGuards = {
  * guards must still run for an edit the Inspector (a sibling panel) makes.
  */
 const MODE_GUARDS: Partial<Record<ModelMode, ModeGuards>> = {
-  edge: { guards: NO_GUARDS, postGuards: [edgeOneActor] },
+  edge: {
+    guards: NO_GUARDS,
+    postGuards: [edgeOneActor],
+    describe: [
+      'The Edge engines read a single actor: add goals, tasks and resources inside the existing one.',
+    ],
+  },
   edgev2: {
     guards: NO_GUARDS,
     postGuards: [edgeOneActor, edgeV2ResourceBoundsGuard],
+    describe: [
+      'The Edge engines read a single actor: add goals, tasks and resources inside the existing one.',
+      "A resource's bounds must stay consistent: an int resource needs lowerBound <= initialValue <= upperBound, and a bool resource's initialValue must be true or false.",
+    ],
   },
-  mutrose: { guards: NO_GUARDS, postGuards: [mutroseOneActor] },
+  mutrose: {
+    guards: NO_GUARDS,
+    postGuards: [mutroseOneActor],
+    describe: [
+      'MutRoSe reads a single actor (its mission): add goals and tasks inside the existing one.',
+    ],
+  },
 };
 
 export const guardsForMode = (mode: ModelMode): ModeGuards =>
-  MODE_GUARDS[mode] ?? { guards: NO_GUARDS, postGuards: NO_POST_GUARDS };
+  MODE_GUARDS[mode] ?? {
+    guards: NO_GUARDS,
+    postGuards: NO_POST_GUARDS,
+    describe: [],
+  };
