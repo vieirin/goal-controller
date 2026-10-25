@@ -65,6 +65,7 @@ describe('the GLSP server hosted over a workbench session (#414)', () => {
     expect(names).toContain('create-nodes');
   });
 
+  // TODO(istar-ts#223): one MCP call = one undo step
   it('create-nodes over MCP appears in the store, undoable with one glspUndo', async () => {
     const { session, server, client } = await opened();
     const before = session.store.getModel();

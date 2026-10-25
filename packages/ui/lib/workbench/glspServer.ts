@@ -39,11 +39,10 @@ export type GlspServer = {
 export async function startGlspServer(
   session: ModelSession,
 ): Promise<GlspServer> {
-  const [{ contributionFor }, { serveIstarGlsp, ISTAR_MCP_SESSION_ID }] =
-    await Promise.all([
-      import('@istar-ts/glsp'),
-      import('@istar-ts/glsp/browser'),
-    ]);
+  const [{ contributionFor }, { serveIstarGlsp }] = await Promise.all([
+    import('@istar-ts/glsp'),
+    import('@istar-ts/glsp/browser'),
+  ]);
   const contribution = contributionFor(metamodelOf(session.store.getModel()), {
     palette: session.getPalette(),
     sizes: session.getSizes(),
@@ -58,7 +57,10 @@ export async function startGlspServer(
     mcp: {
       url: server.mcp.url,
       fetch: server.mcp.fetch,
-      sessionId: server.sessionId ?? ISTAR_MCP_SESSION_ID,
+      // optional in IstarGlspMcpServer only because the type is shared with
+      // serveOnPort's: the no-port overload used here always goes through
+      // serveHeadless, which always sets it (@istar-ts/glsp dist/browser.js).
+      sessionId: server.sessionId!,
     },
     dispose: () => server.close(),
   };
