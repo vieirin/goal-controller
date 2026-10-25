@@ -101,4 +101,59 @@ describe('edgeV2 decision variable switches (#441, #442)', () => {
       assert.ok(!prism.includes('decision_'));
     });
   });
+
+  describe('choice construct: two PRISM lines per child (#446 follow-up)', () => {
+    const chooseOnceAndContinue = (prism: string): string[] =>
+      prism
+        .split('\n')
+        .filter(
+          (line) =>
+            line.startsWith('  [pursue_G') && line.includes('g1_chosen'),
+        );
+
+    it('decision variables on, evolvable off', () => {
+      const prism = generateValidatedPrismModel({
+        gm: nodesOf(MODEL),
+        fileName: 'simpleChoice',
+        generateDecisionVars: true,
+        evolvableDecisionVars: false,
+      });
+      assert.deepStrictEqual(chooseOnceAndContinue(prism), [
+        "  [pursue_G2] !g1_achieved & g1_state=1 & g1_chosen=0 & G1_achievable*N > decision_G1 & g3_state=0 & G2_relative*N > _decision_G2 -> (g1_chosen'=1);",
+        '  [pursue_G2] !g1_achieved & g1_state=1 & g1_chosen=1 & G2_achievable*N > decision_G2 -> true;',
+        "  [pursue_G3] !g1_achieved & g1_state=1 & g1_chosen=0 & G1_achievable*N > decision_G1 & g2_state=0 & G3_relative*N > _decision_G3 & !(G2_relative*N > _decision_G2) -> (g1_chosen'=2);",
+        '  [pursue_G3] !g1_achieved & g1_state=1 & g1_chosen=2 & G3_achievable*N > decision_G3 -> true;',
+      ]);
+    });
+
+    it('decision variables on, evolvable on', () => {
+      const prism = generateValidatedPrismModel({
+        gm: nodesOf(MODEL),
+        fileName: 'simpleChoice',
+        generateDecisionVars: true,
+        evolvableDecisionVars: true,
+      });
+      assert.deepStrictEqual(chooseOnceAndContinue(prism), [
+        "  [pursue_G2] !g1_achieved & g1_state=1 & g1_chosen=0 & G1_achievable*N > decision_G1 & g3_state=0 & G2_relative*N > _decision_G2 -> (g1_chosen'=1);",
+        '  [pursue_G2] !g1_achieved & g1_state=1 & g1_chosen=1 & G2_achievable*N > decision_G2 -> true;',
+        "  [pursue_G3] !g1_achieved & g1_state=1 & g1_chosen=0 & G1_achievable*N > decision_G1 & g2_state=0 & G3_relative*N > _decision_G3 & !(G2_relative*N > _decision_G2) -> (g1_chosen'=2);",
+        '  [pursue_G3] !g1_achieved & g1_state=1 & g1_chosen=2 & G3_achievable*N > decision_G3 -> true;',
+      ]);
+    });
+
+    it('decision variables off', () => {
+      const prism = generateValidatedPrismModel({
+        gm: nodesOf(MODEL),
+        fileName: 'simpleChoice',
+        generateDecisionVars: false,
+        evolvableDecisionVars: false,
+      });
+      assert.deepStrictEqual(chooseOnceAndContinue(prism), [
+        "  [pursue_G2] !g1_achieved & g1_state=1 & g1_chosen=0 & g3_state=0 -> (g1_chosen'=1);",
+        '  [pursue_G2] !g1_achieved & g1_state=1 & g1_chosen=1 -> true;',
+        "  [pursue_G3] !g1_achieved & g1_state=1 & g1_chosen=0 & g2_state=0 -> (g1_chosen'=2);",
+        '  [pursue_G3] !g1_achieved & g1_state=1 & g1_chosen=2 -> true;',
+      ]);
+    });
+  });
 });
