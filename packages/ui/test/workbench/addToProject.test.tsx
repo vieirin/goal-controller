@@ -240,8 +240,12 @@ describe('Add to project in the workbench (#329)', () => {
   });
   afterEach(() => vi.unstubAllGlobals());
 
-  // istar-ts 0.15's ElementNode crashes reading registry.elements[kind].component
-  // when the canvas switches frameworks in one session. Tracked as #419 for M8.
+  // #419: WorkbenchCanvas.tsx loads the new framework's model into the
+  // store via a useEffect, one render after extensions/mode (derived
+  // synchronously from wb.text) already switch frameworks; istar-ts's
+  // ElementNode renders in that render with the new registry against the
+  // still-old model and crashes on registry.elements[oldKind]. M1's
+  // single-store/dispatcher architecture removes the two-state race.
   it.skip('adds a KAOS file to an open NFR project: both models open, each with its own palette', async () => {
     const { wb, container } = workbench();
     await act(() => wb().openModelFile('nfr-welcome.txt', NFR_WELCOME));

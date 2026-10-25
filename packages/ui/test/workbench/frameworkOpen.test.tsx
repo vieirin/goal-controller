@@ -120,8 +120,8 @@ describe('a model file in its framework (#171)', () => {
     );
   });
 
-  // istar-ts 0.15 now draws nodes from the GModel (vieirin/istar-ts#164/#165):
-  // the hub no longer renders DSM3's grey fill. Tracked as #420 for M8.
+  // #420: istar-ts 0.15 now draws nodes from the GModel (vieirin/istar-ts
+  // #164/#165); the hub no longer renders DSM3's grey fill.
   it.skip('opens DSM3’s KAOS file as KAOS, its canvas drawing its 4 hubs', async () => {
     const { wb, container } = workbench(true);
     await act(() => wb().openModelFile('kaos-welcome.txt', KAOS_WELCOME));
