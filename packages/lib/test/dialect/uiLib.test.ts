@@ -392,11 +392,11 @@ describe("ui: a model's own constructs (its extension, in its file)", () => {
       name: 'model',
       elements: [MISSION],
     });
-    expect(modelExtensionOf(withMission).elements?.[0]).to.include({
+    const model = parseModel(withMission);
+    expect(modelExtensionOf(model).elements?.[0]).to.include({
       kind: 'model.Mission',
       pistarType: 'istar.Mission',
     });
-    const model = parseModel(withMission);
     expect(model.elements.get('m1')?.kind).to.equal('model.Mission');
     expect(JSON.parse(withMission).actors[0].nodes[1].type).to.equal(
       'istar.Mission',
@@ -412,7 +412,7 @@ describe("ui: a model's own constructs (its extension, in its file)", () => {
       writeModelExtension(
         withMission,
         'pistarext',
-        modelExtensionOf(withMission),
+        modelExtensionOf(parseModel(withMission)),
       ),
     ).to.equal(withMission);
   });
@@ -477,7 +477,7 @@ describe("ui: a model's own constructs (its extension, in its file)", () => {
 
   it("lists the model's own entries with the dialect's", () => {
     const text = writeModelExtension(withMission, 'pistarext', {
-      ...modelExtensionOf(withMission),
+      ...modelExtensionOf(parseModel(withMission)),
       stereotypes: [{ name: 'urgent', appliesTo: ['model.Mission'] }],
     });
     // beside istar-ts's kinds, in the same block
@@ -485,7 +485,7 @@ describe("ui: a model's own constructs (its extension, in its file)", () => {
       { name: 'urgent', appliesTo: ['model.Mission'] },
     ]);
     expect(serializeModel(parseModel(text), text)).to.equal(text);
-    const read = modelDialect('pistarext', modelExtensionOf(text));
+    const read = modelDialect('pistarext', modelExtensionOf(parseModel(text)));
     expect(read.model.stereotypes).to.deep.equal([
       { name: 'urgent', appliesTo: ['model.Mission'] },
     ]);
@@ -496,7 +496,7 @@ describe("ui: a model's own constructs (its extension, in its file)", () => {
     // one the dialect has: the dialect says so, the text is not written
     expect(() =>
       writeModelExtension(withMission, 'pistarext', {
-        ...modelExtensionOf(withMission),
+        ...modelExtensionOf(parseModel(withMission)),
         stereotypes: [{ name: 'action', appliesTo: ['model.Mission'] }],
       }),
     ).to.throw(/action is already a stereotype/);

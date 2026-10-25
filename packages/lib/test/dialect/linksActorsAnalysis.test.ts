@@ -5,7 +5,7 @@
  */
 import { expect } from 'chai';
 import { parsePistar } from '@istar-ts/core';
-import { goalView } from '@goal-controller/goal-tree';
+import { goalView, type AnyModel } from '@goal-controller/goal-tree';
 import {
   checkContextOf,
   notationContextOf,
@@ -101,6 +101,7 @@ describe('the workbench’s analysis (#107)', () => {
       'weights',
       toyAnalyses.weights,
       TOY_MODEL,
+      parsePistar(TOY_MODEL),
       toyAnalysisModel,
     );
     expect('result' in run).to.equal(true);
@@ -226,10 +227,16 @@ describe('the workbench’s analysis (#107)', () => {
   });
 
   it('says why an analysis didn’t run, with no values', () => {
+    // analyse no longer parses text itself (goal-controller#449, #451 review):
+    // the caller (WorkbenchContext's readText) parses, and only ever hands
+    // analyse an already-valid model. What analyse still catches is readModel
+    // failing on the model it's given — simulated here with one that doesn't
+    // have what toyAnalysisModel (GoalTree.goalModel) needs.
     const run = analyse(
       'weights',
       toyAnalyses.weights,
       '{ not json',
+      {} as AnyModel,
       toyAnalysisModel,
     );
     expect('error' in run).to.equal(true);
