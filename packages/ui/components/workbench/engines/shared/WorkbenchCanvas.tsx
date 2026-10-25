@@ -16,6 +16,7 @@ import {
   useLayoutEffect,
   useMemo,
   useRef,
+  useState,
   type KeyboardEvent,
   type ReactNode,
   type RefObject,
@@ -55,6 +56,7 @@ function useAutoFit(
   container: RefObject<HTMLDivElement | null>,
   resetKey: string,
   shown: boolean,
+  onReady: () => void,
 ) {
   const userMoved = useRef(false);
   useEffect(() => {
@@ -68,7 +70,8 @@ function useAutoFit(
       if (userMoved.current) return;
       void canvas.current?.fitView().then((moved) => {
         // nodes not measured yet: try again shortly
-        if (!moved && tries < 20) {
+        if (moved) onReady();
+        else if (tries < 20) {
           tries += 1;
           timer = setTimeout(fit, 100);
         }
@@ -284,11 +287,18 @@ export default function WorkbenchCanvas({
   const shown = !!wb.text.trim();
 
   const container = useRef<HTMLDivElement>(null);
+  // the e2e smoke's ready signal (#454): set once this canvas has laid out its
+  // nodes, so tests wait for it instead of racing `.react-flow__pane`
+  const [canvasReady, setCanvasReady] = useState(false);
+  useEffect(() => {
+    setCanvasReady(false);
+  }, [session.id]);
   useAutoFit(
     canvas,
     container,
     `${wb.fileName}|${modelReadOnly}|${fitKey}`,
     shown,
+    () => setCanvasReady(true),
   );
 
   // what the canvas badges: the elements' errors and warnings, by the diagram's
@@ -346,6 +356,7 @@ export default function WorkbenchCanvas({
       ref={container}
       className='relative h-full'
       onKeyDownCapture={onKeyDownCapture}
+      data-workbench-ready={canvasReady}
       {...(selection && { [SELECTION_ATTRIBUTE]: '' })}
     >
       {selection && <style>{selection}</style>}
