@@ -142,6 +142,10 @@ export default function ModelSettingsModal() {
       // a new model in another framework: that framework's empty model
       const empty = emptyModelText(framework);
       if (target === 'pistar') {
+        // kept on the host-side replace (goal-controller#411): this path
+        // only runs switching into iStar 2.0 from a DSM3-goals framework
+        // (KAOS, NFR), whose `tool`/`metamodelVersion` the diff can't
+        // express into an action either (see modelDiff.ts's module doc)
         wb.setText(empty, 'convert');
         wb.requestMode('pistar');
       } else wb.applyConversion(target, writeModelMode(empty, target));

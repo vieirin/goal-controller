@@ -6,9 +6,13 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { setRangeMarks } from '@/lib/workbench/codemirror';
 import { sourcePosition } from '@/lib/workbench/localProblems';
 import { nodeRanges } from '@/lib/workbench/pistar';
+import { applyTextThroughActions } from '@/lib/workbench/modelDiff';
 import CodeEditor from './CodeEditor';
 import { useSelection, useWorkbench } from './WorkbenchContext';
 import { useShell } from './shell';
+
+/** source text settles (parses and diffs against the live model) this long after the last keystroke */
+const SETTLE_DELAY = 500;
 
 export default function SourceView() {
   const wb = useWorkbench();
@@ -31,6 +35,30 @@ export default function SourceView() {
   );
   const rangesRef = useRef(ranges);
   rangesRef.current = ranges;
+
+  // raw JSON edits: diffed against the live model and dispatched as one
+  // compound, a settle delay after the last keystroke, so a compound isn't
+  // dispatched per character. What the diff can't express (or that doesn't
+  // parse) falls back to the old host-side replace (goal-controller#411).
+  const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (settleTimer.current) clearTimeout(settleTimer.current);
+    },
+    [],
+  );
+  const onChange = (value: string) => {
+    if (settleTimer.current) clearTimeout(settleTimer.current);
+    settleTimer.current = setTimeout(() => {
+      settleTimer.current = null;
+      void applyTextThroughActions(
+        latest.current.dispatcherFor('inspector'),
+        latest.current.session.store,
+        value,
+        () => latest.current.setText(value, 'source'),
+      );
+    }, SETTLE_DELAY);
+  };
 
   // cursor inside a node's object → select that node
   const extensions = useMemo(
@@ -134,7 +162,7 @@ export default function SourceView() {
       value={text}
       language='json'
       ariaLabel='Goal model source (piStar JSON)'
-      onChange={(value) => wb.setText(value, 'source')}
+      onChange={onChange}
       readOnly={modelReadOnly}
       extensions={extensions}
       onReady={setView}

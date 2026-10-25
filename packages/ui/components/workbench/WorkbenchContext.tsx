@@ -33,6 +33,7 @@ import {
 import type { GoalView } from '@goal-controller/goal-tree';
 import { emptyModel, parseModel } from '@/lib/workbench/dialects';
 import { serializeModel } from '@/lib/workbench/pistar';
+import { applyTextThroughActions } from '@/lib/workbench/modelDiff';
 import {
   createModelSession,
   type ModelChanged,
@@ -920,6 +921,10 @@ function WorkbenchState({
             baseOptionsRef.current,
           );
           if (ownStep) lastPush.current = 0;
+          // kept on the host-side replace (goal-controller#411): the engine
+          // options live in the model's top-level `project` key, which is
+          // `model.extra` to istar-ts (no action writes it, only its own
+          // `diagram.customProperties`-backed mode/framework record does)
           setText(written, 'settings');
           return;
         } catch {
@@ -988,7 +993,13 @@ function WorkbenchState({
         // same engine: record it in a file that does not say yet
         if (target !== 'pistar' && text.trim() && recorded !== target) {
           try {
-            setText(writeModelMode(text, target), 'convert');
+            const written = writeModelMode(text, target);
+            void applyTextThroughActions(
+              sessionRef.current.dispatcherFor('inspector'),
+              sessionRef.current.store,
+              written,
+              () => setText(written, 'convert'),
+            );
           } catch {
             // a model that does not parse keeps its text
           }
