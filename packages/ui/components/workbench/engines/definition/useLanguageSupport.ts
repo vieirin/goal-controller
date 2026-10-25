@@ -63,6 +63,12 @@ export const useOptionalLanguageSupport = (
   }, [definition, support, tree, variables, projectResources]);
   // a service that reads the model file itself (an engine's server)
   useEffect(() => support?.setModelText?.(text), [support, text]);
+  // what a lint action (goal-controller#440) dispatches through, as the inspector
+  useEffect(() => {
+    support?.setDispatch?.(wb.dispatcherFor('inspector'), () =>
+      wb.session.store.getModel(),
+    );
+  }, [support, wb.dispatcherFor, wb.session]);
 
   return support;
 };
