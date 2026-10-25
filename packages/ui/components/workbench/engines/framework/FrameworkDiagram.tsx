@@ -179,7 +179,10 @@ export default function FrameworkDiagram({
 }) {
   const base = BASE_EXTENSIONS[mode];
   // with the vocabulary profile the model records (a CAIRIS model's, #192)
-  const definition = useProfiledDefinition(given, useWorkbench().text);
+  const definition = useProfiledDefinition(
+    given,
+    useWorkbench().session.store.getModel(),
+  );
   // by content: the resources are parsed again on every edit of theirs
   const entriesKey = JSON.stringify(entries ?? {});
   // eslint-disable-next-line react-hooks/exhaustive-deps

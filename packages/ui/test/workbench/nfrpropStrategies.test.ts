@@ -7,6 +7,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { parseModel } from '@/lib/workbench/dialects';
 import { ENGINE_ANALYSES } from '@/lib/workbench/engineDialects';
 import { analyse, caseText, pickableCases } from '@/lib/workbench/analysis';
 
@@ -27,6 +28,7 @@ describe("nfrprop's strategies, in the workbench's case picker (#328)", () => {
       'nfrLabels',
       engine.analyses.nfrLabels!,
       NFR_WELCOME,
+      parseModel(NFR_WELCOME),
       engine.model,
       resource,
     );

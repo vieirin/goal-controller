@@ -164,18 +164,12 @@ export const withFrameworkIds = (
 /**
  * The same renames as `withFrameworkIds`, as `applyLabelEdit` operations'
  * `labelId`/`text` (goal-controller#411), for the view to dispatch as one
- * compound; null: none (or the text isn't a model).
+ * compound; null: none.
  */
 export const frameworkIdEdits = (
-  text: string,
+  model: AnyModel,
   definition: Pick<AnyDialect, 'elements'>,
 ): readonly FrameworkIdEdit[] | null => {
-  let model: AnyModel;
-  try {
-    model = parseModel(text);
-  } catch {
-    return null;
-  }
   const { renames } = frameworkIdRenames(model, definition);
   return renames.length ? renames : null;
 };

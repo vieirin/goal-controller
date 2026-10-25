@@ -4,7 +4,6 @@ import { goalView, type GoalView } from '@goal-controller/goal-tree';
 import { contextFromView } from '@goal-controller/goal-language';
 import type { AnyDialect } from '@goal-controller/dialect';
 import { useContext, useEffect, useMemo, useRef } from 'react';
-import { parseModel } from '@/lib/workbench/dialects';
 import {
   FRAMEWORK_DIALECTS,
   type FrameworkMode,
@@ -34,19 +33,21 @@ export default function FrameworkNotationView({
   /** the dialect its lines are read in: its framework's, or its engine's (nfrprop's labels) */
   definition?: AnyDialect;
 }) {
-  const { text, projectResources } = useWorkbench();
+  const { session, projectResources } = useWorkbench();
+  const model = session.store.getModel();
   // with the vocabulary profile the model records (a CAIRIS model's, #192)
-  const definition = useProfiledDefinition(given, text);
-  // the last view read stays while the model is being fixed
+  const definition = useProfiledDefinition(given, model);
+  // the last view read stays while the model is being fixed (the store
+  // keeps its last valid model, so this comes free of any parse, #449)
   const last = useRef<GoalView | null>(null);
   const tree = useMemo(() => {
     try {
-      last.current = goalView(parseModel(text) as never, definition);
+      last.current = goalView(model, definition);
     } catch {
       // kept
     }
     return last.current;
-  }, [text, definition]);
+  }, [model, definition]);
   const support = useContext(LanguageSupportContext)(mode, definition);
   // with the project's resources: the entries a keyed key names
   // (`Probability[e1]`, goal-controller#354), checked and completed
@@ -59,8 +60,8 @@ export default function FrameworkNotationView({
   }, [tree, support, definition, projectResources]);
   // DSM3's own files name no element with an id: one click gives them theirs
   const idEdits = useMemo(
-    () => frameworkIdEdits(text, definition),
-    [text, definition],
+    () => frameworkIdEdits(model, definition),
+    [model, definition],
   );
   const edit = useEditModel();
   const prefixes = [

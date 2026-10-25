@@ -24,6 +24,7 @@ import {
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
   type ReactNode,
 } from 'react';
 import { isPrismEngine, type TransformEngine } from '@/lib/types';
@@ -34,7 +35,7 @@ import {
   treeProblems,
 } from '@/lib/workbench/localProblems';
 import type { GoalView } from '@goal-controller/goal-tree';
-import type { GoalDiagnostic, PistarFile } from '@istar-ts/core';
+import type { GoalDiagnostic, ModelStore, PistarFile } from '@istar-ts/core';
 import {
   emptyModel,
   fileMetamodelForText,
@@ -75,6 +76,7 @@ import {
 } from '@/lib/workbench/frameworkModes';
 import {
   isEngineMode,
+  isMode,
   readModelMode,
   writeModelMode,
   type ModelMode,
@@ -704,6 +706,12 @@ const ENGINE_DIAGNOSTICS_SERVICE = 'engine';
 /** A model text read (blank: an empty model), or why it can't be. */
 type ReadText = { model: AnyModel } | { error: Error };
 
+/** The store's current model, kept driftless by subscribing to it directly
+ * (#449, #451 review) instead of mirroring it into a `useState` that every
+ * store mutation would have to remember to update. */
+const useStoreModel = (store: ModelStore<string, string>): AnyModel =>
+  useSyncExternalStore(store.subscribe, store.getModel, store.getModel);
+
 // ---------------------------------------------------------------------------
 // Provider
 // ---------------------------------------------------------------------------
@@ -854,7 +862,12 @@ function WorkbenchState({
     forceHistory((n) => n + 1);
   }, []);
 
-  // the last text read, and what it read (setText and `parsed` read each once)
+  // whether the browser's own text parses: set at each raw write (setText's
+  // non-store-derived branches), not re-derived from a store-derived text,
+  // which is a serialization of a model already in the store and so cannot
+  // fail to parse (#451 review)
+  const [jsonError, setJsonError] = useState<Problem | null>(null);
+  // the last text read, and what it read (setText reads each text once)
   const lastRead = useRef<{ text: string; read: ReadText } | null>(null);
   const readText = useCallback((text: string): ReadText => {
     if (lastRead.current?.text === text) return lastRead.current.read;
@@ -883,6 +896,8 @@ function WorkbenchState({
         textOf.current.get(next) ?? serializeModel(next, textRef.current);
       textOf.current.set(next, text);
       lastReplaced.current = null;
+      // the store's own model, just serialized: it cannot fail to parse (#451 review)
+      setJsonError(null);
       if (text === textRef.current) {
         forceHistory((n) => n + 1);
         return;
@@ -904,6 +919,11 @@ function WorkbenchState({
     [],
   );
   const [session, setSession] = useState(() => newSession(emptyModel()));
+  // the store's model, by identity (#449): a subscription to the session's
+  // own store, so the tree and its consumers below derive from it instead of
+  // re-parsing the serialized text on every edit, driftless by construction
+  // (#451 review) instead of by auditing every store-mutation call site
+  const storeModel = useStoreModel(session.store);
   const sessionRef = useRef(session);
   // disposes the session that's current when the provider unmounts for real.
   // Strict Mode mounts, cleans up, and remounts the same session: the
@@ -985,6 +1005,7 @@ function WorkbenchState({
       sessionRef.current = next;
       lastReplaced.current = null;
       setSession(next);
+      setJsonError('error' in read ? jsonProblem(text, read.error) : null);
       setEditRejected([]);
     },
     [readText, newSession],
@@ -993,7 +1014,12 @@ function WorkbenchState({
   const setText = useCallback(
     (text: string, source: ChangeSource, options?: { skipStore?: boolean }) => {
       if (textRef.current === text) return;
-      if (!options?.skipStore) {
+      if (options?.skipStore) {
+        // a guard rejection, or a dispatch the vocabulary itself rejects: the
+        // text is already-valid JSON (built, not typed, by every caller that
+        // passes skipStore), so there is nothing here for readText to catch
+        setJsonError(null);
+      } else {
         const now = Date.now();
         const read = readText(text);
         if ('model' in read) {
@@ -1010,6 +1036,9 @@ function WorkbenchState({
           });
           lastReplaced.current = read.model;
           textOf.current.set(read.model, text);
+          setJsonError(null);
+        } else {
+          setJsonError(jsonProblem(text, read.error));
         }
         lastPush.current = now;
       }
@@ -1101,9 +1130,13 @@ function WorkbenchState({
   );
 
   // ---- mode: engines and piStar, and conversion between them ---------------
+  // the open model's own text always parses (it's the store's own
+  // serialization, #449): no need for readModelMode's validity check
   const recordedEngine = useMemo<TransformEngine | null>(() => {
-    const recorded = readModelMode(model.text);
-    return recorded && isEngineMode(recorded) ? recorded : null;
+    const recorded = recordedMode(model.text);
+    return recorded && isMode(recorded) && isEngineMode(recorded)
+      ? recorded
+      : null;
   }, [model.text]);
   const [conversion, setConversion] = useState<{
     target: ConversionTarget;
@@ -1578,32 +1611,18 @@ function WorkbenchState({
   );
 
   // ---- structure -------------------------------------------------------------
-  // whether the file parses: immediate, in the browser
-  const parsed = useMemo((): {
-    error: Problem | null;
-    istar?: ReturnType<typeof parseModel>;
-  } => {
-    if (!model.text.trim()) return { error: null };
-    const read = readText(model.text);
-    return 'model' in read
-      ? { error: null, istar: read.model }
-      : { error: jsonProblem(model.text, read.error) };
-  }, [model.text, readText]);
-  // the tree: goal-tree's view of the model, read with the engine's grammar; the last one
-  // of the same file stays while the JSON is being fixed
+  // the tree: goal-tree's view of the store's model (#449), read with the
+  // engine's grammar; the last one of the same file stays while the JSON is
+  // being fixed (the store keeps its last valid model, so this comes free)
   const [served, setServed] = useState<{
     fileName: string;
     tree: GoalView;
   } | null>(null);
   useEffect(() => {
-    if (!model.text.trim() || parsed.error) return;
+    if (!model.text.trim() || jsonError) return;
     const fileName = model.fileName;
-    try {
-      setServed({ fileName, tree: treeView(model.text, engine) });
-    } catch {
-      // kept: the previous view stays until the model parses again
-    }
-  }, [model.text, model.fileName, engine, parsed.error]);
+    setServed({ fileName, tree: treeView(storeModel, engine) });
+  }, [storeModel, model.text, model.fileName, engine, jsonError]);
   const tree =
     model.text.trim() && served?.fileName === model.fileName
       ? served.tree
@@ -1685,7 +1704,7 @@ function WorkbenchState({
   // `model.text` byte for byte, see `analysisKey`)
   const analyzing =
     !pistar &&
-    !parsed.error &&
+    !jsonError &&
     !!model.text.trim() &&
     analyzed?.key !== currentAnalysisKey;
   // an analysis past ANALYSIS_SLOW_MS is only reported as slow: the worker is
@@ -2446,6 +2465,10 @@ function WorkbenchState({
           id,
           analysis,
           textRef.current,
+          // read fresh, not the hook's render-time storeModel: both are now
+          // synchronous reads, so they stay paired regardless of when this
+          // runs relative to the last render (#451 review)
+          sessionRef.current.store.getModel(),
           analysisEngine.model,
           analysisResource(
             analysis,
@@ -2560,15 +2583,15 @@ function WorkbenchState({
     publishDiagnostics(
       ENGINE_DIAGNOSTICS_SERVICE,
       document,
-      analysis && !parsed.error
+      analysis && !jsonError
         ? analysis.problems.filter((problem) => problem.elementId !== undefined)
         : [],
     );
     return () => publishDiagnostics(ENGINE_DIAGNOSTICS_SERVICE, document, []);
-  }, [analysis, parsed.error, session.id]);
+  }, [analysis, jsonError, session.id]);
   const problems = useMemo(() => {
     const list: Problem[] = [];
-    if (parsed.error) list.push(parsed.error);
+    if (jsonError) list.push(jsonError);
     // what the model's manifest holds that is not used (its options are the file's)
     else list.push(...modelOptions.problems);
     // what is wrong in the project's resources (Model group, by the resource's label)
@@ -2583,18 +2606,18 @@ function WorkbenchState({
         : null
       : (frameworkEditorOf(engine)?.definition ?? null);
     // with the vocabulary profile the model records (a CAIRIS model's, #192)
-    if (framework && parsed.istar)
+    if (framework && model.text.trim() && !jsonError)
       list.push(
         ...frameworkProblems(
-          parsed.istar,
-          dialectForModel(framework, parsed.istar),
+          storeModel,
+          dialectForModel(framework, storeModel),
           projectResources,
         ),
       );
     // piStar mode: only whether the file parses; the engine checks do not apply
     if (pistar) return list;
     // the checks of iStar's notations: none in another framework
-    if (tree && !parsed.error && !framework) {
+    if (tree && !jsonError && !framework) {
       list.push(...treeProblems(tree, engine));
       // the shared language on the model's own document, editors open or not
       if (isDialectEngine(engine))
@@ -2602,7 +2625,7 @@ function WorkbenchState({
           ...modelLanguageProblems(engine, tree, variables, projectResources),
         );
     }
-    if (analysis && !parsed.error)
+    if (analysis && !jsonError)
       list.push(
         ...analysis.problems.filter(
           (problem) => problem.elementId === undefined,
@@ -2638,8 +2661,9 @@ function WorkbenchState({
     }
     return mergeProblems(list, serviceProblems);
   }, [
-    parsed.error,
-    parsed.istar,
+    jsonError,
+    model.text,
+    storeModel,
     modelOptions,
     resourceProblemsNow,
     nativeProblemsNow,
@@ -2743,7 +2767,7 @@ function WorkbenchState({
     recent,
     forgetRecent,
     tree,
-    jsonError: parsed.error,
+    jsonError,
     engine,
     engineLocked: lockedEngine !== null,
     mode,

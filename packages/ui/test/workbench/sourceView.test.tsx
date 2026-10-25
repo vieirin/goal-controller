@@ -265,8 +265,10 @@ describe('SourceView dispatches actions (#411)', () => {
     expect(element(wb(), G1)?.name).toBe('G1: Renamed');
   });
 
-  it('unparseable text falls back to setText, kept as typed', async () => {
+  it('unparseable text falls back to setText, kept as typed, the last tree stays (#449)', async () => {
     const { wb, container } = await opened();
+    await waitFor(() => expect(wb().tree).not.toBeNull());
+    const tree = wb().tree;
     vi.useFakeTimers();
     const dispatch = vi.spyOn(wb().dispatcherFor('inspector'), 'dispatch');
     const textarea = container.querySelector<HTMLTextAreaElement>('textarea')!;
@@ -280,6 +282,8 @@ describe('SourceView dispatches actions (#411)', () => {
     expect(dispatch).not.toHaveBeenCalled();
     expect(wb().text).toBe(broken);
     expect(wb().jsonError).not.toBeNull();
+    // the store's model, so the tree, never moved to the broken text
+    expect(wb().tree).toBe(tree);
   });
 
   it('a top-level "project" (extra) key edit agrees with writeOptions\' updateModelExtra path, byte for byte', async () => {

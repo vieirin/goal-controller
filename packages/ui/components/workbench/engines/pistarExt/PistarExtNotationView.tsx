@@ -2,7 +2,7 @@
 
 import { contextFromView } from '@goal-controller/goal-language';
 import { useContext, useEffect, useMemo, useRef } from 'react';
-import { dialectTree, parseModel } from '@/lib/workbench/dialects';
+import { dialectTree } from '@/lib/workbench/dialects';
 import { useWorkbench } from '../../WorkbenchContext';
 import NotationEditor from '../definition/NotationEditor';
 import { LanguageSupportContext } from '../definition/useLanguageSupport';
@@ -15,19 +15,21 @@ import { usePistarExt } from './usePistarExt';
  * added or removed in the diagram.
  */
 export default function PistarExtNotationView() {
-  const { text } = useWorkbench();
+  const { session } = useWorkbench();
+  const model = session.store.getModel();
   // the dialect with what the model adds
   const { definition } = usePistarExt();
-  // the last tree read stays while the model is being fixed
+  // the last tree read stays while the model is being fixed (the store
+  // keeps its last valid model, so this comes free of any parse, #449)
   const last = useRef<ReturnType<typeof dialectTree> | null>(null);
   const tree = useMemo(() => {
     try {
-      last.current = dialectTree(parseModel(text));
+      last.current = dialectTree(model);
     } catch {
       // kept
     }
     return last.current;
-  }, [text]);
+  }, [model]);
   // no engine: no checks; the text is checked against the model's elements
   // by piStar-ext's language services (the shared one)
   const support = useContext(LanguageSupportContext)('pistarext', definition);

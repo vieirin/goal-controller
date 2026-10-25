@@ -2,29 +2,23 @@
 
 import { useMemo } from 'react';
 import type { AnyDialect } from '@goal-controller/dialect';
+import type { AnyModel } from '@goal-controller/lib';
 import {
   vocabularyProfileOf,
   withVocabularyProfile,
 } from '@goal-controller/lib';
-import { parseModel } from '@/lib/workbench/dialects';
 
 /**
  * A framework's dialect as the open model reads it: with the vocabulary
  * profile the model records (a CAIRIS model's `cairis`, goal-controller#192),
  * so its values are checked and offered as its source's; the dialect itself
- * for any other model. The same object while the profile is the same.
+ * for any other model.
  */
 export const useProfiledDefinition = (
   definition: AnyDialect,
-  text: string,
+  model: AnyModel,
 ): AnyDialect => {
-  const profile = useMemo(() => {
-    try {
-      return vocabularyProfileOf(parseModel(text));
-    } catch {
-      return null;
-    }
-  }, [text]);
+  const profile = useMemo(() => vocabularyProfileOf(model), [model]);
   return useMemo(
     () => withVocabularyProfile(definition, profile),
     [definition, profile],

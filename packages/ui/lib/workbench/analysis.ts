@@ -19,7 +19,6 @@ import {
   type AnalysisResult,
 } from '@goal-controller/lib';
 import type { ResourceSlot } from '@/lib/project';
-import { parseModel } from './dialects';
 
 /** Where the canvas's analysis diagnostics come from (one source, replaced as a whole). */
 export const ANALYSIS_SOURCE = 'analysis';
@@ -186,11 +185,12 @@ export const analysisContext = (
   options,
 });
 
-/** Runs an analysis on a model text, read as its engine reads it (`readModel`: the view of its `KindModel`). */
+/** Runs an analysis on a model, read as its engine reads it (`readModel`: the view of its `KindModel`). */
 export const analyse = (
   id: string,
   analysis: Analysis,
   text: string,
+  model: AnyModel,
   readModel: (model: AnyModel) => AnalysisModel,
   resource?: Readonly<Record<string, string>>,
   context?: AnalysisContext,
@@ -202,14 +202,17 @@ export const analyse = (
     caseId: null,
     step: 0,
   };
-  let model;
+  let analysisModel;
   try {
-    model = readModel(parseModel(text));
+    analysisModel = readModel(model);
   } catch (error) {
     return {
       ...base,
       error: error instanceof Error ? error.message : String(error),
     };
   }
-  return { ...base, ...runAnalysis(analysis, model, resource, context) };
+  return {
+    ...base,
+    ...runAnalysis(analysis, analysisModel, resource, context),
+  };
 };

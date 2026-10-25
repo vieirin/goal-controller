@@ -16,8 +16,8 @@ import { useWorkbench } from '../../WorkbenchContext';
  * that could stay.
  */
 export const usePistarExt = (): ModelDialect => {
-  const { text } = useWorkbench();
-  const additions = JSON.stringify(modelExtensionOf(text));
+  const { session } = useWorkbench();
+  const additions = JSON.stringify(modelExtensionOf(session.store.getModel()));
   const last = useRef<ModelDialect>(
     modelDialect('pistarext', { name: MODEL_NAMESPACE }),
   );

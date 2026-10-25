@@ -66,16 +66,11 @@ const HOSTS = Object.fromEntries(
  * `"metamodel"` block (FILE_METAMODEL_KEY): its own kinds and links, which
  * istar-ts reads, checks, draws and writes, and beside them its own
  * groupers, stereotypes and tagged values (ours; istar-ts keeps them).
- * This is the block a model text has, read without parsing it (none: an empty one).
+ * None, for a model with no block.
  */
-export const modelExtensionOf = (text: string): ModelExtension => {
-  try {
-    const value = JSON.parse(text)?.[FILE_METAMODEL_KEY];
-    if (value && typeof value === 'object') return value;
-  } catch {
-    // none
-  }
-  return { name: MODEL_NAMESPACE };
+export const modelExtensionOf = (model: AnyModel): ModelExtension => {
+  const block = fileMetamodelOf(model);
+  return block ?? { name: MODEL_NAMESPACE };
 };
 
 /** A dialect as one model has it: with what the model adds. */
@@ -206,7 +201,7 @@ export const parseModel = (
     fileMetamodel: true,
   });
   const block = fileMetamodelOf(model);
-  if (block) withModelEntries(DIALECTS[mode], block as ModelExtension);
+  if (block) withModelEntries(DIALECTS[mode], block);
   return model;
 };
 

@@ -313,7 +313,7 @@ const MODES: readonly ModelMode[] = [
 export const isEngineMode = (mode: ModelMode): mode is TransformEngine =>
   mode !== 'pistar' && !isDialectMode(mode) && !isFrameworkMode(mode);
 
-const isMode = (value: unknown): value is ModelMode =>
+export const isMode = (value: unknown): value is ModelMode =>
   MODES.includes(value as ModelMode);
 
 /**
