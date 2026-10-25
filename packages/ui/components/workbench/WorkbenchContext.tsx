@@ -75,6 +75,7 @@ import {
 } from '@/lib/workbench/frameworkModes';
 import {
   isEngineMode,
+  isMode,
   readModelMode,
   writeModelMode,
   type ModelMode,
@@ -879,6 +880,7 @@ function WorkbenchState({
       // a guard rejection never reaches here (the dispatcher throws before any
       // store change): every call is a successful dispatch, from any surface
       setEditRejected([]);
+      setStoreModel(next);
       const text =
         textOf.current.get(next) ?? serializeModel(next, textRef.current);
       textOf.current.set(next, text);
@@ -904,6 +906,12 @@ function WorkbenchState({
     [],
   );
   const [session, setSession] = useState(() => newSession(emptyModel()));
+  // the store's model, by identity (#449): every sourceModelChanged, replace
+  // and new session updates it, so the tree and its consumers below derive
+  // from it instead of re-parsing the serialized text on every edit
+  const [storeModel, setStoreModel] = useState<AnyModel>(() =>
+    session.store.getModel(),
+  );
   const sessionRef = useRef(session);
   // disposes the session that's current when the provider unmounts for real.
   // Strict Mode mounts, cleans up, and remounts the same session: the
@@ -985,6 +993,7 @@ function WorkbenchState({
       sessionRef.current = next;
       lastReplaced.current = null;
       setSession(next);
+      setStoreModel(model);
       setEditRejected([]);
     },
     [readText, newSession],
@@ -1010,6 +1019,7 @@ function WorkbenchState({
           });
           lastReplaced.current = read.model;
           textOf.current.set(read.model, text);
+          setStoreModel(read.model);
         }
         lastPush.current = now;
       }
@@ -1101,9 +1111,13 @@ function WorkbenchState({
   );
 
   // ---- mode: engines and piStar, and conversion between them ---------------
+  // the open model's own text always parses (it's the store's own
+  // serialization, #449): no need for readModelMode's validity check
   const recordedEngine = useMemo<TransformEngine | null>(() => {
-    const recorded = readModelMode(model.text);
-    return recorded && isEngineMode(recorded) ? recorded : null;
+    const recorded = recordedMode(model.text);
+    return recorded && isMode(recorded) && isEngineMode(recorded)
+      ? recorded
+      : null;
   }, [model.text]);
   const [conversion, setConversion] = useState<{
     target: ConversionTarget;
@@ -1579,18 +1593,16 @@ function WorkbenchState({
 
   // ---- structure -------------------------------------------------------------
   // whether the file parses: immediate, in the browser
-  const parsed = useMemo((): {
-    error: Problem | null;
-    istar?: ReturnType<typeof parseModel>;
-  } => {
+  const parsed = useMemo((): { error: Problem | null } => {
     if (!model.text.trim()) return { error: null };
     const read = readText(model.text);
     return 'model' in read
-      ? { error: null, istar: read.model }
+      ? { error: null }
       : { error: jsonProblem(model.text, read.error) };
   }, [model.text, readText]);
-  // the tree: goal-tree's view of the model, read with the engine's grammar; the last one
-  // of the same file stays while the JSON is being fixed
+  // the tree: goal-tree's view of the store's model (#449), read with the
+  // engine's grammar; the last one of the same file stays while the JSON is
+  // being fixed (the store keeps its last valid model, so this comes free)
   const [served, setServed] = useState<{
     fileName: string;
     tree: GoalView;
@@ -1598,12 +1610,8 @@ function WorkbenchState({
   useEffect(() => {
     if (!model.text.trim() || parsed.error) return;
     const fileName = model.fileName;
-    try {
-      setServed({ fileName, tree: treeView(model.text, engine) });
-    } catch {
-      // kept: the previous view stays until the model parses again
-    }
-  }, [model.text, model.fileName, engine, parsed.error]);
+    setServed({ fileName, tree: treeView(storeModel, engine) });
+  }, [storeModel, model.text, model.fileName, engine, parsed.error]);
   const tree =
     model.text.trim() && served?.fileName === model.fileName
       ? served.tree
@@ -2446,6 +2454,7 @@ function WorkbenchState({
           id,
           analysis,
           textRef.current,
+          storeModel,
           analysisEngine.model,
           analysisResource(
             analysis,
@@ -2461,7 +2470,7 @@ function WorkbenchState({
         ),
       );
     },
-    [analyses, analysisEngine, resourceSlotsNow, engine, options],
+    [analyses, analysisEngine, resourceSlotsNow, engine, options, storeModel],
   );
   const setAnalysisCase = useCallback(
     (caseId: string) =>
@@ -2583,11 +2592,11 @@ function WorkbenchState({
         : null
       : (frameworkEditorOf(engine)?.definition ?? null);
     // with the vocabulary profile the model records (a CAIRIS model's, #192)
-    if (framework && parsed.istar)
+    if (framework && model.text.trim() && !parsed.error)
       list.push(
         ...frameworkProblems(
-          parsed.istar,
-          dialectForModel(framework, parsed.istar),
+          storeModel,
+          dialectForModel(framework, storeModel),
           projectResources,
         ),
       );
@@ -2639,7 +2648,8 @@ function WorkbenchState({
     return mergeProblems(list, serviceProblems);
   }, [
     parsed.error,
-    parsed.istar,
+    model.text,
+    storeModel,
     modelOptions,
     resourceProblemsNow,
     nativeProblemsNow,

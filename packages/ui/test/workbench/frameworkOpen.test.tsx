@@ -10,7 +10,7 @@ import { readFileSync } from 'node:fs';
 import { useEffect } from 'react';
 import { join } from 'node:path';
 import { KAOS_FILL } from '@istar-ts/dsm3-kaos/metamodel';
-import { afterEach, beforeAll, describe, expect, it } from 'vitest';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import ModelDiagram from '@/components/workbench/engines/ModelDiagram';
 import FrameworkNotationView from '@/components/workbench/engines/framework/FrameworkNotationView';
 import {
@@ -26,6 +26,7 @@ import {
 } from '@/lib/workbench/frameworkOpen';
 import { frameworkOfModel } from '@/lib/workbench/frameworks';
 import { FRAMEWORK_DIALECTS } from '@/lib/workbench/frameworkModes';
+import * as dialects from '@/lib/workbench/dialects';
 import { parseModel } from '@/lib/workbench/dialects';
 import { dialectParts } from '@/components/workbench/engines/framework/FrameworkDiagram';
 
@@ -240,6 +241,58 @@ describe('a framework model’s Notation tab (#171)', () => {
     );
     expect(lines).toContain('  G3: Achieve [Problem Notified if Problem]');
     expect(lines).toContain('      DP1: Internet connection available');
+  });
+
+  it('reads the store’s model, not wb.text: a direct dispatch updates its lines with no parse (#449)', async () => {
+    const json = JSON.parse(KAOS_WELCOME);
+    const count = new Map<string, number>();
+    const prefix: Record<string, string> = {
+      'kaos.BehavioralGoal': 'G',
+      'kaos.Softgoal': 'G',
+      'kaos.Agent': 'A',
+      'kaos.EnvironmentAgent': 'A',
+      'kaos.DomainProperty': 'DP',
+    };
+    for (const element of json.orphans) {
+      const p = prefix[element.type]!;
+      count.set(p, (count.get(p) ?? 0) + 1);
+      element.text = `${p}${count.get(p)}: ${element.text}`;
+    }
+    const withIds = `${JSON.stringify(json, null, 2)}\n`;
+    let wb: Workbench | null = null;
+    const Probe = () => {
+      const current = useWorkbench();
+      useEffect(() => {
+        wb = current;
+      });
+      return null;
+    };
+    const { container } = render(
+      <WorkbenchProvider lockedEngine={null}>
+        <Probe />
+        <FrameworkNotationView mode='kaos' />
+      </WorkbenchProvider>,
+    );
+    await act(() => wb!.openModelFile('kaos-ids.txt', withIds));
+    await waitFor(() =>
+      expect(container.textContent).toContain('G5: Achieve [Manual Backup]'),
+    );
+    const parseModelSpy = vi.spyOn(dialects, 'parseModel');
+    parseModelSpy.mockClear();
+    const elementId = [...wb!.session.store.getModel().elements.values()].find(
+      (e) => e.name === 'G5: Achieve [Manual Backup]',
+    )!.id;
+    await act(async () => {
+      await wb!.dispatcherFor('inspector').dispatch({
+        kind: 'applyLabelEdit',
+        labelId: elementId,
+        text: 'G5: Renamed',
+      });
+    });
+    await waitFor(() => expect(container.textContent).toContain('G5: Renamed'));
+    // the model the lines are read from is the store's own: the one parse
+    // left is the browser's own JSON check (jsonError), not the tree's
+    expect(parseModelSpy).toHaveBeenCalledTimes(1);
   });
 });
 
