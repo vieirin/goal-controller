@@ -17,7 +17,7 @@ import {
 } from '@testing-library/react';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { afterEach, beforeAll, describe, expect, it } from 'vitest';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import ConvertDialog from '@/components/workbench/ConvertDialog';
 import ModelSettingsModal from '@/components/workbench/ModelSettingsModal';
 import {
@@ -154,5 +154,36 @@ describe('the mode lists by framework (#171)', () => {
     expect(targets).not.toContain('nfr');
     expect(targets).not.toContain('kaosdoc');
     expect(targets).not.toContain('nfrprop');
+  });
+
+  it('switches an empty KAOS model into iStar 2.0 as one istar.replaceModel, byte for byte; one glspUndo restores the KAOS model (#431)', async () => {
+    const wb = workbench();
+    const kaosEmpty = writeModelMode(emptyModelText('kaos'), 'kaos');
+    await act(() => wb().openFile('untitled.txt', kaosEmpty, { setup: true }));
+    const dialog = await screen.findByRole('dialog');
+    fireEvent.click(screen.getByRole('radio', { name: 'iStar 2.0' }));
+    fireEvent.click(
+      within(dialog)
+        .getAllByRole('radio', { hidden: true })
+        .find((radio) => radio.getAttribute('value') === 'pistar')!,
+    );
+    const dispatch = vi.spyOn(wb().dispatcherFor('inspector'), 'dispatch');
+    const setText = vi.spyOn(wb(), 'setText');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Start working' }));
+
+    const expected = emptyModelText('istar-2.0');
+    await waitFor(() => expect(wb().mode).toBe('pistar'));
+    await waitFor(() => expect(wb().text).toBe(expected));
+    expect(dispatch).toHaveBeenCalledTimes(1);
+    expect(dispatch.mock.calls[0]![0]).toMatchObject({
+      kind: 'istar.replaceModel',
+    });
+    expect(setText).not.toHaveBeenCalled();
+
+    await act(async () => {
+      await wb().dispatcherFor('inspector').dispatch({ kind: 'glspUndo' });
+    });
+    expect(wb().text).toBe(kaosEmpty);
   });
 });

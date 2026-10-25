@@ -40,6 +40,7 @@ import {
 import { serializeModel } from '@/lib/workbench/pistar';
 import {
   createModelSession,
+  dispatchOrFallback,
   type ModelChanged,
   type ModelSession,
 } from '@/lib/workbench/modelSession';
@@ -931,24 +932,22 @@ function WorkbenchState({
           // the engine options live in the model's top-level `project` key
           // (EMBEDDED_KEY), `model.extra` to istar-ts: one `istar.updateModelExtra`
           const kept = optionsToKeep(target, next, baseOptionsRef.current);
-          void sessionRef.current
-            .dispatcherFor('inspector')
-            .dispatch(
-              Object.keys(kept).length > 0
-                ? {
-                    kind: 'istar.updateModelExtra',
-                    set: {
-                      [EMBEDDED_KEY]: {
-                        version: MANIFEST_VERSION,
-                        options: kept,
-                      },
+          dispatchOrFallback(
+            sessionRef.current,
+            'inspector',
+            Object.keys(kept).length > 0
+              ? {
+                  kind: 'istar.updateModelExtra',
+                  set: {
+                    [EMBEDDED_KEY]: {
+                      version: MANIFEST_VERSION,
+                      options: kept,
                     },
-                  }
-                : { kind: 'istar.updateModelExtra', remove: [EMBEDDED_KEY] },
-            )
-            .then((result) => {
-              if (!result.ok) setText(written, 'settings');
-            });
+                  },
+                }
+              : { kind: 'istar.updateModelExtra', remove: [EMBEDDED_KEY] },
+            () => setText(written, 'settings'),
+          );
           return;
         } catch {
           // not JSON: kept in the workbench
@@ -1018,16 +1017,16 @@ function WorkbenchState({
           try {
             const written = writeModelMode(text, target);
             const model: PistarFile = JSON.parse(written);
-            void sessionRef.current
-              .dispatcherFor('inspector')
-              .dispatch({
+            dispatchOrFallback(
+              sessionRef.current,
+              'inspector',
+              {
                 kind: 'istar.replaceModel',
                 model,
                 fileMetamodel: fileMetamodelForText(written),
-              })
-              .then((result) => {
-                if (!result.ok) setText(written, 'convert');
-              });
+              },
+              () => setText(written, 'convert'),
+            );
           } catch {
             // a model that does not parse keeps its text
           }

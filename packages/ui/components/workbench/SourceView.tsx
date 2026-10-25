@@ -8,6 +8,7 @@ import { setRangeMarks } from '@/lib/workbench/codemirror';
 import { sourcePosition } from '@/lib/workbench/localProblems';
 import { nodeRanges } from '@/lib/workbench/pistar';
 import { fileMetamodelForText } from '@/lib/workbench/dialects';
+import { dispatchOrFallback } from '@/lib/workbench/modelSession';
 import CodeEditor from './CodeEditor';
 import { useSelection, useWorkbench } from './WorkbenchContext';
 import { useShell } from './shell';
@@ -63,18 +64,19 @@ export default function SourceView() {
         latest.current.setText(value, 'source');
         return;
       }
-      void latest.current
-        .dispatcherFor('inspector')
-        .dispatch({
+      dispatchOrFallback(
+        latest.current.session,
+        'inspector',
+        {
           kind: 'istar.replaceModel',
           model,
           fileMetamodel: fileMetamodelForText(value),
-        })
-        .then((result) => {
-          if (result.ok) return;
-          setRejected(result.diagnostics);
+        },
+        (diagnostics) => {
+          setRejected(diagnostics);
           latest.current.setText(value, 'source');
-        });
+        },
+      );
     }, SETTLE_DELAY);
   };
 

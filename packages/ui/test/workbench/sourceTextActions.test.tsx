@@ -9,10 +9,11 @@
  *   the model's top-level `project` key, istar-ts's `extra` — one
  *   `istar.updateModelExtra`.
  *
- * `ModelSettingsModal`'s framework switch (`empty`, target `pistar`, only
- * switching into iStar 2.0 from a DSM3-goals framework, KAOS or NFR) stays
- * on the host-side replace: the switch also adds the root `istar` field
- * ("2.0"), which no action writes (ModelSettingsModal.tsx's own comment).
+ * `ModelSettingsModal`'s framework switch (target `pistar`, only switching
+ * into iStar 2.0 from a DSM3-goals framework, KAOS or NFR) dispatches too,
+ * as one `istar.replaceModel` of the target's empty model (it needs the
+ * whole file: the root `istar` field a DSM3-goals model lacks) — see
+ * frameworkSettings.test.tsx.
  */
 import { act, cleanup, render, waitFor } from '@testing-library/react';
 import { readFileSync } from 'node:fs';

@@ -18,6 +18,7 @@ import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { useEffect } from 'react';
 import { withFileMetamodel } from '@istar-ts/core';
+import type { ActionResult } from '@istar-ts/actions';
 import {
   useWorkbench,
   WorkbenchProvider,
@@ -25,6 +26,8 @@ import {
 } from '@/components/workbench/WorkbenchContext';
 import { parseModel } from '@/lib/workbench/dialects';
 import { serializeModel, writeModelMode } from '@/lib/workbench/pistar';
+import { withEngineOptions } from '@/lib/workbench/projectSettings';
+import { DEFAULT_OPTIONS } from '@/lib/workbench/types';
 import SourceView from '@/components/workbench/SourceView';
 
 vi.mock('@/components/workbench/CodeEditor', () => ({
@@ -277,5 +280,69 @@ describe('SourceView dispatches actions (#411)', () => {
     expect(dispatch).not.toHaveBeenCalled();
     expect(wb().text).toBe(broken);
     expect(wb().jsonError).not.toBeNull();
+  });
+
+  it('a top-level "project" (extra) key edit agrees with writeOptions\' updateModelExtra path, byte for byte', async () => {
+    const { wb, container } = await opened(writeModelMode(ISTAR, 'edge'));
+    await waitFor(() => expect(wb().mode).toBe('edge'));
+    const before = wb().text;
+    const nextOptions = { ...wb().options, achievabilitySpace: 10 };
+    const after = withEngineOptions(
+      before,
+      'edge',
+      nextOptions,
+      DEFAULT_OPTIONS,
+    );
+    expect(after).toContain('"project"');
+
+    // the raw-text path: typing the same bytes dispatches istar.replaceModel,
+    // and takes them back with one glspUndo
+    await roundTrip(wb, container, before, after);
+    // roundTrip leaves fake timers installed; waitFor's polling needs real ones
+    vi.useRealTimers();
+
+    // the writeOptions path: the same change through istar.updateModelExtra
+    act(() => wb().setOptions(nextOptions));
+    await waitFor(() => expect(wb().text).not.toBe(before));
+    expect(wb().text).toBe(after);
+  });
+
+  it('a rejected dispatch falls back only if its session is still open (#431)', async () => {
+    const { wb, container } = await opened();
+    vi.useFakeTimers();
+    let resolveDispatch: ((result: ActionResult<never>) => void) | null = null;
+    const dispatch = vi
+      .spyOn(wb().dispatcherFor('inspector'), 'dispatch')
+      .mockImplementation(
+        () =>
+          new Promise<ActionResult<never>>((resolve) => {
+            resolveDispatch = resolve;
+          }),
+      );
+    const textarea = container.querySelector<HTMLTextAreaElement>('textarea')!;
+    const edit = edited((p) => {
+      nodes(p).find((n) => n.id === G1)!.text = 'G1: Renamed';
+    });
+
+    fireEvent.change(textarea, { target: { value: edit } });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(500);
+    });
+    expect(dispatch).toHaveBeenCalledTimes(1);
+    // fake timers would freeze waitFor's polling below
+    vi.useRealTimers();
+
+    // the user switches to another file before the dispatch settles
+    await act(() =>
+      wb().openFile('anotherSimple.txt', ANOTHER_MODEL, { setup: true }),
+    );
+    await waitFor(() => expect(wb().text).toBe(ANOTHER_MODEL));
+
+    // the stale dispatch is now rejected: its fallback must not land on the new file
+    await act(async () => {
+      resolveDispatch!({ ok: false, diagnostics: [] });
+    });
+
+    expect(wb().text).toBe(ANOTHER_MODEL);
   });
 });
