@@ -3,12 +3,16 @@
  * `out/` requires it as CommonJS while the UI imports it. Two copies read
  * every model the UI parsed as plain iStar 2.0 before istar-ts 0.13.5 shared
  * core's registries, and still hold two ISTAR_2_0s and the like.
+ * react now depends on actions and gmodel (istar-ts 0.15), so they need the
+ * same one-copy guarantee.
  */
 import { readFileSync } from 'fs';
 import { createRequire } from 'module';
 import { join } from 'path';
 import { describe, expect, it } from 'vitest';
+import * as actions from '@istar-ts/actions';
 import * as core from '@istar-ts/core';
+import * as gmodel from '@istar-ts/gmodel';
 import { goalView } from '@goal-controller/goal-tree';
 import { notationDefinitionOf } from '@/lib/workbench/engineDialects';
 
@@ -22,6 +26,16 @@ describe('one @istar-ts/core', () => {
     expect(goalTree('@istar-ts/core').metamodelOf).toBe(core.metamodelOf);
   });
 
+  it('is the one @istar-ts/actions requires', () => {
+    const actionsRequire = createRequire(require.resolve('@istar-ts/actions'));
+    expect(actionsRequire('@istar-ts/core').metamodelOf).toBe(core.metamodelOf);
+  });
+
+  it('is the one @istar-ts/gmodel requires', () => {
+    const gmodelRequire = createRequire(require.resolve('@istar-ts/gmodel'));
+    expect(gmodelRequire('@istar-ts/core').metamodelOf).toBe(core.metamodelOf);
+  });
+
   it('so goalView sees the actors of an extension the UI parsed', () => {
     const json = JSON.parse(readFileSync(MINIMAL, 'utf8'));
     json.actors[0].type = 'ext.Robot';
@@ -32,5 +46,21 @@ describe('one @istar-ts/core', () => {
     const model = core.parsePistar(json, { fileMetamodel: true });
     const view = goalView(model as never, notationDefinitionOf('edge'));
     expect(view.actors.map((actor) => actor.kind)).toEqual(['ext.Robot']);
+  });
+
+  it('so an @istar-ts/actions dispatcher sees the core store it wraps', () => {
+    const json = JSON.parse(readFileSync(MINIMAL, 'utf8'));
+    const model = core.parsePistar(json);
+    const store = core.createModelStore(model);
+    const dispatcher = actions.createActionDispatcher(store);
+    expect(dispatcher.isDirty()).toBe(false);
+    expect(store.getModel()).toBe(model);
+  });
+
+  it('so @istar-ts/gmodel reads the same metamodel registry as core', () => {
+    const json = JSON.parse(readFileSync(MINIMAL, 'utf8'));
+    const model = core.parsePistar(json);
+    const schema = gmodel.modelToGModelSchema(model, {});
+    expect(schema.id).toBeDefined();
   });
 });
