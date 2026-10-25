@@ -56,9 +56,9 @@ export const pursueAndSequentialGoal = (
 /**
  * AND + anyOrder (reference `flexible`): one child at a time, picked by its
  * share among the not-yet-achieved siblings (G*_relative) with priority to
- * earlier children:
+ * earlier children, each compared against its own threshold:
  *   G0_achievable*N > decision_G0 & g{other}_state=0 …
- *   & G1_relative*N > _decision_G0 & !(G{earlier}_relative*N > _decision_G0) …
+ *   & G1_relative*N > _decision_G1 & !(G{earlier}_relative*N > _decision_G{earlier}) …
  */
 export const pursueAndAnyOrderGoal = (
   goal: EdgeGoalNode,
@@ -86,6 +86,6 @@ export const pursueAndAnyOrderGoal = (
   return joinGuards(
     parentShouldPursue(goal.id),
     otherChildrenIdle(anyOrder, childId),
-    selectChildByRelativeDecision(goal.id, anyOrder, childId),
+    selectChildByRelativeDecision(anyOrder, childId),
   );
 };

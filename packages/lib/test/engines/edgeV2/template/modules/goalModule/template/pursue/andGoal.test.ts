@@ -84,11 +84,11 @@ describe('edgeV2 AND anyOrder', () => {
 
       assert.strictEqual(
         pursueAndAnyOrderGoal(goal, ['G1', 'G2'], 'G1'),
-        'G0_achievable*N > decision_G0 & g2_state=0 & G1_relative*N > _decision_G0',
+        'G0_achievable*N > decision_G0 & g2_state=0 & G1_relative*N > _decision_G1',
       );
       assert.strictEqual(
         pursueAndAnyOrderGoal(goal, ['G1', 'G2'], 'G2'),
-        'G0_achievable*N > decision_G0 & g1_state=0 & G2_relative*N > _decision_G0 & !(G1_relative*N > _decision_G0)',
+        'G0_achievable*N > decision_G0 & g1_state=0 & G2_relative*N > _decision_G2 & !(G1_relative*N > _decision_G1)',
       );
     });
 
@@ -126,7 +126,8 @@ describe('edgeV2 AND anyOrder', () => {
       );
       assert.deepStrictEqual(decisionVariableNamesForGoal(goal), [
         'decision_G0',
-        '_decision_G0',
+        '_decision_G1',
+        '_decision_G2',
       ]);
     });
 

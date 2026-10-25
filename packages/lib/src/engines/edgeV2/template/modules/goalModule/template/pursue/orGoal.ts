@@ -17,7 +17,8 @@ import {
 
 /**
  * OR + alternative (reference `non-idempotent`):
- *   G0_achievable*N > decision_G0 & g{other}_state=0 … & priority cascade on _decision_G0
+ *   G0_achievable*N > decision_G0 & g{other}_state=0 … & priority cascade, each
+ *   child against its own _decision_G<child> (EDGE-XT 3094b5d)
  */
 export const pursueAlternativeGoal = (
   goal: EdgeGoalNode,
@@ -34,7 +35,7 @@ export const pursueAlternativeGoal = (
   return joinGuards(
     parentShouldPursue(goal.id),
     otherChildrenIdle(children, currentChildId),
-    selectChildByDecision(goal.id, children, currentChildId),
+    selectChildByDecision(children, currentChildId),
   );
 };
 
@@ -74,7 +75,7 @@ export const pursueChoiceGoal = (
       `${chosen}=0`,
       parentShouldPursue(goal.id),
       otherChildrenIdle(orderedChildren, currentChildId),
-      selectChildByDecision(goal.id, orderedChildren, currentChildId),
+      selectChildByDecision(orderedChildren, currentChildId),
     ),
     right: `(${chosen}'=${chosenIndex})`,
   };
@@ -147,7 +148,7 @@ export const pursueDegradationGoal = (
       retriesExhausted(goal),
       parentShouldPursue(goal.id),
       otherChildrenIdle(degradationList, currentChildId),
-      selectChildByDecision(goal.id, degradationList, currentChildId),
+      selectChildByDecision(degradationList, currentChildId),
     ),
     right: 'true',
   });
