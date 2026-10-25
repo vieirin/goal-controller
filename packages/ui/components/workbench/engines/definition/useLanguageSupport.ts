@@ -13,7 +13,7 @@ import {
   type ServiceMode,
 } from '@/lib/workbench/languageServices';
 import { contextOf, savedLines } from '@/lib/workbench/notationDocument';
-import { appliedPoolEdits } from '@/lib/workbench/poolDocuments';
+import { poolEditOperations } from '@/lib/workbench/poolDocuments';
 import type { PoolHost } from '@/lib/workbench/poolSupport';
 import { useWorkbench } from '../../WorkbenchContext';
 
@@ -103,15 +103,20 @@ export const useProjectWorkspace = (engine: DialectEngine | null): void => {
           (now.project?.store.readOnly ?? true)
         )
           return 'The project’s files are read only: make a browser copy to rename across them';
-        const result = appliedPoolEdits(edits, {
+        const { resources: changed, operations } = poolEditOperations(edits, {
           resources: now.resourceTexts,
           tree: now.tree,
-          modelText: now.text,
         });
-        for (const [path, next] of Object.entries(result.resources))
+        for (const [path, next] of Object.entries(changed))
           now.setResourceText(path, next);
-        if (result.modelText !== null)
-          now.setText(result.modelText, 'inspector');
+        if (operations.length > 0)
+          void now
+            .dispatcherFor('inspector')
+            .dispatch(
+              operations.length === 1
+                ? operations[0]!
+                : { kind: 'compound', operationList: operations },
+            );
         return null;
       },
     }),

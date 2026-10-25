@@ -15,6 +15,7 @@ import {
   nodeLine,
   type NotationEdit,
 } from '@goal-controller/goal-language';
+import type { IstarOperation } from '@istar-ts/actions';
 import type { SavedLines } from './languageSupport';
 import { setLinkProperty, setNodeProperty, setNodeText } from './pistar';
 
@@ -25,7 +26,12 @@ export {
   type NotationEdit,
 } from '@goal-controller/goal-language';
 
-/** The model text with a document's edits made (texts, then properties, in order). */
+/**
+ * The model text with a document's edits made (texts, then properties, in
+ * order). Non-UI callers only (goal-controller#411): tests under
+ * packages/lib and the pool document's own text output. The live editors
+ * dispatch `notationEditOperations` instead.
+ */
 export const applyNotationEdits = (
   text: string,
   edits: readonly NotationEdit[],
@@ -41,6 +47,39 @@ export const applyNotationEdits = (
             ? setNodeProperty(model, edit.iStarId, edit.key, edit.value)
             : setNodeText(model, edit.iStarId, edit.text),
     text,
+  );
+
+/**
+ * A document's edits as operations against the live model (goal-controller#411):
+ * an element's or actor's text, an `applyLabelEdit`; a property (an
+ * element's, an actor's or a link's) an `istar.updateProperties`. One user
+ * edit's operations go as one `compound` (`useEditModel`), so it is one
+ * undo step.
+ */
+export const notationEditOperations = (
+  edits: readonly NotationEdit[],
+): IstarOperation<string, string>[] =>
+  edits.map((edit) =>
+    'link' in edit
+      ? {
+          kind: 'istar.updateProperties',
+          elementId: edit.link,
+          properties: { [edit.key]: edit.value },
+        }
+      : // an actor's properties are its element's (goal-controller#109)
+        'actor' in edit
+        ? {
+            kind: 'istar.updateProperties',
+            elementId: edit.actor,
+            properties: { [edit.key]: edit.value },
+          }
+        : 'key' in edit
+          ? {
+              kind: 'istar.updateProperties',
+              elementId: edit.iStarId,
+              properties: { [edit.key]: edit.value },
+            }
+          : { kind: 'applyLabelEdit', labelId: edit.iStarId, text: edit.text },
   );
 
 /** The id of the element a line belongs to: its own, or the element line above it. */

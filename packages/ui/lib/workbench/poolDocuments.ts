@@ -11,9 +11,11 @@ import {
   type PoolEdit,
   type PoolLocation,
 } from '@goal-controller/lib';
+import type { IstarOperation } from '@istar-ts/actions';
 import {
   applyNotationEdits,
   lineKeys,
+  notationEditOperations,
   type NotationEdit,
 } from './notationDocument';
 
@@ -141,24 +143,26 @@ type WithText = { text?: string };
  * element's name (within its text) or a property's value; ids, and the
  * notation's (the children's), aren't renamed here.
  */
-export const appliedPoolEdits = (
+/** A field's edits, from the end, so earlier offsets hold. */
+const applyField = (text: string, own: readonly PoolEdit[]) =>
+  [...own]
+    .sort((a, b) => b.from - a.from)
+    .reduce((t, e) => t.slice(0, e.from) + e.text + t.slice(e.to), text);
+
+/**
+ * A rename's edits, split into each resource's new text (only those
+ * changed) and the model's notation edits: an element's name (within its
+ * text) or a property's value. Ids, and the notation's (the children's),
+ * aren't renamed here.
+ */
+const poolEditParts = (
   edits: readonly PoolEdit[],
   {
     resources,
     tree,
-    modelText,
-  }: {
-    resources: Readonly<Record<string, string>>;
-    tree: DocumentTree | null;
-    modelText: string;
-  },
-): { resources: Record<string, string>; modelText: string | null } => {
+  }: { resources: Readonly<Record<string, string>>; tree: DocumentTree | null },
+): { resources: Record<string, string>; notation: NotationEdit[] } => {
   const changed: Record<string, string> = {};
-  // a field's edits, from the end, so earlier offsets hold
-  const apply = (text: string, own: readonly PoolEdit[]) =>
-    [...own]
-      .sort((a, b) => b.from - a.from)
-      .reduce((t, e) => t.slice(0, e.from) + e.text + t.slice(e.to), text);
   const byDocument = new Map<string, PoolEdit[]>();
   for (const edit of edits)
     byDocument.set(edit.document, [
@@ -170,7 +174,7 @@ export const appliedPoolEdits = (
     const field = modelField(document);
     if (!field) {
       const text = resources[document];
-      if (text !== undefined) changed[document] = apply(text, own);
+      if (text !== undefined) changed[document] = applyField(text, own);
       continue;
     }
     const node = tree?.nodes.get(field.element);
@@ -183,18 +187,67 @@ export const appliedPoolEdits = (
         iStarId: node.iStarId,
         text:
           text.slice(0, at) +
-          apply(node.name, own) +
+          applyField(node.name, own) +
           text.slice(at + node.name.length),
       });
     } else if (field.field !== 'id' && field.field !== 'notation')
       notation.push({
         iStarId: node.iStarId,
         key: field.field,
-        value: apply(node.properties[field.field] ?? '', own),
+        value: applyField(node.properties[field.field] ?? '', own),
       });
   }
+  return { resources: changed, notation };
+};
+
+/**
+ * A rename's edits applied: each resource's new text (only those changed),
+ * and the model's new text (null: unchanged). A model edit changes an
+ * element's name (within its text) or a property's value; ids, and the
+ * notation's (the children's), aren't renamed here. Non-UI callers only
+ * (goal-controller#411): the live editor uses `poolEditOperations` instead,
+ * to dispatch the model edits rather than rewrite the text.
+ */
+export const appliedPoolEdits = (
+  edits: readonly PoolEdit[],
+  {
+    resources,
+    tree,
+    modelText,
+  }: {
+    resources: Readonly<Record<string, string>>;
+    tree: DocumentTree | null;
+    modelText: string;
+  },
+): { resources: Record<string, string>; modelText: string | null } => {
+  const { resources: changed, notation } = poolEditParts(edits, {
+    resources,
+    tree,
+  });
   return {
     resources: changed,
     modelText: notation.length ? applyNotationEdits(modelText, notation) : null,
   };
+};
+
+/**
+ * A rename's edits as operations against the live model (goal-controller#411),
+ * alongside the resources changed (unaffected: a project file, not the
+ * model). `operations`: empty when the rename touches no model field.
+ */
+export const poolEditOperations = (
+  edits: readonly PoolEdit[],
+  {
+    resources,
+    tree,
+  }: { resources: Readonly<Record<string, string>>; tree: DocumentTree | null },
+): {
+  resources: Record<string, string>;
+  operations: IstarOperation<string, string>[];
+} => {
+  const { resources: changed, notation } = poolEditParts(edits, {
+    resources,
+    tree,
+  });
+  return { resources: changed, operations: notationEditOperations(notation) };
 };

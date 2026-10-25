@@ -9,10 +9,11 @@ import {
   FRAMEWORK_DIALECTS,
   type FrameworkMode,
 } from '@/lib/workbench/frameworkModes';
-import { withFrameworkIds } from '@/lib/workbench/frameworkOpen';
+import { frameworkIdEdits } from '@/lib/workbench/frameworkOpen';
 import { useWorkbench } from '../../WorkbenchContext';
 import { Button } from '../../ui';
 import NotationEditor from '../definition/NotationEditor';
+import { useEditModel } from '../shared/inspector';
 import { LanguageSupportContext } from '../definition/useLanguageSupport';
 import { useProfiledDefinition } from './useProfiledDefinition';
 
@@ -33,8 +34,7 @@ export default function FrameworkNotationView({
   /** the dialect its lines are read in: its framework's, or its engine's (nfrprop's labels) */
   definition?: AnyDialect;
 }) {
-  const wb = useWorkbench();
-  const { text, projectResources } = wb;
+  const { text, projectResources } = useWorkbench();
   // with the vocabulary profile the model records (a CAIRIS model's, #192)
   const definition = useProfiledDefinition(given, text);
   // the last view read stays while the model is being fixed
@@ -58,10 +58,11 @@ export default function FrameworkNotationView({
       });
   }, [tree, support, definition, projectResources]);
   // DSM3's own files name no element with an id: one click gives them theirs
-  const withIds = useMemo(
-    () => withFrameworkIds(text, definition),
+  const idEdits = useMemo(
+    () => frameworkIdEdits(text, definition),
     [text, definition],
   );
+  const edit = useEditModel();
   const prefixes = [
     ...new Set(
       Object.values(definition.elements).flatMap((e) =>
@@ -71,7 +72,7 @@ export default function FrameworkNotationView({
   ].join(', ');
   return (
     <div className='flex h-full flex-col'>
-      {withIds && (
+      {idEdits && (
         <div
           role='status'
           className='flex flex-wrap items-center gap-2 border-b border-line bg-panel px-3 py-1.5 text-[13px] text-ink-soft'
@@ -81,7 +82,18 @@ export default function FrameworkNotationView({
           </span>
           <Button
             variant='outline'
-            onClick={() => wb.setText(withIds, 'convert')}
+            onClick={() =>
+              void edit(
+                ...idEdits.map(
+                  ({ elementId, name }) =>
+                    ({
+                      kind: 'applyLabelEdit',
+                      labelId: elementId,
+                      text: name,
+                    }) as const,
+                ),
+              )
+            }
           >
             Give every element an id ({prefixes})
           </Button>
