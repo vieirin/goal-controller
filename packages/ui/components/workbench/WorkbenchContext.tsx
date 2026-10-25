@@ -50,10 +50,9 @@ import {
   type ModelSession,
 } from '@/lib/workbench/modelSession';
 import {
-  startGlspServer,
-  type GlspMcpHandle,
-  type GlspServer,
-} from '@/lib/workbench/glspServer';
+  openGlspSession,
+  type GlspSession,
+} from '@/lib/workbench/agent/glspSession';
 import type { AgentWorkspace } from '@/lib/workbench/agent/hostTools';
 import type { ActionDispatcher } from '@istar-ts/actions';
 import type { IstarSurface } from '@istar-ts/react';
@@ -398,8 +397,8 @@ export type Workbench = {
    */
   glspEnabled: boolean;
   setGlspEnabled: (enabled: boolean) => void;
-  /** the in-page MCP handle, once the GLSP server has started; none while it hasn't */
-  glspMcp: GlspMcpHandle | null;
+  /** backend A's session (goal-controller#450), once it has opened; none while it hasn't */
+  glspSession: GlspSession | null;
   /** what M6's host tools read of the open project, as it is now (goal-controller#415) */
   agentWorkspace: () => AgentWorkspace;
   /**
@@ -958,12 +957,12 @@ function WorkbenchState({
   useEffect(() => {
     setEditRejected([]);
   }, [mode]);
-  // a GLSP server over the session's own store and dispatcher (#414), for
-  // M6's agent: off until turned on (its cost is then zero), rebuilt (its
-  // contribution included) whenever the session or the mode changes, and
-  // disposed when turned off or the provider unmounts.
+  // backend A's session over the session's own store and dispatcher (#414,
+  // #450), for M6's agent: off until turned on (its cost is then zero),
+  // rebuilt whenever the session or the mode changes, and disposed when
+  // turned off or the provider unmounts.
   const [glspEnabled, setGlspEnabled] = useState(false);
-  const [glspMcp, setGlspMcp] = useState<GlspMcpHandle | null>(null);
+  const [glspSession, setGlspSession] = useState<GlspSession | null>(null);
   // the model's view and the project's resources, for M6's host tools'
   // pool-lookup and validate-notation (goal-controller#415): read fresh on
   // each call, not captured by the effect below (declared, each render,
@@ -977,21 +976,21 @@ function WorkbenchState({
   useEffect(() => {
     if (!glspEnabled) return undefined;
     let disposed = false;
-    let server: GlspServer | null = null;
-    void startGlspServer(session, mode, () => workspaceRef.current()).then(
+    let opened: GlspSession | null = null;
+    void openGlspSession(session, mode, () => workspaceRef.current()).then(
       (started) => {
         if (disposed) {
-          started.dispose();
+          started.close();
           return;
         }
-        server = started;
-        setGlspMcp(started.mcp);
+        opened = started;
+        setGlspSession(started);
       },
     );
     return () => {
       disposed = true;
-      setGlspMcp(null);
-      server?.dispose();
+      setGlspSession(null);
+      opened?.close();
     };
   }, [glspEnabled, session, mode]);
   /** a new session for an opened model (none: an empty one): its history starts empty */
@@ -2759,7 +2758,7 @@ function WorkbenchState({
     dispatcherFor: session.dispatcherFor,
     glspEnabled,
     setGlspEnabled,
-    glspMcp,
+    glspSession,
     agentWorkspace,
     editRejected,
     notifyEditRejected,

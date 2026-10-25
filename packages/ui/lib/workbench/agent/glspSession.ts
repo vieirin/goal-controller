@@ -1,0 +1,55 @@
+/**
+ * Backend A's session over the workbench's own session (goal-controller#414,
+ * #450): `openGlspMcpSession` (istar-ts#239) gives both Auto mode's live
+ * tool registry and Propose mode's scratch-session change set, over the same
+ * store and dispatcher the canvas edits through, so an edit through either
+ * mode goes through the same guards and one appears in the canvas at once.
+ * `getOptions` is read fresh on every Propose run, so a mode change the
+ * drawer doesn't itself restart (it does: `mode` is one of this module's own
+ * dependencies, WorkbenchContext.tsx) still reaches the next one.
+ *
+ * Goal-controller's own read-only host tools (hostTools.ts) and context
+ * providers (context.ts) are served next to istar's, through
+ * `GlspMcpBackendOptions.hostTools`/`context` (istar-ts#239): no more
+ * client-side merge. `GlspMcpBackendOptions.postGuards` (istar-ts#239) is the
+ * mode's own post-guards (`modeGuards.ts`), so a Propose batch breaking one
+ * is refused on the scratch session, at preview, not only at `apply`. The
+ * built-in metamodel context provider (istar-ts#240) is on by default: no
+ * `metamodelContext: false` here.
+ *
+ * `@istar-ts/agent/glsp` is dynamically imported, so it never lands in the
+ * initial bundle: a page that never turns this on pays nothing.
+ */
+import { metamodelOf } from '@istar-ts/core';
+import type { GlspMcpSession } from '@istar-ts/agent/glsp';
+import type { ModelMode } from '@/lib/workbench/pistar';
+import type { ModelSession } from '@/lib/workbench/modelSession';
+import { pistarExtMetamodelGuard } from '@/lib/workbench/dialects';
+import { guardsForMode } from '@/components/workbench/engines/modeGuards';
+import { hostToolsFor, type AgentWorkspace } from './hostTools';
+import { contextProvidersFor } from './context';
+
+export type GlspSession = GlspMcpSession;
+
+/**
+ * Opens `session`'s backend-A session, in `mode`: `liveRegistry` is Auto
+ * mode's tools (over the live model); `changeSet` is Propose mode's target
+ * (a fresh scratch session per run); `close` tears both down.
+ */
+export async function openGlspSession(
+  session: ModelSession,
+  mode: ModelMode,
+  getWorkspace: () => AgentWorkspace,
+): Promise<GlspSession> {
+  const { openGlspMcpSession } = await import('@istar-ts/agent/glsp');
+  return openGlspMcpSession(() => ({
+    store: session.store,
+    dispatcher: session.dispatcher,
+    guards: [pistarExtMetamodelGuard, ...guardsForMode(mode).guards],
+    postGuards: guardsForMode(mode).postGuards,
+    metamodel: metamodelOf(session.store.getModel()),
+    palette: session.getPalette(),
+    hostTools: hostToolsFor(mode, getWorkspace),
+    context: contextProvidersFor(mode),
+  }));
+}

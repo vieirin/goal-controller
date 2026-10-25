@@ -33,6 +33,8 @@ export type ModelElementKind = {
   /** drawn by istar-ts */
   shape?: { path: string; viewBox?: string };
   textBox?: { top: number; right: number; bottom: number; left: number };
+  /** what the kind means and when to use it (istar-ts#241): rendered by `metamodelContext` */
+  description?: string;
 };
 
 /** A link kind the model declares (istar-ts's `FileLinkKind`, as far as it is read here). */
@@ -44,6 +46,8 @@ export type ModelLinkKind = {
   pistarType?: string;
   /** drawn by istar-ts: an SVG dash array, a marker path */
   line?: { dash?: string; marker?: string | false; markerFilled?: boolean };
+  /** what the kind means and when to use it (istar-ts#241): rendered by `metamodelContext` */
+  description?: string;
 };
 
 /**

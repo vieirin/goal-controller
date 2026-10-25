@@ -48,6 +48,7 @@ function AddConstructDialog({ onClose }: { onClose: () => void }) {
   const { extension, model } = usePistarExt();
   const [name, setName] = useState('');
   const [type, setType] = useState<'node' | 'link'>('node');
+  const [description, setDescription] = useState('');
   const [shape, setShape] = useState('');
   const [sources, setSources] = useState<string[]>([]);
   const [targets, setTargets] = useState<string[]>([]);
@@ -89,6 +90,7 @@ function AddConstructDialog({ onClose }: { onClose: () => void }) {
       kind: `${MODEL_NAMESPACE}.${named}`,
       label: named,
       pistarType: `istar.${named}`,
+      ...(description.trim() && { description: description.trim() }),
     };
     const dash = LINE_DASHES[line];
     const next: ModelExtension =
@@ -171,6 +173,17 @@ function AddConstructDialog({ onClose }: { onClose: () => void }) {
               <option value='node'>Node</option>
               <option value='link'>Link</option>
             </select>
+          </label>
+          <label className='block space-y-1'>
+            <span className='text-2xs font-semibold text-ink-soft'>
+              Description (optional)
+            </span>
+            <textarea
+              className={cx(inputClass, 'h-14')}
+              placeholder="What it means and when to use it: an agent's context reads this"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
           </label>
           <label className='block space-y-1'>
             <span className='text-2xs font-semibold text-ink-soft'>

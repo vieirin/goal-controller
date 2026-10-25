@@ -5,10 +5,9 @@
  * (`defineEngine` gives each engine with a dialect its own); an engine that
  * needs lines of its own passes them in `constraints`. The notation's part
  * is goal-language's (`notationHelpOf`); the root's (the framework's own
- * element and link kinds) is read off the model's istar-ts metamodel
- * (`rootContextOf`), never restated here.
+ * element and link kinds) is `@istar-ts/actions`' own `metamodelContext`
+ * (goal-controller#450), never restated here.
  */
-import type { AnyMetamodel } from '@istar-ts/core';
 import type {
   AnyDialect,
   Condition,
@@ -187,48 +186,3 @@ export const engineContextText = (context: EngineContext): string =>
   ]
     .filter((line): line is string => typeof line === 'string')
     .join('\n\n');
-
-/** A kind of the model's metamodel: its name and label, as istar-ts declares it. */
-export type RootKind = { kind: string; label: string };
-
-/**
- * The root's part (goal-controller#415): the actor, node and link kinds of
- * the model's metamodel (its framework's root and the extensions applied),
- * read off istar-ts's own declaration.
- */
-export type RootContext = {
-  metamodel: string;
-  framework: string;
-  actors: readonly RootKind[];
-  nodes: readonly RootKind[];
-  links: readonly (RootKind & { category: string })[];
-};
-
-// TODO(istar-ts#240): @istar-ts/actions' metamodelContext replaces this (goal-controller#450)
-export const rootContextOf = (metamodel: AnyMetamodel): RootContext => {
-  const elements = [...metamodel.elements.values()];
-  const kindOf = ({ kind, label }: RootKind): RootKind => ({ kind, label });
-  return {
-    metamodel: metamodel.name,
-    framework: metamodel.framework,
-    actors: elements.filter((e) => e.category === 'actor').map(kindOf),
-    nodes: elements.filter((e) => e.category === 'node').map(kindOf),
-    links: [...metamodel.links.values()].map(({ kind, label, category }) => ({
-      kind,
-      label,
-      category,
-    })),
-  };
-};
-
-/** The same, as plain text: a system prompt's section. */
-export const rootContextText = (context: RootContext): string =>
-  [
-    `metamodel: ${context.metamodel}`,
-    context.actors.length > 0 &&
-      `actor kinds: ${context.actors.map(({ kind }) => kind).join(', ')}`,
-    `node kinds: ${context.nodes.map(({ kind }) => kind).join(', ')}`,
-    `link kinds: ${context.links.map(({ kind, category }) => `${kind} (${category})`).join(', ')}`,
-  ]
-    .filter((line): line is string => typeof line === 'string')
-    .join('\n');

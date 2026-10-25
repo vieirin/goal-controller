@@ -200,6 +200,9 @@ importers:
         specifier: ^4.1
         version: 4.6.7
     devDependencies:
+      '@istar-ts/actions':
+        specifier: 0.15.0-beta.9
+        version: 0.15.0-beta.9
       '@istar-ts/core':
         specifier: 0.15.0-beta.9
         version: 0.15.0-beta.9
@@ -1892,7 +1895,6 @@ packages:
     resolution: {integrity: sha512-fwizxxOwpAo2aSBc4MoThYd7BiFWagJp+55G9VQ5Jsiv9X4l+/ni3ap6271LoOW6tU+UDXMeQsJ0Ka9xmiYNTA==}
     dependencies:
       '@istar-ts/core': 0.15.0-beta.9
-    dev: false
 
   /@istar-ts/agent@0.15.0-beta.9(@istar-ts/glsp@0.15.0-beta.9)(@modelcontextprotocol/sdk@1.32.2):
     resolution: {integrity: sha512-3qNxCyOBSplKMBknnBL0sa6iUWYwfDEa870Gq2Zv+aRZl6ouiRt2Cd/Qee2hKsZsWn/s7tbzCbRXxeoRC1ZYGg==}

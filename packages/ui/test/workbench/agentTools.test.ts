@@ -1,19 +1,21 @@
 // @vitest-environment node
 /**
  * Goal-controller's own MCP host tools and context providers for M6's agent
- * (goal-controller#415): the composed context (the root's, the notation's,
- * the engine's and the guards' parts) for an edgeV2 and a KAOS mode, each
- * tool reading those same objects, `validate-notation` against the
- * language server's diagnostics, and Propose mode over istar-ts's scratch
- * GLSP session: nothing applied until approved, one approval one undo step,
- * refused as a whole. Node, not jsdom, as `glspMcp.test.ts`.
+ * (goal-controller#415, #450): the composed context (the notation's, the
+ * engine's and the guards' parts — the root's is istar-ts's own, prepended
+ * automatically) for an edgeV2 and a KAOS mode, each tool reading those same
+ * objects, `validate-notation` against the language server's diagnostics,
+ * and Propose mode over istar-ts's scratch GLSP session: nothing applied
+ * until approved, a batch breaking the mode's post-guard refused already at
+ * preview, one approval one undo step. Node, not jsdom, as the live
+ * session's own tests further down.
  */
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { parsePistar } from '@istar-ts/core';
 import type { HostTool, HostToolResult } from '@istar-ts/actions';
-import { runAgent } from '@istar-ts/agent';
+import { runAgent, systemPromptWith } from '@istar-ts/agent';
 import type {
   ChatClient,
   ChatCompletion,
@@ -44,7 +46,7 @@ import {
   hostToolsFor,
   type AgentWorkspace,
 } from '@/lib/workbench/agent/hostTools';
-import { proposeChangeSet } from '@/lib/workbench/agent/proposeChangeSet';
+import { openGlspSession } from '@/lib/workbench/agent/glspSession';
 import {
   dialectOf,
   ENGINE_AGENT_CONTEXTS,
@@ -88,41 +90,45 @@ const contentOf = (result: HostToolResult): unknown => {
   return result.content;
 };
 
-describe("a mode's composed context (goal-controller#415)", () => {
-  it('edgev2: the root, notation, engine and guard parts', async () => {
+describe("a mode's composed context (goal-controller#415, #450)", () => {
+  it('edgev2: the notation, engine and guard parts; the root is prepended by istar-ts (istar-ts#240)', async () => {
     const providers = contextProvidersFor('edgev2');
     expect(providers.map((p) => p.name)).toEqual([
-      'metamodel',
       'type-definitions',
       'notation-help',
       'engine-constraints',
     ]);
-    const { systemPromptWith } = await import('@istar-ts/agent');
     const prompt = await systemPromptWith('You are an agent.', providers, () =>
       parsePistar(EDGEV2),
     );
-    expect(prompt).toContain('istar.AndRefinementLink');
+    // the root's part, from istar-ts's own metamodel context, comes first
+    // and once; kind descriptions (istar-ts#241) are in it
+    expect(prompt.indexOf('istar.AndRefinementLink')).toBeLessThan(
+      prompt.indexOf('Sequence'),
+    );
+    expect(
+      prompt.split('course of action an actor wants carried out').length,
+    ).toBe(2);
     expect(prompt).toContain('Sequence');
     expect(prompt).toContain('maxRetries');
     expect(prompt).toContain("edgev2's own constraints");
   });
 
-  it("kaos: KAOS's root, its dialect's notation and engine parts, no guards", async () => {
+  it("kaos: KAOS's dialect's notation and engine parts, no guards; the root is istar-ts's, with its kind descriptions (istar-ts#241)", async () => {
     const parts = agentModeOf('kaos');
     expect(parts.engine).toBe(kaosAgentContext);
     expect(parts.notation?.refinement).toBeNull();
     expect(parts.guards).toEqual([]);
     const providers = contextProvidersFor('kaos');
     expect(providers.map((p) => p.name)).toEqual([
-      'metamodel',
       'type-definitions',
       'notation-help',
     ]);
-    const { systemPromptWith } = await import('@istar-ts/agent');
     const prompt = await systemPromptWith('You are an agent.', providers, () =>
       parseModel(KAOS),
     );
     expect(prompt).toContain('kaos.BehavioralGoal');
+    expect(prompt).toContain('clear-cut criterion for whether it is satisfied');
     expect(prompt).not.toContain('istar.AndRefinementLink');
   });
 
@@ -135,13 +141,21 @@ describe("a mode's composed context (goal-controller#415)", () => {
 });
 
 describe('the host tools read the same parts (goal-controller#415)', () => {
-  it("list-types: the model's root and the engine's part", async () => {
+  it("list-types: the model's root (istar-ts's metamodelContext, istar-ts#240) and the engine's part", async () => {
     const tools = hostToolsFor('edgev2', NO_WORKSPACE);
     const content = contentOf(await call(tools, 'list-types', {}, EDGEV2));
     expect(content).toMatchObject({
       engine: ENGINE_AGENT_CONTEXTS.edgev2,
       root: { framework: 'istar-2.0' },
     });
+    const root = (
+      content as {
+        root: { elements: { kind: string; description?: string }[] };
+      }
+    ).root;
+    expect(
+      root.elements.find((e) => e.kind === 'istar.Task')?.description,
+    ).toBeTruthy();
   });
 
   it("notation-help: goal-language's part, for edgeV2 and KAOS", async () => {
@@ -246,7 +260,7 @@ const task = (id: string, text: string) =>
     text,
   });
 
-/** An edgev2 session (its mode's guards on it), its Propose-mode target, and a run of `toolCalls` on it. */
+/** An edgev2 session (its mode's guards on it), its backend-A session, and a run of `toolCalls` on it. */
 const proposed = async (toolCalls: readonly ToolCall[]) => {
   const session: ModelSession = createModelSession(
     parsePistar(EDGEV2),
@@ -255,7 +269,8 @@ const proposed = async (toolCalls: readonly ToolCall[]) => {
   const { guards, postGuards } = guardsForMode('edgev2');
   session.setGuards(guards);
   session.setPostGuards(postGuards);
-  const changeSet = await proposeChangeSet(session, 'edgev2', NO_WORKSPACE);
+  const glsp = await openGlspSession(session, 'edgev2', NO_WORKSPACE);
+  const { changeSet } = glsp;
   const before = session.store.getModel();
   const run = await runAgent({
     client: stubClient(toolCalls),
@@ -263,12 +278,12 @@ const proposed = async (toolCalls: readonly ToolCall[]) => {
     approval: 'propose',
     changeSet,
   });
-  return { session, changeSet, before, run };
+  return { session, changeSet, before, run, close: glsp.close };
 };
 
-describe('Propose mode: one approval, one undo step (#415, istar-ts#232)', () => {
+describe('Propose mode: refused at preview, one approval one undo step (#415, #450, istar-ts#232, istar-ts#239)', () => {
   it('applies nothing until approved; one glspUndo undoes a 3-entry batch', async () => {
-    const { session, changeSet, before, run } = await proposed([
+    const { session, changeSet, before, run, close } = await proposed([
       task('call-1', 'First'),
       task('call-2', 'Second'),
       task('call-3', 'Third'),
@@ -290,14 +305,16 @@ describe('Propose mode: one approval, one undo step (#415, istar-ts#232)', () =>
     const undone = await session.dispatcher.dispatch({ kind: 'glspUndo' });
     expect(undone.ok).toBe(true);
     expect(session.store.getModel()).toBe(before);
+    close();
   });
 
-  it("a batch whose 2nd entry breaks the mode's post-guard is refused at apply, the model untouched", async () => {
-    const { session, changeSet, before, run } = await proposed([
+  it("a batch whose 2nd entry breaks the mode's post-guard is refused already at preview (istar-ts#239), the surviving entries still applying", async () => {
+    const { session, changeSet, before, run, close } = await proposed([
       task('call-1', 'First'),
       // edgeV2 reads a single actor (edgeOneActor, a post-guard): the
-      // scratch session has no post-guards (TODO(istar-ts#239)), so the
-      // live dispatcher refuses it, and the compound with it
+      // scratch session now takes the mode's postGuards too
+      // (GlspMcpBackendOptions.postGuards, istar-ts#239), so this call is
+      // refused on the scratch session itself, already in the preview
       createNode('call-2', {
         elementTypeId: 'node:istar.Actor',
         position: { x: 0, y: 0 },
@@ -305,20 +322,45 @@ describe('Propose mode: one approval, one undo step (#415, istar-ts#232)', () =>
       task('call-3', 'Third'),
     ]);
     expect(run.changeSet).toHaveLength(3);
+    const refused = run.changeSet[1]!;
+    expect(refused.result.ok).toBe(false);
+    expect(
+      JSON.stringify(!refused.result.ok && refused.result.diagnostics),
+    ).toMatch(/single actor/i);
+    expect(changeSet.step(refused)).toBeUndefined();
+    expect(changeSet.step(run.changeSet[0]!)).toBeDefined();
+    expect(changeSet.step(run.changeSet[2]!)).toBeDefined();
 
+    // the surviving entries (the refused one left out) still apply
     const applied = await changeSet.apply(run.changeSet);
-    expect(applied.ok).toBe(false);
-    expect(JSON.stringify(!applied.ok && applied.diagnostics)).toMatch(
-      /single actor/i,
+    expect(applied.ok).toBe(true);
+    const after = session.store.getModel();
+    expect(after.elements.size).toBe(before.elements.size + 2);
+    expect([...after.elements.values()].map((element) => element.name)).toEqual(
+      expect.arrayContaining(['First', 'Third']),
     );
-    expect(session.store.getModel()).toBe(before);
-    expect(session.store.canUndo()).toBe(false);
+    close();
+  });
+
+  it("the live session's registry has goal-controller's four host tools (goal-controller#450)", async () => {
+    const session = createModelSession(parsePistar(EDGEV2), () => {});
+    const glsp = await openGlspSession(session, 'edgev2', NO_WORKSPACE);
+    const names = glsp.liveRegistry.list().map((spec) => spec.name);
+    expect(names).toEqual(
+      expect.arrayContaining([
+        'list-types',
+        'pool-lookup',
+        'notation-help',
+        'validate-notation',
+      ]),
+    );
+    glsp.close();
   });
 
   it("the scratch session's registry has goal-controller's host tools", async () => {
     const session = createModelSession(parsePistar(EDGEV2), () => {});
-    const changeSet = await proposeChangeSet(session, 'edgev2', NO_WORKSPACE);
-    const scratch = await changeSet.openScratch();
+    const glsp = await openGlspSession(session, 'edgev2', NO_WORKSPACE);
+    const scratch = await glsp.changeSet.openScratch();
     const names = scratch.registry.list().map((spec) => spec.name);
     expect(names).toEqual(
       expect.arrayContaining([
@@ -330,5 +372,6 @@ describe('Propose mode: one approval, one undo step (#415, istar-ts#232)', () =>
     const listed = await scratch.registry.call('list-types', {});
     expect(listed.ok).toBe(true);
     scratch.close?.();
+    glsp.close();
   });
 });
