@@ -67,6 +67,15 @@ describe('thumbnailOfText', () => {
       ).not.toBeNull();
   });
 
+  it('renders for iStar, KAOS, NFR, GODA and iStar-DT seeds', () => {
+    for (const group of ['edge', 'kaos', 'nfr', 'goda', 'istardt']) {
+      const entry = manifest.find((e) => e.group === group)!;
+      expect(entry, group).toBeDefined();
+      const text = read(`${entry.root}/${entry.models[0]}`);
+      expect(thumbnailOfText(text), group).not.toBeNull();
+    }
+  });
+
   it('draws nothing for what does not read', () => {
     expect(thumbnailOfText('not json')).toBeNull();
     expect(thumbnailOfText('{"actors":[],"links":[]}')).toBeNull();

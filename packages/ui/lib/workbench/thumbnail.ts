@@ -1,10 +1,15 @@
 /**
  * A model as the home page's cards draw it: its elements' boxes and its links'
- * ends, laid out by istar-ts as the canvas lays them out (modelToFlow), with
- * no text. Pure, so a card computes it once from a model or a preview.
+ * ends, laid out by istar-ts as the canvas lays them out (gmodelToFlow of its
+ * GModel), with no text. Pure, so a card computes it once from a model or a preview.
  */
 import { metamodelOf } from '@istar-ts/core';
-import { modelToFlow, registryForMetamodel } from '@istar-ts/react';
+import { modelToGModelSchema } from '@istar-ts/gmodel';
+import {
+  gmodelToFlow,
+  registryForMetamodel,
+  registrySizes,
+} from '@istar-ts/react';
 import type { AnyModel } from '@goal-controller/lib';
 import { parseModel } from './dialects';
 
@@ -50,8 +55,10 @@ const lineOf = (kind: string): ThumbnailLine =>
 /** A model's thumbnail; null when it draws nothing. */
 export const thumbnailOf = (model: AnyModel): Thumbnail | null => {
   // a dialect's kinds too: the registry istar-ts builds for the model's metamodel
-  const registry = registryForMetamodel(metamodelOf(model));
-  const flow = modelToFlow(model, registry);
+  const metamodel = metamodelOf(model);
+  const registry = registryForMetamodel(metamodel);
+  const schema = modelToGModelSchema(model, { sizes: registrySizes(registry) });
+  const flow = gmodelToFlow(schema, metamodel, registry);
   const boxes = new Map<string, ThumbnailBox>();
   const actors: ThumbnailBox[] = [];
   const elements: Thumbnail['elements'] = [];
