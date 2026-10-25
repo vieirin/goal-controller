@@ -48,6 +48,11 @@ import {
   type ModelChanged,
   type ModelSession,
 } from '@/lib/workbench/modelSession';
+import {
+  startGlspServer,
+  type GlspMcpHandle,
+  type GlspServer,
+} from '@/lib/workbench/glspServer';
 import type { ActionDispatcher } from '@istar-ts/actions';
 import type { IstarSurface } from '@istar-ts/react';
 import { frameworkProblems } from '@/lib/workbench/frameworkProblems';
@@ -383,6 +388,15 @@ export type Workbench = {
   session: ModelSession;
   /** the dispatcher an editor sends its actions through, tagged with its surface */
   dispatcherFor: (surface: IstarSurface) => ActionDispatcher<string, string>;
+  /**
+   * A headless GLSP server over the session's own store and dispatcher
+   * (goal-controller#414), for M6's agent: off until turned on, so the page
+   * pays nothing while it isn't needed.
+   */
+  glspEnabled: boolean;
+  setGlspEnabled: (enabled: boolean) => void;
+  /** the in-page MCP handle, once the GLSP server has started; none while it hasn't */
+  glspMcp: GlspMcpHandle | null;
   /**
    * The inspector's last rejected edit (a guard's diagnostics), shown next to
    * the model until dismissed or replaced by another rejection: the inspector
@@ -921,6 +935,30 @@ function WorkbenchState({
   useEffect(() => {
     setEditRejected([]);
   }, [mode]);
+  // a GLSP server over the session's own store and dispatcher (#414), for
+  // M6's agent: off until turned on (its cost is then zero), rebuilt (its
+  // contribution included) whenever the session or the mode changes, and
+  // disposed when turned off or the provider unmounts.
+  const [glspEnabled, setGlspEnabled] = useState(false);
+  const [glspMcp, setGlspMcp] = useState<GlspMcpHandle | null>(null);
+  useEffect(() => {
+    if (!glspEnabled) return undefined;
+    let disposed = false;
+    let server: GlspServer | null = null;
+    void startGlspServer(session).then((started) => {
+      if (disposed) {
+        started.dispose();
+        return;
+      }
+      server = started;
+      setGlspMcp(started.mcp);
+    });
+    return () => {
+      disposed = true;
+      setGlspMcp(null);
+      server?.dispose();
+    };
+  }, [glspEnabled, session, mode]);
   /** a new session for an opened model (none: an empty one): its history starts empty */
   const startSession = useCallback(
     (text: string) => {
@@ -2666,6 +2704,9 @@ function WorkbenchState({
     canRedo: session.store.canRedo(),
     session,
     dispatcherFor: session.dispatcherFor,
+    glspEnabled,
+    setGlspEnabled,
+    glspMcp,
     editRejected,
     notifyEditRejected,
     dismissEditRejected,

@@ -14,6 +14,7 @@ import {
   type DispatchOptions,
   type IstarAction,
   type ModelSourceChangedAction,
+  type StoreActionDispatcher,
 } from '@istar-ts/actions';
 import {
   createModelStore,
@@ -23,6 +24,7 @@ import {
   type ModelChangeEvent,
   type ModelStore,
 } from '@istar-ts/core';
+import type { GModelSizeOverrides } from '@istar-ts/gmodel';
 import type { IstarSurface } from '@istar-ts/react';
 import type { AnyModel } from '@goal-controller/lib';
 import { pistarExtMetamodelGuard } from './dialects';
@@ -40,7 +42,12 @@ export type ModelSession = {
   /** a new one per opened model (a key for what renders it) */
   readonly id: number;
   readonly store: ModelStore<string, string>;
-  readonly dispatcher: ActionDispatcher<string, string>;
+  /**
+   * Also a `StoreActionDispatcher` at runtime (`createActionDispatcher`'s
+   * return): a GLSP server hosted over this session (goal-controller#414)
+   * needs `isDirty`/`dispose` to share it as an `IstarSharedModel`.
+   */
+  readonly dispatcher: StoreActionDispatcher<string, string>;
   /** the dispatcher, tagged with the surface that sends through it */
   dispatcherFor(surface: IstarSurface): ActionDispatcher<string, string>;
   /**
@@ -54,6 +61,16 @@ export type ModelSession = {
    * iStar 2.0's. The dispatcher reads it on each request.
    */
   setPalette(palette: AnyPaletteDescription | null): void;
+  /** The palette last given to `setPalette` (`DEFAULT_PALETTE` if none): for a GLSP
+   * contribution built over this session (goal-controller#414), the same one the canvas draws. */
+  getPalette(): AnyPaletteDescription;
+  /**
+   * The canvas's registry sizes (`registrySizes`, goal-controller#414): a GLSP
+   * contribution needs them so its GModel's node sizes and actor boundaries
+   * match what the canvas draws. None, between (the metamodel's own defaults).
+   */
+  setSizes(sizes: GModelSizeOverrides | undefined): void;
+  getSizes(): GModelSizeOverrides | undefined;
   /**
    * The mode's rules, rejected before an operation applies (goal-controller#412):
    * the dispatcher's own `guards` is fixed at creation, so these are the ones a
@@ -83,6 +100,9 @@ export const createModelSession = (
   // extensions, PaletteBridge): the dispatcher asks for it on each request
   // (istar-ts#202), so a dialect change doesn't need a new dispatcher
   let palette: AnyPaletteDescription = DEFAULT_PALETTE;
+  // the canvas's registry sizes (registrySizes, #414): a GLSP contribution's
+  // `sizes`, so its GModel matches what the canvas draws
+  let sizes: GModelSizeOverrides | undefined;
   // the mode's own guards (oneActorOnly, an edgeV2 check, #412): set by
   // whichever diagram is showing the model, read fresh on each dispatch
   // (the dispatcher's own `guards`/`postGuards` are fixed at creation)
@@ -151,6 +171,11 @@ export const createModelSession = (
     setPalette: (next) => {
       palette = next ?? DEFAULT_PALETTE;
     },
+    getPalette: () => palette,
+    setSizes: (next) => {
+      sizes = next;
+    },
+    getSizes: () => sizes,
     setGuards: (guards) => {
       modeGuards = guards;
     },
