@@ -27,12 +27,11 @@ import {
   type DialectEngine,
 } from '@/lib/workbench/engineDialects';
 import { contextOf } from '@/lib/workbench/notationDocument';
-import { setLinkProperty, setNodeProperty } from '@/lib/workbench/pistar';
 import { type SelectedPart, useWorkbench } from '../../WorkbenchContext';
 import { CreatableSelect } from '../../ui';
 import {
   PropertyRow,
-  useEditModelText,
+  useEditModel,
   type PropertyEditor,
 } from '../shared/inspector';
 import DefinitionValueEditor, {
@@ -50,7 +49,7 @@ export default function PartInspector({
   part: SelectedPart;
 }) {
   const wb = useWorkbench();
-  const edit = useEditModelText();
+  const edit = useEditModel();
   const support = useLanguageSupport(engine);
   const definition = ENGINE_DIALECTS[engine];
   const registry = ENGINE_CHECKS[engine] as Readonly<
@@ -88,11 +87,11 @@ export default function PartInspector({
   if (!found) return null;
   const properties = found.properties;
   const write = (key: string, value: string | null) =>
-    edit((text) =>
-      part.type === 'link'
-        ? setLinkProperty(text, part.id, key, value)
-        : setNodeProperty(text, part.id, key, value),
-    );
+    edit({
+      kind: 'istar.updateProperties',
+      elementId: part.id,
+      properties: { [key]: value },
+    });
   const specOf = (key: string) => specs.find((spec) => spec.key === key);
   // the keys whose values are written in the engine's value languages
   const editorFor = (key: string): PropertyEditor | undefined => {

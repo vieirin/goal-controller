@@ -4,7 +4,6 @@
  * diagram layout, so an edited model can be exported and opened again in piStar.
  */
 import {
-  inheritSourceLayout,
   isActor,
   isNode,
   toPistar,
@@ -12,8 +11,6 @@ import {
   updateLink,
   withFileMetamodel,
   type IstarElement,
-  type IstarLink,
-  type LinkKind,
   type ToPistarOptions,
 } from '@istar-ts/core';
 // types only: the view is computed in services/tree.ts
@@ -60,9 +57,6 @@ import {
   isFrameworkMode,
   type FrameworkMode,
 } from './frameworkModes';
-
-/** How a node refines its children: AND/OR refinement (Needed-By is not one) */
-export type Relation = 'and' | 'or';
 
 /** A new, empty piStar model. */
 export const EMPTY_PISTAR_MODEL = emptyModelText('istar-2.0');
@@ -203,28 +197,6 @@ export const setLinkProperty = (
     return updateLink(model, linkId, {
       customProperties: Object.keys(properties).length ? properties : null,
     });
-  });
-
-/** Change how a node refines its children: rewrites the type of its child links. */
-export const setRefinement = (
-  text: string,
-  iStarId: string,
-  relation: Relation,
-): string =>
-  rewrite(text, (model) => {
-    const kind: LinkKind =
-      relation === 'or' ? 'istar.OrRefinementLink' : 'istar.AndRefinementLink';
-    // a link's kind can't be patched, so the links are rebuilt in place (same ids and order)
-    const links = new Map<string, IstarLink<string>>(
-      [...model.links].map(([id, link]): [string, IstarLink<string>] =>
-        link.target === iStarId &&
-        (link.kind === 'istar.AndRefinementLink' ||
-          link.kind === 'istar.OrRefinementLink')
-          ? [id, { ...link, kind }]
-          : [id, link],
-      ),
-    );
-    return inheritSourceLayout(model, { ...model, links });
   });
 
 // ---------------------------------------------------------------------------

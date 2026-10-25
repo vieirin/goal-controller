@@ -143,8 +143,9 @@ function NotifyBridge({
 /**
  * Gives the workbench's dispatcher the palette this canvas draws (its registry,
  * with the mode's extensions), before the editor asks for it: the dispatcher
- * is the workbench's, not one the editor made over its own registry.
- * TODO(istar-ts#202): gone with istar-ts 0.15.0-beta.1 (#411).
+ * is the workbench's, not one the editor made over its own registry. Kept
+ * explicit (not `paletteFromMetamodel`'s default) so entries keep their short
+ * labels ("And"/"Or") instead of the default's full kind labels (#411).
  */
 function PaletteBridge({
   session,

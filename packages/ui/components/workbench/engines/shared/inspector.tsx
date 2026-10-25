@@ -28,7 +28,7 @@ import {
   ENGINE_LABEL,
   notationDefinitionOf,
 } from '@/lib/workbench/engineDialects';
-import { nodeTone, setRefinement } from '@/lib/workbench/pistar';
+import { nodeTone } from '@/lib/workbench/pistar';
 import type { ActionResult, IstarOperation } from '@istar-ts/actions';
 import { useSelection, useWorkbench } from '../../WorkbenchContext';
 import { useShell } from '../../shell';
@@ -807,16 +807,6 @@ export const useEditModel = () => {
   };
 };
 
-/**
- * Writes an edit of the model text, as the inspector's: for the edits not yet
- * ported to actions (DefinitionInspector, PartInspector, the refinement; #411).
- */
-export const useEditModelText = () => {
-  const wb = useWorkbench();
-  return (update: (text: string) => string) =>
-    wb.setText(update(wb.text), 'inspector');
-};
-
 export function NameField({ node }: { node: GoalViewNode }) {
   const definition = notationDefinitionOf(useWorkbench().engine);
   const edit = useEditModel();
@@ -852,8 +842,8 @@ export function NameField({ node }: { node: GoalViewNode }) {
 }
 
 export function RefinementField({ node }: { node: GoalViewNode }) {
-  // TODO(istar-ts#199): one `istar.changeLinkKind` action (istar-ts 0.15.0-beta.1, #411)
-  const edit = useEditModelText();
+  const { session } = useWorkbench();
+  const edit = useEditModel();
   if (node.kind !== 'goal' || node.children.length === 0) return null;
   return (
     <Field
@@ -865,9 +855,25 @@ export function RefinementField({ node }: { node: GoalViewNode }) {
           size='sm'
           label='Refinement'
           value={node.relation ?? 'and'}
-          onChange={(relation) =>
-            edit((text) => setRefinement(text, node.iStarId, relation))
-          }
+          onChange={(relation) => {
+            const model = session.store.getModel();
+            const linkIds = [...model.links]
+              .filter(
+                ([, link]) =>
+                  link.target === node.iStarId &&
+                  (link.kind === 'istar.AndRefinementLink' ||
+                    link.kind === 'istar.OrRefinementLink'),
+              )
+              .map(([id]) => id);
+            void edit({
+              kind: 'istar.changeLinkKind',
+              linkIds,
+              elementTypeId:
+                relation === 'or'
+                  ? 'istar.OrRefinementLink'
+                  : 'istar.AndRefinementLink',
+            });
+          }}
           options={[
             { id: 'and', label: 'AND', title: 'All children are needed' },
             { id: 'or', label: 'OR', title: 'One child is enough' },

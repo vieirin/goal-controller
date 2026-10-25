@@ -19,6 +19,7 @@ import {
   validateFileMetamodel,
   type AnyMetamodel,
 } from '@istar-ts/core';
+import type { ActionGuard } from '@istar-ts/actions';
 import {
   DEFAULT_FRAMEWORK,
   dialectDefinition,
@@ -98,6 +99,30 @@ export const modelDialect = (
 ): ModelDialect => {
   const extension = withModelEntries(DIALECTS[mode], model);
   return { mode, model, extension, definition: dialectDefinition(extension) };
+};
+
+/**
+ * Rejects an `istar.setFileMetamodel` whose block piStar-ext's dialect refuses (a
+ * stereotype, tagged value or grouper name already taken; goal-controller#411):
+ * the check `writeModelExtension` used to run before rewriting the text, now the
+ * host rule for that operation.
+ */
+export const pistarExtMetamodelGuard: ActionGuard<string, string> = (
+  operation,
+) => {
+  if (operation.kind !== 'istar.setFileMetamodel' || !operation.block) return;
+  try {
+    withModelEntries(DIALECTS.pistarext, operation.block as ModelExtension);
+  } catch (error) {
+    return [
+      {
+        elementId: '',
+        severity: 'error',
+        message: error instanceof Error ? error.message : String(error),
+        source: 'pistarext',
+      },
+    ];
+  }
 };
 
 /** Each dialect's own definition, without a model's additions. */
