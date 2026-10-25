@@ -47,4 +47,58 @@ describe('edgeV2 decision variable switches (#441, #442)', () => {
       );
     });
   });
+
+  describe('Evolvable parameters (#442)', () => {
+    it('declares every decision variable as evolve int … [0..N] with the discretisation literal', () => {
+      const prism = generateValidatedPrismModel({
+        gm: nodesOf(MODEL),
+        fileName: 'simpleChoice',
+        generateDecisionVars: true,
+        evolvableDecisionVars: true,
+        discretisation: 7,
+      });
+      assert.ok(
+        !prism.includes('const int decision_'),
+        `expected no "const int decision_" left, got:\n${prism}`,
+      );
+      const evolveLines = prism
+        .split('\n')
+        .filter((line) => line.startsWith('evolve int '));
+      assert.ok(
+        evolveLines.length > 0,
+        'expected at least one evolve int line',
+      );
+      evolveLines.forEach((line) => {
+        assert.match(line, /^evolve int \S+ \[0\.\.7\];$/);
+      });
+      assert.ok(prism.includes('const int N = 7;'));
+    });
+
+    it('is unchanged (plain consts) with the switch off', () => {
+      const withSwitchOff = generateValidatedPrismModel({
+        gm: nodesOf(MODEL),
+        fileName: 'simpleChoice',
+        generateDecisionVars: true,
+        evolvableDecisionVars: false,
+      });
+      const withoutOption = generateValidatedPrismModel({
+        gm: nodesOf(MODEL),
+        fileName: 'simpleChoice',
+        generateDecisionVars: true,
+      });
+      assert.strictEqual(withSwitchOff, withoutOption);
+      assert.ok(!withSwitchOff.includes('evolve int'));
+    });
+
+    it('is ignored with Decision variables off', () => {
+      const prism = generateValidatedPrismModel({
+        gm: nodesOf(MODEL),
+        fileName: 'simpleChoice',
+        generateDecisionVars: false,
+        evolvableDecisionVars: true,
+      });
+      assert.ok(!prism.includes('evolve int'));
+      assert.ok(!prism.includes('decision_'));
+    });
+  });
 });

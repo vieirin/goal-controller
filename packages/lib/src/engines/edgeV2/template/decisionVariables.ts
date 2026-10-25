@@ -31,14 +31,22 @@ export const decisionVariableNamesForGoal = (goal: EdgeGoalNode): string[] => {
  *   const int N=<discretisation>;
  *   const int decision_G0;  const int _decision_G0;  const int decision_T1; ...
  * Decision thresholds are left undefined: they are the controller's choices.
+ *
+ * With `evolvable` on (and `enabled`), each is instead an EvoChecker evolvable
+ * parameter with the discretisation's literal value as its upper bound:
+ *   evolve int decision_G0 [0..10];
+ * EvoChecker needs a literal bound, so `discretisation`'s value is
+ * substituted, not the `N` constant's name.
  */
 export const decisionVariablesTemplate = ({
   gm,
   enabled = true,
+  evolvable = false,
   discretisation = DEFAULT_DISCRETISATION,
 }: {
   gm: EdgeGoalTree;
   enabled?: boolean;
+  evolvable?: boolean;
   discretisation?: number;
 }): string => {
   if (!Number.isInteger(discretisation) || discretisation <= 0) {
@@ -62,5 +70,10 @@ export const decisionVariablesTemplate = ({
     logger.decisionVariable([name, discretisation]);
   });
 
-  return [scale, ...names.map((name) => `const int ${name};`)].join('\n');
+  const declaration = (name: string): string =>
+    evolvable
+      ? `evolve int ${name} [0..${discretisation}];`
+      : `const int ${name};`;
+
+  return [scale, ...names.map(declaration)].join('\n');
 };

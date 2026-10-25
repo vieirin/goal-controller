@@ -61,6 +61,7 @@ const edgeDTMCTemplate = ({
   clean = false,
   variables = {},
   generateDecisionVars = true,
+  evolvableDecisionVars = false,
   discretisation = DEFAULT_DISCRETISATION,
   taskLayout = DEFAULT_TASK_LAYOUT,
 }: {
@@ -69,6 +70,8 @@ const edgeDTMCTemplate = ({
   clean?: boolean;
   variables?: Record<string, boolean | number>;
   generateDecisionVars?: boolean;
+  /** EvoChecker evolvable parameters (`evolve int … [0..N's value]`) instead of undefined consts; ignored with generateDecisionVars off */
+  evolvableDecisionVars?: boolean;
   /** @deprecated Ignored by edgeV2 (kept for call-site compatibility); use discretisation */
   achievabilitySpace?: number;
   /** N in X_achievable*N > decision_X (default 10) */
@@ -79,6 +82,7 @@ const edgeDTMCTemplate = ({
   const decisions = decisionVariablesTemplate({
     gm,
     enabled: generateDecisionVars,
+    evolvable: evolvableDecisionVars,
     discretisation,
   });
   const system = systemModule({ gm, previousOutput, clean, variables });
@@ -116,6 +120,7 @@ export const generateValidatedPrismModel = ({
   clean = false,
   variables = {},
   generateDecisionVars = true,
+  evolvableDecisionVars = false,
   discretisation = DEFAULT_DISCRETISATION,
   taskLayout = DEFAULT_TASK_LAYOUT,
   writeReport = true,
@@ -126,6 +131,8 @@ export const generateValidatedPrismModel = ({
   clean?: boolean;
   variables?: Record<string, boolean | number>;
   generateDecisionVars?: boolean;
+  /** EvoChecker evolvable parameters (`evolve int … [0..N's value]`) instead of undefined consts; ignored with generateDecisionVars off */
+  evolvableDecisionVars?: boolean;
   /** @deprecated Ignored by edgeV2 (kept for call-site compatibility); use discretisation */
   achievabilitySpace?: number;
   /** N in X_achievable*N > decision_X (default 10) */
@@ -145,6 +152,7 @@ export const generateValidatedPrismModel = ({
     clean,
     variables,
     generateDecisionVars,
+    evolvableDecisionVars,
     discretisation,
     taskLayout,
   });
