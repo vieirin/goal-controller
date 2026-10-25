@@ -398,6 +398,8 @@ export type Workbench = {
   setGlspEnabled: (enabled: boolean) => void;
   /** the in-page MCP handle, once the GLSP server has started; none while it hasn't */
   glspMcp: GlspMcpHandle | null;
+  /** what M6's host tools read of the open project, as it is now (goal-controller#415) */
+  agentWorkspace: () => AgentWorkspace;
   /**
    * The inspector's last rejected edit (a guard's diagnostics), shown next to
    * the model until dismissed or replaced by another rejection: the inspector
@@ -951,6 +953,7 @@ function WorkbenchState({
     resources: [],
     variables: [],
   }));
+  const agentWorkspace = useCallback(() => workspaceRef.current(), []);
   useEffect(() => {
     if (!glspEnabled) return undefined;
     let disposed = false;
@@ -2733,6 +2736,7 @@ function WorkbenchState({
     glspEnabled,
     setGlspEnabled,
     glspMcp,
+    agentWorkspace,
     editRejected,
     notifyEditRejected,
     dismissEditRejected,

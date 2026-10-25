@@ -2,12 +2,16 @@
 
 /**
  * The agent drawer (goal-controller#415), modelled on istar-ts's playground
- * drawer (`@istar-ts/agent`'s README usage): connects to M5's MCP server
- * (`wb.glspMcp`) with `createMcpToolRegistry`, adds goal-controller's own
- * context providers to the system prompt, and runs the chat loop with
- * `runAgent`. The endpoint, model and API key are typed into the drawer's
- * own settings and kept in `localStorage` only (`agentSettings.ts`): never
- * in the project file, never sent anywhere but the configured endpoint.
+ * drawer (`@istar-ts/agent`'s README usage). Auto mode runs on M5's MCP
+ * server (`wb.glspMcp`, with goal-controller's host tools), through
+ * `createMcpToolRegistry`: one call, one undo step. Propose mode dry-runs on
+ * istar-ts's own scratch GLSP session (`proposeChangeSet`,
+ * `createGlspChangeSet`): the drawer shows each proposed step in words (or
+ * why it was refused), and applies the approved ones as one undo step.
+ * The system prompt gets goal-controller's context providers. The
+ * endpoint, model and API key are typed into the drawer's own settings and
+ * kept in `localStorage` only (`agentSettings.ts`): never in the project
+ * file, never sent anywhere but the configured endpoint.
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Loader2, Send, Settings2 } from 'lucide-react';
@@ -19,20 +23,22 @@ import type {
   ChatClient,
   ToolRegistry,
 } from '@istar-ts/agent';
+import type { GlspChangeSet } from '@istar-ts/agent/glsp';
 import { contextProvidersFor } from '@/lib/workbench/agent/context';
 import {
-  DEFAULT_AGENT_SETTINGS,
   loadAgentSettings,
   saveAgentSettings,
   type AgentSettings,
 } from '@/lib/workbench/agent/agentSettings';
-import { createMcpChangeSet } from '@/lib/workbench/agent/mcpChangeSet';
+import { proposeChangeSet } from '@/lib/workbench/agent/proposeChangeSet';
+import type { GlspMcpHandle } from '@/lib/workbench/glspServer';
 import { useWorkbench } from './WorkbenchContext';
 import { Button, Segmented, cx } from './ui';
 
+/** A Propose run's change set, for the user to approve or reject. */
 type Pending = {
+  changeSet: GlspChangeSet;
   entries: readonly ChangeSetEntry[];
-  resolve: (approved: readonly ChangeSetEntry[]) => void;
 };
 
 type TranscriptLine =
@@ -41,26 +47,48 @@ type TranscriptLine =
   | { kind: 'tool'; name: string; args: unknown; ok: boolean }
   | { kind: 'error'; text: string };
 
+/** What a proposed entry does, in words: its step's lines, or why it was refused. */
+const describeEntry = (
+  changeSet: GlspChangeSet,
+  entry: ChangeSetEntry,
+): { refused: boolean; lines: readonly string[] } => {
+  if (!entry.result.ok)
+    return {
+      refused: true,
+      lines: entry.result.diagnostics.map(({ message }) => message),
+    };
+  const undone = changeSet.describeUndo(entry.result);
+  if (undone) return { refused: false, lines: [undone] };
+  return {
+    refused: false,
+    lines: changeSet.step(entry)?.description ?? [`${entry.name} (no change)`],
+  };
+};
+
 export default function AgentDrawer() {
   const wb = useWorkbench();
-  const [settings, setSettings] = useState<AgentSettings>(
-    DEFAULT_AGENT_SETTINGS,
-  );
+  return wb.glspEnabled ? <AgentPanel /> : null;
+}
+
+function AgentPanel() {
+  const wb = useWorkbench();
+  const [settings, setSettings] = useState<AgentSettings>(loadAgentSettings);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [prompt, setPrompt] = useState('');
   const [running, setRunning] = useState(false);
   const [lines, setLines] = useState<TranscriptLine[]>([]);
   const [pending, setPending] = useState<Pending | null>(null);
-  const registryRef = useRef<ToolRegistry | null>(null);
+  // Auto mode's registry, for the MCP handle it was connected to
+  const [connected, setConnected] = useState<{
+    handle: GlspMcpHandle;
+    registry: ToolRegistry;
+  } | null>(null);
   const clientRef = useRef<ChatClient | null>(null);
 
-  useEffect(() => {
-    setSettings(loadAgentSettings());
-  }, []);
-
   const glspMcp = wb.glspMcp;
+  const registry =
+    glspMcp && connected?.handle === glspMcp ? connected.registry : null;
   useEffect(() => {
-    registryRef.current = null;
     if (!glspMcp) return;
     let disposed = false;
     void (async () => {
@@ -71,10 +99,11 @@ export default function AgentDrawer() {
           fetch: glspMcp.fetch,
         }),
       );
-      const registry = await createMcpToolRegistry(client, {
+      const connectedRegistry = await createMcpToolRegistry(client, {
         boundArgs: { sessionId: glspMcp.sessionId },
       });
-      if (!disposed) registryRef.current = registry;
+      if (!disposed)
+        setConnected({ handle: glspMcp, registry: connectedRegistry });
     })();
     return () => {
       disposed = true;
@@ -86,15 +115,12 @@ export default function AgentDrawer() {
     [wb.mode],
   );
 
-  if (!wb.glspEnabled) return null;
-
   const updateSettings = (next: AgentSettings) => {
     setSettings(next);
     saveAgentSettings(next);
   };
 
   const run = async () => {
-    const registry = registryRef.current;
     if (!registry || !prompt.trim() || running) return;
     const { createChatClient, runAgent } = await import('@istar-ts/agent');
     clientRef.current ??= createChatClient({
@@ -119,15 +145,18 @@ export default function AgentDrawer() {
       ]);
     };
     try {
+      const common = {
+        client: clientRef.current,
+        prompt: userText,
+        context: contextProviders,
+        getModel: () => wb.session.store.getModel(),
+        onEvent,
+      };
       if (settings.approval === 'auto') {
         const { transcript } = await runAgent({
-          client: clientRef.current,
-          prompt: userText,
-          context: contextProviders,
-          getModel: () => wb.session.store.getModel(),
+          ...common,
           approval: 'auto',
           tools: registry,
-          onEvent,
         });
         const last = transcript.messages.at(-1);
         if (last?.role === 'assistant' && last.content)
@@ -136,30 +165,23 @@ export default function AgentDrawer() {
             { kind: 'assistant', text: last.content! },
           ]);
       } else {
-        const base = createMcpChangeSet(registry);
-        const changeSet = {
-          openScratch: base.openScratch,
-          apply: (entries: readonly ChangeSetEntry[]) =>
-            new Promise<readonly ChangeSetEntry[]>((resolve) => {
-              setPending({ entries, resolve });
-            }).then((approved) => base.apply(approved)),
-        };
-        const { transcript, changeSet: proposed } = await runAgent({
-          client: clientRef.current,
-          prompt: userText,
-          context: contextProviders,
-          getModel: () => wb.session.store.getModel(),
+        const changeSet = await proposeChangeSet(
+          wb.session,
+          wb.mode,
+          wb.agentWorkspace,
+        );
+        const { transcript, changeSet: entries } = await runAgent({
+          ...common,
           approval: 'propose',
           changeSet,
-          onEvent,
         });
-        void proposed;
         const last = transcript.messages.at(-1);
         if (last?.role === 'assistant' && last.content)
           setLines((prev) => [
             ...prev,
             { kind: 'assistant', text: last.content! },
           ]);
+        if (entries.length > 0) setPending({ changeSet, entries });
       }
     } catch (error) {
       setLines((prev) => [
@@ -172,6 +194,20 @@ export default function AgentDrawer() {
     } finally {
       setRunning(false);
     }
+  };
+
+  /** The approved change set, as one undo step: refused as a whole, the model untouched. */
+  const approve = async ({ changeSet, entries }: Pending) => {
+    setPending(null);
+    const result = await changeSet.apply(entries);
+    if (!result.ok)
+      setLines((prev) => [
+        ...prev,
+        {
+          kind: 'error',
+          text: `Not applied: ${result.diagnostics.map(({ message }) => message).join('; ')}`,
+        },
+      ]);
   };
 
   return (
@@ -267,32 +303,30 @@ export default function AgentDrawer() {
               {pending.entries.length} proposed call
               {pending.entries.length === 1 ? '' : 's'}
             </div>
-            {pending.entries.map((entry) => (
-              <div
-                key={entry.toolCallId}
-                className='mb-1 font-mono text-xs text-ink-soft'
-              >
-                {entry.name}({JSON.stringify(entry.args)})
-              </div>
-            ))}
+            {pending.entries.map((entry) => {
+              const { refused, lines: described } = describeEntry(
+                pending.changeSet,
+                entry,
+              );
+              return (
+                <div
+                  key={entry.toolCallId}
+                  className={cx(
+                    'mb-1 text-xs',
+                    refused ? 'text-error' : 'text-ink-soft',
+                  )}
+                >
+                  {described.map((line, i) => (
+                    <div key={i}>{line}</div>
+                  ))}
+                </div>
+              );
+            })}
             <div className='flex gap-2'>
-              <Button
-                variant='primary'
-                onClick={() => {
-                  pending.resolve(pending.entries);
-                  setPending(null);
-                }}
-              >
+              <Button variant='primary' onClick={() => void approve(pending)}>
                 Approve
               </Button>
-              <Button
-                onClick={() => {
-                  pending.resolve([]);
-                  setPending(null);
-                }}
-              >
-                Reject
-              </Button>
+              <Button onClick={() => setPending(null)}>Reject</Button>
             </div>
           </div>
         )}
@@ -302,7 +336,7 @@ export default function AgentDrawer() {
           className='flex-1 rounded-md border border-line-strong px-2 py-1 text-[13px]'
           placeholder='Ask the agent…'
           value={prompt}
-          disabled={running || !registryRef.current}
+          disabled={running || !registry}
           onChange={(e) => setPrompt(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === 'Enter') void run();
@@ -311,7 +345,7 @@ export default function AgentDrawer() {
         <Button
           variant='primary'
           onClick={() => void run()}
-          disabled={running || !registryRef.current || !prompt.trim()}
+          disabled={running || !registry || !prompt.trim()}
         >
           {running ? (
             <Loader2 className='h-4 w-4 animate-spin' aria-hidden />

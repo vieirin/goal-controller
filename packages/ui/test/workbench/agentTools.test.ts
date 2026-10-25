@@ -4,17 +4,16 @@
  * (goal-controller#415): the composed context (the root's, the notation's,
  * the engine's and the guards' parts) for an edgeV2 and a KAOS mode, each
  * tool reading those same objects, `validate-notation` against the
- * language server's diagnostics, and a Propose-mode run that applies
- * nothing until approved. Node, not jsdom, as `glspMcp.test.ts` (the MCP
- * client's `fetch`).
+ * language server's diagnostics, and Propose mode over istar-ts's scratch
+ * GLSP session: nothing applied until approved, one approval one undo step,
+ * refused as a whole. Node, not jsdom, as `glspMcp.test.ts`.
  */
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { afterEach, describe, expect, it } from 'vitest';
-import { Client } from '@modelcontextprotocol/sdk/client/index.js';
-import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
+import { describe, expect, it } from 'vitest';
 import { parsePistar } from '@istar-ts/core';
 import type { HostTool, HostToolResult } from '@istar-ts/actions';
+import { runAgent } from '@istar-ts/agent';
 import type {
   ChatClient,
   ChatCompletion,
@@ -36,7 +35,6 @@ import {
   createModelSession,
   type ModelSession,
 } from '@/lib/workbench/modelSession';
-import { startGlspServer, type GlspServer } from '@/lib/workbench/glspServer';
 import { guardsForMode } from '@/components/workbench/engines/modeGuards';
 import {
   agentModeOf,
@@ -46,7 +44,7 @@ import {
   hostToolsFor,
   type AgentWorkspace,
 } from '@/lib/workbench/agent/hostTools';
-import { createMcpChangeSet } from '@/lib/workbench/agent/mcpChangeSet';
+import { proposeChangeSet } from '@/lib/workbench/agent/proposeChangeSet';
 import {
   dialectOf,
   ENGINE_AGENT_CONTEXTS,
@@ -67,11 +65,6 @@ const NO_WORKSPACE = (): AgentWorkspace => ({
   tree: null,
   resources: [],
   variables: [],
-});
-
-const servers: GlspServer[] = [];
-afterEach(() => {
-  for (const server of servers.splice(0)) server.dispose();
 });
 
 /** A host tool's result, called as the MCP server calls it. */
@@ -214,15 +207,16 @@ describe('the host tools read the same parts (goal-controller#415)', () => {
   });
 });
 
-/** A `ChatClient` that answers one tool call, then a final message. */
-const stubClient = (toolCall: ToolCall): ChatClient => {
+/** A `ChatClient` that makes `toolCalls`, one per turn, then answers. */
+const stubClient = (toolCalls: readonly ToolCall[]): ChatClient => {
   let step = 0;
   return {
     model: 'stub',
     baseUrl: 'stub://',
     complete: async (_request: ChatRequest): Promise<ChatCompletion> => {
+      const toolCall = toolCalls[step];
       step += 1;
-      if (step === 1)
+      if (toolCall)
         return {
           message: { role: 'assistant', content: null, tool_calls: [toolCall] },
           finishReason: 'tool_calls',
@@ -235,78 +229,106 @@ const stubClient = (toolCall: ToolCall): ChatClient => {
   };
 };
 
-describe('Propose mode over MCP applies nothing until approved (#415)', () => {
-  it('one approval = one undo step, for a single-op tool (istar-ts#223 not needed)', async () => {
-    const session: ModelSession = createModelSession(
-      parsePistar(EDGEV2),
-      () => {},
-    );
-    const { guards, postGuards } = guardsForMode('edgev2');
-    session.setGuards(guards);
-    session.setPostGuards(postGuards);
-    const server = await startGlspServer(session, 'edgev2', NO_WORKSPACE);
-    servers.push(server);
-    const client = new Client({ name: 'test-agent', version: '1.0.0' });
-    await client.connect(
-      new StreamableHTTPClientTransport(server.mcp.url, {
-        fetch: server.mcp.fetch,
-      }),
-    );
-    const { createMcpToolRegistry, runAgent } = await import('@istar-ts/agent');
-    const registry = await createMcpToolRegistry(client, {
-      boundArgs: { sessionId: server.mcp.sessionId },
-    });
+const createNode = (id: string, node: Record<string, unknown>): ToolCall => ({
+  id,
+  type: 'function',
+  function: {
+    name: 'create-nodes',
+    arguments: JSON.stringify({ nodes: [node] }),
+  },
+});
 
-    const before = session.store.getModel();
-    const toolCall: ToolCall = {
-      id: 'call-1',
-      type: 'function',
-      function: {
-        name: 'create-nodes',
-        arguments: JSON.stringify({
-          nodes: [
-            {
-              elementTypeId: 'node:istar.Task',
-              position: { x: 10, y: 10 },
-              containerId: ACTOR,
-            },
-          ],
-        }),
-      },
-    };
+const task = (id: string, text: string) =>
+  createNode(id, {
+    elementTypeId: 'node:istar.Task',
+    position: { x: 10, y: 10 },
+    containerId: ACTOR,
+    text,
+  });
 
-    const base = createMcpChangeSet(registry);
-    let heldEntries: unknown = null;
-    const changeSet = {
-      openScratch: base.openScratch,
-      apply: async (entries: Parameters<typeof base.apply>[0]) => {
-        heldEntries = entries;
-        return base.apply(entries);
-      },
-    };
+/** An edgev2 session (its mode's guards on it), its Propose-mode target, and a run of `toolCalls` on it. */
+const proposed = async (toolCalls: readonly ToolCall[]) => {
+  const session: ModelSession = createModelSession(
+    parsePistar(EDGEV2),
+    () => {},
+  );
+  const { guards, postGuards } = guardsForMode('edgev2');
+  session.setGuards(guards);
+  session.setPostGuards(postGuards);
+  const changeSet = await proposeChangeSet(session, 'edgev2', NO_WORKSPACE);
+  const before = session.store.getModel();
+  const run = await runAgent({
+    client: stubClient(toolCalls),
+    prompt: 'Edit the model.',
+    approval: 'propose',
+    changeSet,
+  });
+  return { session, changeSet, before, run };
+};
 
-    const run = await runAgent({
-      client: stubClient(toolCall),
-      prompt: 'Add a task.',
-      approval: 'propose',
-      changeSet,
-    });
-
-    // the dry run proposes the call; nothing is applied until the drawer approves it
+describe('Propose mode: one approval, one undo step (#415, istar-ts#232)', () => {
+  it('applies nothing until approved; one glspUndo undoes a 3-entry batch', async () => {
+    const { session, changeSet, before, run } = await proposed([
+      task('call-1', 'First'),
+      task('call-2', 'Second'),
+      task('call-3', 'Third'),
+    ]);
+    // the dry run proposes the calls, each a step described in words
     expect(session.store.getModel()).toBe(before);
-    expect(run.changeSet.length).toBe(1);
-    expect(heldEntries).toBeNull();
+    expect(run.changeSet).toHaveLength(3);
+    for (const entry of run.changeSet)
+      expect(changeSet.step(entry)?.description.length).toBeGreaterThan(0);
 
-    // the user approves: the drawer calls `changeSet.apply` with the reviewed entries
-    await changeSet.apply(run.changeSet);
-    expect(heldEntries).not.toBeNull();
-
-    const afterApply = session.store.getModel();
-    expect(afterApply).not.toBe(before);
-    expect(afterApply.elements.size).toBe(before.elements.size + 1);
+    const applied = await changeSet.apply(run.changeSet);
+    expect(applied.ok).toBe(true);
+    const after = session.store.getModel();
+    expect(after.elements.size).toBe(before.elements.size + 3);
+    expect([...after.elements.values()].map((element) => element.name)).toEqual(
+      expect.arrayContaining(['First', 'Second', 'Third']),
+    );
 
     const undone = await session.dispatcher.dispatch({ kind: 'glspUndo' });
     expect(undone.ok).toBe(true);
     expect(session.store.getModel()).toBe(before);
+  });
+
+  it("a batch whose 2nd entry breaks the mode's post-guard is refused at apply, the model untouched", async () => {
+    const { session, changeSet, before, run } = await proposed([
+      task('call-1', 'First'),
+      // edgeV2 reads a single actor (edgeOneActor, a post-guard): the
+      // scratch session has no post-guards (TODO(istar-ts#239)), so the
+      // live dispatcher refuses it, and the compound with it
+      createNode('call-2', {
+        elementTypeId: 'node:istar.Actor',
+        position: { x: 0, y: 0 },
+      }),
+      task('call-3', 'Third'),
+    ]);
+    expect(run.changeSet).toHaveLength(3);
+
+    const applied = await changeSet.apply(run.changeSet);
+    expect(applied.ok).toBe(false);
+    expect(JSON.stringify(!applied.ok && applied.diagnostics)).toMatch(
+      /single actor/i,
+    );
+    expect(session.store.getModel()).toBe(before);
+    expect(session.store.canUndo()).toBe(false);
+  });
+
+  it("the scratch session's registry has goal-controller's host tools", async () => {
+    const session = createModelSession(parsePistar(EDGEV2), () => {});
+    const changeSet = await proposeChangeSet(session, 'edgev2', NO_WORKSPACE);
+    const scratch = await changeSet.openScratch();
+    const names = scratch.registry.list().map((spec) => spec.name);
+    expect(names).toEqual(
+      expect.arrayContaining([
+        'create-nodes',
+        'list-types',
+        'validate-notation',
+      ]),
+    );
+    const listed = await scratch.registry.call('list-types', {});
+    expect(listed.ok).toBe(true);
+    scratch.close?.();
   });
 });
