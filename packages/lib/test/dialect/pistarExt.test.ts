@@ -326,6 +326,7 @@ describe('piStar-ext annotations', () => {
           to: 12,
           severity: 'error',
           message: 'Add this element in the diagram',
+          code: 'notInDiagram',
         },
       ]);
     });
@@ -360,6 +361,7 @@ describe('piStar-ext annotations', () => {
           severity: 'error',
           message: 'Not a child of this goal',
           elementId: 'G1',
+          code: 'notAChild',
         },
       ]);
     });

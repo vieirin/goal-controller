@@ -10,10 +10,45 @@ import {
 } from '@codemirror/lsp-client';
 import {
   GOAL_CONTEXT_NOTIFICATION,
+  type GoalCodeActionData,
   type GoalContextParams,
 } from '@goal-controller/goal-language/light';
 
 export { fieldUri as goalFieldUri } from '@goal-controller/goal-language/light';
+
+/** An LSP position (zero-based line and character). */
+type LspPosition = { line: number; character: number };
+
+/** One of the quick fixes `textDocument/codeAction` answers with. */
+type LspCodeAction = { title: string; data?: unknown };
+
+/**
+ * The quick fixes the goal language server offers over a span of a
+ * document (goal-controller#416): those with a known fix name their
+ * action's data (`GoalCodeActionData`); the rest (an action this client
+ * doesn't know how to apply) are dropped.
+ */
+export const requestCodeActions = async (
+  client: LSPClient,
+  uri: string,
+  range: { start: LspPosition; end: LspPosition },
+): Promise<GoalCodeActionData[]> => {
+  const actions = await client.request<
+    {
+      textDocument: { uri: string };
+      range: { start: LspPosition; end: LspPosition };
+      context: { diagnostics: readonly unknown[] };
+    },
+    LspCodeAction[] | null
+  >('textDocument/codeAction', {
+    textDocument: { uri },
+    range,
+    context: { diagnostics: [] },
+  });
+  return (actions ?? []).flatMap((action) =>
+    action.data ? [action.data as GoalCodeActionData] : [],
+  );
+};
 
 /** lsp-client speaks JSON strings; the worker's BrowserMessageReader/Writer post objects. */
 const workerTransport = (worker: Worker): Transport => {

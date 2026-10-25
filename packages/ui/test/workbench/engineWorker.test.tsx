@@ -33,6 +33,7 @@ import type {
   EngineWorkerResponse,
 } from '@/lib/workbench/engineWorkerProtocol';
 import { createModelSession } from '@/lib/workbench/modelSession';
+import { publishDiagnostics } from '@/lib/workbench/diagnosticsStore';
 import type { AnalyzeResponse } from '@/lib/workbench/types';
 import { writeModelMode } from '@/lib/workbench/pistar';
 import { analysisKey } from '@/lib/workbench/signature';
@@ -160,6 +161,47 @@ describe('the engine worker (#413)', () => {
       expect(
         wb().problems.some((p) => p.elementId === G1 && p.message === 'bad'),
       ).toBe(true),
+    );
+  });
+
+  it('a serviceDiagnostics update recomputes the problems list (goal-controller#433)', async () => {
+    const { wb } = workbench();
+    await act(() => wb().openModelFile('simpleChoice.txt', ISTAR));
+
+    expect(
+      wb().problems.some((p) => p.elementId === G1 && p.message === 'flagged'),
+    ).toBe(false);
+
+    // another producer (the goal language service, say) publishing directly
+    // to the store, with no engine worker or dispatch involved at all
+    act(() => {
+      publishDiagnostics('goal language', 'probe-document', [
+        {
+          severity: 'warning',
+          source: 'goal language',
+          message: 'flagged',
+          elementId: G1,
+        },
+      ]);
+    });
+
+    await waitFor(() =>
+      expect(
+        wb().problems.some(
+          (p) => p.elementId === G1 && p.message === 'flagged',
+        ),
+      ).toBe(true),
+    );
+
+    act(() => {
+      publishDiagnostics('goal language', 'probe-document', []);
+    });
+    await waitFor(() =>
+      expect(
+        wb().problems.some(
+          (p) => p.elementId === G1 && p.message === 'flagged',
+        ),
+      ).toBe(false),
     );
   });
 
