@@ -166,8 +166,12 @@ export type FrameworkSwitch = {
 
 /** What a model converts to: an engine, or a modelling dialect (piStar mode needs none). */
 export type ConversionTarget = TransformEngine | ModellingMode;
-import { modelSignature } from '@/lib/workbench/signature';
-import { analyze, transform, treeView } from '@/services';
+import { analysisKey, modelSignature } from '@/lib/workbench/signature';
+import { treeView } from '@/services';
+import {
+  useEngineWorker,
+  type EngineAnalysisOutcome,
+} from '@/lib/workbench/engineWorkerClient';
 import {
   loadPreferences,
   loadRecent,
@@ -447,6 +451,8 @@ export type Workbench = {
   // analysis & variables
   analysis: AnalyzeResponse | null;
   analyzing: boolean;
+  /** analysing for longer than expected: the worker hasn't answered yet, and isn't presumed dead */
+  analysisSlow: boolean;
   variables: VariableInfo[];
   values: VariableValues;
   setValue: (name: string, value: boolean | number) => void;
@@ -627,9 +633,6 @@ function SelectionProvider({ children }: { children: ReactNode }) {
 const defaultValue = (variable: VariableInfo): boolean | number =>
   variable.kind === 'context' ? false : 0.8;
 
-const analysisKey = (text: string, engine: TransformEngine): string =>
-  `${engine}\n${text}`;
-
 const useDebounced = <T,>(value: T, ms: number): T => {
   const [debounced, setDebounced] = useState(value);
   useEffect(() => {
@@ -640,6 +643,13 @@ const useDebounced = <T,>(value: T, ms: number): T => {
 };
 
 const COALESCE_MS = 600;
+// an analysis still unanswered this long is shown as slow (goal-controller#432
+// review): well past the worker's own debounce (engineWorker.ts's
+// ANALYSIS_DEBOUNCE_MS). Only a worker that then doesn't answer a ping within
+// ANALYSIS_UNRESPONSIVE_MS (it's single-threaded: still busy is hung) is
+// restarted, and the analysis it was on fails
+export const ANALYSIS_SLOW_MS = 10_000;
+export const ANALYSIS_UNRESPONSIVE_MS = 50_000;
 
 /** A model text read (blank: an empty model), or why it can't be. */
 type ReadText = { model: AnyModel } | { error: Error };
@@ -1450,35 +1460,41 @@ function WorkbenchState({
     [tree],
   );
 
-  // ---- analysis (server, debounced) ------------------------------------------
-  const debouncedText = useDebounced(model.text, 400);
+  // ---- analysis (engine worker, #413) ----------------------------------------
+  // the worker holds a mirror of the model and reruns analysis on its own,
+  // debounced the way the inline call used to be; this thread only reads
+  // what it posts back
   const [analyzed, setAnalyzed] = useState<{
     key: string;
     data: AnalyzeResponse;
   } | null>(null);
   const analysis = analyzed?.data ?? null;
-  const setAnalysis = useCallback(
-    (data: AnalyzeResponse | null, key = '') =>
-      setAnalyzed(data ? { key, data } : null),
-    [],
+  const currentAnalysisKey = useMemo(
+    () => analysisKey(model.text, engine),
+    [model.text, engine],
   );
-  const [analyzing, setAnalyzing] = useState(false);
+  // a crash belongs to the analysis this thread is waiting for: read at the
+  // moment it lands, not when the callback was bound
+  const awaitedKey = useRef(currentAnalysisKey);
   useEffect(() => {
-    // piStar mode has no engine to analyse for; a model just opened waits for
-    // its text, not the last one's read with its engine
-    if (
-      pistar ||
-      debouncedText !== model.text ||
-      !debouncedText.trim() ||
-      modelSignature(debouncedText) === null
-    )
-      return;
-    setAnalyzing(true);
-    const key = analysisKey(debouncedText, engine);
-    try {
-      setAnalysis(analyze(debouncedText, engine), key);
-    } catch (error) {
-      // keep the last variables and known properties, but always surface the failure
+    awaitedKey.current = currentAnalysisKey;
+  }, [currentAnalysisKey]);
+  // the only writer of `analyzed` (goal-controller#432 review): a worker
+  // result, a worker failure, a worker crash, or no model to analyse. So
+  // `analyzing`/`variablesReady` only ever move on one of those, never on a
+  // timer. A failure keeps the last variables and known properties, but
+  // always surfaces itself
+  const applyAnalysisOutcome = useCallback(
+    (outcome: EngineAnalysisOutcome | { readonly kind: 'cleared' }) => {
+      if (outcome.kind === 'cleared') {
+        setAnalyzed(null);
+        return;
+      }
+      if (outcome.kind === 'analyzed') {
+        setAnalyzed({ key: outcome.key, data: outcome.data });
+        return;
+      }
+      const key = outcome.kind === 'failed' ? outcome.key : awaitedKey.current;
       setAnalyzed((prev) => ({
         key,
         data: {
@@ -1494,23 +1510,51 @@ function WorkbenchState({
             {
               severity: 'error',
               source: ENGINE_LABEL[engine],
-              message: error instanceof Error ? error.message : String(error),
+              message: outcome.message,
             },
           ],
         },
       }));
-    } finally {
-      setAnalyzing(false);
-    }
-  }, [debouncedText, model.text, engine, pistar, setAnalysis]);
+    },
+    [engine],
+  );
+  const engineWorker = useEngineWorker(
+    session.dispatcher,
+    engine,
+    pistar,
+    applyAnalysisOutcome,
+  );
   useEffect(() => {
-    if (!model.text.trim() || pistar) setAnalysis(null);
-  }, [model.text, pistar, setAnalysis]);
+    if (!model.text.trim() || pistar) applyAnalysisOutcome({ kind: 'cleared' });
+  }, [model.text, pistar, applyAnalysisOutcome]);
+  // true from the moment the text changes until the worker catches up to it
+  // (its key, by content: the worker's own serialization never matches
+  // `model.text` byte for byte, see `analysisKey`)
+  const analyzing =
+    !pistar &&
+    !parsed.error &&
+    !!model.text.trim() &&
+    analyzed?.key !== currentAnalysisKey;
+  // an analysis past ANALYSIS_SLOW_MS is only reported as slow: the worker is
+  // asked for a pong, and only one that never comes (a hung worker, not a
+  // busy one) goes down the crash path, which ends this analysis as a failure
+  const [slowKey, setSlowKey] = useState<string | null>(null);
+  const { probe } = engineWorker;
+  useEffect(() => {
+    if (!analyzing) return undefined;
+    const key = currentAnalysisKey;
+    const timer = setTimeout(() => {
+      setSlowKey(key);
+      probe(ANALYSIS_UNRESPONSIVE_MS);
+    }, ANALYSIS_SLOW_MS);
+    return () => clearTimeout(timer);
+  }, [analyzing, currentAnalysisKey, probe]);
+  const analysisSlow = analyzing && slowKey === currentAnalysisKey;
   // PRISM generation needs the model's variables: until they are known the
   // engine would fill in placeholders (0.5, MISSING_VARIABLE_DEFINITION)
   const variablesReady =
     !isPrismEngine(engine) ||
-    (analyzed?.key === analysisKey(model.text, engine) && !analyzing);
+    (analyzed?.key === currentAnalysisKey && !analyzing);
 
   // ---- the project's resources (goal-controller#25) ------------------------------
   // the slots the engine's definition declares, in the open project
@@ -2062,6 +2106,7 @@ function WorkbenchState({
   }, [model.text, engine, options, values]);
 
   const [generating, setGenerating] = useState(false);
+  const transformsInFlight = useRef(0);
   const runId = useRef(0);
   const latest = useRef({
     text: model.text,
@@ -2086,6 +2131,9 @@ function WorkbenchState({
   // a generation asked for before the variables were known runs once they are
   const [pendingGenerate, setPendingGenerate] = useState(false);
 
+  // the actual transform() call runs in the engine worker (#413), against
+  // its mirror's current model; this thread only sends the options text
+  // can't carry (fileName, the engine's options, PRISM's variable values)
   const generate = useCallback(() => {
     const {
       text,
@@ -2093,10 +2141,10 @@ function WorkbenchState({
       engine: runEngine,
       options: runOptions,
       values: runValues,
-      inputsSignature: signature,
+      inputsSignature: requestedSignature,
       runs: priorRuns,
     } = latest.current;
-    if (!text.trim() || signature === null) return;
+    if (!text.trim() || requestedSignature === null) return;
     // an analysis engine generates nothing (its values are Analyse's)
     if (!generatesFiles(runEngine)) return;
     if (!latest.current.variablesReady) {
@@ -2105,49 +2153,66 @@ function WorkbenchState({
     }
     setPendingGenerate(false);
     const started = performance.now();
+    transformsInFlight.current += 1;
     setGenerating(true);
     // an Edge engine reads the previous run's primary file
     const previousOutput = runOptions.clean
       ? undefined
       : previousOutputOf(priorRuns, runEngine);
-    let run: Run;
-    try {
-      const result = transform({
-        modelJson: text,
+    void engineWorker
+      .transform({
         engine: runEngine,
         fileName: fileName.replace(/\.(txt|json)$/i, '') || 'model',
         previousOutput,
         ...optionsFor(runEngine, runOptions),
         ...(isPrismEngine(runEngine) &&
           Object.keys(runValues).length > 0 && { variables: runValues }),
+      })
+      .then((result) => {
+        // generating while any transform is in flight: a superseded one
+        // settles first, and the one that replaced it clears it
+        transformsInFlight.current -= 1;
+        if (transformsInFlight.current === 0) setGenerating(false);
+        // cancelled (superseded, or its model closed): no run, no error
+        if (result.status === 'cancelled') return;
+        const { outcome } = result;
+        runId.current += 1;
+        // labeled with what the worker actually ran against, not what this
+        // thread guessed when it asked (goal-controller#432 review): the
+        // worker's own model may have moved on by the time it answers
+        const signature =
+          outcome.modelSignature === null
+            ? requestedSignature
+            : JSON.stringify([
+                outcome.modelSignature,
+                runEngine,
+                optionsFor(runEngine, runOptions),
+                isPrismEngine(runEngine) ? runValues : null,
+              ]);
+        const run: Run = outcome.ok
+          ? {
+              id: runId.current,
+              at: Date.now(),
+              engine: runEngine,
+              durationMs: performance.now() - started,
+              signature,
+              files: outcome.files,
+              report: outcome.report,
+              error: null,
+            }
+          : {
+              id: runId.current,
+              at: Date.now(),
+              engine: runEngine,
+              durationMs: performance.now() - started,
+              signature,
+              files: null,
+              report: null,
+              error: outcome.error,
+            };
+        setRuns((prev) => [run, ...prev].slice(0, 20));
       });
-      runId.current += 1;
-      run = {
-        id: runId.current,
-        at: Date.now(),
-        engine: runEngine,
-        durationMs: performance.now() - started,
-        signature,
-        files: result.files,
-        report: result.report,
-        error: null,
-      };
-    } catch (error) {
-      runId.current += 1;
-      run = {
-        id: runId.current,
-        at: Date.now(),
-        engine: runEngine,
-        durationMs: performance.now() - started,
-        signature,
-        files: null,
-        report: null,
-        error: error instanceof Error ? error.message : String(error),
-      };
-    }
-    setRuns((prev) => [run, ...prev].slice(0, 20));
-    setGenerating(false);
-  }, []);
+  }, [engineWorker.transform]);
 
   useEffect(() => {
     if (pendingGenerate && variablesReady) generate();
@@ -2508,6 +2573,7 @@ function WorkbenchState({
     closeSettings,
     analysis,
     analyzing,
+    analysisSlow,
     variables,
     values,
     setValue,

@@ -9,6 +9,7 @@
 import {
   createActionDispatcher,
   type ActionDispatcher,
+  type DispatchOptions,
   type IstarAction,
   type ModelSourceChangedAction,
 } from '@istar-ts/actions';
@@ -74,26 +75,25 @@ export const createModelSession = (
     guards: [pistarExtMetamodelGuard],
     sendModel: true,
   });
-  // set while a surface's dispatch runs: the dispatcher applies an operation,
-  // and emits its sourceModelChanged, before dispatch's first await
-  let surface: IstarSurface | null = null;
+  // the surface a sourceModelChanged came from, from the dispatch's own
+  // origin (istar-ts#213): survives a round trip, unlike a synchronous tag
+  const surfaceOf = (origin: string | undefined): IstarSurface | null =>
+    origin === 'canvas' || origin === 'inspector' ? origin : null;
   let quiet = false;
   const unsubscribe = dispatcher.subscribe((action) => {
     if (action.kind !== 'sourceModelChanged' || quiet) return;
-    onChange({ model: store.getModel(), action, surface });
+    onChange({
+      model: store.getModel(),
+      action,
+      surface: surfaceOf(action.origin),
+    });
   });
-  // TODO(istar-ts#213): relies on a local dispatch notifying synchronously
-  // (true today, documented in #213). From beta.3 on, read event.origin from
-  // dispatch(action, { origin }) instead.
   const tagged = (tag: IstarSurface): ActionDispatcher<string, string> => ({
-    dispatch<A extends IstarAction<string, string>>(action: A) {
-      const outer = surface;
-      surface = tag;
-      try {
-        return dispatcher.dispatch(action);
-      } finally {
-        surface = outer;
-      }
+    dispatch<A extends IstarAction<string, string>>(
+      action: A,
+      options?: DispatchOptions,
+    ) {
+      return dispatcher.dispatch(action, { ...options, origin: tag });
     },
     subscribe: (listener) => dispatcher.subscribe(listener),
   });

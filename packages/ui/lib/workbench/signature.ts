@@ -30,6 +30,16 @@ const strip = (value: unknown): unknown => {
   return value;
 };
 
+/**
+ * What an analysis ran for: the engine and the model's content, not its
+ * exact text. The worker serializes the mirror's model its own way
+ * (`toPistar`, no indentation to match); the main thread's `model.text`
+ * keeps the file's own formatting. Both give the same key for the same
+ * model, so a result from one matches a freshness check against the other.
+ */
+export const analysisKey = (text: string, engine: string): string =>
+  `${engine}\n${modelSignature(text) ?? text}`;
+
 /** Stable text of the model's content (null when the JSON does not parse). */
 export const modelSignature = (text: string): string | null => {
   try {
