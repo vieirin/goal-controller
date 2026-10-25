@@ -120,9 +120,7 @@ describe('a model file in its framework (#171)', () => {
     );
   });
 
-  // #420: istar-ts 0.15 now draws nodes from the GModel (vieirin/istar-ts
-  // #164/#165); the hub no longer renders DSM3's grey fill.
-  it.skip('opens DSM3’s KAOS file as KAOS, its canvas drawing its 4 hubs', async () => {
+  it('opens DSM3’s KAOS file as KAOS, its canvas drawing its 4 hubs', async () => {
     const { wb, container } = workbench(true);
     await act(() => wb().openModelFile('kaos-welcome.txt', KAOS_WELCOME));
     await waitFor(() => expect(wb().fileName).toBe('kaos-welcome.txt'));
@@ -132,8 +130,10 @@ describe('a model file in its framework (#171)', () => {
     await waitFor(() =>
       expect(container.querySelectorAll('.istar-hub')).toHaveLength(4),
     );
-    // its nodes in KAOS's fill, DSM3's grey, as istar-ts draws it (none saves a colour)
-    expect(container.innerHTML).toContain(`fill: ${KAOS_FILL}`);
+    // its nodes in KAOS's fill, DSM3's grey, as istar-ts draws it (none saves
+    // a colour): istar-ts 0.15 draws it as the SVG attribute, not a CSS
+    // style property (vieirin/istar-ts#164/#165's GModel path)
+    expect(container.innerHTML).toContain(`fill="${KAOS_FILL}"`);
   });
 
   it('names a new element with its prefix’s next id, KAOS’s two goal kinds numbered together', () => {
