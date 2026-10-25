@@ -6,6 +6,7 @@ import {
   IstarPalette,
   IstarProvider,
   paletteDescriptionFor,
+  registrySizes,
   useIstarEditor,
   type IstarCanvasHandle,
   type IstarExtension,
@@ -125,6 +126,11 @@ const isInView = (iStarId: string): boolean => {
  * is the workbench's, not one the editor made over its own registry. Kept
  * explicit (not `paletteFromMetamodel`'s default) so entries keep their short
  * labels ("And"/"Or") instead of the default's full kind labels (#411).
+ *
+ * Also gives it the registry's sizes (`registrySizes`): a GLSP contribution
+ * hosted over this session (#414) needs them so its GModel's node sizes and
+ * actor boundaries match what this canvas draws (istar-ts#154), reused as is
+ * rather than re-derived.
  */
 function PaletteBridge({
   session,
@@ -137,7 +143,11 @@ function PaletteBridge({
   // layout: before the provider's effect requests it
   useLayoutEffect(() => {
     session.setPalette(paletteDescriptionFor(registry, extensions));
-    return () => session.setPalette(null);
+    session.setSizes(registrySizes(registry));
+    return () => {
+      session.setPalette(null);
+      session.setSizes(undefined);
+    };
   }, [session, registry, extensions]);
   return null;
 }
