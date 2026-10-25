@@ -21,6 +21,7 @@ import {
 } from '@istar-ts/core';
 import type { IstarSurface } from '@istar-ts/react';
 import type { AnyModel } from '@goal-controller/lib';
+import { pistarExtMetamodelGuard } from './dialects';
 
 /** A change of the model made through the dispatcher, or by undo/redo. */
 export type ModelChanged = {
@@ -62,24 +63,15 @@ export const createModelSession = (
   onChange: (change: ModelChanged) => void,
 ): ModelSession => {
   const store = createModelStore(model);
-  // the dispatcher takes its palette once, at creation: a view of the current one
-  // TODO(istar-ts#202): `palette: () => …` in 0.15.0-beta.1, and no PaletteBridge (#411)
+  // the palette the canvas showing this model draws (its registry and
+  // extensions, PaletteBridge): the dispatcher asks for it on each request
+  // (istar-ts#202), so a dialect change doesn't need a new dispatcher
   let palette: AnyPaletteDescription = DEFAULT_PALETTE;
-  const current: AnyPaletteDescription = {
-    get elements() {
-      return palette.elements;
-    },
-    get links() {
-      return palette.links;
-    },
-    get groups() {
-      return palette.groups;
-    },
-  };
   // sendModel: each sourceModelChanged carries the model and canUndo/canRedo,
   // for a mirror that follows it from another thread (the engine worker, #413)
   const dispatcher = createActionDispatcher(store, {
-    palette: current,
+    palette: () => palette,
+    guards: [pistarExtMetamodelGuard],
     sendModel: true,
   });
   // set while a surface's dispatch runs: the dispatcher applies an operation,

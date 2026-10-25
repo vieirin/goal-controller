@@ -19,7 +19,7 @@ import {
   type DialectEngine,
 } from '@/lib/workbench/engineDialects';
 import { PROPERTY_SPECS } from '@/lib/workbench/edgeProperties';
-import { nodeTone, setNodeText } from '@/lib/workbench/pistar';
+import { nodeTone } from '@/lib/workbench/pistar';
 import { useSelection, useWorkbench } from '../../WorkbenchContext';
 import PartInspector from './PartInspector';
 import { NodeChip, cx } from '../../ui';
@@ -35,7 +35,7 @@ import {
   VariablesField,
   inputClass,
   useDraft,
-  useEditModelText,
+  useEditModel,
   type PropertyEditor,
 } from '../shared/inspector';
 import DefinitionValueEditor, {
@@ -47,7 +47,7 @@ const BUTTON =
   'rounded border border-line bg-white px-1.5 py-0.5 text-2xs text-ink-soft hover:border-trace hover:text-ink';
 
 /** A goal's notation, with the operators, constructs and problems its definition declares. */
-function NotationField({
+export function NotationField({
   node,
   engine,
 }: {
@@ -59,19 +59,17 @@ function NotationField({
   const operators = useMemo(() => operatorsFor(definition), [definition]);
   const wb = useWorkbench();
   const { tree } = wb;
-  const edit = useEditModelText();
+  const edit = useEditModel();
   const notation = useDraft(node.notation ?? '', (next) =>
-    edit((text) =>
-      setNodeText(
-        text,
-        node.iStarId,
-        elementLine(definition, {
-          id: node.id,
-          name: node.name,
-          notation: next || null,
-        }),
-      ),
-    ),
+    edit({
+      kind: 'applyLabelEdit',
+      labelId: node.iStarId,
+      text: elementLine(definition, {
+        id: node.id,
+        name: node.name,
+        notation: next || null,
+      }),
+    }),
   );
   // what the engine's grammar reads in the saved notation
   const draftConstruct = node.construct;

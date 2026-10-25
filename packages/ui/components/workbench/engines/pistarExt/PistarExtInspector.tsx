@@ -8,6 +8,7 @@ import {
   extensionCatalog,
   fillOf,
   inputOf,
+  isEmptyModelExtension,
   kindLabel,
   profileProperties,
   specsFromDefinition,
@@ -21,10 +22,13 @@ import type { IstarElement, IstarLink } from '@istar-ts/core';
 import { useIstarEditor, useSelectedTarget } from '@istar-ts/react';
 import { useMemo, useState } from 'react';
 import { DIALECTS, type ModelDialect } from '@/lib/workbench/dialects';
-import { writeModelExtension } from '@/lib/workbench/pistar';
-import { useWorkbench } from '../../WorkbenchContext';
 import { cx } from '../../ui';
-import { ColorField, inputClass, useDraft } from '../shared/inspector';
+import {
+  ColorField,
+  inputClass,
+  useDraft,
+  useEditModel,
+} from '../shared/inspector';
 import { labelAnnotations } from './extensions';
 import { usePistarExt } from './usePistarExt';
 
@@ -182,7 +186,7 @@ function CategoryPanel({
   category: CatalogCategory;
   read: ModelDialect;
 }) {
-  const wb = useWorkbench();
+  const edit = useEditModel();
   const own = ownNames(read.model, category.id);
   const [name, setName] = useState('');
   const [applied, setApplied] = useState<string[]>([]);
@@ -199,17 +203,19 @@ function CategoryPanel({
     category.id === 'groupers'
       ? kinds
       : [...Object.keys(read.extension.groupers), ...kinds];
-  const save = (model: ModelExtension) => {
-    try {
-      wb.setText(writeModelExtension(wb.text, 'pistarext', model), 'inspector');
+  const save = async (model: ModelExtension) => {
+    const result = await edit({
+      kind: 'istar.setFileMetamodel',
+      block: isEmptyModelExtension(model) ? null : model,
+    });
+    if (result.ok) {
       setError(null);
       return true;
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-      return false;
     }
+    setError(result.diagnostics[0]?.message ?? 'Rejected');
+    return false;
   };
-  const add = () => {
+  const add = async () => {
     const trimmed = name.trim();
     const problem = !trimmed
       ? 'Give it a name'
@@ -228,7 +234,7 @@ function CategoryPanel({
               { name: trimmed, appliesTo: applied },
             ],
           };
-    if (save(added)) {
+    if (await save(added)) {
       setName('');
       setApplied([]);
     }
@@ -237,9 +243,9 @@ function CategoryPanel({
     const model = read.model;
     if (category.id === 'groupers') {
       const { [entry]: _gone, ...rest } = model.groupers ?? {};
-      save({ ...model, groupers: rest });
+      void save({ ...model, groupers: rest });
     } else
-      save({
+      void save({
         ...model,
         [category.id]: (model[category.id] ?? []).filter(
           (e) => e.name !== entry,

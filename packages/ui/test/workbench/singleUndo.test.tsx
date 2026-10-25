@@ -245,11 +245,12 @@ describe('one undo history, the dispatcher’s (#410)', () => {
     expect(wb().text).toBe(before);
   });
 
-  it('the refinement is still a text edit (istar-ts#199), undone the same way', async () => {
+  it('the refinement toggle dispatches one istar.changeLinkKind, undone by one glspUndo (istar-ts#199)', async () => {
     const { wb, container } = await opened((node) => (
       <RefinementField node={node} />
     ));
     const before = wb().text;
+    const dispatch = vi.spyOn(wb().dispatcherFor('inspector'), 'dispatch');
     const and = await waitFor(() => {
       const found = [
         ...document.querySelectorAll<HTMLButtonElement>(
@@ -261,6 +262,11 @@ describe('one undo history, the dispatcher’s (#410)', () => {
     });
     await act(async () => {
       fireEvent.click(and);
+    });
+    expect(dispatch).toHaveBeenCalledTimes(1);
+    expect(dispatch.mock.calls[0]![0]).toMatchObject({
+      kind: 'istar.changeLinkKind',
+      elementTypeId: 'istar.AndRefinementLink',
     });
     const kinds = () =>
       [...wb().session.store.getModel().links.values()]
