@@ -32,6 +32,10 @@ export default defineConfig({
     include: ['test/**/*.test.{ts,tsx}'],
     exclude: ['**/node_modules/**', '.next/**', 'out/**'],
     restoreMocks: true,
+    setupFiles: ['./test/setup.ts'],
+    // a loaded machine (several builders at once, goal-controller#423)
+    // otherwise times out tests well short of a real deadlock
+    testTimeout: 20000,
     server: {
       deps: {
         inline: [/@istar-ts[\\/](react|dsm3-|actions|gmodel|glsp|agent)/],
