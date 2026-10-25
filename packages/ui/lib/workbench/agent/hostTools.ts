@@ -2,61 +2,78 @@
  * Goal-controller's own MCP host tools for M6's agent (goal-controller#415):
  * `list-types`, `pool-lookup`, `notation-help` and `validate-notation`,
  * registered next to istar's `set-properties`/`set-link-value`/`check-edge`
- * (M5, #414). Every one of these is read-only: none dispatches an edit, so
- * none needs the review step a mutating host tool would.
+ * (M5, #414). Each reads the mode's parts (`agentModeOf`, context.ts), the
+ * same objects the system prompt's sections are written from. Every one is
+ * read-only: none dispatches an edit, so none needs the review step a
+ * mutating host tool would.
  */
 import * as z from 'zod';
-import type { HostTool, HostToolResult } from '@istar-ts/actions';
+import type {
+  HostTool,
+  HostToolContext,
+  HostToolResult,
+} from '@istar-ts/actions';
+import { metamodelOf } from '@istar-ts/core';
 import {
-  ISTAR_ACTOR_KINDS,
-  ISTAR_LINK_KINDS,
-  type AnyDialect,
-} from '@goal-controller/dialect';
-import { createPool, type PoolDocument } from '@goal-controller/lib';
-import { goalView } from '@goal-controller/goal-tree';
+  validateNotation,
+  type NotationInputs,
+  type NotationTree,
+} from '@goal-controller/goal-language';
+import {
+  createPool,
+  rootContextOf,
+  type PoolRegistration,
+} from '@goal-controller/lib';
 import type { ModelMode } from '@/lib/workbench/pistar';
-import type { TransformEngine } from '@/lib/types';
-import { dialectOf, ENGINE_POOLS } from '@/lib/workbench/engineDialects';
-import { contextOf } from '@/lib/workbench/notationDocument';
-import { notationHelpText } from './engineContext';
+import {
+  poolDocuments,
+  type PoolWorkspace,
+} from '@/lib/workbench/poolDocuments';
+import { agentModeOf, type AgentMode } from './context';
 
 const ok = (content: unknown): HostToolResult => ({ ok: true, content });
 
-/** The engine's workspace documents for the pool: the model and the project's resources. */
-export type PoolWorkspace = {
-  tree: ReturnType<typeof goalView> | null;
-  resources: readonly { kind: string; path: string; text: string }[];
+/**
+ * What the host tools read of the open project, fresh on each call: the
+ * model's view and the project's resources (the pool's documents), and what
+ * the Notation editor checks the model against (its context variables and
+ * the resources, parsed).
+ */
+export type AgentWorkspace = Omit<PoolWorkspace, 'tree'> & {
+  tree: NotationTree | null;
+  variables: NotationInputs['variables'];
+  projectResources?: NotationInputs['projectResources'];
 };
 
 const toolSchema = <S extends z.ZodType>(
   name: string,
   description: string,
   schema: S,
-  readOnly: boolean,
-  handler: (args: z.infer<S>) => HostToolResult | Promise<HostToolResult>,
+  handler: (
+    args: z.infer<S>,
+    context: HostToolContext,
+  ) => HostToolResult | Promise<HostToolResult>,
 ): HostTool => ({
   name,
   description,
   inputSchema: z.toJSONSchema(schema) as HostTool['inputSchema'],
-  readOnly,
-  handler: (args) => handler(schema.parse(args)),
+  readOnly: true,
+  handler: (args, context) => handler(schema.parse(args), context),
 });
 
-/** `list-types`: the active dialect's element, link and actor kinds. */
-const listTypesTool = (dialect: AnyDialect | null): HostTool =>
+const refusal = (source: string, message: string): HostToolResult => ({
+  ok: false,
+  diagnostics: [{ elementId: '', severity: 'error', message, source }],
+});
+
+/** `list-types`: the root's part (the model's metamodel's kinds) and the engine's (its kinds, property schemas, constraints). */
+const listTypesTool = ({ engine }: AgentMode): HostTool =>
   toolSchema(
     'list-types',
-    "The active dialect's element, link and actor kinds, with their id prefixes.",
+    "The model's element, link and actor kinds, and the active dialect's id prefixes, property schemas and constraints.",
     z.object({}),
-    true,
-    () =>
-      ok({
-        elements: Object.entries(dialect?.elements ?? {}).map(
-          ([kind, element]) => ({ kind, prefix: element?.prefix ?? null }),
-        ),
-        links: [...ISTAR_LINK_KINDS, ...Object.keys(dialect?.links ?? {})],
-        actors: ISTAR_ACTOR_KINDS,
-      }),
+    (_args, { getModel }) =>
+      ok({ root: rootContextOf(metamodelOf(getModel())), engine }),
   );
 
 const poolLookupSchema = z.object({
@@ -69,45 +86,24 @@ const poolLookupSchema = z.object({
  * `pool-lookup`: a name in the engine's definition pool (goal-controller#59),
  * in one of its scopes — global (no `owner`), owner (`owner` given) or
  * through a link (the owner chain `TypedPool.find` already walks for a kind
- * declared `scope: 'owner'`) — reusing the same `PoolRegistration` and
- * `createPool` the project's own pool uses, never reimplemented.
+ * declared `scope: 'owner'`) — over the same `PoolRegistration`,
+ * `createPool` and `poolDocuments` the project's own pool uses.
  */
 const poolLookupTool = (
-  engine: TransformEngine,
-  getWorkspace: () => PoolWorkspace,
+  mode: ModelMode,
+  pool: PoolRegistration | null,
+  getWorkspace: () => AgentWorkspace,
 ): HostTool =>
   toolSchema(
     'pool-lookup',
     "A name in the engine's definition pool: resolves it among one of its kinds, in a scope (global, or an owner's members).",
     poolLookupSchema,
-    true,
     ({ kinds, name, owner }) => {
-      const registration = ENGINE_POOLS[engine as keyof typeof ENGINE_POOLS];
-      if (!registration)
-        return {
-          ok: false,
-          diagnostics: [
-            {
-              elementId: '',
-              severity: 'error',
-              message: `${engine} has no definition pool`,
-              source: 'pool-lookup',
-            },
-          ],
-        };
-      const workspace = getWorkspace();
-      const documents: PoolDocument[] = [
-        ...(workspace.tree
-          ? [{ id: 'model', kind: 'model', value: workspace.tree }]
-          : []),
-        ...workspace.resources.map(({ kind, path, text }) => ({
-          id: path,
-          kind,
-          text,
-        })),
-      ];
-      const index = createPool(registration).update(documents);
-      const found = index.find(kinds, name, owner);
+      if (!pool)
+        return refusal('pool-lookup', `${mode} has no definition pool`);
+      const found = createPool(pool)
+        .update(poolDocuments(getWorkspace()))
+        .find(kinds, name, owner);
       return ok(
         found
           ? {
@@ -123,68 +119,57 @@ const poolLookupTool = (
     },
   );
 
-/** `notation-help`: the same text as the `notation-help` context provider, on demand. */
-const notationHelpTool = (dialect: AnyDialect | null): HostTool =>
+/** `notation-help`: goal-language's part, the notation the dialect reads. */
+const notationHelpTool = ({ notation }: AgentMode): HostTool =>
   toolSchema(
     'notation-help',
-    "The goal language's notation forms for the active dialect.",
+    "The goal language's notation forms for the active dialect: its element line, bracket operators, property, link and actor lines, assertions and expressions.",
     z.object({}),
-    true,
-    () => ok(notationHelpText(dialect)),
+    () => ok(notation),
   );
 
 const validateNotationSchema = z.object({ text: z.string() });
 
+const EMPTY_TREE: NotationTree = { nodes: new Map(), roots: [] };
+
 /**
- * `validate-notation`: the SAME validation the Langium LSP runs
- * (`packages/goal-language/src/lsp/server.ts`'s `serverDiagnostics`), not a
- * second validator. `@goal-controller/goal-language/lsp` (Langium) is
- * dynamically imported, as `@istar-ts/glsp` is in `glspServer.ts`: a page
- * that never turns the agent on never pays for it. One `createGoalLspServices()`
- * is reused across calls (a host tool call is cheap to re-validate with, but
- * spinning the Langium services up each time is not).
+ * `validate-notation`: goal-language's `validateNotation`, with what the
+ * Notation editor checks the model against (its tree, context variables
+ * and project resources, and the engine's named checks), so it reports
+ * exactly what the editor shows for the same text.
  */
-const validateNotationTool = async (
-  engine: TransformEngine,
-  getWorkspace: () => PoolWorkspace,
-): Promise<HostTool> => {
-  const { createGoalLspServices, serverDiagnostics } =
-    await import('@goal-controller/goal-language/lsp');
-  const { shared, store } = createGoalLspServices();
-  return toolSchema(
+const validateNotationTool = (
+  { dialect, checks }: AgentMode,
+  getWorkspace: () => AgentWorkspace,
+): HostTool =>
+  toolSchema(
     'validate-notation',
     'Validates a piece of goal-language notation (an element line, a property line, a bracketed notation) against the active dialect, exactly as the editor does.',
     validateNotationSchema,
-    true,
-    async ({ text }) => {
-      const dialect = dialectOf(engine);
+    ({ text }) => {
       if (!dialect) return ok({ diagnostics: [] });
-      const workspace = getWorkspace();
-      const context = workspace.tree
-        ? contextOf(dialect, workspace.tree, [])
-        : { elements: {}, variables: [] };
-      store.set({ dialect, context });
-      const diagnostics = await serverDiagnostics(
-        shared,
-        'file:///notation.goal',
-        text,
-      );
-      return ok({ diagnostics });
+      const { tree, variables, projectResources } = getWorkspace();
+      return ok({
+        diagnostics: validateNotation(
+          dialect,
+          text,
+          { tree: tree ?? EMPTY_TREE, variables, projectResources },
+          checks,
+        ),
+      });
     },
   );
-};
 
 /** Every host tool M6 registers with M5's MCP server (goal-controller#415). */
-export const hostToolsFor = async (
-  engine: TransformEngine,
-  _mode: ModelMode,
-  getWorkspace: () => PoolWorkspace,
-): Promise<HostTool[]> => {
-  const dialect = dialectOf(engine);
+export const hostToolsFor = (
+  mode: ModelMode,
+  getWorkspace: () => AgentWorkspace,
+): HostTool[] => {
+  const agent = agentModeOf(mode);
   return [
-    listTypesTool(dialect),
-    poolLookupTool(engine, getWorkspace),
-    notationHelpTool(dialect),
-    await validateNotationTool(engine, getWorkspace),
+    listTypesTool(agent),
+    poolLookupTool(mode, agent.pool, getWorkspace),
+    notationHelpTool(agent),
+    validateNotationTool(agent, getWorkspace),
   ];
 };

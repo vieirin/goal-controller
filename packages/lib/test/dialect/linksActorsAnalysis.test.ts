@@ -6,7 +6,10 @@
 import { expect } from 'chai';
 import { parsePistar } from '@istar-ts/core';
 import { goalView } from '@goal-controller/goal-tree';
-import { checkContextOf } from '@goal-controller/goal-language';
+import {
+  checkContextOf,
+  notationContextOf,
+} from '@goal-controller/goal-language';
 import {
   toyAnalyses,
   toyAnalysisModel,
@@ -15,7 +18,6 @@ import {
 import { TOY_MODEL } from '../engines/analysis/toyModel';
 import {
   applyNotationEdits,
-  contextOf,
   notationDocument,
   notationEdits,
 } from '../../../ui/lib/workbench/notationDocument';
@@ -85,11 +87,7 @@ describe('links and actors in the view (#107)', () => {
 
   it('gives a link property’s check the link, its ends’ kinds included', () => {
     const check = checkContextOf(
-      contextOf(
-        toyGraph as unknown as Parameters<typeof contextOf>[0],
-        view(),
-        [],
-      ),
+      notationContextOf(toyGraph, { tree: view(), variables: [] }),
       'l2',
     );
     expect(check.readLink?.('l2')?.ends?.target.kind).to.equal('istar.Goal');

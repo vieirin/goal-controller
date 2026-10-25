@@ -1,22 +1,15 @@
 /**
  * The Notation view's document for a model: the definition-driven document
  * (@goal-controller/goal-language), its edits applied to the piStar text, the
- * element a line belongs to, and the context the text is checked against.
+ * element a line belongs to.
  */
-import type { GoalView } from '@goal-controller/goal-tree';
-import type {
-  DefinitionContext,
-  DialectDefinition,
-} from '@goal-controller/dialect';
+import type { DialectDefinition } from '@goal-controller/dialect';
 import {
-  contextFromView,
   lineId,
   lineScope,
-  nodeLine,
   type NotationEdit,
 } from '@goal-controller/goal-language';
 import type { IstarOperation } from '@istar-ts/actions';
-import type { SavedLines } from './languageSupport';
 import { setLinkProperty, setNodeProperty, setNodeText } from './pistar';
 
 export {
@@ -111,35 +104,3 @@ export const elementOfLine = (
   lineKeys(definition, lines.slice(0, index + 1), has)
     .filter((key): key is string => key !== null)
     .at(-1) ?? null;
-
-/**
- * What the language checks a model against: its elements, the workbench's
- * context variables' names (what an assertion may read besides resources),
- * and the project's resources, parsed (a MutRoSe world), when it has them.
- */
-export const contextOf = (
-  definition: DialectDefinition,
-  tree: GoalView,
-  variables: ReadonlyArray<{ kind: string; name: string }>,
-  projectResources?: DefinitionContext['projectResources'],
-): DefinitionContext => ({
-  ...contextFromView(
-    definition,
-    tree,
-    variables.filter((v) => v.kind === 'context').map((v) => v.name),
-  ),
-  ...(projectResources &&
-    Object.keys(projectResources).length > 0 && { projectResources }),
-});
-
-/** What the engine's grammar said of each saved element line. */
-export const savedLines = (
-  definition: DialectDefinition,
-  tree: GoalView,
-): SavedLines =>
-  Object.fromEntries(
-    [...tree.nodes.entries()].map(([key, node]) => [
-      key,
-      { line: nodeLine(definition, node), error: node.notationError },
-    ]),
-  );

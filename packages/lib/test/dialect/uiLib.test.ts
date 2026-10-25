@@ -5,6 +5,10 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 import { parsePistar } from '../../../goal-tree/node_modules/@istar-ts/core';
 import { goalView } from '@goal-controller/goal-tree';
+import {
+  notationContextOf,
+  savedLinesOf,
+} from '@goal-controller/goal-language';
 import { StringStream } from '../../../ui/node_modules/@codemirror/language';
 import { extensionCatalog, type AnyDialect } from '@goal-controller/dialect';
 import { edgeV2 } from '../../src';
@@ -12,11 +16,9 @@ import { documentParser } from '../../../ui/lib/workbench/definitionLanguage';
 import { ra } from './support/extensions';
 import {
   applyNotationEdits,
-  contextOf,
   elementOfLine,
   notationDocument,
   notationEdits,
-  savedLines,
 } from '../../../ui/lib/workbench/notationDocument';
 import { ENGINE_DIALECTS } from '../../../ui/lib/workbench/engineDialects';
 import {
@@ -89,16 +91,19 @@ describe('ui notationDocument', () => {
   });
 
   it('reads only the context variables', () => {
-    const context = contextOf(edgeV2, tree, [
-      { kind: 'context', name: 'night' },
-      { kind: 'achievability', name: 'T1_pass' },
-    ]);
+    const context = notationContextOf(edgeV2, {
+      tree,
+      variables: [
+        { kind: 'context', name: 'night' },
+        { kind: 'achievability', name: 'T1_pass' },
+      ],
+    });
     expect(context.variables).to.deep.equal(['night']);
     expect(Object.keys(context.elements)).to.include('G0');
   });
 
   it('keeps each saved line with its grammar error', () => {
-    const saved = savedLines(edgeV2, tree);
+    const saved = savedLinesOf(edgeV2, tree);
     const g0 = tree.nodes.get('G0')!;
     expect(saved.G0).to.deep.equal({
       line: `G0: ${g0.name} [${g0.notation}]`,

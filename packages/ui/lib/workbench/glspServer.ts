@@ -9,9 +9,8 @@
  */
 import { metamodelOf } from '@istar-ts/core';
 import type { ModelMode } from './pistar';
-import type { TransformEngine } from '../types';
 import type { ModelSession } from './modelSession';
-import type { PoolWorkspace } from './agent/hostTools';
+import type { AgentWorkspace } from './agent/hostTools';
 
 /** The in-page MCP handle (`startGlspServer`'s result): what M6's agent needs to reach it. */
 export type GlspMcpHandle = {
@@ -37,7 +36,7 @@ export type GlspServer = {
  * contribution built (`contributionFor`) from the model's current metamodel,
  * the session's palette and registry sizes (`PaletteBridge`'s, not
  * re-derived): matches the active mode's dialect, since the model, palette
- * and sizes are all the showing canvas's. `engine`/`mode` and `getWorkspace`
+ * and sizes are all the showing canvas's. `mode` and `getWorkspace`
  * (goal-controller#415) build goal-controller's own context providers and
  * host tools for M6's agent, registered next to istar's own MCP tools.
  * `@istar-ts/glsp` and the agent's own modules are dynamically imported, so
@@ -46,9 +45,8 @@ export type GlspServer = {
  */
 export async function startGlspServer(
   session: ModelSession,
-  engine: TransformEngine,
   mode: ModelMode,
-  getWorkspace: () => PoolWorkspace,
+  getWorkspace: () => AgentWorkspace,
 ): Promise<GlspServer> {
   const [
     { contributionFor },
@@ -58,7 +56,7 @@ export async function startGlspServer(
   ] = await Promise.all([
     import('@istar-ts/glsp'),
     import('@istar-ts/glsp/browser'),
-    import('./agent/engineContext'),
+    import('./agent/context'),
     import('./agent/hostTools'),
   ]);
   const contribution = contributionFor(metamodelOf(session.store.getModel()), {
@@ -68,8 +66,8 @@ export async function startGlspServer(
   const server = serveIstarGlsp({
     shared: { store: session.store, dispatcher: session.dispatcher },
     mcp: {
-      hostTools: await hostToolsFor(engine, mode, getWorkspace),
-      context: contextProvidersFor(engine, mode),
+      hostTools: hostToolsFor(mode, getWorkspace),
+      context: contextProvidersFor(mode),
     },
     contributions: [contribution],
   });

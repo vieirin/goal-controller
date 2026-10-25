@@ -20,7 +20,6 @@ import {
   type CheckNameOf,
 } from '@goal-controller/dialect';
 import {
-  checkContextOf,
   completionsAt,
   documentDiagnostics,
   fieldCompletions,
@@ -28,7 +27,8 @@ import {
   fieldPropertyOf,
   type CompletionResult as DefinitionCompletions,
   type Diagnostic as LanguageDiagnostic,
-  type RunCheck,
+  runCheckIn,
+  type SavedLines,
 } from '@goal-controller/goal-language';
 import { fieldUri } from '@goal-controller/goal-language/light';
 import type { ActionDispatcher } from '@istar-ts/actions';
@@ -72,10 +72,7 @@ export type LanguageSupport = {
   ): void;
 };
 
-/** What the engine's grammar said of each saved element line, by id. */
-export type SavedLines = Readonly<
-  Record<string, { line: string; error: string | null }>
->;
+export type { SavedLines };
 
 const EMPTY: DefinitionContext = { elements: {}, variables: [] };
 
@@ -92,20 +89,6 @@ const toCodeMirror = (
     ),
     validFor: /^[A-Za-z0-9_.]*$/,
   };
-
-/**
- * An engine's named checks, run on a model: each is given its element and
- * the model (`checkContextOf`). The local support's, and the workbench's run
- * of the language on the model.
- */
-export const runCheckIn =
-  (
-    // a property names its check: one of the definition's, so one of these
-    checks: Readonly<Record<string, Check | undefined>>,
-    model: () => DefinitionContext,
-  ): RunCheck =>
-  (name, input, self) =>
-    checks[name]?.(input, checkContextOf(model(), self)) ?? null;
 
 /**
  * The language support an engine's definition gives without a server: its document

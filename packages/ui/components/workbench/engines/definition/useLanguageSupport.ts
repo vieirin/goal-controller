@@ -1,7 +1,14 @@
 'use client';
 
 import type { AnyDialect } from '@goal-controller/dialect';
-import { createContext, useContext, useEffect, useMemo, useRef } from 'react';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+} from 'react';
 import {
   ENGINE_DIALECTS,
   type DialectEngine,
@@ -12,7 +19,10 @@ import {
   multiplexSupport,
   type ServiceMode,
 } from '@/lib/workbench/languageServices';
-import { contextOf, savedLines } from '@/lib/workbench/notationDocument';
+import {
+  notationContextOf,
+  savedLinesOf,
+} from '@goal-controller/goal-language';
 import { poolEditOperations } from '@/lib/workbench/poolDocuments';
 import type { PoolHost } from '@/lib/workbench/poolSupport';
 import { useWorkbench } from '../../WorkbenchContext';
@@ -55,10 +65,10 @@ export const useOptionalLanguageSupport = (
   const { tree, variables, text, projectResources } = wb;
   useEffect(() => {
     if (!tree || !support || !definition) return;
-    support.setSaved(savedLines(definition, tree));
+    support.setSaved(savedLinesOf(definition, tree));
     // the project's resources, parsed, go with the model (goal/context)
     support.setContext(
-      contextOf(definition, tree, variables, projectResources),
+      notationContextOf(definition, { tree, variables, projectResources }),
     );
   }, [definition, support, tree, variables, projectResources]);
   // a service that reads the model file itself (an engine's server)
@@ -98,10 +108,13 @@ export const useProjectWorkspace = (engine: DialectEngine | null): void => {
     [resourceSlots, resourceTexts],
   );
   const latest = useRef(wb);
-  latest.current = wb;
   const edit = useEditModel();
   const latestEdit = useRef(edit);
-  latestEdit.current = edit;
+  // the host reads the latest workbench and edit when it is called: set once rendered
+  useLayoutEffect(() => {
+    latest.current = wb;
+    latestEdit.current = edit;
+  });
   const host = useMemo<PoolHost>(
     () => ({
       navigate: (location) => latest.current.revealLocation(location),

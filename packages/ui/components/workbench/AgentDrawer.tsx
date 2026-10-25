@@ -19,7 +19,7 @@ import type {
   ChatClient,
   ToolRegistry,
 } from '@istar-ts/agent';
-import { contextProvidersFor } from '@/lib/workbench/agent/engineContext';
+import { contextProvidersFor } from '@/lib/workbench/agent/context';
 import {
   DEFAULT_AGENT_SETTINGS,
   loadAgentSettings,
@@ -82,8 +82,8 @@ export default function AgentDrawer() {
   }, [glspMcp]);
 
   const contextProviders = useMemo(
-    () => contextProvidersFor(wb.engine, wb.mode),
-    [wb.engine, wb.mode],
+    () => contextProvidersFor(wb.mode),
+    [wb.mode],
   );
 
   if (!wb.glspEnabled) return null;

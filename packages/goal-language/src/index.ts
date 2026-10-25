@@ -48,4 +48,6 @@ export * from './notation/scope.js';
 export * from './notation/navigation.js';
 export * from './notation/linkLine.js';
 export * from './notation/actorLine.js';
+export * from './notation/help.js';
+export * from './notation/validate.js';
 export * from './lsp/protocol.js';

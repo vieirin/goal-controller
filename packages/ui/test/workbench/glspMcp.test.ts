@@ -43,9 +43,10 @@ const opened = async () => {
   session.setGuards(guards);
   session.setPostGuards(postGuards);
 
-  const server = await startGlspServer(session, 'edgev2', 'edgev2', () => ({
+  const server = await startGlspServer(session, 'edgev2', () => ({
     tree: null,
     resources: [],
+    variables: [],
   }));
   servers.push(server);
   const client = new Client({ name: 'test-agent', version: '1.0.0' });

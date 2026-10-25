@@ -17,6 +17,7 @@ import {
 } from '@goal-controller/dialect';
 import {
   checkContextOf,
+  notationContextOf,
   fieldPropertyOf,
 } from '@goal-controller/goal-language';
 import { runCheck, type Check } from '@goal-controller/lib';
@@ -26,7 +27,6 @@ import {
   ENGINE_DIALECTS,
   type DialectEngine,
 } from '@/lib/workbench/engineDialects';
-import { contextOf } from '@/lib/workbench/notationDocument';
 import { type SelectedPart, useWorkbench } from '../../WorkbenchContext';
 import { CreatableSelect } from '../../ui';
 import {
@@ -60,23 +60,24 @@ export default function PartInspector({
     part.type === 'link'
       ? tree?.links.find((link) => link.iStarId === part.id)
       : tree?.actors.find((actor) => actor.iStarId === part.id);
-  // the selected part's kind only: `found` changes on every model edit
+  // the selected part's kind's (derived from the dialect, cheap to redo)
   const kind = found?.kind;
-  const specs: readonly PropertySpec<string, Check>[] = useMemo(
-    () =>
-      kind === undefined
-        ? []
-        : part.type === 'link'
-          ? linkSpecsOfKind(definition, registry, kind)
-          : actorSpecsFromDefinition(definition, registry, kind),
-    [definition, registry, kind, part.type],
-  );
+  const specs: readonly PropertySpec<string, Check>[] =
+    kind === undefined
+      ? []
+      : part.type === 'link'
+        ? linkSpecsOfKind(definition, registry, kind)
+        : actorSpecsFromDefinition(definition, registry, kind);
   // the model as the language reads it: a check's context (given the link's
   // or actor's id as `self`), and what a field's value is
   const model = useMemo(
     () =>
       tree
-        ? contextOf(definition, tree, [], wb.projectResources)
+        ? notationContextOf(definition, {
+            tree,
+            variables: [],
+            projectResources: wb.projectResources,
+          })
         : { elements: {}, variables: [] },
     [definition, tree, wb.projectResources],
   );

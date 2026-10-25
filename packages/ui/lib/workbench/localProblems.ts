@@ -13,14 +13,14 @@ import {
   type DialectEngine,
 } from './engineDialects';
 import { languageProblems } from './diagnostics';
-import { runCheckIn } from './languageSupport';
-import { contextOf, notationDocument, savedLines } from './notationDocument';
+import { notationDocument } from './notationDocument';
 import { DIALECT_LABEL, dialectThatReads } from './dialects';
 import { MODEL_NAMESPACE } from '@goal-controller/dialect';
 import {
-  documentDiagnostics,
   ID_PREFIXES,
   isValidName,
+  validateNotation,
+  type NotationInputs,
 } from '@goal-controller/goal-language';
 import { jsonErrorPosition } from './pistar';
 import { SOURCE, type Problem } from './types';
@@ -205,18 +205,19 @@ export const generationProblems = (
 export const modelLanguageProblems = (
   engine: DialectEngine,
   tree: GoalView,
-  variables: Parameters<typeof contextOf>[2],
+  variables: NotationInputs['variables'],
   /** the project's resources, parsed: checks that read them (a MutRoSe world) run */
-  projectResources?: Parameters<typeof contextOf>[3],
+  projectResources?: NotationInputs['projectResources'],
 ): Problem[] => {
   const definition = ENGINE_DIALECTS[engine];
   const { text } = notationDocument(definition, tree);
-  const context = contextOf(definition, tree, variables, projectResources);
   return languageProblems(
-    documentDiagnostics(definition, text, context, {
-      runCheck: runCheckIn(ENGINE_CHECKS[engine], () => context),
-      saved: savedLines(definition, tree),
-    }),
+    validateNotation(
+      definition,
+      text,
+      { tree, variables, projectResources },
+      ENGINE_CHECKS[engine],
+    ),
     definition.name,
     text,
   );
