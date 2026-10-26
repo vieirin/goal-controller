@@ -30,6 +30,7 @@ import {
   useEditModel,
 } from '@/components/workbench/engines/shared/inspector';
 import { mockReactFlowDom } from './reactFlowDom';
+import { settled } from './modelWorker';
 
 const ISTAR = readFileSync(
   join(__dirname, '../../../../examples/edge/simpleChoice.txt'),
@@ -101,8 +102,12 @@ const opened = async (
 const element = (wb: Workbench, id: string) =>
   wb.session.store.getModel().elements.get(id);
 
-/** ⌘Z (⌘⇧Z: redo) on the canvas. */
-const commandZ = (container: HTMLElement, shiftKey = false) =>
+/** ⌘Z (⌘⇧Z: redo) on the canvas, and the worker's answer shown (#434). */
+const commandZ = async (
+  wb: () => Workbench,
+  container: HTMLElement,
+  shiftKey = false,
+) => {
   act(() => {
     fireEvent.keyDown(container.querySelector('.istar-canvas')!, {
       key: 'z',
@@ -110,6 +115,8 @@ const commandZ = (container: HTMLElement, shiftKey = false) =>
       shiftKey,
     });
   });
+  await settled(wb().session);
+};
 
 describe('one undo history, the dispatcher’s (#410)', () => {
   it('derives the text from a canvas edit; ⌘Z takes back both the diagram and the text', async () => {
@@ -131,7 +138,7 @@ describe('one undo history, the dispatcher’s (#410)', () => {
     expect(JSON.parse(wb().text)).not.toEqual(JSON.parse(before));
     expect(wb().canUndo).toBe(true);
 
-    await commandZ(container);
+    await commandZ(wb, container);
     expect(element(wb(), G2)).toMatchObject({ x, y });
     // the text as it was, byte for byte
     expect(wb().text).toBe(before);
@@ -140,7 +147,7 @@ describe('one undo history, the dispatcher’s (#410)', () => {
     expect(wb().canUndo).toBe(false);
 
     // and ⌘⇧Z redoes it
-    await commandZ(container, true);
+    await commandZ(wb, container, true);
     expect(element(wb(), G2)).toMatchObject({ x: x + 40, y: y + 10 });
   });
 
@@ -148,9 +155,10 @@ describe('one undo history, the dispatcher’s (#410)', () => {
     const { wb, editor, container } = await opened();
     const before = wb().text;
     await act(async () => editor().elementActions(G1).rename('G1: Renamed'));
+    await settled(wb().session);
     expect(element(wb(), G1)?.name).toBe('G1: Renamed');
     expect(wb().text).toContain('"G1: Renamed"');
-    await commandZ(container);
+    await commandZ(wb, container);
     expect(wb().text).toBe(before);
   });
 
@@ -170,6 +178,7 @@ describe('one undo history, the dispatcher’s (#410)', () => {
       fireEvent.change(input, { target: { value: 'Renamed' } });
       fireEvent.blur(input);
     });
+    await settled(wb().session);
     expect(dispatch).toHaveBeenCalledTimes(1);
     expect(dispatch.mock.calls[0]![0]).toMatchObject({
       kind: 'applyLabelEdit',
@@ -226,6 +235,7 @@ describe('one undo history, the dispatcher’s (#410)', () => {
     await act(async () => {
       fireEvent.click(button);
     });
+    await settled(wb().session);
     expect(dispatch).toHaveBeenCalledTimes(1);
     expect(dispatch.mock.calls[0]![0]).toMatchObject({
       kind: 'compound',
@@ -239,7 +249,7 @@ describe('one undo history, the dispatcher’s (#410)', () => {
       display: { backgroundColor: '#00FF00' },
     });
 
-    await commandZ(container);
+    await commandZ(wb, container);
     expect(element(wb(), G1)?.name).toBe('G1: Goal [+]');
     expect(element(wb(), G1)?.display?.backgroundColor).toBeUndefined();
     expect(wb().text).toBe(before);
@@ -263,6 +273,7 @@ describe('one undo history, the dispatcher’s (#410)', () => {
     await act(async () => {
       fireEvent.click(and);
     });
+    await settled(wb().session);
     expect(dispatch).toHaveBeenCalledTimes(1);
     expect(dispatch.mock.calls[0]![0]).toMatchObject({
       kind: 'istar.changeLinkKind',
@@ -276,7 +287,7 @@ describe('one undo history, the dispatcher’s (#410)', () => {
       'istar.AndRefinementLink',
       'istar.AndRefinementLink',
     ]);
-    await commandZ(container);
+    await commandZ(wb, container);
     expect(kinds()).toEqual([
       'istar.OrRefinementLink',
       'istar.OrRefinementLink',
@@ -300,6 +311,7 @@ describe('one undo history, the dispatcher’s (#410)', () => {
       fireEvent.change(input, { target: { value: '#ff0000' } });
     });
     await waitFor(() => expect(dispatch).toHaveBeenCalled());
+    await settled(wb().session);
     expect(dispatch.mock.calls.at(-1)![0]).toMatchObject({
       kind: 'istar.updateDisplay',
       elementId: G1,
@@ -307,7 +319,7 @@ describe('one undo history, the dispatcher’s (#410)', () => {
     expect(element(wb(), G1)?.display?.backgroundColor).toBe('#FF0000');
   });
 
-  it('a text edit (setText, the editors not yet on actions) is one undo step; a burst of them, one', async () => {
+  it('a text edit (setText, a raw write) is one undo step each, kept as written', async () => {
     const { wb, container } = await opened();
     const before = wb().text;
     const renamed = (name: string) => before.replace('G1: Goal [+]', name);
@@ -315,15 +327,24 @@ describe('one undo history, the dispatcher’s (#410)', () => {
       wb().setText(renamed('G1: A'), 'source');
       wb().setText(renamed('G1: AB'), 'source');
     });
+    // the text at once; the model once the worker has read it (#434)
+    expect(wb().text).toBe(renamed('G1: AB'));
+    await settled(wb().session);
     expect(element(wb(), G1)?.name).toBe('G1: AB');
     // as written, not as the model would write it
     expect(wb().text).toBe(renamed('G1: AB'));
     // a text that doesn't parse is kept; the model stays the last one that did
     act(() => wb().setText('{ "actors": [', 'source'));
+    await settled(wb().session);
     expect(wb().jsonError).not.toBeNull();
     expect(element(wb(), G1)?.name).toBe('G1: AB');
+    expect(wb().text).toBe('{ "actors": [');
 
-    await commandZ(container);
+    // no coalescing: the dispatcher's history has a step per write
+    await commandZ(wb, container);
+    expect(element(wb(), G1)?.name).toBe('G1: A');
+    expect(wb().text).toBe(renamed('G1: A'));
+    await commandZ(wb, container);
     expect(element(wb(), G1)?.name).toBe('G1: Goal [+]');
     expect(wb().text).toBe(before);
     expect(wb().canUndo).toBe(false);
@@ -333,6 +354,7 @@ describe('one undo history, the dispatcher’s (#410)', () => {
     const { wb } = await opened();
     const first = wb().session;
     act(() => wb().setText(ISTAR.replace('G1: Goal [+]', 'G1: X'), 'source'));
+    await settled(wb().session);
     expect(wb().canUndo).toBe(true);
     await act(() => wb().openModelFile('again.txt', ISTAR));
     await waitFor(() => expect(wb().fileName).toBe('again.txt'));
@@ -377,7 +399,7 @@ describe('one undo history, the dispatcher’s (#410)', () => {
     expect(element(wb(), G2)).toMatchObject({ x: x + 40, y: y + 10 });
     expect(JSON.parse(wb().text)).not.toEqual(JSON.parse(before));
 
-    await commandZ(container);
+    await commandZ(wb, container);
     expect(element(wb(), G2)).toMatchObject({ x, y });
     expect(wb().text).toBe(before);
     expect(wb().canUndo).toBe(false);

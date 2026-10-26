@@ -30,6 +30,7 @@ import {
 import FrameworkNotationView from '@/components/workbench/engines/framework/FrameworkNotationView';
 import type { LanguageSupport } from '@/lib/workbench/languageSupport';
 import type { PoolHost } from '@/lib/workbench/poolSupport';
+import { settled } from './modelWorker';
 
 // a plain textarea stands in for CodeMirror: NotationEditor's dispatching
 // logic (debounce, the action it sends) doesn't depend on CodeMirror itself
@@ -266,6 +267,7 @@ describe('pool documents dispatch actions (#411)', () => {
       elementId: G1,
       properties: { Description: 'from pool' },
     });
+    await settled(wb().session);
     expect(element(wb(), G1)?.customProperties?.Description).toBe('from pool');
 
     await act(async () => {
@@ -301,6 +303,7 @@ describe('a framework model’s missing ids are given as one compound (#411)', (
     expect(
       dispatched.operationList.every((op) => op.kind === 'applyLabelEdit'),
     ).toBe(true);
+    await settled(wb().session);
     expect(wb().text).toContain('G1: Reliability');
     expect(wb().text).toContain('A1: User');
 

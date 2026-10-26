@@ -1,7 +1,10 @@
 /**
  * The main-thread side of the engine worker (goal-controller#413): one
  * worker per `WorkbenchProvider`, its mirror reconnected to the session's
- * dispatcher whenever the session changes (a new model opened). Analysis
+ * dispatcher whenever the session changes (a new model opened). The
+ * dispatcher is the model worker's (goal-controller#434): the engine
+ * worker's port is served there directly (`ModelSession.serve`), so the
+ * model's changes never pass through the main thread on their way. Analysis
  * outcomes are handed to `onAnalysis` as they arrive; a transform is
  * request/response, keyed by a request id. Every transform settles exactly
  * once (`settle`, goal-controller#432 review): with the worker's outcome, a
@@ -11,7 +14,6 @@
  * is reported to `onAnalysis` too, and respawns the worker.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { connectDispatcher, type ActionDispatcher } from '@istar-ts/actions';
 import type { TransformEngine } from '@/lib/types';
 import type { AnalyzeResponse } from './types';
 import type {
@@ -71,13 +73,20 @@ const failed = (requestId: number, error: string): EngineTransformResult => ({
 });
 
 /**
- * Connects `dispatcher` to a dedicated engine worker: analysis reruns there
+ * Links a port to the model's dispatcher until the returned function is
+ * called: the engine worker's mirror follows the dispatcher over it.
+ * `ModelSession.serve`, or `connectDispatcher` over a dispatcher at hand.
+ */
+export type ConnectModel = (port: MessagePort) => () => void;
+
+/**
+ * Connects the model (`connect`) to a dedicated engine worker: analysis reruns there
  * on every `sourceModelChanged`, debounced; `transform` runs there once per
  * call. No worker where the page is prerendered (`typeof Worker ===
  * 'undefined'`): `onAnalysis` is never called and every `transform` fails.
  */
 export const useEngineWorker = (
-  dispatcher: ActionDispatcher<string, string>,
+  connect: ConnectModel,
   engine: TransformEngine,
   pistar: boolean,
   onAnalysis: (outcome: EngineAnalysisOutcome) => void,
@@ -185,10 +194,7 @@ export const useEngineWorker = (
     const worker = workerRef.current;
     if (!worker) return undefined;
     const { port1, port2 } = new MessageChannel();
-    const disconnect = connectDispatcher<string, string, MessageEvent>(
-      port1,
-      dispatcher,
-    );
+    const disconnect = connect(port1);
     worker.postMessage({ type: 'connect' } satisfies EngineWorkerRequest, [
       port2,
     ]);
@@ -198,7 +204,7 @@ export const useEngineWorker = (
       // a run of the next one
       settleAll(() => ({ status: 'cancelled', reason: 'session' }));
     };
-  }, [dispatcher, workerVersion, settleAll]);
+  }, [connect, workerVersion, settleAll]);
 
   useEffect(() => {
     const worker = workerRef.current;

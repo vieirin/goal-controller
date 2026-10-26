@@ -12,12 +12,10 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { parsePistar } from '@istar-ts/core';
 import {
   createModelSession,
   type ModelSession,
 } from '@/lib/workbench/modelSession';
-import { guardsForMode } from '@/components/workbench/engines/modeGuards';
 import { openGlspSession } from '@/lib/workbench/agent/glspSession';
 
 const EDGEV2 = readFileSync(
@@ -29,12 +27,10 @@ const G1 = '117b97d7-775b-41a9-8fec-9e923edde772';
 
 /** An edgev2 session (its mode's guards on it) and its live backend-A session. */
 const opened = async () => {
-  const session: ModelSession = createModelSession(parsePistar(EDGEV2), () => {
+  const session: ModelSession = createModelSession(EDGEV2, () => {
     /* no listener needed: the tests read the store directly */
   });
-  const { guards, postGuards } = guardsForMode('edgev2');
-  session.setGuards(guards);
-  session.setPostGuards(postGuards);
+  session.setMode('edgev2');
   const glsp = await openGlspSession(session, 'edgev2', () => ({
     tree: null,
     resources: [],

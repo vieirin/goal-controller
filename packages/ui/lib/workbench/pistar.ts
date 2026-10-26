@@ -42,6 +42,7 @@ import {
   DIALECT_LABEL,
   DIALECTS,
   isDialectMode,
+  emptyModel,
   metamodelOfMode,
   parseModel,
   type DialectMode,
@@ -91,6 +92,22 @@ const detectIndent = (text: string): number | string => {
     return 0;
   }
   return match[1].includes('\t') ? '\t' : match[1].length;
+};
+
+/** A model text read (blank: an empty model), or why it can't be. */
+export type ReadModelText = { model: AnyModel } | { error: Error };
+
+/**
+ * How the workbench reads a raw text (an opened file, `wb.setText`): the
+ * main thread, for its JSON check, and the model worker, for the model it
+ * keeps (goal-controller#434), read it the same way.
+ */
+export const readModelText = (text: string): ReadModelText => {
+  try {
+    return { model: text.trim() ? parseModel(text) : emptyModel() };
+  } catch (error) {
+    return { error: error instanceof Error ? error : new Error(String(error)) };
+  }
 };
 
 /**

@@ -16,6 +16,7 @@ import {
   WorkbenchProvider,
   type Workbench,
 } from '@/components/workbench/WorkbenchContext';
+import { settled } from './modelWorker';
 
 const ISTAR = readFileSync(
   join(__dirname, '../../../../examples/edge/simpleChoice.txt'),
@@ -100,6 +101,7 @@ describe('wb.changeSource, by surface and by undo/redo (#432 review finding 5)',
       expect(wb().changeSource).toBe(surface);
 
       act(() => wb().undo());
+      await settled(wb().session);
       expect(wb().changeSource).toBe('undo');
     },
   );
@@ -115,9 +117,11 @@ describe('wb.changeSource, by surface and by undo/redo (#432 review finding 5)',
           .dispatch({ kind: 'applyLabelEdit', labelId: G1, text: 'Renamed' });
       });
       act(() => wb().undo());
+      await settled(wb().session);
       expect(wb().changeSource).toBe('undo');
 
       act(() => wb().redo());
+      await settled(wb().session);
       expect(wb().changeSource).toBe('undo');
     },
   );

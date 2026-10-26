@@ -37,7 +37,6 @@ import {
   createModelSession,
   type ModelSession,
 } from '@/lib/workbench/modelSession';
-import { guardsForMode } from '@/components/workbench/engines/modeGuards';
 import {
   agentModeOf,
   contextProvidersFor,
@@ -52,6 +51,7 @@ import {
   ENGINE_AGENT_CONTEXTS,
 } from '@/lib/workbench/engineDialects';
 import { parseModel } from '@/lib/workbench/dialects';
+import { toPistar } from '@istar-ts/core';
 
 const EDGEV2 = readFileSync(
   join(__dirname, '../../../../examples/edge/simpleChoice.txt'),
@@ -78,7 +78,7 @@ const call = async (
 ): Promise<HostToolResult> => {
   const tool = tools.find((t) => t.name === name);
   if (!tool) throw new Error(`no ${name}`);
-  const session = createModelSession(parseModel(text), () => {});
+  const session = createModelSession(text, () => {});
   return tool.handler(args, {
     getModel: () => session.store.getModel(),
     dispatcher: session.dispatcher,
@@ -262,13 +262,8 @@ const task = (id: string, text: string) =>
 
 /** An edgev2 session (its mode's guards on it), its backend-A session, and a run of `toolCalls` on it. */
 const proposed = async (toolCalls: readonly ToolCall[]) => {
-  const session: ModelSession = createModelSession(
-    parsePistar(EDGEV2),
-    () => {},
-  );
-  const { guards, postGuards } = guardsForMode('edgev2');
-  session.setGuards(guards);
-  session.setPostGuards(postGuards);
+  const session: ModelSession = createModelSession(EDGEV2, () => {});
+  session.setMode('edgev2');
   const glsp = await openGlspSession(session, 'edgev2', NO_WORKSPACE);
   const { changeSet } = glsp;
   const before = session.store.getModel();
@@ -304,7 +299,8 @@ describe('Propose mode: refused at preview, one approval one undo step (#415, #4
 
     const undone = await session.dispatcher.dispatch({ kind: 'glspUndo' });
     expect(undone.ok).toBe(true);
-    expect(session.store.getModel()).toBe(before);
+    // the mirror reads the worker's model anew (#434): equal, not the same object
+    expect(toPistar(session.store.getModel())).toBe(toPistar(before));
     close();
   });
 
@@ -343,7 +339,7 @@ describe('Propose mode: refused at preview, one approval one undo step (#415, #4
   });
 
   it("the live session's registry has goal-controller's four host tools (goal-controller#450)", async () => {
-    const session = createModelSession(parsePistar(EDGEV2), () => {});
+    const session = createModelSession(EDGEV2, () => {});
     const glsp = await openGlspSession(session, 'edgev2', NO_WORKSPACE);
     const names = glsp.liveRegistry.list().map((spec) => spec.name);
     expect(names).toEqual(
@@ -358,7 +354,7 @@ describe('Propose mode: refused at preview, one approval one undo step (#415, #4
   });
 
   it("the scratch session's registry has goal-controller's host tools", async () => {
-    const session = createModelSession(parsePistar(EDGEV2), () => {});
+    const session = createModelSession(EDGEV2, () => {});
     const glsp = await openGlspSession(session, 'edgev2', NO_WORKSPACE);
     const scratch = await glsp.changeSet.openScratch();
     const names = scratch.registry.list().map((spec) => spec.name);

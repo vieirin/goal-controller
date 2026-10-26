@@ -33,6 +33,7 @@ import {
   setNodeText,
 } from '@/lib/workbench/pistar';
 import { mockReactFlowDom } from './reactFlowDom';
+import { settled } from './modelWorker';
 
 const ISTAR = readFileSync(
   join(__dirname, '../../../../examples/edge/simpleChoice.txt'),
@@ -120,6 +121,7 @@ describe("DefinitionInspector's NotationField dispatches applyLabelEdit (#411)",
       fireEvent.change(input, { target: { value: 'retry' } });
       fireEvent.blur(input);
     });
+    await settled(wb().session);
 
     expect(dispatch).toHaveBeenCalledTimes(1);
     expect(dispatch.mock.calls[0]![0]).toMatchObject({
@@ -207,6 +209,7 @@ describe('PartInspector dispatches istar.updateProperties (#411, goal-controller
         fireEvent.change(input, { target: { value: 'baz' } });
         fireEvent.blur(input);
       });
+      await settled(wb().session);
 
       expect(dispatch).toHaveBeenCalledTimes(1);
       expect(dispatch.mock.calls[0]![0]).toMatchObject({
@@ -239,6 +242,7 @@ describe('PartInspector dispatches istar.updateProperties (#411, goal-controller
       await act(async () => {
         fireEvent.click(remove);
       });
+      await settled(wb().session);
 
       expect(dispatch).toHaveBeenCalledTimes(1);
       expect(dispatch.mock.calls[0]![0]).toMatchObject({
@@ -316,6 +320,7 @@ describe('PartInspector dispatches istar.updateProperties (#411, goal-controller
         fireEvent.change(input, { target: { value: 'baz' } });
         fireEvent.blur(input);
       });
+      await settled(wb().session);
 
       expect(dispatch).toHaveBeenCalledTimes(1);
       expect(dispatch.mock.calls[0]![0]).toMatchObject({
@@ -347,6 +352,7 @@ describe('PartInspector dispatches istar.updateProperties (#411, goal-controller
       await act(async () => {
         fireEvent.click(remove);
       });
+      await settled(wb().session);
 
       expect(dispatch).toHaveBeenCalledTimes(1);
       expect(dispatch.mock.calls[0]![0]).toMatchObject({

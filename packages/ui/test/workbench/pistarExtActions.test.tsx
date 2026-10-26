@@ -31,6 +31,7 @@ import { pistarExtExtension } from '@/components/workbench/engines/pistarExt/ext
 import { usePistarExt } from '@/components/workbench/engines/pistarExt/usePistarExt';
 import { modelDialect, modelExtensionOf } from '@/lib/workbench/dialects';
 import { mockReactFlowDom } from './reactFlowDom';
+import { settled } from './modelWorker';
 
 const ISTAR = readFileSync(
   join(__dirname, '../../../../examples/edge/simpleChoice.txt'),
@@ -82,14 +83,16 @@ const opened = async () => {
   return view;
 };
 
-/** ⌘Z on the canvas. */
-const commandZ = (container: HTMLElement) =>
+/** ⌘Z on the canvas, and the worker's answer shown (#434). */
+const commandZ = async (wb: () => Workbench, container: HTMLElement) => {
   act(() => {
     fireEvent.keyDown(container.querySelector('.istar-canvas')!, {
       key: 'z',
       metaKey: true,
     });
   });
+  await settled(wb().session);
+};
 
 describe('piStar-ext dispatches istar.setFileMetamodel (#411)', () => {
   it('"Add new" dispatches one istar.setFileMetamodel, undone by one glspUndo', async () => {
@@ -126,7 +129,7 @@ describe('piStar-ext dispatches istar.setFileMetamodel (#411)', () => {
     expect(block?.elements).toMatchObject([{ kind: 'model.Foo' }]);
     expect(wb().text).toContain('model.Foo');
 
-    await commandZ(container);
+    await commandZ(wb, container);
     expect(fileMetamodelOf(wb().session.store.getModel())).toBeUndefined();
   });
 
@@ -210,7 +213,7 @@ describe('piStar-ext dispatches istar.setFileMetamodel (#411)', () => {
       expect(found?.stereotypes).toMatchObject([{ name: 'Fancy' }]);
     });
 
-    await commandZ(container);
+    await commandZ(wb, container);
     expect(fileMetamodelOf(wb().session.store.getModel())).toBeUndefined();
   });
 

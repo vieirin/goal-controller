@@ -36,13 +36,7 @@ import {
 } from '@/lib/workbench/localProblems';
 import type { GoalView } from '@goal-controller/goal-tree';
 import type { GoalDiagnostic, ModelStore, PistarFile } from '@istar-ts/core';
-import {
-  emptyModel,
-  fileMetamodelForText,
-  parseModel,
-} from '@/lib/workbench/dialects';
-import { serializeModel } from '@/lib/workbench/pistar';
-import { guardsForMode } from './engines/modeGuards';
+import { emptyModel, fileMetamodelForText } from '@/lib/workbench/dialects';
 import {
   createModelSession,
   dispatchOrFallback,
@@ -77,8 +71,10 @@ import {
   isEngineMode,
   isMode,
   readModelMode,
+  readModelText,
   writeModelMode,
   type ModelMode,
+  type ReadModelText,
 } from '@/lib/workbench/pistar';
 import {
   archiveBaseName,
@@ -363,12 +359,14 @@ export type Workbench = {
   /** close the model and go back to the start screen; it stays in Recent with its edits */
   closeModel: () => void;
   /**
-   * the text as the model's, read into the store as one undoable edit (bursts
-   * coalesced); a text that doesn't parse is kept, the store left as it was.
-   * The editors not yet ported to actions write through it (#411). `skipStore`
-   * (#439): the text is shown as given (so it isn't reset under the caller),
-   * but never read into the store — for a dispatch a guard rejected, whose
-   * raw text a quiet `store.replace` would otherwise apply unchecked.
+   * the text as the model's, shown as given at once and read into the model
+   * worker's store as one undoable edit (#434: a host-side write there, not
+   * an action, so a conversion to another metamodel can go through it); a
+   * text that doesn't parse is kept, the store left as it was. The raw-text
+   * paths (a conversion, an import, SourceView's fallback) write through it
+   * (#411). `skipStore` (#439): the text is shown as given (so it isn't reset
+   * under the caller), but never read into the store — for a dispatch a
+   * guard rejected, whose raw text the write would otherwise apply unchecked.
    */
   setText: (
     text: string,
@@ -689,7 +687,6 @@ const useDebounced = <T,>(value: T, ms: number): T => {
   return debounced;
 };
 
-const COALESCE_MS = 600;
 // an analysis still unanswered this long is shown as slow (goal-controller#432
 // review): well past the worker's own debounce (engineWorker.ts's
 // ANALYSIS_DEBOUNCE_MS). Only a worker that then doesn't answer a ping within
@@ -701,9 +698,6 @@ export const ANALYSIS_UNRESPONSIVE_MS = 50_000;
 // under (goal-controller#433): not a Problem.source (each one already
 // carries its own, set by `analyze`), just this store's replace-bookkeeping
 const ENGINE_DIAGNOSTICS_SERVICE = 'engine';
-
-/** A model text read (blank: an empty model), or why it can't be. */
-type ReadText = { model: AnyModel } | { error: Error };
 
 /** The store's current model, kept driftless by subscribing to it directly
  * (#449, #451 review) instead of mirroring it into a `useState` that every
@@ -830,7 +824,6 @@ function WorkbenchState({
   const openSettings = useCallback(() => setSettingsDialog('edit'), []);
   const closeSettings = useCallback(() => setSettingsDialog(null), []);
 
-  const lastPush = useRef(0);
   const [, forceHistory] = useState(0);
   // read after loadPreferences, which may move an old autosave into Recent
   const [recent, setRecent] = useState<RecentFile[]>(() => loadRecent());
@@ -867,34 +860,24 @@ function WorkbenchState({
   // fail to parse (#451 review)
   const [jsonError, setJsonError] = useState<Problem | null>(null);
   // the last text read, and what it read (setText reads each text once)
-  const lastRead = useRef<{ text: string; read: ReadText } | null>(null);
-  const readText = useCallback((text: string): ReadText => {
+  const lastRead = useRef<{ text: string; read: ReadModelText } | null>(null);
+  const readText = useCallback((text: string): ReadModelText => {
     if (lastRead.current?.text === text) return lastRead.current.read;
-    let read: ReadText;
-    try {
-      read = { model: text.trim() ? parseModel(text) : emptyModel() };
-    } catch (error) {
-      read = { error: error as Error };
-    }
+    const read = readModelText(text);
     lastRead.current = { text, read };
     return read;
   }, []);
 
   // ---- the model: the store and dispatcher own it, the text is derived (#410) ----
-  // the text each model of the history was shown as: undo and redo bring it back as it was
-  const textOf = useRef(new WeakMap<AnyModel, string>());
-  // the model setText last read into the store (its next burst replaces it)
-  const lastReplaced = useRef<AnyModel | null>(null);
+  // both live in the model worker (#434): the session here is a mirror of
+  // its store, and each change arrives with the text derived from it there
+  // (undo and redo bring a model's text back as it was, byte for byte)
   // the dispatcher's sourceModelChanged: an edit (canvas, inspector), undo or redo
   const onModelChanged = useCallback(
-    ({ model: next, action, surface }: ModelChanged) => {
+    ({ action, surface, text }: ModelChanged) => {
       // a guard rejection never reaches here (the dispatcher throws before any
       // store change): every call is a successful dispatch, from any surface
       setEditRejected([]);
-      const text =
-        textOf.current.get(next) ?? serializeModel(next, textRef.current);
-      textOf.current.set(next, text);
-      lastReplaced.current = null;
       // the store's own model, just serialized: it cannot fail to parse (#451 review)
       setJsonError(null);
       if (text === textRef.current) {
@@ -913,11 +896,15 @@ function WorkbenchState({
   const onModelChangedRef = useRef(onModelChanged);
   onModelChangedRef.current = onModelChanged;
   const newSession = useCallback(
-    (model: AnyModel): ModelSession =>
-      createModelSession(model, (change) => onModelChangedRef.current(change)),
+    (text: string, seed: AnyModel): ModelSession =>
+      createModelSession(text, (change) => onModelChangedRef.current(change), {
+        seed,
+        // the server's prerender has no worker to open it in
+        connect: typeof window !== 'undefined',
+      }),
     [],
   );
-  const [session, setSession] = useState(() => newSession(emptyModel()));
+  const [session, setSession] = useState(() => newSession('', emptyModel()));
   // the store's model, by identity (#449): a subscription to the session's
   // own store, so the tree and its consumers below derive from it instead of
   // re-parsing the serialized text on every edit, driftless by construction
@@ -945,12 +932,11 @@ function WorkbenchState({
   // the mode's own guards (oneActorOnly, the edgeV2 resource-bounds check,
   // goal-controller#412): the session's, not whichever diagram happens to be
   // mounted (the Source tab unmounts the diagram entirely, #439 review) —
-  // set here on the session itself, read fresh by its dispatcher on every
-  // dispatch regardless of which surface or tab made it.
+  // the worker's dispatcher runs them on every dispatch, whichever surface
+  // or tab made it. A function can't cross postMessage: the worker builds
+  // them from the mode (`guardsForMode`, #434), sent ahead of the next action.
   useEffect(() => {
-    const { guards, postGuards } = guardsForMode(mode);
-    session.setGuards(guards);
-    session.setPostGuards(postGuards);
+    session.setMode(mode);
   }, [session, mode]);
   // a mode change (a pistar toggle, a conversion) starts over: an edit
   // rejected under the previous mode's guards no longer applies (#439)
@@ -997,12 +983,12 @@ function WorkbenchState({
   const startSession = useCallback(
     (text: string) => {
       const read = readText(text);
-      const model = 'model' in read ? read.model : emptyModel();
-      if ('model' in read) textOf.current.set(model, text);
       sessionRef.current.dispose();
-      const next = newSession(model);
+      const next = newSession(
+        text,
+        'model' in read ? read.model : emptyModel(),
+      );
       sessionRef.current = next;
-      lastReplaced.current = null;
       setSession(next);
       setJsonError('error' in read ? jsonProblem(text, read.error) : null);
       setEditRejected([]);
@@ -1018,28 +1004,13 @@ function WorkbenchState({
         // text is already-valid JSON (built, not typed, by every caller that
         // passes skipStore), so there is nothing here for readText to catch
         setJsonError(null);
+        sessionRef.current.write(text, null);
       } else {
-        const now = Date.now();
         const read = readText(text);
-        if ('model' in read) {
-          const { store, quietly } = sessionRef.current;
-          // coalesce bursts (typing) into one undo step: the burst's last
-          // replace is taken back and made again with this text's model
-          const burst =
-            now - lastPush.current <= COALESCE_MS &&
-            lastReplaced.current === store.getModel() &&
-            store.canUndo();
-          quietly(() => {
-            if (burst) store.undo();
-            store.replace(read.model);
-          });
-          lastReplaced.current = read.model;
-          textOf.current.set(read.model, text);
-          setJsonError(null);
-        } else {
-          setJsonError(jsonProblem(text, read.error));
-        }
-        lastPush.current = now;
+        // one undoable edit in the worker's store, the text kept as written
+        // (the worker reads it again: a model can't cross postMessage, #434)
+        sessionRef.current.write(text, 'model' in read ? read.model : null);
+        setJsonError('model' in read ? null : jsonProblem(text, read.error));
       }
       commit(text, source);
     },
@@ -1051,7 +1022,7 @@ function WorkbenchState({
   // no model, or text that isn't JSON or isn't recorded for the engine, they stay in
   // the workbench (and in Recent)
   const writeOptions = useCallback(
-    (next: GenerationOptions, ownStep: boolean) => {
+    (next: GenerationOptions) => {
       const { engine: current, pistar: viewOnly } = settingsRef.current;
       const target = lockedEngine ?? current;
       const text = textRef.current;
@@ -1079,7 +1050,6 @@ function WorkbenchState({
             baseOptionsRef.current,
           );
           if (written === text) return;
-          if (ownStep) lastPush.current = 0;
           // the engine options live in the model's top-level `project` key
           // (EMBEDDED_KEY), `model.extra` to istar-ts: one `istar.updateModelExtra`
           const kept = optionsToKeep(target, next, baseOptionsRef.current);
@@ -1111,7 +1081,7 @@ function WorkbenchState({
   );
   const setOptions = useCallback(
     (patch: Partial<GenerationOptions>) =>
-      writeOptions({ ...settingsRef.current.options, ...patch }, false),
+      writeOptions({ ...settingsRef.current.options, ...patch }),
     [writeOptions],
   );
   /** the settings dialog: live and the options (one undoable edit when they change) */
@@ -1123,7 +1093,7 @@ function WorkbenchState({
       const changed = (
         Object.keys(options) as (keyof GenerationOptions)[]
       ).some((key) => options[key] !== before[key]);
-      if (changed) writeOptions(options, true);
+      if (changed) writeOptions(options);
     },
     [adoptSettings, writeOptions],
   );
@@ -1690,7 +1660,7 @@ function WorkbenchState({
     [engine],
   );
   const engineWorker = useEngineWorker(
-    session.dispatcher,
+    session.serve,
     engine,
     pistar,
     applyAnalysisOutcome,
