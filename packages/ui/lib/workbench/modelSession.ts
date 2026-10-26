@@ -23,8 +23,6 @@ import {
 import {
   canLink,
   DEFAULT_PALETTE,
-  hostMetamodelOf,
-  metamodelOf,
   ModelOperationError,
   toPistar,
   type AnyMetamodel,
@@ -36,7 +34,7 @@ import {
 import type { GModelSizeOverrides } from '@istar-ts/gmodel';
 import type { IstarSurface } from '@istar-ts/react';
 import type { AnyModel } from '@goal-controller/lib';
-import { emptyModel } from './dialects';
+import { emptyModel, rootMetamodelOf } from './dialects';
 import { isGuardRejection } from './guardDiagnostics';
 import { readModelText, type ModelMode } from './pistar';
 import { modelWorker } from './modelWorkerClient';
@@ -180,7 +178,7 @@ export const createModelSession = (
   // each change with (ModelChangeExtras): the opened model's is 0
   const metamodels: AnyMetamodel[] = [];
   const metamodelKey = (model: AnyModel): number => {
-    const metamodel = hostMetamodelOf(model) ?? metamodelOf(model);
+    const metamodel = rootMetamodelOf(model);
     const known = metamodels.indexOf(metamodel);
     return known >= 0 ? known : metamodels.push(metamodel) - 1;
   };

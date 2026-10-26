@@ -13,6 +13,7 @@ import {
   fileMetamodelExtension,
   fileMetamodelOf,
   FILE_METAMODEL_KEY,
+  hostMetamodelOf,
   isActorIn,
   metamodelOf,
   parsePistar,
@@ -60,6 +61,30 @@ const HOSTS = Object.fromEntries(
     hostFor('istar-2.0', dialect),
   ]),
 ) as Record<DialectMode, AnyMetamodel>;
+
+/**
+ * The metamodel a mirror of `model` should read its remote with: the host
+ * part (re-applying the model's own file-declared kinds itself, with
+ * `fileMetamodel: true`) when the file declares any, else the model's own
+ * (already one of `FRAMEWORK_ROOTS`/`HOSTS`, with nothing of its own to
+ * reapply). The one place this choice is made (goal-controller#467); a
+ * worker that can't be handed a `Metamodel` directly (its rules are
+ * functions, not structured-clonable) looks it up by `.name`
+ * (`metamodelByName`) instead.
+ */
+// TODO(istar-ts#250): metamodelFor
+export const rootMetamodelOf = (model: AnyModel): AnyMetamodel =>
+  hostMetamodelOf(model) ?? metamodelOf(model);
+
+/** Every metamodel `rootMetamodelOf` can return, by its `.name`: a worker's own lookup. */
+const KNOWN_METAMODELS: readonly AnyMetamodel[] = [
+  ...Object.values(FRAMEWORK_ROOTS),
+  ...Object.values(HOSTS),
+];
+
+/** The metamodel named `name` among `rootMetamodelOf`'s possible results, if any. */
+export const metamodelByName = (name: string): AnyMetamodel | undefined =>
+  KNOWN_METAMODELS.find((metamodel) => metamodel.name === name);
 
 /**
  * What a model adds to its dialect is kept in its file, in istar-ts's

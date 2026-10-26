@@ -36,7 +36,11 @@ import {
 } from '@/lib/workbench/localProblems';
 import type { GoalView } from '@goal-controller/goal-tree';
 import type { GoalDiagnostic, ModelStore, PistarFile } from '@istar-ts/core';
-import { emptyModel, fileMetamodelForText } from '@/lib/workbench/dialects';
+import {
+  emptyModel,
+  fileMetamodelForText,
+  rootMetamodelOf,
+} from '@/lib/workbench/dialects';
 import {
   createModelSession,
   dispatchOrFallback,
@@ -1659,11 +1663,21 @@ function WorkbenchState({
     },
     [engine],
   );
+  // the engine worker's mirror can't be handed a `Metamodel` directly (its
+  // link rules are functions, not structured-clonable), so it is given the
+  // same choice `rootMetamodelOf` makes for this model, by name
+  // (goal-controller#467); a reconnect follows a metamodel change (KAOS ↔
+  // iStar, NFR, a conversion) the same way a session change already does
+  const metamodelName = useMemo(
+    () => rootMetamodelOf(storeModel).name,
+    [storeModel],
+  );
   const engineWorker = useEngineWorker(
     session.serve,
     engine,
     pistar,
     applyAnalysisOutcome,
+    metamodelName,
   );
   useEffect(() => {
     if (!model.text.trim() || pistar) applyAnalysisOutcome({ kind: 'cleared' });
