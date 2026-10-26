@@ -7,6 +7,13 @@
  * context.ts), the same objects the system prompt's sections are written
  * from. Every one is read-only: none dispatches an edit, so none needs the
  * review step a mutating host tool would.
+ *
+ * The agent's session runs in the model worker, and so do
+ * `list-types` and `notation-help` (`hostToolsFor`). `pool-lookup` and
+ * `validate-notation` (`workspaceToolsFor`) read the open project's
+ * workspace, the main thread's own state (the model's view, the project's
+ * resources, the analysis' variables): they run there, the worker serving
+ * them by forwarding each call.
  */
 import * as z from 'zod';
 import {
@@ -43,6 +50,21 @@ export type AgentWorkspace = Omit<PoolWorkspace, 'tree'> & {
   projectResources?: NotationInputs['projectResources'];
 };
 
+/**
+ * A host tool that reads only the workspace, never the session (its model,
+ * its dispatcher): one the main thread runs, where the workspace is.
+ */
+export type WorkspaceTool = Omit<HostTool, 'handler'> & {
+  handler(args: Parameters<HostTool['handler']>[0]): HostToolResult;
+};
+
+const specOf = (name: string, description: string, schema: z.ZodType) => ({
+  name,
+  description,
+  inputSchema: z.toJSONSchema(schema) as HostTool['inputSchema'],
+  readOnly: true,
+});
+
 const toolSchema = <S extends z.ZodType>(
   name: string,
   description: string,
@@ -52,11 +74,18 @@ const toolSchema = <S extends z.ZodType>(
     context: HostToolContext,
   ) => HostToolResult | Promise<HostToolResult>,
 ): HostTool => ({
-  name,
-  description,
-  inputSchema: z.toJSONSchema(schema) as HostTool['inputSchema'],
-  readOnly: true,
+  ...specOf(name, description, schema),
   handler: (args, context) => handler(schema.parse(args), context),
+});
+
+const workspaceTool = <S extends z.ZodType>(
+  name: string,
+  description: string,
+  schema: S,
+  handler: (args: z.infer<S>) => HostToolResult,
+): WorkspaceTool => ({
+  ...specOf(name, description, schema),
+  handler: (args) => handler(schema.parse(args)),
 });
 
 const refusal = (source: string, message: string): HostToolResult => ({
@@ -91,8 +120,8 @@ const poolLookupTool = (
   mode: ModelMode,
   pool: PoolRegistration | null,
   getWorkspace: () => AgentWorkspace,
-): HostTool =>
-  toolSchema(
+): WorkspaceTool =>
+  workspaceTool(
     'pool-lookup',
     "A name in the engine's definition pool: resolves it among one of its kinds, in a scope (global, or an owner's members).",
     poolLookupSchema,
@@ -139,8 +168,8 @@ const EMPTY_TREE: NotationTree = { nodes: new Map(), roots: [] };
 const validateNotationTool = (
   { dialect, checks }: AgentMode,
   getWorkspace: () => AgentWorkspace,
-): HostTool =>
-  toolSchema(
+): WorkspaceTool =>
+  workspaceTool(
     'validate-notation',
     'Validates a piece of goal-language notation (an element line, a property line, a bracketed notation) against the active dialect, exactly as the editor does.',
     validateNotationSchema,
@@ -158,16 +187,24 @@ const validateNotationTool = (
     },
   );
 
-/** Every host tool M6 registers with M5's MCP server (goal-controller#415). */
-export const hostToolsFor = (
+/**
+ * The host tools M6 registers with M5's MCP server (goal-controller#415)
+ * that the model worker runs itself, next to the agent's session: the
+ * mode's parts only.
+ */
+export const hostToolsFor = (mode: ModelMode): HostTool[] => {
+  const agent = agentModeOf(mode);
+  return [listTypesTool(agent), notationHelpTool(agent)];
+};
+
+/** The host tools that read the workspace: the main thread runs them (`WorkspaceTool`). */
+export const workspaceToolsFor = (
   mode: ModelMode,
   getWorkspace: () => AgentWorkspace,
-): HostTool[] => {
+): WorkspaceTool[] => {
   const agent = agentModeOf(mode);
   return [
-    listTypesTool(agent),
     poolLookupTool(mode, agent.pool, getWorkspace),
-    notationHelpTool(agent),
     validateNotationTool(agent, getWorkspace),
   ];
 };

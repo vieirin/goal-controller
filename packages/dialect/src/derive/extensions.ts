@@ -5,6 +5,7 @@
  * engine definition whose element lines carry them as annotations. Nothing
  * here knows a dialect.
  */
+import { LINE_DASHES, type LineDashKind } from '@istar-ts/core';
 import {
   ISTAR_ACTOR_KINDS,
   ISTAR_KIND_OF,
@@ -79,23 +80,10 @@ export const shapeOfFile = ({ path }: FileShape): string => path;
 /** istar-ts's own file-format shape of a kind (`KindShape`), as far as it is read here. */
 export type FileShape = { path: string; viewBox?: string };
 
-/**
- * The raw SVG dash array a dialect's line enum is drawn with, by
- * `@istar-ts/react`'s own `LINE_DASHES` (this package's own copy: it has no
- * dependency on `@istar-ts/react`; the ui package's own tests assert this
- * copy equals the original, dash key by dash key).
- */
-// TODO(istar-ts): LINE_DASHES from @istar-ts/core
-export const DASH_OF = {
-  continuous: undefined,
-  dashed: '10,5',
-  dotted: '1,3',
-} as const satisfies Record<DialectLine['dash'], string | undefined>;
-
 /** A dialect's own line (its dash/marker enum) as a model's own file-format line (istar-ts's `KindLine`). */
 export const fileLineOf = (line: DialectLine): FileLine =>
   defined({
-    dash: DASH_OF[line.dash],
+    dash: LINE_DASHES[line.dash],
     marker: line.marker,
     markerFilled: line.markerFilled,
   });
@@ -103,14 +91,14 @@ export const fileLineOf = (line: DialectLine): FileLine =>
 /**
  * A model's own file-format line (istar-ts's `KindLine`) as a dialect's own
  * line (its dash/marker enum): its raw dash array back to the enum it names
- * (no dash is `continuous`; a dash that isn't one of `@istar-ts/react`'s own
- * presets — written by hand in the file — reads as `dashed`, the closest
+ * (no dash is `continuous`; a dash that isn't one of `@istar-ts/core`'s own
+ * `LINE_DASHES` — written by hand in the file — reads as `dashed`, the closest
  * meaning); its marker (`false`, explicitly none) reads as none.
  */
 export const lineOfFile = (line: FileLine): DialectLine => ({
   dash:
-    (Object.keys(DASH_OF) as DialectLine['dash'][]).find(
-      (dash) => DASH_OF[dash] === line.dash,
+    (Object.keys(LINE_DASHES) as LineDashKind[]).find(
+      (dash) => LINE_DASHES[dash] === line.dash,
     ) ?? (line.dash ? 'dashed' : 'continuous'),
   ...(line.marker ? { marker: line.marker } : {}),
   ...(line.markerFilled !== undefined

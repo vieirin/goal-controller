@@ -24,7 +24,7 @@ import {
 import { createModelSession } from '@/lib/workbench/modelSession';
 import { localModelWorkerSessions } from '@/lib/workbench/modelWorkerLocal';
 import { emptyModelText } from '@/lib/workbench/frameworks';
-import { writeModelMode } from '@/lib/workbench/pistar';
+import { readModelText, writeModelMode } from '@/lib/workbench/pistar';
 import { settled } from './modelWorker';
 
 const ISTAR = readFileSync(
@@ -213,6 +213,58 @@ describe('the model lives in the worker; the main thread holds a mirror (#434)',
     });
     expect(metamodelOf(wb().session.store.getModel())).not.toBe(KAOS_OBSTACLES);
     expect(nameOf(wb(), G1)).toBe('G1: Goal [+]');
+    expect(wb().text).toBe(before);
+  });
+});
+
+describe('the mirror reads each file with its own metamodel (metamodelFor)', () => {
+  const example = (path: string) =>
+    readFileSync(join(__dirname, '../../../../examples', path), 'utf8');
+
+  it.each([
+    ['KAOS', 'kaos/kaos-welcome.txt'],
+    ['NFR', 'nfr/nfr-welcome.txt'],
+  ])(
+    'a %s model opens with no seed flash: the seed is shown, and kept once the worker answers',
+    async (_, path) => {
+      const text = example(path);
+      const read = readModelText(text);
+      if (!('model' in read)) throw read.error;
+      const changes = vi.fn();
+      const session = createModelSession(text, changes, () => {}, {
+        seed: read.model,
+      });
+      const heard = vi.fn();
+      session.store.subscribe(heard);
+      expect(session.store.getModel()).toBe(read.model);
+      await session.ready;
+      await settled(session);
+      expect(session.store.getModel()).toBe(read.model);
+      expect(heard).not.toHaveBeenCalled();
+      expect(changes).not.toHaveBeenCalled();
+      session.dispose();
+    },
+  );
+
+  it('a KAOS model converted to iStar 2.0 is followed by the same mirror, and undone back to KAOS', async () => {
+    const kaosText = example('kaos/kaos-welcome.txt');
+    const wb = await opened(kaosText);
+    const store = wb().session.store;
+    const kaos = metamodelOf(store.getModel());
+    expect(kaos).not.toBe(metamodelOf(createEmptyModel()));
+    const before = wb().text;
+
+    const istar = emptyModelText('istar-2.0');
+    act(() => wb().setText(istar, 'convert'));
+    await settled(wb().session);
+    expect(wb().session.store).toBe(store);
+    expect(metamodelOf(store.getModel())).not.toBe(kaos);
+    expect(wb().text).toBe(istar);
+
+    await act(async () => {
+      await wb().dispatcherFor('inspector').dispatch({ kind: 'glspUndo' });
+    });
+    expect(metamodelOf(store.getModel())).toBe(kaos);
     expect(wb().text).toBe(before);
   });
 });

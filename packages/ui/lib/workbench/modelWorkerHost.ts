@@ -13,6 +13,7 @@ import {
   type ActionDispatcher,
   type ActionGuard,
   type ActionPostGuard,
+  type HostToolResult,
   type MessagePortLike,
   type ModelSourceChangedAction,
   type ReplaceModelOperation,
@@ -27,13 +28,14 @@ import {
 import type { AnyModel } from '@goal-controller/lib';
 import { emptyModel, pistarExtMetamodelGuard } from './dialects';
 import { guardsForMode } from './modeGuards';
-import { readModelText, serializeModel } from './pistar';
+import { readModelText, serializeModel, type ModelMode } from './pistar';
 import {
   isModelSessionControl,
   isModelWorkerOpen,
   type ModelChangeExtras,
   type ModelSessionControl,
   type ModelSessionReport,
+  type ModelSessionToolCall,
   type ModelWorkerOpen,
 } from './modelWorkerProtocol';
 
@@ -60,11 +62,10 @@ const hostSession = (
   if ('model' in read) textOf.set(opened, text);
   // the text the next derived one takes its indentation from
   let lastText = text;
-  // the metamodel each model of the history is read with (ModelChangeExtras)
-  const metamodelKeyOf = new WeakMap<AnyModel, number>([[opened, 0]]);
-  let metamodelKey = 0;
   // what requestContextActions answers: the canvas's palette (istar-ts#202)
   let palette: AnyPaletteDescription = DEFAULT_PALETTE;
+  // the mode, for the agent's session (its guards, host tools and context)
+  let mode: ModelMode = 'pistar';
   // the mode's own guards (oneActorOnly, an edgeV2 check, #412), read fresh
   // on each dispatch (the dispatcher's own are fixed at creation)
   let modeGuards: readonly ActionGuard<string, string>[] = [];
@@ -95,9 +96,7 @@ const hostSession = (
     const derived = textOf.get(model) ?? serializeModel(model, lastText);
     textOf.set(model, derived);
     lastText = derived;
-    metamodelKey = metamodelKeyOf.get(model) ?? metamodelKey;
-    metamodelKeyOf.set(model, metamodelKey);
-    extrasOf.set(action, { text: derived, metamodelKey });
+    extrasOf.set(action, { text: derived });
   });
   // the main thread's connection: every change with its extras
   const withExtras: ActionDispatcher<string, string> = {
@@ -112,15 +111,52 @@ const hostSession = (
       }),
   };
   const served = new Map<number, () => void>();
+  // the agent's sessions (`serveGlspMcpSession`), and their calls to the main
+  // thread's host tools still waiting for an answer
+  const agents = new Map<number, () => void>();
+  const toolCalls = new Map<
+    number,
+    {
+      readonly agent: number;
+      resolve(result: HostToolResult): void;
+      reject(error: Error): void;
+    }
+  >();
+  let toolCallCount = 0;
+  const forwardTo =
+    (agent: number) =>
+    (
+      name: string,
+      args: ModelSessionToolCall['args'],
+    ): Promise<HostToolResult> =>
+      new Promise((resolve, reject) => {
+        const call = (toolCallCount += 1);
+        toolCalls.set(call, { agent, resolve, reject });
+        port.postMessage({
+          type: 'toolCall',
+          agent,
+          call,
+          name,
+          args,
+        } satisfies ModelSessionToolCall);
+      });
+  const stopAgent = (agent: number): void => {
+    agents.get(agent)?.();
+    agents.delete(agent);
+    for (const [call, waiting] of toolCalls)
+      if (waiting.agent === agent) {
+        toolCalls.delete(call);
+        waiting.reject(new Error('the agent session is closed'));
+      }
+  };
 
-  const write = (next: string, apply: boolean, key: number): void => {
+  const write = (next: string, apply: boolean): void => {
     lastText = next;
     if (!apply) return;
     const written = readModelText(next);
     // the main thread read it first: it does parse
     if (!('model' in written)) return;
     textOf.set(written.model, next);
-    metamodelKeyOf.set(written.model, key);
     // a host-side edit, as `wb.setText`'s was before the worker (#410): one
     // undo step; a conversion's text may be of another metamodel, which
     // `istar.replaceModel` (read with the dispatcher's own) can't take
@@ -155,6 +191,7 @@ const hostSession = (
   ): void => {
     switch (message.type) {
       case 'mode': {
+        mode = message.mode;
         const { guards, postGuards } = guardsForMode(message.mode);
         modeGuards = guards;
         modePostGuards = postGuards;
@@ -168,7 +205,7 @@ const hostSession = (
         palette = message.palette ?? DEFAULT_PALETTE;
         return;
       case 'write':
-        write(message.text, message.apply, message.metamodelKey);
+        write(message.text, message.apply);
         return;
       case 'serve': {
         const other = ports[0];
@@ -187,6 +224,35 @@ const hostSession = (
         served.get(message.id)?.();
         served.delete(message.id);
         return;
+      case 'agent': {
+        const other = ports[0];
+        if (!other) return;
+        // loaded once a page turns the agent on, not with every worker
+        const started = import('./agent/agentHost').then(({ serveAgent }) =>
+          serveAgent(other, {
+            store,
+            dispatcher,
+            getMode: () => mode,
+            getPalette: () => palette,
+            forwarded: message.tools,
+            forward: forwardTo(message.id),
+          }),
+        );
+        agents.set(message.id, () => {
+          void started.then((stop) => stop());
+        });
+        return;
+      }
+      case 'unagent':
+        stopAgent(message.id);
+        return;
+      case 'toolResult': {
+        const waiting = toolCalls.get(message.call);
+        toolCalls.delete(message.call);
+        if ('result' in message) waiting?.resolve(message.result);
+        else waiting?.reject(new Error(message.error));
+        return;
+      }
       case 'close':
         close();
         return;
@@ -214,6 +280,7 @@ const hostSession = (
     closed = true;
     for (const stop of served.values()) stop();
     served.clear();
+    for (const agent of agents.keys()) stopAgent(agent);
     disconnect();
     unsubscribe();
     dispatcher.dispose();

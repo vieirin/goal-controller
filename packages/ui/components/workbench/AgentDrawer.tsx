@@ -3,8 +3,8 @@
 /**
  * The agent drawer (goal-controller#415), modelled on istar-ts's playground
  * drawer (`@istar-ts/agent`'s README usage). Both modes run over backend A's
- * session (`wb.glspSession`, `openGlspMcpSession`, istar-ts#239,
- * goal-controller#450): Auto mode calls `liveRegistry` directly (one call,
+ * session (`wb.glspSession`, istar-ts#239, goal-controller#450), served in
+ * the model worker and connected here (`connectGlspMcpSession`): Auto mode calls `liveRegistry` directly (one call,
  * one undo step); Propose mode dry-runs on `changeSet`'s scratch session (a
  * fresh one per run) and shows each proposed step in words (or why it was
  * refused, possibly already at preview: a batch breaking the mode's own
@@ -40,7 +40,12 @@ type TranscriptLine =
   | { kind: 'tool'; name: string; args: unknown; ok: boolean }
   | { kind: 'error'; text: string };
 
-/** What a proposed entry does, in words: its step's lines, or why it was refused. */
+/**
+ * What a proposed entry does, in words: its step's lines, or why it was
+ * refused. The entry is a copy of what the worker's scratch call answered:
+ * an `undo`/`redo` carries its own `undoDescription`, a
+ * step its `stepId`, which `changeSet.step` finds it by.
+ */
 const describeEntry = (
   changeSet: GlspChangeSet,
   entry: ChangeSetEntry,
@@ -50,7 +55,7 @@ const describeEntry = (
       refused: true,
       lines: entry.result.diagnostics.map(({ message }) => message),
     };
-  const undone = changeSet.describeUndo(entry.result);
+  const undone = entry.result.undoDescription;
   if (undone) return { refused: false, lines: [undone] };
   return {
     refused: false,

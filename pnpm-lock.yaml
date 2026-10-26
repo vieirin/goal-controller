@@ -31,16 +31,16 @@ importers:
 
   packages/dialect:
     dependencies:
-      '@istar-ts/dsm3-kaos':
-        specifier: 0.15.0-beta.9
-        version: 0.15.0-beta.9(@istar-ts/react@0.15.0-beta.9)(react-dom@19.2.3)(react@19.2.3)
-      '@istar-ts/dsm3-nfr':
-        specifier: 0.15.0-beta.9
-        version: 0.15.0-beta.9(@istar-ts/react@0.15.0-beta.9)(react-dom@19.2.3)(react@19.2.3)
-    devDependencies:
       '@istar-ts/core':
-        specifier: 0.15.0-beta.9
-        version: 0.15.0-beta.9
+        specifier: ^0.15.1
+        version: 0.15.1
+      '@istar-ts/dsm3-kaos':
+        specifier: ^0.15.1
+        version: 0.15.1(@istar-ts/react@0.15.1)(react-dom@19.2.3)(react@19.2.3)
+      '@istar-ts/dsm3-nfr':
+        specifier: ^0.15.1
+        version: 0.15.1(@istar-ts/react@0.15.1)(react-dom@19.2.3)(react@19.2.3)
+    devDependencies:
       '@types/chai':
         specifier: ^4.3.11
         version: 4.3.20
@@ -124,8 +124,8 @@ importers:
         specifier: workspace:*
         version: link:../goal-language
       '@istar-ts/core':
-        specifier: 0.15.0-beta.9
-        version: 0.15.0-beta.9
+        specifier: ^0.15.1
+        version: 0.15.1
       lodash:
         specifier: ^4.17.21
         version: 4.17.23
@@ -167,11 +167,11 @@ importers:
         specifier: workspace:*
         version: link:../goal-tree
       '@istar-ts/dsm3-kaos':
-        specifier: 0.15.0-beta.9
-        version: 0.15.0-beta.9(@istar-ts/react@0.15.0-beta.9)(react-dom@19.2.3)(react@19.2.3)
+        specifier: ^0.15.1
+        version: 0.15.1(@istar-ts/react@0.15.1)(react-dom@19.2.3)(react@19.2.3)
       '@istar-ts/dsm3-nfr':
-        specifier: 0.15.0-beta.9
-        version: 0.15.0-beta.9(@istar-ts/react@0.15.0-beta.9)(react-dom@19.2.3)(react@19.2.3)
+        specifier: ^0.15.1
+        version: 0.15.1(@istar-ts/react@0.15.1)(react-dom@19.2.3)(react@19.2.3)
       '@rgrove/parse-xml':
         specifier: 4.2.3
         version: 4.2.3
@@ -201,11 +201,11 @@ importers:
         version: 4.6.7
     devDependencies:
       '@istar-ts/actions':
-        specifier: 0.15.0-beta.9
-        version: 0.15.0-beta.9
+        specifier: ^0.15.1
+        version: 0.15.1
       '@istar-ts/core':
-        specifier: 0.15.0-beta.9
-        version: 0.15.0-beta.9
+        specifier: ^0.15.1
+        version: 0.15.1
       '@types/chai':
         specifier: ^4.3.11
         version: 4.3.20
@@ -333,29 +333,29 @@ importers:
         specifier: workspace:*
         version: link:../lib
       '@istar-ts/actions':
-        specifier: 0.15.0-beta.9
-        version: 0.15.0-beta.9
+        specifier: ^0.15.1
+        version: 0.15.1
       '@istar-ts/agent':
-        specifier: 0.15.0-beta.9
-        version: 0.15.0-beta.9(@istar-ts/glsp@0.15.0-beta.9)(@modelcontextprotocol/sdk@1.32.2)
+        specifier: ^0.15.1
+        version: 0.15.1(@istar-ts/glsp@0.15.1)(@modelcontextprotocol/sdk@1.32.2)
       '@istar-ts/core':
-        specifier: 0.15.0-beta.9
-        version: 0.15.0-beta.9
+        specifier: ^0.15.1
+        version: 0.15.1
       '@istar-ts/dsm3-kaos':
-        specifier: 0.15.0-beta.9
-        version: 0.15.0-beta.9(@istar-ts/react@0.15.0-beta.9)(react-dom@19.2.3)(react@19.2.3)
+        specifier: ^0.15.1
+        version: 0.15.1(@istar-ts/react@0.15.1)(react-dom@19.2.3)(react@19.2.3)
       '@istar-ts/dsm3-nfr':
-        specifier: 0.15.0-beta.9
-        version: 0.15.0-beta.9(@istar-ts/react@0.15.0-beta.9)(react-dom@19.2.3)(react@19.2.3)
+        specifier: ^0.15.1
+        version: 0.15.1(@istar-ts/react@0.15.1)(react-dom@19.2.3)(react@19.2.3)
       '@istar-ts/glsp':
-        specifier: 0.15.0-beta.9
-        version: 0.15.0-beta.9(@eclipse-glsp/server-mcp@2.8.0)(@istar-ts/dsm3-kaos@0.15.0-beta.9)(@istar-ts/dsm3-nfr@0.15.0-beta.9)(zod@4.6.7)
+        specifier: ^0.15.1
+        version: 0.15.1(@eclipse-glsp/server-mcp@2.8.0)(@istar-ts/dsm3-kaos@0.15.1)(@istar-ts/dsm3-nfr@0.15.1)(zod@4.6.7)
       '@istar-ts/gmodel':
-        specifier: 0.15.0-beta.9
-        version: 0.15.0-beta.9
+        specifier: ^0.15.1
+        version: 0.15.1
       '@istar-ts/react':
-        specifier: 0.15.0-beta.9
-        version: 0.15.0-beta.9(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
+        specifier: ^0.15.1
+        version: 0.15.1(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
       '@lezer/highlight':
         specifier: ^1.2.4
         version: 1.2.4
@@ -1891,15 +1891,15 @@ packages:
       minipass: 7.1.2
     dev: true
 
-  /@istar-ts/actions@0.15.0-beta.9:
-    resolution: {integrity: sha512-fwizxxOwpAo2aSBc4MoThYd7BiFWagJp+55G9VQ5Jsiv9X4l+/ni3ap6271LoOW6tU+UDXMeQsJ0Ka9xmiYNTA==}
+  /@istar-ts/actions@0.15.1:
+    resolution: {integrity: sha512-8Mpf1Dzu9GkW7Eml6aeKQ6dgmPQ2FPElNW/mMOkizuLXOs/QfhI3zdU76N0/gOXfQlbYWCpwREWluWZX+DbhhQ==}
     dependencies:
-      '@istar-ts/core': 0.15.0-beta.9
+      '@istar-ts/core': 0.15.1
 
-  /@istar-ts/agent@0.15.0-beta.9(@istar-ts/glsp@0.15.0-beta.9)(@modelcontextprotocol/sdk@1.32.2):
-    resolution: {integrity: sha512-3qNxCyOBSplKMBknnBL0sa6iUWYwfDEa870Gq2Zv+aRZl6ouiRt2Cd/Qee2hKsZsWn/s7tbzCbRXxeoRC1ZYGg==}
+  /@istar-ts/agent@0.15.1(@istar-ts/glsp@0.15.1)(@modelcontextprotocol/sdk@1.32.2):
+    resolution: {integrity: sha512-YuPtqqxQ0UrLYaMgkSS0Nodm/EsqXPAvovNo2WplLkRHhyu1jhKi67ynOoe/hQbOvTIXyTQKvWWEJHrlhITlCg==}
     peerDependencies:
-      '@istar-ts/glsp': ^0.15.0-beta.9
+      '@istar-ts/glsp': ^0.15.1
       '@modelcontextprotocol/sdk': ^1.32.2
     peerDependenciesMeta:
       '@istar-ts/glsp':
@@ -1907,19 +1907,19 @@ packages:
       '@modelcontextprotocol/sdk':
         optional: true
     dependencies:
-      '@istar-ts/actions': 0.15.0-beta.9
-      '@istar-ts/core': 0.15.0-beta.9
-      '@istar-ts/glsp': 0.15.0-beta.9(@eclipse-glsp/server-mcp@2.8.0)(@istar-ts/dsm3-kaos@0.15.0-beta.9)(@istar-ts/dsm3-nfr@0.15.0-beta.9)(zod@4.6.7)
+      '@istar-ts/actions': 0.15.1
+      '@istar-ts/core': 0.15.1
+      '@istar-ts/glsp': 0.15.1(@eclipse-glsp/server-mcp@2.8.0)(@istar-ts/dsm3-kaos@0.15.1)(@istar-ts/dsm3-nfr@0.15.1)(zod@4.6.7)
       '@modelcontextprotocol/sdk': 1.32.2(zod@4.6.7)
     dev: false
 
-  /@istar-ts/core@0.15.0-beta.9:
-    resolution: {integrity: sha512-4f7ZC0zz1S39fnVZKUudaO87pCF85iRiIkJCtI9oU2lsULDnLBbYBFYa1otxkjrLqOVMGKRIlgmjGke+LXYk0g==}
+  /@istar-ts/core@0.15.1:
+    resolution: {integrity: sha512-D4vPJcgE+YRuP/VEUnKoXsupIARDzfRbEphwp8E9h6njT3MPIVsKx6tkP1xaZ1CpA7dNAH6ZEDB+UvAeG5BLDQ==}
 
-  /@istar-ts/dsm3-kaos@0.15.0-beta.9(@istar-ts/react@0.15.0-beta.9)(react-dom@19.2.3)(react@19.2.3):
-    resolution: {integrity: sha512-COCMQXLNkeAD6D13WY8pHllnvdxGPwOVTYk0ToQ1yrtTAqLl1kdtBfNVUWu0FBhSkd2k9q+BoopyfgYbFVDy+A==}
+  /@istar-ts/dsm3-kaos@0.15.1(@istar-ts/react@0.15.1)(react-dom@19.2.3)(react@19.2.3):
+    resolution: {integrity: sha512-kTB0vkFvKLzFh1h6a+VG+vsOkKOvnhRgJiRL/JTA7gx1Fxo9dhs3s/612tmMptj1exJaxgOSIgA8mh0+l8dm8w==}
     peerDependencies:
-      '@istar-ts/react': ^0.15.0-beta.9
+      '@istar-ts/react': ^0.15.1
       react: ^18.2.0 || ^19.0.0
       react-dom: ^18.2.0 || ^19.0.0
     peerDependenciesMeta:
@@ -1930,16 +1930,16 @@ packages:
       react-dom:
         optional: true
     dependencies:
-      '@istar-ts/core': 0.15.0-beta.9
-      '@istar-ts/react': 0.15.0-beta.9(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
+      '@istar-ts/core': 0.15.1
+      '@istar-ts/react': 0.15.1(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
     dev: false
 
-  /@istar-ts/dsm3-nfr@0.15.0-beta.9(@istar-ts/react@0.15.0-beta.9)(react-dom@19.2.3)(react@19.2.3):
-    resolution: {integrity: sha512-h9ZuNig5R9mY+HTub7KojJ6fDBuBTcC+6QpOgFwXjCwZa4EOKDWjSqxQu8JNfYlvsbTOFNLrXTJhYDDais+DZg==}
+  /@istar-ts/dsm3-nfr@0.15.1(@istar-ts/react@0.15.1)(react-dom@19.2.3)(react@19.2.3):
+    resolution: {integrity: sha512-4XtUHXHgijjsii7LWVtisuKxP4t+XoNFc+hR9kbGu7HK0xPGwBHczRjVlnLIBaxLVP03XIflk0jvHwDoXDEvDA==}
     peerDependencies:
-      '@istar-ts/react': ^0.15.0-beta.9
+      '@istar-ts/react': ^0.15.1
       react: ^18.2.0 || ^19.0.0
       react-dom: ^18.2.0 || ^19.0.0
     peerDependenciesMeta:
@@ -1950,18 +1950,18 @@ packages:
       react-dom:
         optional: true
     dependencies:
-      '@istar-ts/core': 0.15.0-beta.9
-      '@istar-ts/react': 0.15.0-beta.9(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
+      '@istar-ts/core': 0.15.1
+      '@istar-ts/react': 0.15.1(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
     dev: false
 
-  /@istar-ts/glsp@0.15.0-beta.9(@eclipse-glsp/server-mcp@2.8.0)(@istar-ts/dsm3-kaos@0.15.0-beta.9)(@istar-ts/dsm3-nfr@0.15.0-beta.9)(zod@4.6.7):
-    resolution: {integrity: sha512-hHtqmIcCGKWwLAWKtqPO6qeu0noi3aXVJYg4LOhbjJvhrj+xaFiteTGcZijToeHXLyXhQi2hS+EKDyEbzH/8IQ==}
+  /@istar-ts/glsp@0.15.1(@eclipse-glsp/server-mcp@2.8.0)(@istar-ts/dsm3-kaos@0.15.1)(@istar-ts/dsm3-nfr@0.15.1)(zod@4.6.7):
+    resolution: {integrity: sha512-zYPv78ckxNLmWSX6kG2HxslrnDHPwd9M3ioFoVaDjvr0WteQxbknBClcP5Bim3c/cujobAUNEyfPkWN5Rf+ZsA==}
     peerDependencies:
       '@eclipse-glsp/server-mcp': 2.8.0
-      '@istar-ts/dsm3-kaos': ^0.15.0-beta.9
-      '@istar-ts/dsm3-nfr': ^0.15.0-beta.9
+      '@istar-ts/dsm3-kaos': ^0.15.1
+      '@istar-ts/dsm3-nfr': ^0.15.1
       zod: ^4.2.0
     peerDependenciesMeta:
       '@eclipse-glsp/server-mcp':
@@ -1975,11 +1975,11 @@ packages:
     dependencies:
       '@eclipse-glsp/server': 2.8.0(inversify@6.2.2)(reflect-metadata@0.2.2)
       '@eclipse-glsp/server-mcp': 2.8.0(hono@4.13.14)(inversify@6.2.2)(reflect-metadata@0.2.2)
-      '@istar-ts/actions': 0.15.0-beta.9
-      '@istar-ts/core': 0.15.0-beta.9
-      '@istar-ts/dsm3-kaos': 0.15.0-beta.9(@istar-ts/react@0.15.0-beta.9)(react-dom@19.2.3)(react@19.2.3)
-      '@istar-ts/dsm3-nfr': 0.15.0-beta.9(@istar-ts/react@0.15.0-beta.9)(react-dom@19.2.3)(react@19.2.3)
-      '@istar-ts/gmodel': 0.15.0-beta.9
+      '@istar-ts/actions': 0.15.1
+      '@istar-ts/core': 0.15.1
+      '@istar-ts/dsm3-kaos': 0.15.1(@istar-ts/react@0.15.1)(react-dom@19.2.3)(react@19.2.3)
+      '@istar-ts/dsm3-nfr': 0.15.1(@istar-ts/react@0.15.1)(react-dom@19.2.3)(react@19.2.3)
+      '@istar-ts/gmodel': 0.15.1
       inversify: 6.2.2(reflect-metadata@0.2.2)
       reflect-metadata: 0.2.2
       vscode-jsonrpc: 8.2.0
@@ -1989,22 +1989,22 @@ packages:
       - utf-8-validate
     dev: false
 
-  /@istar-ts/gmodel@0.15.0-beta.9:
-    resolution: {integrity: sha512-w3VYIzw+9pO6JfLnJcho1B8+bCD3Z+jzHKYKyKaWSqYIc89wF7we7tJh2DEHti/Pwz9xF3288cIaTy21FlZ/Tg==}
+  /@istar-ts/gmodel@0.15.1:
+    resolution: {integrity: sha512-Y0d98rxE7FuPsyww5ohRm5Ojvsqji/ZXDryUZfkK4VTAZ8sGlGIT5FdzmoH1Uf+xf62WlsOaxRLeEiewcZRDFQ==}
     dependencies:
-      '@istar-ts/actions': 0.15.0-beta.9
-      '@istar-ts/core': 0.15.0-beta.9
+      '@istar-ts/actions': 0.15.1
+      '@istar-ts/core': 0.15.1
     dev: false
 
-  /@istar-ts/react@0.15.0-beta.9(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3):
-    resolution: {integrity: sha512-p0ZCGOT8iXTf4TElJgQeH9z4YuTkgBnS2U6RYST1hjMtCEoMzG7l8qvysKDLn1Ha1B29UiNPFwK/CQS53XDqog==}
+  /@istar-ts/react@0.15.1(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3):
+    resolution: {integrity: sha512-ngoCGm4OpIKjSyxjyIo2kXDQe5RbDOhzh18a+bi3rVAv+j49HZWaz3sq2CKKr//T/vL9UG9L0xl4HdQGaJkHiA==}
     peerDependencies:
       react: ^18.2.0 || ^19.0.0
       react-dom: ^18.2.0 || ^19.0.0
     dependencies:
-      '@istar-ts/actions': 0.15.0-beta.9
-      '@istar-ts/core': 0.15.0-beta.9
-      '@istar-ts/gmodel': 0.15.0-beta.9
+      '@istar-ts/actions': 0.15.1
+      '@istar-ts/core': 0.15.1
+      '@istar-ts/gmodel': 0.15.1
       '@xyflow/react': 12.12.0(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)

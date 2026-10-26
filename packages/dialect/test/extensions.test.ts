@@ -133,7 +133,7 @@ describe('a kind’s shape and line, converted between a dialect’s own and a m
   it('is a dialect’s line (its dash enum) as a model’s file-format line (a raw dash array), and back unchanged', () => {
     for (const line of LINES)
       expect(lineOfFile(fileLineOf(line))).to.deep.equal(line);
-    // the dash arrays themselves, as @istar-ts/react's own LINE_DASHES draws them
+    // the dash arrays themselves, as @istar-ts/core's own LINE_DASHES has them
     expect(fileLineOf({ dash: 'continuous' })).to.deep.equal({});
     expect(fileLineOf({ dash: 'dashed' })).to.deep.equal({ dash: '10,5' });
     expect(fileLineOf({ dash: 'dotted' })).to.deep.equal({ dash: '1,3' });

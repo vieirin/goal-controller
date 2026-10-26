@@ -17,6 +17,7 @@ import {
   type ModelSession,
 } from '@/lib/workbench/modelSession';
 import { openGlspSession } from '@/lib/workbench/agent/glspSession';
+import { workspaceToolsFor } from '@/lib/workbench/agent/hostTools';
 
 const EDGEV2 = readFileSync(
   join(__dirname, '../../../../examples/edge/simpleChoice.txt'),
@@ -24,6 +25,8 @@ const EDGEV2 = readFileSync(
 );
 // in simpleChoice.txt: one actor, G1 OR-refined into G2 and G3
 const G1 = '117b97d7-775b-41a9-8fec-9e923edde772';
+
+const NO_WORKSPACE = () => ({ tree: null, resources: [], variables: [] });
 
 /** An edgev2 session (its mode's guards on it) and its live backend-A session. */
 const opened = async () => {
@@ -35,11 +38,7 @@ const opened = async () => {
     () => {},
   );
   session.setMode('edgev2');
-  const glsp = await openGlspSession(session, 'edgev2', () => ({
-    tree: null,
-    resources: [],
-    variables: [],
-  }));
+  const glsp = await openGlspSession(session, 'edgev2', NO_WORKSPACE);
   return { session, glsp };
 };
 
@@ -99,4 +98,52 @@ describe('the live session (goal-controller#450, istar-ts#239)', () => {
       glsp.close();
     },
   );
+
+  it('the workspace tools run on the main thread, called back by the session in the worker', async () => {
+    const { session, glsp } = await opened();
+    const text = 'G1: Something [?]'; // `?` (choice) is disabled for edgeV2
+    const here = workspaceToolsFor('edgev2', NO_WORKSPACE)
+      .find((tool) => tool.name === 'validate-notation')
+      ?.handler({ text });
+    const served = await glsp.liveRegistry.call('validate-notation', { text });
+    expect(served.ok).toBe(true);
+    expect(here?.ok && served.ok && served.content).toEqual(
+      here?.ok && here.content,
+    );
+    // edgev2 has no pool: the main thread's refusal comes back as the tool's
+    const lookup = await glsp.liveRegistry.call('pool-lookup', {
+      kinds: ['x'],
+      name: 'y',
+    });
+    expect(lookup.ok).toBe(false);
+    expect(JSON.stringify(lookup)).toMatch(/no definition pool/);
+    glsp.close();
+    session.dispose();
+  });
+
+  it("closing while an edit's validation is still on its way to the worker throws nothing (withDirtyState)", async () => {
+    const { session, glsp } = await opened();
+    const unhandled: unknown[] = [];
+    const onUnhandled = (reason: unknown) => unhandled.push(reason);
+    process.on('unhandledRejection', onUnhandled);
+    try {
+      const renamed = await glsp.liveRegistry.call('set-properties', {
+        elementId: G1,
+        properties: { name: 'Renamed while closing' },
+      });
+      expect(renamed.ok).toBe(true);
+      // its live validation is still on its way to the worker and back
+      glsp.close();
+      // what the worker answers after the close, and what GLSP does with it
+      await session.dispatcher.dispatch({
+        kind: 'requestTypeHints',
+        requestId: 'settled',
+      });
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      expect(unhandled).toEqual([]);
+    } finally {
+      process.off('unhandledRejection', onUnhandled);
+      session.dispose();
+    }
+  });
 });

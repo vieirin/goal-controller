@@ -48,6 +48,10 @@ const parseObject = (text: string): Json => {
   return value;
 };
 
+/** A model's text, parsed, or the piStar file object itself (a mirror's `metamodelFor`). */
+const objectOf = (model: string | Json): Json =>
+  typeof model === 'string' ? parseObject(model) : model;
+
 /** A record in the model's `diagram.customProperties`: read and written here only. */
 const diagramRecord = (property: string) => ({
   property,
@@ -102,9 +106,9 @@ const readOptions = (model: Json): EngineOptions | undefined => {
 };
 
 /** The mode a model records; null for a plain piStar model or text that isn't a model. */
-export const recordedMode = (text: string): string | null => {
+export const recordedMode = (model: string | Json): string | null => {
   try {
-    return modeRecord.read(parseObject(text));
+    return modeRecord.read(objectOf(model));
   } catch {
     return null;
   }
@@ -114,9 +118,9 @@ export const recordedMode = (text: string): string | null => {
  * The framework a model records (goal-controller#171); null for an iStar 2.0
  * model (no record), one recording another value, or text that isn't a model.
  */
-export const recordedFramework = (text: string): Framework | null => {
+export const recordedFramework = (model: string | Json): Framework | null => {
   try {
-    return readFramework(parseObject(text)) ?? null;
+    return readFramework(objectOf(model)) ?? null;
   } catch {
     return null;
   }

@@ -13,7 +13,6 @@ import {
   fileMetamodelExtension,
   fileMetamodelOf,
   FILE_METAMODEL_KEY,
-  hostMetamodelOf,
   isActorIn,
   metamodelOf,
   parsePistar,
@@ -63,28 +62,28 @@ const HOSTS = Object.fromEntries(
 ) as Record<DialectMode, AnyMetamodel>;
 
 /**
- * The metamodel a mirror of `model` should read its remote with: the host
- * part (re-applying the model's own file-declared kinds itself, with
- * `fileMetamodel: true`) when the file declares any, else the model's own
- * (already one of `FRAMEWORK_ROOTS`/`HOSTS`, with nothing of its own to
- * reapply). The one place this choice is made (goal-controller#467); a
- * worker that can't be handed a `Metamodel` directly (its rules are
- * functions, not structured-clonable) looks it up by `.name`
- * (`metamodelByName`) instead.
+ * The metamodel a model is read with, in `mode` and `framework`: the
+ * dialect's host (iStar 2.0 with its kinds and links), else the framework's
+ * root. The file's own `"metamodel"` block is applied on top of it.
  */
-// TODO(istar-ts#250): metamodelFor
-export const rootMetamodelOf = (model: AnyModel): AnyMetamodel =>
-  hostMetamodelOf(model) ?? metamodelOf(model);
+const metamodelIn = (
+  mode: string | null,
+  framework: Framework,
+): AnyMetamodel =>
+  isDialectMode(mode) ? HOSTS[mode] : FRAMEWORK_ROOTS[framework];
 
-/** Every metamodel `rootMetamodelOf` can return, by its `.name`: a worker's own lookup. */
-const KNOWN_METAMODELS: readonly AnyMetamodel[] = [
-  ...Object.values(FRAMEWORK_ROOTS),
-  ...Object.values(HOSTS),
-];
-
-/** The metamodel named `name` among `rootMetamodelOf`'s possible results, if any. */
-export const metamodelByName = (name: string): AnyMetamodel | undefined =>
-  KNOWN_METAMODELS.find((metamodel) => metamodel.name === name);
+/**
+ * The metamodel a model's text or piStar file is read with: by the mode it
+ * records and the framework it is in (`frameworkOfModel`). The one place
+ * this choice is made: `parseModel` reads a text with it, and each mirror of
+ * the model worker's store (the main thread's, modelSession.ts; the engine
+ * worker's) reads every file it is sent with it (`createMirrorStore`'s
+ * `metamodelFor`), so a mirror follows a conversion to another
+ * framework or dialect, and an undo across one.
+ */
+export const metamodelFor = (
+  file: string | Record<string, unknown>,
+): AnyMetamodel => metamodelIn(recordedMode(file), frameworkOfModel(file));
 
 /**
  * What a model adds to its dialect is kept in its file, in istar-ts's
@@ -216,13 +215,13 @@ export const parseModel = (
 ): AnyModel => {
   if (!isDialectMode(mode))
     return parsePistar(text, {
-      metamodel: FRAMEWORK_ROOTS[framework],
+      metamodel: metamodelIn(mode, framework),
       // an engine whose models declare kinds of their own, or a framework's
       // model its dialect's (goal-controller#194): their block applied
       fileMetamodel: declaresKinds(mode, framework),
     });
   const model = parsePistar(text, {
-    metamodel: HOSTS[mode],
+    metamodel: metamodelIn(mode, framework),
     fileMetamodel: true,
   });
   const block = fileMetamodelOf(model);
@@ -235,9 +234,7 @@ export const emptyModel = (
   mode: string | null = null,
   framework: Framework = DEFAULT_FRAMEWORK,
 ): AnyModel =>
-  createEmptyModel(undefined, {
-    metamodel: isDialectMode(mode) ? HOSTS[mode] : FRAMEWORK_ROOTS[framework],
-  });
+  createEmptyModel(undefined, { metamodel: metamodelIn(mode, framework) });
 
 /** The dialect that reads a model its recorded mode cannot (its kinds are the dialect's), if any. */
 export const dialectThatReads = (text: string): DialectMode | null => {

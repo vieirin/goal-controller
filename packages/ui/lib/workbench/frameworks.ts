@@ -44,15 +44,17 @@ export const FRAMEWORK_LABEL: Readonly<Record<Framework, string>> = {
 };
 
 /**
- * The framework a model text is in: the one its content is written in
+ * The framework a model (its text, or its piStar file) is in: the one its content is written in
  * (istar-ts's detectFramework: its kinds' prefix, or its tool), else the one
  * it records, else iStar 2.0. Content wins over the record.
  */
-export const frameworkOfModel = (text: string): Framework => {
+export const frameworkOfModel = (
+  model: string | Record<string, unknown>,
+): Framework => {
   let detected: string | undefined;
   try {
     detected = detectFramework(
-      text,
+      model,
       FRAMEWORKS.map((framework) => FRAMEWORK_ROOTS[framework]),
     )?.framework;
   } catch {
@@ -60,7 +62,7 @@ export const frameworkOfModel = (text: string): Framework => {
   }
   return (
     FRAMEWORKS.find((framework) => framework === detected) ??
-    recordedFramework(text) ??
+    recordedFramework(model) ??
     DEFAULT_FRAMEWORK
   );
 };

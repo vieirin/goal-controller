@@ -31,7 +31,6 @@ import type {
   EngineWorkerRequest,
   EngineWorkerResponse,
 } from '@/lib/workbench/engineWorkerProtocol';
-import { emptyModel, rootMetamodelOf } from '@/lib/workbench/dialects';
 import { createModelSession } from '@/lib/workbench/modelSession';
 import { createLocalModelWorker } from '@/lib/workbench/modelWorkerLocal';
 import { publishDiagnostics } from '@/lib/workbench/diagnosticsStore';
@@ -49,7 +48,6 @@ const ISTAR = writeModelMode(
 );
 // in simpleChoice.txt: G1, OR-refined into G2 and G3
 const G1 = '117b97d7-775b-41a9-8fec-9e923edde772';
-const ISTAR_METAMODEL_NAME = rootMetamodelOf(emptyModel()).name;
 
 class FakeWorker {
   onmessage: ((event: MessageEvent<EngineWorkerResponse>) => void) | null =
@@ -386,14 +384,7 @@ describe('the engine worker (#413)', () => {
         () => {},
       );
       const hook = renderHook(
-        ({ connect }) =>
-          useEngineWorker(
-            connect,
-            'edgev2',
-            false,
-            () => {},
-            ISTAR_METAMODEL_NAME,
-          ),
+        ({ connect }) => useEngineWorker(connect, 'edgev2', false, () => {}),
         { initialProps: { connect: first.serve } },
       );
       return {
