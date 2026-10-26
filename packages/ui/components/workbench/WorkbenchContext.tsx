@@ -960,15 +960,16 @@ function WorkbenchState({
     setEditRejected([]);
   }, [mode]);
   // backend A's session over the session's own store and dispatcher (#414,
-  // #450), for M6's agent: off until turned on (its cost is then zero),
-  // rebuilt whenever the session or the mode changes, and disposed when
-  // turned off or the provider unmounts.
+  // #450), in the model worker, for M6's agent: off until turned on (its
+  // cost is then zero), rebuilt whenever the session or the mode changes,
+  // and disposed when turned off or the provider unmounts.
   const [glspEnabled, setGlspEnabled] = useState(false);
   const [glspSession, setGlspSession] = useState<GlspSession | null>(null);
   // the model's view and the project's resources, for M6's host tools'
-  // pool-lookup and validate-notation (goal-controller#415): read fresh on
-  // each call, not captured by the effect below (declared, each render,
-  // after the tree, the resources and the variables are, further down).
+  // pool-lookup and validate-notation (goal-controller#415), which run here
+  // for the worker's session: read fresh on each call, not captured by the
+  // effect below (declared, each render, after the tree, the resources and
+  // the variables are, further down).
   const workspaceRef = useRef<() => AgentWorkspace>(() => ({
     tree: null,
     resources: [],

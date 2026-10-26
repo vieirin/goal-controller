@@ -14,7 +14,7 @@
  * outstanding must get an instant `pong`, never queued behind it.
  *
  * The #467 point: the mirror reads the remote with the connecting model's
- * own metamodel (`metamodelFor`, `dialects.ts`, istar-ts#250), not always
+ * own metamodel (`metamodelFor`, `dialects.ts`), not always
  * iStar 2.0 — a KAOS or NFR model (or a conversion between frameworks within
  * one connection) must parse and analyse for real, not as an empty model.
  */
@@ -112,7 +112,7 @@ const remoteFor = (model: AnyModel) =>
  * A fresh module instance, connected to a real dispatcher over `model`
  * (default: empty, iStar 2.0), as `connect` expects: the mirror reads each
  * file with `metamodelFor`, the same choice the main thread's mirror makes
- * (goal-controller#467, istar-ts#250).
+ * (goal-controller#467).
  */
 const connectRaw = async (
   model: AnyModel = emptyModel(),

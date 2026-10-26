@@ -217,7 +217,7 @@ describe('the model lives in the worker; the main thread holds a mirror (#434)',
   });
 });
 
-describe('the mirror reads each file with its own metamodel (istar-ts#250)', () => {
+describe('the mirror reads each file with its own metamodel (metamodelFor)', () => {
   const example = (path: string) =>
     readFileSync(join(__dirname, '../../../../examples', path), 'utf8');
 

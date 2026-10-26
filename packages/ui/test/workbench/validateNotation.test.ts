@@ -22,7 +22,6 @@ import {
   notationDocument,
   savedLinesOf,
 } from '@goal-controller/goal-language';
-import { createModelSession } from '@/lib/workbench/modelSession';
 import { parseModel } from '@/lib/workbench/dialects';
 import { ENGINE_CHECKS, ENGINE_DIALECTS } from '@/lib/workbench/engineDialects';
 import { localLanguageSupport } from '@/lib/workbench/languageSupport';
@@ -31,7 +30,7 @@ import {
   resourcesContext,
 } from '@/lib/workbench/projectResources';
 import {
-  hostToolsFor,
+  workspaceToolsFor,
   type AgentWorkspace,
 } from '@/lib/workbench/agent/hostTools';
 
@@ -94,24 +93,11 @@ describe('validate-notation and the Notation editor (#415 review)', () => {
     support.setContext(notationContextOf(definition, inputs));
     const shown = await editorDiagnostics(support, text);
 
-    const tool = hostToolsFor('mutrose', () => workspace).find(
+    const tool = workspaceToolsFor('mutrose', () => workspace).find(
       (t) => t.name === 'validate-notation',
     )!;
-    const session = createModelSession(
-      MODEL,
-      () => {},
-      () => {},
-      {
-        seed: model,
-      },
-    );
-    const result = await tool.handler(
-      { text },
-      {
-        getModel: () => session.store.getModel(),
-        dispatcher: session.dispatcher,
-      },
-    );
+    // the main thread runs it, with the workspace only (`WorkspaceTool`)
+    const result = tool.handler({ text });
     expect(result.ok).toBe(true);
 
     expect(shown.map((d) => d.message)).toContain(

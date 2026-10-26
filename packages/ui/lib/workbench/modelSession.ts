@@ -35,9 +35,12 @@ import { modelWorker } from './modelWorkerClient';
 import {
   changeTextOf,
   isModelSessionReport,
+  isModelSessionToolCall,
   type ModelSessionControl,
+  type ModelSessionToolCall,
   type ModelWorkerOpen,
 } from './modelWorkerProtocol';
+import type { WorkspaceTool } from './agent/hostTools';
 
 /** A change of the model made through the dispatcher, or by undo/redo. */
 export type ModelChanged = {
@@ -65,13 +68,18 @@ export type ModelSession = {
    * The worker's dispatcher: `dispatch` resolves once `store` shows what the
    * action did (a rejected one changes nothing, mirror included). A GLSP
    * server hosted over it tracks its dirty state from the `setDirtyState`
-   * notifications it relays (`withDirtyState`, istar-ts#249).
+   * notifications it relays (`withDirtyState`).
    */
   readonly dispatcher: ActionDispatcher<string, string>;
   /** the dispatcher, tagged with the surface that sends through it */
   dispatcherFor(surface: IstarSurface): ActionDispatcher<string, string>;
   /** resolves once `store` shows the worker's own model */
   readonly ready: Promise<void>;
+  /**
+   * Resolves once `store` shows every change the worker made before now,
+   * whoever made it (the agent's session, on a port of its own).
+   */
+  synced(): Promise<void>;
   /** the mode whose guards the worker's dispatcher runs (`guardsForMode`) */
   setMode(mode: ModelMode): void;
   /**
@@ -104,6 +112,14 @@ export type ModelSession = {
    * session is disposed.
    */
   serve(port: MessagePort): () => void;
+  /**
+   * Serves the agent's GLSP/MCP session on `port`, in the worker
+   * (`serveGlspMcpSession`, agent/glspSession.ts), until the returned function is
+   * called or the session is disposed: `tools` (the host tools that read
+   * the main thread's workspace) are served with the worker's own, each
+   * call run here.
+   */
+  serveAgent(port: MessagePort, tools: readonly WorkspaceTool[]): () => void;
   /** set once `dispose` runs: `startSession` disposes the old one synchronously */
   readonly disposed: boolean;
   /** closes the worker's session: its store, dispatcher and connections */
@@ -155,10 +171,27 @@ export const createModelSession = (
   const remote = channel
     ? createRemoteDispatcher<string, string, MessageEvent>(channel.port1)
     : offline;
-  // the report (goal-controller#471): not a JSON-RPC frame, so it reaches
-  // its own listener rather than the remote dispatcher's `onmessage`
+  // the agents' tools the worker calls back (`serveAgent`), by agent
+  const agentTools = new Map<number, readonly WorkspaceTool[]>();
+  const answer = ({ agent, call, name, args }: ModelSessionToolCall): void => {
+    const tool = agentTools.get(agent)?.find((each) => each.name === name);
+    try {
+      if (!tool) throw new Error(`no host tool ${name}`);
+      post({ type: 'toolResult', call, result: tool.handler(args) });
+    } catch (error) {
+      post({
+        type: 'toolResult',
+        call,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  };
+  // the report (goal-controller#471) and the tool calls: not JSON-RPC
+  // frames, so they reach their own listener rather than the remote
+  // dispatcher's `onmessage`
   channel?.port1.addEventListener('message', (event: MessageEvent) => {
     if (isModelSessionReport(event.data)) onReport(event.data.diagnostics);
+    else if (isModelSessionToolCall(event.data)) answer(event.data);
   });
   if (channel)
     modelWorker().postMessage(
@@ -191,7 +224,7 @@ export const createModelSession = (
   // the seed until the worker answers (no empty flash on open), kept if the
   // worker's model is equal; each file is read with the metamodel it is
   // written in, so the mirror follows a conversion to another framework or
-  // dialect, and an undo across it (istar-ts#250)
+  // dialect, and an undo across it (`metamodelFor`)
   const mirror = createMirrorStore<string, string>(mirrorRemote, {
     initial: seed,
     metamodelFor,
@@ -252,12 +285,20 @@ export const createModelSession = (
   let palette: AnyPaletteDescription = DEFAULT_PALETTE;
   let sizes: GModelSizeOverrides | undefined;
   let served = 0;
+  let agents = 0;
   return {
     id,
     store: mirror,
     dispatcher,
     dispatcherFor: (tag) => surfaces[tag],
     ready: mirror.ready,
+    synced: async () => {
+      // answered after every change the worker sent before it
+      await dispatcher.dispatch({
+        kind: 'requestTypeHints',
+        requestId: 'synced',
+      });
+    },
     setMode: (mode) => post({ type: 'mode', mode }),
     setPalette: (next) => {
       palette = next ?? DEFAULT_PALETTE;
@@ -273,6 +314,30 @@ export const createModelSession = (
       const serveId = (served += 1);
       post({ type: 'serve', id: serveId }, [port]);
       return () => post({ type: 'unserve', id: serveId });
+    },
+    serveAgent: (port, tools) => {
+      const agent = (agents += 1);
+      agentTools.set(agent, tools);
+      post(
+        {
+          type: 'agent',
+          id: agent,
+          tools: tools.map(
+            ({ name, title, description, inputSchema, readOnly }) => ({
+              name,
+              title,
+              description,
+              inputSchema,
+              readOnly,
+            }),
+          ),
+        },
+        [port],
+      );
+      return () => {
+        agentTools.delete(agent);
+        post({ type: 'unagent', id: agent });
+      };
     },
     get disposed() {
       return disposed;

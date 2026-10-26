@@ -78,7 +78,7 @@ const metamodelIn = (
  * this choice is made: `parseModel` reads a text with it, and each mirror of
  * the model worker's store (the main thread's, modelSession.ts; the engine
  * worker's) reads every file it is sent with it (`createMirrorStore`'s
- * `metamodelFor`, istar-ts#250), so a mirror follows a conversion to another
+ * `metamodelFor`), so a mirror follows a conversion to another
  * framework or dialect, and an undo across one.
  */
 export const metamodelFor = (

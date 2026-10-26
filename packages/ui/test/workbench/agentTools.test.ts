@@ -15,6 +15,7 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { parsePistar } from '@istar-ts/core';
 import type { HostTool, HostToolResult } from '@istar-ts/actions';
+import type { ModelMode } from '@/lib/workbench/pistar';
 import { runAgent, systemPromptWith } from '@istar-ts/agent';
 import type {
   ChatClient,
@@ -43,6 +44,7 @@ import {
 } from '@/lib/workbench/agent/context';
 import {
   hostToolsFor,
+  workspaceToolsFor,
   type AgentWorkspace,
 } from '@/lib/workbench/agent/hostTools';
 import { openGlspSession } from '@/lib/workbench/agent/glspSession';
@@ -68,6 +70,15 @@ const NO_WORKSPACE = (): AgentWorkspace => ({
   resources: [],
   variables: [],
 });
+
+/** Every host tool of `mode`: the worker's, and the workspace's (the main thread's). */
+const allToolsFor = (
+  mode: ModelMode,
+  getWorkspace: () => AgentWorkspace,
+): HostTool[] => [
+  ...hostToolsFor(mode),
+  ...workspaceToolsFor(mode, getWorkspace),
+];
 
 /** A host tool's result, called as the MCP server calls it. */
 const call = async (
@@ -146,7 +157,7 @@ describe("a mode's composed context (goal-controller#415, #450)", () => {
 
 describe('the host tools read the same parts (goal-controller#415)', () => {
   it("list-types: the model's root (istar-ts's metamodelContext, istar-ts#240) and the engine's part", async () => {
-    const tools = hostToolsFor('edgev2', NO_WORKSPACE);
+    const tools = allToolsFor('edgev2', NO_WORKSPACE);
     const content = contentOf(await call(tools, 'list-types', {}, EDGEV2));
     expect(content).toMatchObject({
       engine: ENGINE_AGENT_CONTEXTS.edgev2,
@@ -165,7 +176,7 @@ describe('the host tools read the same parts (goal-controller#415)', () => {
   it("notation-help: goal-language's part, for edgeV2 and KAOS", async () => {
     const edgev2 = contentOf(
       await call(
-        hostToolsFor('edgev2', NO_WORKSPACE),
+        allToolsFor('edgev2', NO_WORKSPACE),
         'notation-help',
         {},
         EDGEV2,
@@ -173,13 +184,13 @@ describe('the host tools read the same parts (goal-controller#415)', () => {
     );
     expect(edgev2).toEqual(agentModeOf('edgev2').notation);
     const kaos = contentOf(
-      await call(hostToolsFor('kaos', NO_WORKSPACE), 'notation-help', {}, KAOS),
+      await call(allToolsFor('kaos', NO_WORKSPACE), 'notation-help', {}, KAOS),
     );
     expect(kaos).toEqual(agentModeOf('kaos').notation);
   });
 
   it("pool-lookup resolves (or not) in mutrose's definition pool, reusing createPool", async () => {
-    const tools = hostToolsFor('mutrose', NO_WORKSPACE);
+    const tools = allToolsFor('mutrose', NO_WORKSPACE);
     const result = await call(
       tools,
       'pool-lookup',
@@ -189,7 +200,7 @@ describe('the host tools read the same parts (goal-controller#415)', () => {
     // no project resources given: nothing of that kind is defined
     expect(contentOf(result)).toBeNull();
     const none = await call(
-      hostToolsFor('edgev2', NO_WORKSPACE),
+      allToolsFor('edgev2', NO_WORKSPACE),
       'pool-lookup',
       { kinds: ['x'], name: 'y' },
       EDGEV2,
@@ -215,7 +226,7 @@ describe('the host tools read the same parts (goal-controller#415)', () => {
       text,
     );
     const result = await call(
-      hostToolsFor('edgev2', () => workspace),
+      allToolsFor('edgev2', () => workspace),
       'validate-notation',
       { text },
       EDGEV2,

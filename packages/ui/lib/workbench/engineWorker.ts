@@ -145,7 +145,7 @@ const scheduleAnalysis = (): void => {
 
 /**
  * The mirror reads each file with the metamodel it is written in
- * (`metamodelFor`, `dialects.ts`, goal-controller#467, istar-ts#250): the
+ * (`metamodelFor`, `dialects.ts`, goal-controller#467): the
  * same choice the main thread's mirror makes, so a KAOS, NFR or dialect
  * model is analysed as itself, and a conversion is followed without a
  * reconnect.

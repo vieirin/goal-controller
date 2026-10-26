@@ -13,6 +13,7 @@ import {
   type ActionDispatcher,
   type ActionGuard,
   type ActionPostGuard,
+  type HostToolResult,
   type MessagePortLike,
   type ModelSourceChangedAction,
   type ReplaceModelOperation,
@@ -27,13 +28,14 @@ import {
 import type { AnyModel } from '@goal-controller/lib';
 import { emptyModel, pistarExtMetamodelGuard } from './dialects';
 import { guardsForMode } from './modeGuards';
-import { readModelText, serializeModel } from './pistar';
+import { readModelText, serializeModel, type ModelMode } from './pistar';
 import {
   isModelSessionControl,
   isModelWorkerOpen,
   type ModelChangeExtras,
   type ModelSessionControl,
   type ModelSessionReport,
+  type ModelSessionToolCall,
   type ModelWorkerOpen,
 } from './modelWorkerProtocol';
 
@@ -62,6 +64,8 @@ const hostSession = (
   let lastText = text;
   // what requestContextActions answers: the canvas's palette (istar-ts#202)
   let palette: AnyPaletteDescription = DEFAULT_PALETTE;
+  // the mode, for the agent's session (its guards, host tools and context)
+  let mode: ModelMode = 'pistar';
   // the mode's own guards (oneActorOnly, an edgeV2 check, #412), read fresh
   // on each dispatch (the dispatcher's own are fixed at creation)
   let modeGuards: readonly ActionGuard<string, string>[] = [];
@@ -107,6 +111,44 @@ const hostSession = (
       }),
   };
   const served = new Map<number, () => void>();
+  // the agent's sessions (`serveGlspMcpSession`), and their calls to the main
+  // thread's host tools still waiting for an answer
+  const agents = new Map<number, () => void>();
+  const toolCalls = new Map<
+    number,
+    {
+      readonly agent: number;
+      resolve(result: HostToolResult): void;
+      reject(error: Error): void;
+    }
+  >();
+  let toolCallCount = 0;
+  const forwardTo =
+    (agent: number) =>
+    (
+      name: string,
+      args: ModelSessionToolCall['args'],
+    ): Promise<HostToolResult> =>
+      new Promise((resolve, reject) => {
+        const call = (toolCallCount += 1);
+        toolCalls.set(call, { agent, resolve, reject });
+        port.postMessage({
+          type: 'toolCall',
+          agent,
+          call,
+          name,
+          args,
+        } satisfies ModelSessionToolCall);
+      });
+  const stopAgent = (agent: number): void => {
+    agents.get(agent)?.();
+    agents.delete(agent);
+    for (const [call, waiting] of toolCalls)
+      if (waiting.agent === agent) {
+        toolCalls.delete(call);
+        waiting.reject(new Error('the agent session is closed'));
+      }
+  };
 
   const write = (next: string, apply: boolean): void => {
     lastText = next;
@@ -149,6 +191,7 @@ const hostSession = (
   ): void => {
     switch (message.type) {
       case 'mode': {
+        mode = message.mode;
         const { guards, postGuards } = guardsForMode(message.mode);
         modeGuards = guards;
         modePostGuards = postGuards;
@@ -181,6 +224,35 @@ const hostSession = (
         served.get(message.id)?.();
         served.delete(message.id);
         return;
+      case 'agent': {
+        const other = ports[0];
+        if (!other) return;
+        // loaded once a page turns the agent on, not with every worker
+        const started = import('./agent/agentHost').then(({ serveAgent }) =>
+          serveAgent(other, {
+            store,
+            dispatcher,
+            getMode: () => mode,
+            getPalette: () => palette,
+            forwarded: message.tools,
+            forward: forwardTo(message.id),
+          }),
+        );
+        agents.set(message.id, () => {
+          void started.then((stop) => stop());
+        });
+        return;
+      }
+      case 'unagent':
+        stopAgent(message.id);
+        return;
+      case 'toolResult': {
+        const waiting = toolCalls.get(message.call);
+        toolCalls.delete(message.call);
+        if ('result' in message) waiting?.resolve(message.result);
+        else waiting?.reject(new Error(message.error));
+        return;
+      }
       case 'close':
         close();
         return;
@@ -208,6 +280,7 @@ const hostSession = (
     closed = true;
     for (const stop of served.values()) stop();
     served.clear();
+    for (const agent of agents.keys()) stopAgent(agent);
     disconnect();
     unsubscribe();
     dispatcher.dispose();

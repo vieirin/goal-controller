@@ -5,37 +5,27 @@
  * store and dispatcher the canvas edits through, so an edit through either
  * mode goes through the same guards and one appears in the canvas at once.
  *
- * It runs on the main thread, over the session's mirror and the model
- * worker's dispatcher (goal-controller#434), not in the worker: the change
- * set's `step(entry)` and `describeUndo(result)` are synchronous and keyed by
- * the very `ToolResult` object a scratch call returned, and `list()` is
- * synchronous too, so neither survives a `postMessage` without a transport of
- * its own, which @istar-ts/agent doesn't have. An edit the agent applies is
- * still a dispatch to the worker, through its guards, one undo step.
- * `getOptions` is read fresh on every Propose run, so a mode change the
- * drawer doesn't itself restart (it does: `mode` is one of this module's own
- * dependencies, WorkbenchContext.tsx) still reaches the next one.
- *
- * Goal-controller's own read-only host tools (hostTools.ts) and context
- * providers (context.ts) are served next to istar's, through
- * `GlspMcpBackendOptions.hostTools`/`context` (istar-ts#239): no more
- * client-side merge. `GlspMcpBackendOptions.postGuards` (istar-ts#239) is the
- * mode's own post-guards (`modeGuards.ts`), so a Propose batch breaking one
- * is refused on the scratch session, at preview, not only at `apply`. The
- * built-in metamodel context provider (istar-ts#240) is on by default: no
- * `metamodelContext: false` here.
+ * It runs in the model worker, next to that store and dispatcher
+ * (`serveGlspMcpSession`, agent/agentHost.ts); the drawer holds
+ * `connectGlspMcpSession`'s end of it. A scratch step's result carries its
+ * `stepId` and an `undo`/`redo`'s its `undoDescription`, so `changeSet.step`
+ * and the drawer's preview work on the copies that crossed the port. The
+ * worker reads its options fresh on every Propose run: the mode's guards
+ * and post-guards (`modeGuards.ts`, so a Propose batch breaking one is
+ * refused on the scratch session, at preview, not only at `apply`), its host
+ * tools (hostTools.ts) and context providers (context.ts), and the built-in
+ * metamodel context provider (istar-ts#240), on by default. The host tools
+ * that read the workspace (`pool-lookup`, `validate-notation`: the model's
+ * view, the project's resources and the analysis' variables, all the main
+ * thread's) run here, the worker forwarding each call (`serveAgent`).
  *
  * `@istar-ts/agent/glsp` is dynamically imported, so it never lands in the
  * initial bundle: a page that never turns this on pays nothing.
  */
-import { metamodelOf } from '@istar-ts/core';
 import type { GlspMcpSession } from '@istar-ts/agent/glsp';
 import type { ModelMode } from '@/lib/workbench/pistar';
 import type { ModelSession } from '@/lib/workbench/modelSession';
-import { pistarExtMetamodelGuard } from '@/lib/workbench/dialects';
-import { guardsForMode } from '@/lib/workbench/modeGuards';
-import { hostToolsFor, type AgentWorkspace } from './hostTools';
-import { contextProvidersFor } from './context';
+import { workspaceToolsFor, type AgentWorkspace } from './hostTools';
 
 export type GlspSession = GlspMcpSession;
 
@@ -49,21 +39,41 @@ export async function openGlspSession(
   mode: ModelMode,
   getWorkspace: () => AgentWorkspace,
 ): Promise<GlspSession> {
-  const { openGlspMcpSession } = await import('@istar-ts/agent/glsp');
-  // the worker's own model first (#434): the GLSP server reads the session's
-  // mirror, which until then shows the model as the main thread read it
-  await session.ready;
-  return openGlspMcpSession(() => ({
-    store: session.store,
-    // its dirty state tracked from the worker's setDirtyState notifications
-    // (`withDirtyState`); a close while a validation is still on its way
-    // to the worker is safe (istar-ts#249)
-    dispatcher: session.dispatcher,
-    guards: [pistarExtMetamodelGuard, ...guardsForMode(mode).guards],
-    postGuards: guardsForMode(mode).postGuards,
-    metamodel: metamodelOf(session.store.getModel()),
-    palette: session.getPalette(),
-    hostTools: hostToolsFor(mode, getWorkspace),
-    context: contextProvidersFor(mode),
-  }));
+  const { connectGlspMcpSession } = await import('@istar-ts/agent/glsp');
+  const { port1, port2 } = new MessageChannel();
+  const stop = session.serveAgent(port2, workspaceToolsFor(mode, getWorkspace));
+  const close = (): void => {
+    stop();
+    port1.close();
+  };
+  // an edit resolves once the session's mirror shows it, as a dispatch
+  // through `session.dispatcher` does: its change reaches the mirror on the
+  // session's port, its answer comes on this one
+  const shown = async <T>(pending: Promise<T>): Promise<T> => {
+    const result = await pending;
+    await session.synced();
+    return result;
+  };
+  try {
+    const connected = await connectGlspMcpSession<MessageEvent>(port1);
+    const { liveRegistry, changeSet } = connected;
+    return {
+      liveRegistry: {
+        ...liveRegistry,
+        call: (name, args, options) =>
+          shown(liveRegistry.call(name, args, options)),
+      },
+      changeSet: {
+        ...changeSet,
+        apply: (entries) => shown(changeSet.apply(entries)),
+      },
+      close: () => {
+        connected.close();
+        close();
+      },
+    };
+  } catch (error) {
+    close();
+    throw error;
+  }
 }

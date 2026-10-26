@@ -48,7 +48,7 @@ const parseObject = (text: string): Json => {
   return value;
 };
 
-/** A model's text, parsed, or the piStar file object itself (a mirror's, istar-ts#250). */
+/** A model's text, parsed, or the piStar file object itself (a mirror's `metamodelFor`). */
 const objectOf = (model: string | Json): Json =>
   typeof model === 'string' ? parseObject(model) : model;
 
