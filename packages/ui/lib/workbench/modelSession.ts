@@ -204,6 +204,10 @@ export const createModelSession = (
   const storeListeners = new Set<ModelListener<string, string>>();
   // what `store` shows: the seed, until the mirror shows the worker's model
   let shown: AnyModel = seed;
+  // the mirror's first model is the worker's read of the same text: the
+  // seed stays shown if it is the same model, so opening one doesn't change
+  // what every consumer holds (a re-render, a tree, a GLSP server's state)
+  let seeded = true;
   let mirrorKey = 0;
   /**
    * A mirror reading the remote's files with the metamodel `key` names. The
@@ -219,6 +223,14 @@ export const createModelSession = (
     });
     next.subscribe((event) => {
       if (next !== mirror) return;
+      const first = seeded;
+      seeded = false;
+      if (
+        first &&
+        event.source === 'load' &&
+        toPistar(event.model) === toPistar(seed)
+      )
+        return;
       const previous = shown;
       shown = event.model;
       for (const listener of storeListeners) listener({ ...event, previous });

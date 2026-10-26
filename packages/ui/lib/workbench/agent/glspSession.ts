@@ -28,6 +28,11 @@
  * `@istar-ts/agent/glsp` is dynamically imported, so it never lands in the
  * initial bundle: a page that never turns this on pays nothing.
  */
+import type {
+  DispatchOptions,
+  IstarAction,
+  StoreActionDispatcher,
+} from '@istar-ts/actions';
 import { metamodelOf } from '@istar-ts/core';
 import type { GlspMcpSession } from '@istar-ts/agent/glsp';
 import type { ModelMode } from '@/lib/workbench/pistar';
@@ -53,9 +58,36 @@ export async function openGlspSession(
   // the worker's own model first (#434): the GLSP server reads the session's
   // mirror, which until then shows the model as the main thread read it
   await session.ready;
-  return openGlspMcpSession(() => ({
+  // the server's dispatches still on their way to the worker (#434): `close`
+  // waits for them, or an answer arriving after it (a live validation's
+  // markers) is pushed to a stopped GLSP action queue, which
+  // @eclipse-glsp/server rejects unhandled
+  const inFlight = new Set<Promise<unknown>>();
+  const dispatcher: StoreActionDispatcher<string, string> = {
+    ...session.dispatcher,
+    dispatch<A extends IstarAction<string, string>>(
+      action: A,
+      options?: DispatchOptions,
+    ) {
+      const pending = session.dispatcher.dispatch(action, options);
+      const settled = () => {
+        inFlight.delete(pending);
+      };
+      inFlight.add(pending);
+      void pending.then(settled, settled);
+      return pending;
+    },
+  };
+  const drained = async (): Promise<void> => {
+    while (inFlight.size > 0) {
+      await Promise.allSettled(inFlight);
+      // what the server does with the answers, before it stops
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    }
+  };
+  const opened = await openGlspMcpSession(() => ({
     store: session.store,
-    dispatcher: session.dispatcher,
+    dispatcher,
     guards: [pistarExtMetamodelGuard, ...guardsForMode(mode).guards],
     postGuards: guardsForMode(mode).postGuards,
     metamodel: metamodelOf(session.store.getModel()),
@@ -63,4 +95,10 @@ export async function openGlspSession(
     hostTools: hostToolsFor(mode, getWorkspace),
     context: contextProvidersFor(mode),
   }));
+  return {
+    ...opened,
+    close: () => {
+      void drained().then(() => opened.close());
+    },
+  };
 }
