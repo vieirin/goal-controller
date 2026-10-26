@@ -25,6 +25,7 @@ import {
 import { parseModel } from '@/lib/workbench/dialects';
 import { ENGINE_ANALYSES } from '@/lib/workbench/engineDialects';
 import { writeModelMode } from '@/lib/workbench/pistar';
+import { mockReactFlowDom } from './reactFlowDom';
 
 const ROOT = join(__dirname, '../../../..');
 const NFR_WELCOME = readFileSync(
@@ -32,35 +33,7 @@ const NFR_WELCOME = readFileSync(
   'utf8',
 );
 
-// what React Flow needs that jsdom lacks (istar-ts's react test setup)
-beforeAll(() => {
-  class ResizeObserverMock {
-    constructor(private callback: ResizeObserverCallback) {}
-    observe(target: Element) {
-      this.callback(
-        [
-          {
-            target,
-            contentRect: { width: 800, height: 600 },
-          } as unknown as ResizeObserverEntry,
-        ],
-        this as unknown as ResizeObserver,
-      );
-    }
-    unobserve() {}
-    disconnect() {}
-  }
-  class DOMMatrixReadOnlyMock {
-    m22 = 1;
-  }
-  Object.assign(globalThis, {
-    ResizeObserver: ResizeObserverMock,
-    DOMMatrixReadOnly: DOMMatrixReadOnlyMock,
-  });
-  (
-    globalThis.SVGElement.prototype as unknown as { getBBox: () => DOMRect }
-  ).getBBox = () => ({ x: 0, y: 0, width: 0, height: 0 }) as DOMRect;
-});
+beforeAll(mockReactFlowDom);
 
 afterEach(() => cleanup());
 
