@@ -122,6 +122,20 @@ lean_settings() { # -> a settings file turning off the user's plugins except hoo
   [ -n "$off" ] || return 0
   printf '%s' "$off" | jq -Rn '{enabledPlugins: ([inputs | {(.): false}] | add)}' > "$out" && echo "$out"
 }
+# every factory session accepts cross-session messages whatever the sender's permission mode:
+# reviewers and scouts run in plan mode, the orchestrator and builders don't, and Claude Code
+# otherwise holds a message between mismatched mode classes until the user approves it
+INBOUND='{"crossSessionInbound":"accept"}'
+factory_settings() { # LEAN(1|"") -> one settings file: INBOUND, plus lean's plugin switches when LEAN
+  local lean=$1 out s
+  if [ -n "$lean" ] && s=$(lean_settings) && [ -n "$s" ] && command -v jq >/dev/null 2>&1; then
+    out="$AF_HOME/factory-settings-lean.json"
+    jq -s '.[0] * .[1]' <(printf '%s' "$INBOUND") "$s" > "$out" && echo "$out"
+  else
+    out="$AF_HOME/factory-settings.json"
+    printf '%s\n' "$INBOUND" > "$out" && echo "$out"
+  fi
+}
 
 # the worker's launcher: one file, so the cmux command stays short and the brief is never shell-quoted
 write_runner() { # NAME MODEL EFFORT ROLE PERM BRIEF ONESHOT CHROME
@@ -134,8 +148,9 @@ write_runner() { # NAME MODEL EFFORT ROLE PERM BRIEF ONESHOT CHROME
     local args="--model $model --effort $effort --session-id $sid"
     case "$perm" in "") ;; skip) args+=" --dangerously-skip-permissions";; *) args+=" --permission-mode $perm";; esac
     [ -f "$ROLES/$role.md" ] && args+=" --append-system-prompt-file $(printf %q "$ROLES/$role.md")"
-    if [ "${AGENT_FACTORY_LEAN:-1}" != 0 ]; then
-      local s; s=$(lean_settings); [ -n "$s" ] && args+=" --settings $(printf %q "$s")"
+    local lean=""; [ "${AGENT_FACTORY_LEAN:-1}" != 0 ] && lean=1
+    local s; s=$(factory_settings "$lean"); [ -n "$s" ] && args+=" --settings $(printf %q "$s")"
+    if [ -n "$lean" ]; then
       if [ -n "$chrome" ]; then args+=" --chrome"; else args+=" --strict-mcp-config --no-chrome"; fi
     fi
     if [ -n "$oneshot" ]; then
