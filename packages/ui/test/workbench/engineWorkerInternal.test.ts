@@ -86,7 +86,7 @@ afterEach(() => {
 });
 
 /** A fresh module instance, connected to a real dispatcher, as `connect` expects. */
-const connected = async (): Promise<{
+const connectRaw = async (): Promise<{
   send: (message: EngineWorkerRequest) => void;
 }> => {
   vi.resetModules();
@@ -102,12 +102,19 @@ const connected = async (): Promise<{
     } as unknown as MessageEvent<EngineWorkerRequest>);
   };
   send({ type: 'connect' });
+  return { send };
+};
+
+const connected = async (): Promise<{
+  send: (message: EngineWorkerRequest) => void;
+}> => {
+  const client = await connectRaw();
   // the mirror's handshake and the 400ms analysis debounce, both real time
   await vi.waitFor(() => expect(analysisWorkers).toHaveLength(1), {
     timeout: 2000,
     interval: 20,
   });
-  return { send };
+  return client;
 };
 
 describe("engineWorker.ts's own logic (#437)", () => {
@@ -130,25 +137,90 @@ describe("engineWorker.ts's own logic (#437)", () => {
     );
   });
 
-  it('a stale analysis-worker response (superseded by a newer request) is dropped', async () => {
+  it('a superseded analysis terminates the in-flight nested worker and respawns a fresh one, rather than queuing behind it', async () => {
     const { send } = await connected();
     const first = analysisWorkers[0]!.posted[0]!;
 
-    // a second edit before the first analysis answers: a new request is
-    // sent (debounced again)
+    // a second edit before the first analysis answers: the nested worker
+    // is still mid-`analyze()`, so queuing a second message behind it
+    // would run the stale request to completion before the fresh one
+    // even starts
     send({ type: 'configure', engine: 'edgev2', pistar: false });
-    await vi.waitFor(() => expect(analysisWorkers[0]!.posted).toHaveLength(2));
-    const second = analysisWorkers[0]!.posted[1]!;
+    await vi.waitFor(() => expect(analysisWorkers).toHaveLength(2));
+    expect(analysisWorkers[0]!.terminate).toHaveBeenCalledTimes(1);
+    const second = analysisWorkers[1]!.posted[0]!;
     expect(second.requestId).not.toBe(first.requestId);
 
+    // the first (terminated) worker's response is still dropped by id,
+    // belt-and-suspenders with the real `terminate()` discarding it
     analysisWorkers[0]!.respond({ ...ANALYZED, requestId: first.requestId });
     expect(posted).toEqual([]);
 
-    analysisWorkers[0]!.respond({ ...ANALYZED, requestId: second.requestId });
+    analysisWorkers[1]!.respond({ ...ANALYZED, requestId: second.requestId });
     await vi.waitFor(() =>
       expect(
         posted.filter((message) => message.type === 'analyzed'),
       ).toHaveLength(1),
     );
+  });
+
+  it('three requests while the first is still running terminate the nested worker twice, applying only the last result', async () => {
+    const { send } = await connected();
+    const first = analysisWorkers[0]!.posted[0]!;
+
+    send({ type: 'configure', engine: 'edgev2', pistar: false });
+    await vi.waitFor(() => expect(analysisWorkers).toHaveLength(2));
+    send({ type: 'configure', engine: 'goda', pistar: false });
+    await vi.waitFor(() => expect(analysisWorkers).toHaveLength(3));
+
+    expect(analysisWorkers[0]!.terminate).toHaveBeenCalledTimes(1);
+    expect(analysisWorkers[1]!.terminate).toHaveBeenCalledTimes(1);
+    expect(analysisWorkers[2]!.terminate).not.toHaveBeenCalled();
+
+    const third = analysisWorkers[2]!.posted[0]!;
+    // responses from the two terminated workers arrive late but are
+    // dropped: only the third (current) request's result is applied
+    analysisWorkers[0]!.respond({ ...ANALYZED, requestId: first.requestId });
+    analysisWorkers[2]!.respond({ ...ANALYZED, requestId: third.requestId });
+    await vi.waitFor(() =>
+      expect(
+        posted.filter((message) => message.type === 'analyzed'),
+      ).toHaveLength(1),
+    );
+    expect(
+      posted.filter((message) => message.type === 'analyzed'),
+    ).toHaveLength(1);
+  });
+
+  it('a crash in the nested analysis worker fails the pending analysis and terminates it', async () => {
+    const { send } = await connected();
+    send({ type: 'ping', id: 1 });
+    expect(posted).toContainEqual({ type: 'pong', id: 1 });
+
+    analysisWorkers[0]!.onerror?.({
+      message: 'boom',
+    } as ErrorEvent);
+
+    expect(analysisWorkers[0]!.terminate).toHaveBeenCalledTimes(1);
+    expect(
+      posted.filter((message) => message.type === 'analyzeFailed'),
+    ).toHaveLength(1);
+  });
+
+  it('runs analysis inline, with no nested worker, when Worker is unavailable', async () => {
+    vi.stubGlobal('Worker', undefined);
+    await connectRaw();
+
+    await vi.waitFor(
+      () =>
+        expect(posted.some((message) => message.type === 'analyzed')).toBe(
+          true,
+        ),
+      { timeout: 2000, interval: 20 },
+    );
+    expect(analysisWorkers).toHaveLength(0);
+    expect(
+      posted.filter((message) => message.type === 'analyzed'),
+    ).toHaveLength(1);
   });
 });

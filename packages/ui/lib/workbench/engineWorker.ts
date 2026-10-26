@@ -15,6 +15,17 @@
  * `ping` arriving mid-analysis queued behind it; an analysis slower than
  * `ANALYSIS_UNRESPONSIVE_MS` (goal-controller#432's backstop) missed its
  * `pong` deadline and was killed and respawned as if it had hung.
+ *
+ * Where nested dedicated workers aren't available (`typeof Worker ===
+ * 'undefined'`, as `engineWorkerClient.ts` and `goalLsp.ts` also check),
+ * `analyze()` falls back to running inline on this thread, the pre-#437
+ * behaviour, rather than throwing and crash-looping this worker.
+ *
+ * A request that supersedes one still in flight terminates and respawns the
+ * nested worker instead of queuing behind it: the worker runs one message
+ * at a time, so without this, fast typing during a long analysis builds a
+ * backlog that finishes stale request after stale request before ever
+ * reaching the freshest one.
  */
 import {
   createMirrorStore,
@@ -22,6 +33,7 @@ import {
   type MirrorStore,
 } from '@istar-ts/actions';
 import { toPistar } from '@istar-ts/core';
+import { analyze } from '@/services/analyze';
 import { transform } from '@/services/transform';
 import type { TransformEngine } from '@/lib/types';
 import { analysisKey, modelSignature } from './signature';
@@ -95,6 +107,26 @@ const runAnalysis = (): void => {
   if (!mirror || pistar) return;
   const text = toPistar(mirror.getModel());
   const key = analysisKey(text, engine);
+  if (typeof Worker === 'undefined') {
+    pendingAnalysis = null;
+    try {
+      post({ type: 'analyzed', key, data: analyze(text, engine) });
+    } catch (error) {
+      post({
+        type: 'analyzeFailed',
+        key,
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
+    return;
+  }
+  // a newer request supersedes one still in flight: the nested worker runs
+  // one message at a time, so reusing it would queue this request behind
+  // the stale one instead of starting it now
+  if (pendingAnalysis && analysisWorker) {
+    analysisWorker.terminate();
+    analysisWorker = null;
+  }
   const requestId = (nextAnalysisRequestId += 1);
   pendingAnalysis = { requestId, key };
   analysisWorker ??= spawnAnalysisWorker();
