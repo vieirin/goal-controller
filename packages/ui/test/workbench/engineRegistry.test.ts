@@ -279,6 +279,15 @@ describe('the engine registry', () => {
     });
   });
 
+  it('offers the EvoChecker evolvable parameters switch for edgeV2 (#442), off by default', () => {
+    const evolvable = edgeV2Options.find(
+      (option) => option.key === 'evolvableDecisionVars',
+    );
+    expect(evolvable).toBeDefined();
+    expect(evolvable?.value).toEqual({ type: 'bool' });
+    expect(evolvable?.default).toBe(false);
+  });
+
   it('derives ENGINE_LABEL', () =>
     expect(ENGINE_LABEL).toEqual({
       edge: 'Edge',

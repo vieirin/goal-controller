@@ -85,7 +85,8 @@ export const orderedChildren = (goal: EdgeGoalNode): PursueableNode[] => {
   const byId = new Map(children.map((child) => [child.id, child]));
   const unknown = order.filter((id) => !byId.has(id));
   const missing = children.filter((child) => !order.includes(child.id));
-  if (unknown.length > 0 || missing.length > 0) {
+  const duplicates = order.filter((id, index) => order.indexOf(id) !== index);
+  if (unknown.length > 0 || missing.length > 0 || duplicates.length > 0) {
     warnOnce(
       goal,
       `Goal ${goal.id} notation lists [${order.join(', ')}] but its children are [${children.map((c) => c.id).join(', ')}]` +
@@ -94,12 +95,18 @@ export const orderedChildren = (goal: EdgeGoalNode): PursueableNode[] => {
           : '') +
         (missing.length
           ? `; appending unlisted ${missing.map((c) => c.id).join(', ')}`
+          : '') +
+        (duplicates.length
+          ? `; dropping repeated ${[...new Set(duplicates)].join(', ')}`
           : ''),
     );
   }
+  const seen = new Set<string>();
   const listed = order.flatMap((id) => {
     const child = byId.get(id);
-    return child ? [child] : [];
+    if (!child || seen.has(id)) return [];
+    seen.add(id);
+    return [child];
   });
   return [...listed, ...missing];
 };

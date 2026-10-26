@@ -34,6 +34,13 @@ export const edgeV2Options = defineOptions([
     summary: '{value}',
   },
   generateDecisionVarsOption,
+  {
+    key: 'evolvableDecisionVars',
+    label: 'Evolvable parameters',
+    help: 'EvoChecker: decision variables as evolve int … [0..N] instead of undefined consts; needs Decision variables on',
+    value: { type: 'bool' },
+    default: false,
+  },
   cleanOption,
   reduceOption,
 ]);

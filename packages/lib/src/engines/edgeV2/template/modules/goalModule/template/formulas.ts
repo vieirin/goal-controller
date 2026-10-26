@@ -7,7 +7,12 @@ import {
   chosenVariable,
   relativeFormulaVariable,
 } from '../../../../template/common';
-import { construct, orderedChildIds, retriedChildren } from './children';
+import {
+  construct,
+  orderedChildIds,
+  retriedChildren,
+  usesChildSelection,
+} from './children';
 import { hasFailedExactlyNTimes } from './pursue/common';
 
 /** @deprecated Use achievedFormula — maintain goals share g*_achieved */
@@ -133,11 +138,14 @@ export const achievableGoalFormula = (goal: EdgeGoalNode): string => {
 };
 
 /**
- * AND anyOrder: each child's share among the siblings that are not achieved yet
+ * Each child's share among the siblings that are not achieved yet, for every
+ * construct that picks a child by relative achievability (AND anyOrder /
+ * flexible, OR alternative / non-idempotent, choice / committed, degradation
+ * / preferred — EDGE-XT 3094b5d):
  *   formula G1_relative = g1_achieved ? 0 : G1_achievable/(G1_achievable + (g2_achieved ? 0 : G2_achievable));
  */
 export const relativeFormulas = (goal: EdgeGoalNode): string => {
-  if (construct(goal) !== 'anyOrder') {
+  if (!usesChildSelection(goal)) {
     return '';
   }
   const childIds = orderedChildIds(goal);

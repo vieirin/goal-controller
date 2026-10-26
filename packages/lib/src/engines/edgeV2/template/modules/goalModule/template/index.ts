@@ -13,7 +13,10 @@ import { pursueStatements } from './pursue';
 import { skipStatement } from './skip';
 import { variablesDefinition } from './variables';
 
-export const goalModule = (goal: EdgeGoalNode): string => {
+export const goalModule = (
+  goal: EdgeGoalNode,
+  generateDecisionVars = true,
+): string => {
   const logger = getLogger();
   logger.initGoal(goal);
 
@@ -34,11 +37,11 @@ export const goalModule = (goal: EdgeGoalNode): string => {
 module ${goal.id}
   ${variablesDefinition(goal)}
 
-  ${pursueStatements(goal).join('\n  ')}
+  ${pursueStatements(goal, generateDecisionVars).join('\n  ')}
 
   ${achieveStatement(goal)}
-  
-  ${skipStatement(goal)}
+
+  ${skipStatement(goal, generateDecisionVars)}
 endmodule
 
 ${formulaStatements}

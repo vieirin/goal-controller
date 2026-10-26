@@ -30,6 +30,7 @@ export const pursueAndSequentialGoal = (
   goal: EdgeGoalNode,
   sequence: string[],
   childId: string,
+  generateDecisionVars = true,
 ): string => {
   if (goal.relationToChildren === 'or') {
     throw new Error(
@@ -47,7 +48,7 @@ export const pursueAndSequentialGoal = (
     .join(separator('and'));
 
   return joinGuards(
-    parentShouldPursue(goal.id),
+    parentShouldPursue(goal.id, generateDecisionVars),
     priors,
     otherChildrenIdle(sequence, childId),
   );
@@ -56,14 +57,15 @@ export const pursueAndSequentialGoal = (
 /**
  * AND + anyOrder (reference `flexible`): one child at a time, picked by its
  * share among the not-yet-achieved siblings (G*_relative) with priority to
- * earlier children:
+ * earlier children, each compared against its own threshold:
  *   G0_achievable*N > decision_G0 & g{other}_state=0 …
- *   & G1_relative*N > _decision_G0 & !(G{earlier}_relative*N > _decision_G0) …
+ *   & G1_relative*N > _decision_G1 & !(G{earlier}_relative*N > _decision_G{earlier}) …
  */
 export const pursueAndAnyOrderGoal = (
   goal: EdgeGoalNode,
   anyOrder: string[],
   childId: string,
+  generateDecisionVars = true,
 ): string => {
   if (goal.relationToChildren === 'or') {
     throw new Error(
@@ -84,8 +86,8 @@ export const pursueAndAnyOrderGoal = (
   );
 
   return joinGuards(
-    parentShouldPursue(goal.id),
+    parentShouldPursue(goal.id, generateDecisionVars),
     otherChildrenIdle(anyOrder, childId),
-    selectChildByRelativeDecision(goal.id, anyOrder, childId),
+    selectChildByRelativeDecision(anyOrder, childId, generateDecisionVars),
   );
 };
