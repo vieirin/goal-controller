@@ -397,6 +397,17 @@
     "outputs": []
   },
   {
+    "path": "edgeV2/duplicateChoiceChild.txt",
+    "group": "edgeV2",
+    "name": "duplicateChoiceChild.txt",
+    "form": "embedded",
+    "root": "edgeV2",
+    "files": ["duplicateChoiceChild.txt"],
+    "models": ["duplicateChoiceChild.txt"],
+    "projectResources": {},
+    "outputs": []
+  },
+  {
     "path": "edgeV2/experiments/10-minimalMaintainResource",
     "group": "edgeV2",
     "name": "experiments/10-minimalMaintainResource",
@@ -1059,6 +1070,7 @@
     "root": "kaos/elevator",
     "files": [
       "README.md",
+      "elevator.expected.csv",
       "elevator.expected.md",
       "elevator.kaos",
       "elevator.txt",
