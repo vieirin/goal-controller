@@ -10,21 +10,16 @@
  * would leave none alive either.
  */
 import type { ModelWorkerEndpoint } from './modelWorkerClient';
-import type { ModelWorkerPong } from './modelWorkerProtocol';
 
 type LocalHost = ReturnType<
   typeof import('./modelWorkerHost').createModelWorkerHost
 >;
 
 let host: Promise<LocalHost> | null = null;
-// the live local worker's own pong relay: read fresh on each `postPong` call,
-// so a respawn (a fresh `createLocalModelWorker()`) answers through its own
-// endpoint even though `host` is recreated lazily, on the next message
-let reply: ((pong: ModelWorkerPong) => void) | null = null;
 
 const localHost = (): Promise<LocalHost> =>
   (host ??= import('./modelWorkerHost').then(({ createModelWorkerHost }) =>
-    createModelWorkerHost((pong) => reply?.(pong)),
+    createModelWorkerHost(),
   ));
 
 export const createLocalModelWorker = (): ModelWorkerEndpoint => {
@@ -35,7 +30,6 @@ export const createLocalModelWorker = (): ModelWorkerEndpoint => {
     onerror: null,
     onmessageerror: null,
     postMessage(message, transfer) {
-      reply = (pong) => endpoint.onmessage?.({ data: pong } as MessageEvent);
       const data = structuredClone(message);
       void localHost().then((local) =>
         local.onMessage({ data, ports: transfer }),

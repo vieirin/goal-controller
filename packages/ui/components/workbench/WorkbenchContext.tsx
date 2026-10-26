@@ -40,9 +40,14 @@ import { emptyModel, fileMetamodelForText } from '@/lib/workbench/dialects';
 import {
   createModelSession,
   dispatchOrFallback,
+  ModelWorkerCrashError,
   type ModelChanged,
   type ModelSession,
 } from '@/lib/workbench/modelSession';
+import {
+  onModelWorkerSlow,
+  restartModelWorker,
+} from '@/lib/workbench/modelWorkerClient';
 import { isGuardRejection } from '@/lib/workbench/guardDiagnostics';
 import {
   openGlspSession,
@@ -421,6 +426,15 @@ export type Workbench = {
   dismissModelWorkerNotice: () => void;
   /** bumped on every crash recovery, for a consumer (the agent drawer) to react once per occurrence */
   modelWorkerIncident: number;
+  /**
+   * Set while a dispatch has been pending a while (goal-controller#479):
+   * the worker's dispatcher is single-threaded, so a big `replaceModel`,
+   * import or Propose batch looks exactly like this while it applies — not
+   * a crash, so nothing recovers on its own. `restartModelWorker` is the
+   * notice's own "Restart editor" action, for when it really is stuck.
+   */
+  modelWorkerSlow: boolean;
+  restartModelWorker: () => void;
   recent: RecentFile[];
   /** `id`: the entry's recentId */
   forgetRecent: (id: string) => void;
@@ -992,6 +1006,11 @@ function WorkbenchState({
     workerIncident !== dismissedIncident
       ? 'The editor restarted; undo history was reset.'
       : null;
+  // a dispatch pending a while (goal-controller#479): not a crash on its
+  // own, so `onModelWorkerSlow` is global, not keyed to `session` — a crash
+  // clears it itself (modelWorkerClient.ts's `crash`)
+  const [modelWorkerSlow, setModelWorkerSlow] = useState(false);
+  useEffect(() => onModelWorkerSlow(setModelWorkerSlow), []);
   // the mode's own guards (oneActorOnly, the edgeV2 resource-bounds check,
   // goal-controller#412): the session's, not whichever diagram happens to be
   // mounted (the Source tab unmounts the diagram entirely, #439 review) —
@@ -1036,10 +1055,14 @@ function WorkbenchState({
         opened = started;
         setGlspSession(started);
       })
-      // a model-worker crash (goal-controller#469) while this was opening:
-      // the session this effect reruns for (a fresh one, once the workbench
-      // recovers) opens its own, so there's nothing to show for this one
-      .catch(() => undefined);
+      .catch((error: unknown) => {
+        // a model-worker crash (goal-controller#469) while this was
+        // opening: the session this effect reruns for (a fresh one, once
+        // the workbench recovers) opens its own, so there's nothing to
+        // show for this one. Anything else is a real bug — surfaced
+        // (goal-controller#479 review), not silently dropped.
+        if (!(error instanceof ModelWorkerCrashError)) console.error(error);
+      });
     return () => {
       disposed = true;
       setGlspSession(null);
@@ -2856,6 +2879,8 @@ function WorkbenchState({
     modelWorkerNotice,
     dismissModelWorkerNotice,
     modelWorkerIncident: workerIncident,
+    modelWorkerSlow,
+    restartModelWorker,
     recent,
     forgetRecent,
     tree,

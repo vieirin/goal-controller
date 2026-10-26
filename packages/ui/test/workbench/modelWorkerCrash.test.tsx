@@ -1,11 +1,18 @@
 /**
- * The model worker's crash recovery (goal-controller#469): an
- * `onerror`/`onmessageerror`, or a `ping` that gets no `pong`, respawns the
- * worker and replaces the session on the last derived `wb.text` and the
- * current mode, with a dismissible notice (the undo history is lost).
- * Every in-flight dispatch and `synced()` wait rejects instead of hanging,
- * and the engine worker and the agent's session reconnect on their own
- * (both are keyed on the session's identity already).
+ * The model worker's crash recovery (goal-controller#469, #479): an
+ * `onerror`/`onmessageerror`, or a dispatch whose own `ack` never arrives
+ * within its deadline (the worker is genuinely gone, not merely busy),
+ * respawns the worker and replaces the session on the last derived
+ * `wb.text` and the current mode, with a dismissible notice (the undo
+ * history is lost). A dispatch that's merely slow — the worker's
+ * dispatcher is single-threaded, so a big `replaceModel`, import or
+ * Propose batch applies synchronously — only shows a non-fatal "taking
+ * longer than expected" notice, with its own manual "Restart editor"
+ * action (`restartModelWorker`); nothing recovers on its own for that case.
+ * Every in-flight dispatch and `synced()` wait rejects on a real crash
+ * instead of hanging, and the engine worker and the agent's session
+ * reconnect on their own (both are keyed on the session's identity
+ * already).
  *
  * jsdom has no `Worker`, so the model worker always runs in-process
  * (modelWorkerLocal.ts) here, real `onerror`/`onmessageerror` wiring and
@@ -26,7 +33,7 @@ import {
 import type { EngineWorkerResponse } from '@/lib/workbench/engineWorkerProtocol';
 import {
   modelWorker,
-  pingModelWorker,
+  restartModelWorker,
 } from '@/lib/workbench/modelWorkerClient';
 import { createLocalModelWorker } from '@/lib/workbench/modelWorkerLocal';
 import { writeModelMode } from '@/lib/workbench/pistar';
@@ -56,8 +63,45 @@ class FakeEngineWorker {
 
 let engineWorkers: FakeEngineWorker[] = [];
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null;
+
+/**
+ * The model session's own port (a real `MessagePort`, even in jsdom):
+ * dropping or delaying what crosses it here simulates what a slow or
+ * genuinely hung worker would do, without timing an actual apply
+ * (goal-controller#479). `null`: every message passes through unpatched.
+ */
+let patchPort: ((data: unknown) => 'drop' | number | null) | null = null;
+// the overloaded DOM signature (`Transferable[]` or `StructuredSerializeOptions`)
+// has no single shape a plain function can satisfy structurally; this patch
+// only ever needs `message` and forwards `transfer` through as given
+type PostMessage = (
+  this: MessagePort,
+  message: unknown,
+  transfer?: Transferable[],
+) => void;
+const originalPostMessage = MessagePort.prototype
+  .postMessage as unknown as PostMessage;
+function patchedPostMessage(
+  this: MessagePort,
+  message: unknown,
+  transfer?: Transferable[],
+): void {
+  const action = patchPort?.(message) ?? null;
+  if (action === 'drop') return;
+  if (typeof action === 'number') {
+    setTimeout(() => originalPostMessage.call(this, message, transfer), action);
+    return;
+  }
+  originalPostMessage.call(this, message, transfer);
+}
+
 beforeEach(() => {
   engineWorkers = [];
+  patchPort = null;
+  MessagePort.prototype.postMessage =
+    patchedPostMessage as unknown as typeof MessagePort.prototype.postMessage;
   // only the engine worker needs faking: its hook has no fallback for a
   // missing `Worker` at all, unlike the model worker's own (modelWorkerClient.ts)
   vi.stubGlobal(
@@ -78,6 +122,8 @@ afterEach(() => {
   cleanup();
   vi.useRealTimers();
   vi.unstubAllGlobals();
+  MessagePort.prototype.postMessage =
+    originalPostMessage as unknown as typeof MessagePort.prototype.postMessage;
 });
 
 const workbench = () => {
@@ -170,24 +216,104 @@ describe('the model worker recovers from a crash (goal-controller#469)', () => {
     expect(wb().modelWorkerNotice).toMatch(/restarted/i);
   });
 
-  it('a ping with no pong triggers the same path', async () => {
+  it('a 20s dispatch completes with no recovery and no undo loss, the slow notice shown then cleared', async () => {
     const wb = await opened();
     vi.useFakeTimers();
-    const worker = modelWorker();
-    const send = worker.postMessage.bind(worker);
-    // the worker's own channel never answers a `ping`: a hang, not a crash
-    worker.postMessage = (message, transfer) => {
-      if ((message as { type: string }).type !== 'ping')
-        send(message, transfer);
-    };
+    // the dispatch's own JSON-RPC answer, held back 20s: the worker still
+    // acks it at once (goal-controller#479), so this never reads as a crash
+    patchPort = (data) =>
+      isRecord(data) && data.jsonrpc === '2.0' && 'result' in data
+        ? 20_000
+        : null;
 
-    act(() => pingModelWorker(1_000));
+    const dispatched = wb()
+      .dispatcherFor('canvas')
+      .dispatch({ kind: 'applyLabelEdit', labelId: G1, text: 'G1: Slow' });
+
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(1_000);
+      await vi.advanceTimersByTimeAsync(8_000);
+    });
+    expect(wb().modelWorkerSlow).toBe(true);
+    expect(wb().modelWorkerNotice).toBeNull();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(12_000);
+    });
+    const result = await dispatched;
+
+    expect(result.ok).toBe(true);
+    expect(wb().modelWorkerSlow).toBe(false);
+    expect(wb().modelWorkerNotice).toBeNull();
+    expect(nameOf(wb(), G1)).toBe('G1: Slow');
+    expect(wb().canUndo).toBe(true);
+
+    vi.useRealTimers();
+    patchPort = null;
+  });
+
+  it('a worker that stops acking is recovered automatically', async () => {
+    const wb = await opened();
+    const text = wb().text;
+    vi.useFakeTimers();
+    // every message the worker's end of the port would send is lost: a
+    // dead worker's dispatch never resolves either, not only its own ack
+    patchPort = () => 'drop';
+
+    void wb()
+      .dispatcherFor('canvas')
+      .dispatch({ kind: 'applyLabelEdit', labelId: G1, text: 'G1: Hung' })
+      .catch(() => undefined);
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(15_001);
     });
 
+    expect(wb().text).toBe(text);
     expect(wb().modelWorkerNotice).toMatch(/restarted/i);
+
     vi.useRealTimers();
+    patchPort = null;
+  });
+
+  it('a stale error from an already-replaced worker is ignored (goal-controller#479 review)', async () => {
+    const wb = await opened();
+    const staleWorker = modelWorker();
+
+    act(() => crashModelWorker('the model worker died'));
+    const text = wb().text;
+    const incident = wb().modelWorkerIncident;
+    expect(modelWorker()).not.toBe(staleWorker);
+
+    // a late event from the now-terminated worker (`terminate()` stops
+    // further script execution but doesn't cancel an already-queued
+    // error's delivery) must not tear down the one that replaced it
+    act(() =>
+      staleWorker.onerror?.({
+        message: 'late error from the dead worker',
+        preventDefault: () => {},
+      } as ErrorEvent),
+    );
+
+    expect(wb().modelWorkerIncident).toBe(incident);
+    expect(wb().text).toBe(text);
+  });
+
+  it('the manual restart action recovers on demand', async () => {
+    const wb = await opened();
+    const text = wb().text;
+
+    act(() => restartModelWorker());
+
+    expect(wb().text).toBe(text);
+    expect(wb().modelWorkerNotice).toMatch(/restarted/i);
+
+    await act(async () => {
+      const result = await wb()
+        .dispatcherFor('canvas')
+        .dispatch({ kind: 'applyLabelEdit', labelId: G1, text: 'G1: After' });
+      expect(result.ok).toBe(true);
+    });
+    expect(nameOf(wb(), G1)).toBe('G1: After');
   });
 
   it('the engine worker reconnects (analysis updates after the crash)', async () => {

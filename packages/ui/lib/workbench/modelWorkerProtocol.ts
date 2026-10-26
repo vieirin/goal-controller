@@ -14,6 +14,11 @@
  * - The session's port also carries, worker to main, the active mode's
  *   guard report (goal-controller#471): not a response to anything the main
  *   thread asked, so it isn't a JSON-RPC frame either.
+ * - The session's port also carries, worker to main, an `ack` of every
+ *   message the worker's side of it receives (goal-controller#479), sent
+ *   before that message is applied: a slow (but alive) dispatch acks almost
+ *   instantly even though applying it takes a while, so `modelSession.ts`
+ *   can tell "busy" from "gone" without timing the apply itself.
  * - The agent's GLSP/MCP session (`agent`) runs in the worker
  *   on a port of its own; the host tools that read the main thread's state
  *   (`agent`'s `tools`) are called back on the session's port
@@ -36,19 +41,8 @@ export type ModelWorkerOpen = {
   readonly text: string;
 };
 
-/**
- * Main thread → worker, on the worker itself: a liveness probe
- * (goal-controller#469), answered with a `pong` of the same `id`, instantly,
- * as long as the worker is alive (the same shape `engineWorkerProtocol.ts`
- * uses, `workerPing.ts`'s `send`/`onTimeout` contract).
- */
-export type ModelWorkerPing = { readonly type: 'ping'; readonly id: number };
-
-/** Worker → main thread, on the worker itself: the answer to a `ModelWorkerPing`. */
-export type ModelWorkerPong = { readonly type: 'pong'; readonly id: number };
-
 /** Everything the worker's own channel receives. */
-export type ModelWorkerRequest = ModelWorkerOpen | ModelWorkerPing;
+export type ModelWorkerRequest = ModelWorkerOpen;
 
 /** Main thread → worker, on a session's port. */
 export type ModelSessionControl =
@@ -133,6 +127,16 @@ export type ModelSessionReport = {
   readonly diagnostics: readonly GoalDiagnostic[];
 };
 
+/**
+ * Worker → main thread, on a session's port: the worker received a message
+ * on this port, sent before it's applied (goal-controller#479's liveness
+ * check, `modelSession.ts`'s `lastAckSeq`). `seq` is the host's own
+ * monotonic count of messages received on this port, so an ack for a later
+ * one proves an earlier one was dequeued too, even if its own ack is never
+ * looked at.
+ */
+export type ModelSessionAck = { readonly type: 'ack'; readonly seq: number };
+
 /** What the worker adds to each `sourceModelChanged` it sends the main thread. */
 export type ModelChangeExtras = {
   /**
@@ -152,14 +156,6 @@ export const isModelWorkerOpen = (value: unknown): value is ModelWorkerOpen =>
   typeof value.session === 'number' &&
   typeof value.text === 'string';
 
-/** The worker's `ping`, as its channel receives it. */
-export const isModelWorkerPing = (value: unknown): value is ModelWorkerPing =>
-  isRecord(value) && value.type === 'ping' && typeof value.id === 'number';
-
-/** The worker's `pong`, as the main thread receives it. */
-export const isModelWorkerPong = (value: unknown): value is ModelWorkerPong =>
-  isRecord(value) && value.type === 'pong' && typeof value.id === 'number';
-
 /** A session control message, not an action-protocol frame (those carry `jsonrpc`). */
 export const isModelSessionControl = (
   value: unknown,
@@ -173,6 +169,10 @@ export const isModelSessionReport = (
   isRecord(value) &&
   value.type === 'report' &&
   Array.isArray(value.diagnostics);
+
+/** An ack, as the session's port receives it (not a JSON-RPC frame). */
+export const isModelSessionAck = (value: unknown): value is ModelSessionAck =>
+  isRecord(value) && value.type === 'ack' && typeof value.seq === 'number';
 
 /** The text the worker attached to `action`; none from a dispatcher that doesn't add it. */
 export const changeTextOf = (

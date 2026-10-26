@@ -32,14 +32,14 @@ import { emptyModel, metamodelFor } from './dialects';
 import { isGuardRejection } from './guardDiagnostics';
 import { readModelText, type ModelMode } from './pistar';
 import {
-  MODEL_WORKER_PONG_TIMEOUT_MS,
-  MODEL_WORKER_SLOW_MS,
   modelWorker,
+  notifyModelWorkerSlow,
   onModelWorkerCrash,
-  pingModelWorker,
+  reportModelWorkerHang,
 } from './modelWorkerClient';
 import {
   changeTextOf,
+  isModelSessionAck,
   isModelSessionReport,
   isModelSessionToolCall,
   type ModelSessionControl,
@@ -47,6 +47,32 @@ import {
   type ModelWorkerOpen,
 } from './modelWorkerProtocol';
 import type { WorkspaceTool } from './agent/hostTools';
+
+/**
+ * A crashed model worker's own error (goal-controller#469), so a consumer
+ * that wraps a crash-caused rejection (the GLSP-session effect,
+ * `WorkbenchContext.tsx`, goal-controller#479 review) can tell it apart from
+ * any other failure instead of swallowing every rejection alike.
+ */
+export class ModelWorkerCrashError extends Error {}
+
+/**
+ * How long a dispatch may go unresolved before the editor shows "taking
+ * longer than expected" (goal-controller#479): long enough that a normal
+ * edit never shows it, short enough that a genuinely stuck one is visible
+ * soon. Not fatal — a big `replaceModel`, import or Propose batch applies
+ * synchronously in the worker and can legitimately take this long or more.
+ */
+const SLOW_NOTICE_MS = 8_000;
+
+/**
+ * How long a dispatch's own message may go unacknowledged before the worker
+ * is treated as genuinely hung, not merely busy (goal-controller#479
+ * review): the worker's `ack` is sent before the message is applied, so
+ * this only measures whether the worker ever looked at it at all, never how
+ * long applying it takes. Kept well above any realistic queueing jitter.
+ */
+const HANG_DEADLINE_MS = 15_000;
 
 /** A change of the model made through the dispatcher, or by undo/redo. */
 export type ModelChanged = {
@@ -201,12 +227,18 @@ export const createModelSession = (
       });
     }
   };
-  // the report (goal-controller#471) and the tool calls: not JSON-RPC
-  // frames, so they reach their own listener rather than the remote
-  // dispatcher's `onmessage`
+  // the most recent `ack` the worker's end of this port has sent
+  // (goal-controller#479): a dispatch's own hang-deadline checks this
+  // against the value it captured when it was sent, so an ack for a later
+  // message (proof the worker reached at least that far) also clears it
+  let lastAckSeq = 0;
+  // the report (goal-controller#471), the tool calls and the acks: not
+  // JSON-RPC frames, so they reach their own listener rather than the
+  // remote dispatcher's `onmessage`
   channel?.port1.addEventListener('message', (event: MessageEvent) => {
     if (isModelSessionReport(event.data)) onReport(event.data.diagnostics);
     else if (isModelSessionToolCall(event.data)) answer(event.data);
+    else if (isModelSessionAck(event.data)) lastAckSeq = event.data.seq;
   });
   if (channel)
     modelWorker().postMessage(
@@ -231,7 +263,7 @@ export const createModelSession = (
   const stopWatchingForCrash = channel
     ? onModelWorkerCrash((message) => {
         if (disposed || crashError) return;
-        crashError = new Error(message);
+        crashError = new ModelWorkerCrashError(message);
         for (const listener of crashListeners) listener(crashError);
       })
     : null;
@@ -305,14 +337,27 @@ export const createModelSession = (
       action: A,
       dispatchOptions?: DispatchOptions,
     ) {
-      // a dispatch this slow pings the worker (goal-controller#469): a
-      // healthy one answers long before this fires, so it never sends one;
-      // no pong within its own deadline is the crash path's job, not this
-      // dispatch's — it just rides whatever `raceCrash` below does with it
-      const slow = setTimeout(
-        () => pingModelWorker(MODEL_WORKER_PONG_TIMEOUT_MS),
-        MODEL_WORKER_SLOW_MS,
-      );
+      // shown only if this dispatch is still pending at SLOW_NOTICE_MS
+      // (goal-controller#479): a big replaceModel, import or Propose batch
+      // applies synchronously in the worker and can legitimately take this
+      // long — informational only, cleared in `finally` below
+      let noticeShown = false;
+      const notice = setTimeout(() => {
+        noticeShown = true;
+        notifyModelWorkerSlow(true);
+      }, SLOW_NOTICE_MS);
+      // the worker's `ack` for this message (or any later one) proves it's
+      // alive and dequeuing, even mid-apply of this very dispatch — an ack
+      // is sent before applying, so it's near-instant regardless of how
+      // long the apply itself then takes. None by HANG_DEADLINE_MS and the
+      // worker is genuinely gone, not merely busy.
+      const ackSeqAtSend = lastAckSeq;
+      const hang = setTimeout(() => {
+        if (!crashError && lastAckSeq === ackSeqAtSend)
+          reportModelWorkerHang(
+            `The model worker stopped acknowledging messages (none in ${HANG_DEADLINE_MS / 1000}s); it was restarted.`,
+          );
+      }, HANG_DEADLINE_MS);
       try {
         const result = await raceCrash(
           remote.dispatch(action, dispatchOptions),
@@ -320,7 +365,9 @@ export const createModelSession = (
         await raceCrash(mirror.synced());
         return result;
       } finally {
-        clearTimeout(slow);
+        clearTimeout(notice);
+        clearTimeout(hang);
+        if (noticeShown) notifyModelWorkerSlow(false);
       }
     },
     subscribe: (listener) => {
