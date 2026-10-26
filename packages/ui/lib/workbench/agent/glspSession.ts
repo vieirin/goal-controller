@@ -46,16 +46,36 @@ export async function openGlspSession(
     stop();
     port1.close();
   };
+  // a call on this port is its own round trip into the worker, next to the
+  // session's own; a model-worker crash (goal-controller#469) leaves it
+  // hanging exactly like a dead dispatch would, so it rejects with the same
+  // error `session.onCrash` gives everyone else
+  const rejectOnCrash = <T>(pending: Promise<T>): Promise<T> =>
+    new Promise<T>((resolve, reject) => {
+      const stop = session.onCrash(reject);
+      pending.then(
+        (value) => {
+          stop();
+          resolve(value);
+        },
+        (error) => {
+          stop();
+          reject(error);
+        },
+      );
+    });
   // an edit resolves once the session's mirror shows it, as a dispatch
   // through `session.dispatcher` does: its change reaches the mirror on the
   // session's port, its answer comes on this one
   const shown = async <T>(pending: Promise<T>): Promise<T> => {
-    const result = await pending;
+    const result = await rejectOnCrash(pending);
     await session.synced();
     return result;
   };
   try {
-    const connected = await connectGlspMcpSession<MessageEvent>(port1);
+    const connected = await rejectOnCrash(
+      connectGlspMcpSession<MessageEvent>(port1),
+    );
     const { liveRegistry, changeSet } = connected;
     return {
       liveRegistry: {

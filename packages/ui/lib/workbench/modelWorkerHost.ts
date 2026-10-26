@@ -33,6 +33,7 @@ import {
   isModelSessionControl,
   isModelWorkerOpen,
   type ModelChangeExtras,
+  type ModelSessionAck,
   type ModelSessionControl,
   type ModelSessionReport,
   type ModelSessionToolCall,
@@ -265,7 +266,13 @@ const hostSession = (
     postMessage: (data) => port.postMessage(data),
     onmessage: null,
   };
+  // acked before it's applied (goal-controller#479): a slow dispatch acks
+  // almost instantly even though applying it then takes a while, so the main
+  // thread can tell "busy" from "gone" without timing the apply itself
+  let ackSeq = 0;
   port.onmessage = (event: MessageEvent) => {
+    ackSeq += 1;
+    port.postMessage({ type: 'ack', seq: ackSeq } satisfies ModelSessionAck);
     if (isModelSessionControl(event.data)) control(event.data, event.ports);
     else rpc.onmessage?.(event);
   };
@@ -294,13 +301,13 @@ const hostSession = (
 /** The worker's sessions, and the handler for its own channel's messages. */
 export const createModelWorkerHost = () => {
   const sessions = new Map<number, HostedSession>();
-  const onMessage = ({ data: open, ports }: ModelWorkerEvent): void => {
+  const onMessage = ({ data, ports }: ModelWorkerEvent): void => {
     const port = ports[0];
-    if (!isModelWorkerOpen(open) || !port) return;
-    sessions.get(open.session)?.close();
+    if (!isModelWorkerOpen(data) || !port) return;
+    sessions.get(data.session)?.close();
     sessions.set(
-      open.session,
-      hostSession(open, port, () => sessions.delete(open.session)),
+      data.session,
+      hostSession(data, port, () => sessions.delete(data.session)),
     );
   };
   return {

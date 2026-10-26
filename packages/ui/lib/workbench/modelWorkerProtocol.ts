@@ -14,6 +14,11 @@
  * - The session's port also carries, worker to main, the active mode's
  *   guard report (goal-controller#471): not a response to anything the main
  *   thread asked, so it isn't a JSON-RPC frame either.
+ * - The session's port also carries, worker to main, an `ack` of every
+ *   message the worker's side of it receives (goal-controller#479), sent
+ *   before that message is applied: a slow (but alive) dispatch acks almost
+ *   instantly even though applying it takes a while, so `modelSession.ts`
+ *   can tell "busy" from "gone" without timing the apply itself.
  * - The agent's GLSP/MCP session (`agent`) runs in the worker
  *   on a port of its own; the host tools that read the main thread's state
  *   (`agent`'s `tools`) are called back on the session's port
@@ -35,6 +40,9 @@ export type ModelWorkerOpen = {
   /** the opened model's text: the worker reads it as `wb.setText` does (`readModelText`) */
   readonly text: string;
 };
+
+/** Everything the worker's own channel receives. */
+export type ModelWorkerRequest = ModelWorkerOpen;
 
 /** Main thread → worker, on a session's port. */
 export type ModelSessionControl =
@@ -119,6 +127,16 @@ export type ModelSessionReport = {
   readonly diagnostics: readonly GoalDiagnostic[];
 };
 
+/**
+ * Worker → main thread, on a session's port: the worker received a message
+ * on this port, sent before it's applied (goal-controller#479's liveness
+ * check, `modelSession.ts`'s `lastAckSeq`). `seq` is the host's own
+ * monotonic count of messages received on this port, so an ack for a later
+ * one proves an earlier one was dequeued too, even if its own ack is never
+ * looked at.
+ */
+export type ModelSessionAck = { readonly type: 'ack'; readonly seq: number };
+
 /** What the worker adds to each `sourceModelChanged` it sends the main thread. */
 export type ModelChangeExtras = {
   /**
@@ -151,6 +169,10 @@ export const isModelSessionReport = (
   isRecord(value) &&
   value.type === 'report' &&
   Array.isArray(value.diagnostics);
+
+/** An ack, as the session's port receives it (not a JSON-RPC frame). */
+export const isModelSessionAck = (value: unknown): value is ModelSessionAck =>
+  isRecord(value) && value.type === 'ack' && typeof value.seq === 'number';
 
 /** The text the worker attached to `action`; none from a dispatcher that doesn't add it. */
 export const changeTextOf = (

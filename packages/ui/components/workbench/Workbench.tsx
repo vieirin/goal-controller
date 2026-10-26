@@ -41,7 +41,7 @@ import {
 } from './WorkbenchContext';
 import { LanguageServices } from './engines/definition/LanguageServices';
 import { ShellContext, useShell } from './shell';
-import { IconButton, Tabs } from './ui';
+import { Button, IconButton, Tabs } from './ui';
 
 const EXPLORER_KEY = 'goal-workbench:explorer-open';
 const READ_ONLY_KEY = 'goal-workbench:model-read-only';
@@ -461,6 +461,32 @@ function ModelColumn() {
       aria-label='Goal model'
     >
       <OpenInspectorOnSelect open={() => setInspectorOpen(true)} />
+      {wb.modelWorkerNotice && (
+        <p
+          role='status'
+          className='flex items-start gap-2 border-b border-line bg-danger-soft px-3 py-1.5 text-2xs text-danger'
+        >
+          <span className='flex-1'>{wb.modelWorkerNotice}</span>
+          <IconButton
+            icon={X}
+            label='Dismiss'
+            onClick={wb.dismissModelWorkerNotice}
+          />
+        </p>
+      )}
+      {wb.modelWorkerSlow && (
+        <p
+          role='status'
+          className='flex items-center gap-2 border-b border-line bg-panel-deep px-3 py-1.5 text-2xs text-ink-soft'
+        >
+          <span className='flex-1'>
+            The editor is taking longer than expected.
+          </span>
+          <Button variant='outline' onClick={wb.restartModelWorker}>
+            Restart editor
+          </Button>
+        </p>
+      )}
       {wb.editRejected.length > 0 && (
         <p
           role='alert'

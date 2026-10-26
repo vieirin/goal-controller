@@ -15,7 +15,7 @@
  * and kept in `localStorage` only (`agentSettings.ts`): never in the project
  * file, never sent anywhere but the configured endpoint.
  */
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Loader2, Send, Settings2 } from 'lucide-react';
 import type { AgentEvent, ChangeSetEntry, ChatClient } from '@istar-ts/agent';
 import type { GlspChangeSet } from '@istar-ts/agent/glsp';
@@ -79,6 +79,27 @@ function AgentPanel() {
   const clientRef = useRef<ChatClient | null>(null);
 
   const registry = wb.glspSession?.liveRegistry ?? null;
+
+  // a model-worker crash (goal-controller#469) discards a Propose preview
+  // still up: its scratch session lived in the worker that just died. Keyed
+  // on the incident count, not its presence, so a second crash before this
+  // one is dismissed still fires again.
+  const seenIncident = useRef(wb.modelWorkerIncident);
+  useEffect(() => {
+    if (wb.modelWorkerIncident === seenIncident.current) return;
+    seenIncident.current = wb.modelWorkerIncident;
+    setPending((prev) => {
+      if (!prev) return prev;
+      setLines((lines) => [
+        ...lines,
+        {
+          kind: 'error',
+          text: 'The editor restarted; this proposal was discarded.',
+        },
+      ]);
+      return null;
+    });
+  }, [wb.modelWorkerIncident]);
 
   const contextProviders = useMemo(
     () => contextProvidersFor(wb.mode),
@@ -167,15 +188,25 @@ function AgentPanel() {
   /** The approved change set, as one undo step: refused as a whole, the model untouched. */
   const approve = async ({ changeSet, entries }: Pending) => {
     setPending(null);
-    const result = await changeSet.apply(entries);
-    if (!result.ok)
+    try {
+      const result = await changeSet.apply(entries);
+      if (!result.ok)
+        setLines((prev) => [
+          ...prev,
+          {
+            kind: 'error',
+            text: `Not applied: ${result.diagnostics.map(({ message }) => message).join('; ')}`,
+          },
+        ]);
+    } catch (error) {
       setLines((prev) => [
         ...prev,
         {
           kind: 'error',
-          text: `Not applied: ${result.diagnostics.map(({ message }) => message).join('; ')}`,
+          text: error instanceof Error ? error.message : String(error),
         },
       ]);
+    }
   };
 
   return (
