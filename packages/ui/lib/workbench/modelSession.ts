@@ -16,30 +16,25 @@ import {
   type ActionListener,
   type DispatchOptions,
   type IstarAction,
-  type MirrorStore,
   type ModelSourceChangedAction,
   type StoreActionDispatcher,
 } from '@istar-ts/actions';
 import {
-  canLink,
   DEFAULT_PALETTE,
-  ModelOperationError,
   toPistar,
-  type AnyMetamodel,
   type AnyPaletteDescription,
   type GoalDiagnostic,
-  type ModelListener,
   type ModelStore,
 } from '@istar-ts/core';
 import type { GModelSizeOverrides } from '@istar-ts/gmodel';
 import type { IstarSurface } from '@istar-ts/react';
 import type { AnyModel } from '@goal-controller/lib';
-import { emptyModel, rootMetamodelOf } from './dialects';
+import { emptyModel, metamodelFor } from './dialects';
 import { isGuardRejection } from './guardDiagnostics';
 import { readModelText, type ModelMode } from './pistar';
 import { modelWorker } from './modelWorkerClient';
 import {
-  changeExtrasOf,
+  changeTextOf,
   isModelSessionReport,
   type ModelSessionControl,
   type ModelWorkerOpen,
@@ -62,9 +57,9 @@ export type ModelSession = {
   /** a new one per opened model (a key for what renders it) */
   readonly id: number;
   /**
-   * The mirror of the worker's store: read-only (each mutation throws),
-   * edits go through `dispatcher`. Until the worker answers, the model as
-   * the main thread read it.
+   * The mirror of the worker's store (`createMirrorStore`): read-only (each
+   * mutation throws a `ModelOperationError`), edits go through `dispatcher`.
+   * Until the worker answers, the model as the main thread read it.
    */
   readonly store: ModelStore<string, string>;
   /**
@@ -97,12 +92,13 @@ export type ModelSession = {
   setSizes(sizes: GModelSizeOverrides | undefined): void;
   getSizes(): GModelSizeOverrides | undefined;
   /**
-   * `wb.setText`'s raw write: `model` (`text` as the main thread read it)
-   * into the worker's store as one undoable edit, `text` kept as written;
-   * none (a text that doesn't parse, a guard's rejection), the model stays
-   * and the next derived text only takes its indentation from `text`.
+   * `wb.setText`'s raw write: `apply`, `text` (it parses: the main thread
+   * read it) into the worker's store as one undoable edit, `text` kept as
+   * written; otherwise (a text that doesn't parse, a guard's rejection) the
+   * model stays and the next derived text only takes its indentation from
+   * `text`.
    */
-  write(text: string, model: AnyModel | null): void;
+  write(text: string, apply: boolean): void;
   /**
    * Serves the worker's dispatcher on `port` (the engine worker's mirror,
    * goal-controller#413) until the returned function is called, or the
@@ -130,12 +126,6 @@ const offline: ActionDispatcher<string, string> = {
       ],
     }),
   subscribe: () => () => {},
-};
-
-const readOnly = (): never => {
-  throw new ModelOperationError(
-    "the workbench's store is a mirror of the model worker's: dispatch the edit",
-  );
 };
 
 let sessions = 0;
@@ -184,16 +174,6 @@ export const createModelSession = (
     if (!disposed) channel?.port1.postMessage(message, transfer);
   };
 
-  // the metamodels the models are read with, by the key the worker tags
-  // each change with (ModelChangeExtras): the opened model's is 0
-  const metamodels: AnyMetamodel[] = [];
-  const metamodelKey = (model: AnyModel): number => {
-    const metamodel = rootMetamodelOf(model);
-    const known = metamodels.indexOf(metamodel);
-    return known >= 0 ? known : metamodels.push(metamodel) - 1;
-  };
-  metamodelKey(seed);
-
   // the remote's notifications reach the mirror first, then the session's
   // listener, then the dispatcher's own subscribers: each sees the model
   // the change made
@@ -209,44 +189,15 @@ export const createModelSession = (
       };
     },
   };
-  const storeListeners = new Set<ModelListener<string, string>>();
-  // what `store` shows: the seed, until the mirror shows the worker's model
-  let shown: AnyModel = seed;
-  // the mirror's first model is the worker's read of the same text: the
-  // seed stays shown if it is the same model, so opening one doesn't change
-  // what every consumer holds (a re-render, a tree, a GLSP server's state)
-  let seeded = true;
-  let mirrorKey = 0;
-  /**
-   * A mirror reading the remote's files with the metamodel `key` names. The
-   * mirror reads a file with its own metamodel while the file's
-   * `"metamodel"` block is unchanged, and with `options.metamodel` (the
-   * host) when it changes, so a conversion to another metamodel (a raw
-   * write) needs a mirror of its own: the session follows with a new one.
-   */
-  const follow = (key: number): MirrorStore<string, string> => {
-    const next = createMirrorStore<string, string>(mirrorRemote, {
-      metamodel: metamodels[key],
-      fileMetamodel: true,
-    });
-    next.subscribe((event) => {
-      if (next !== mirror) return;
-      const first = seeded;
-      seeded = false;
-      if (
-        first &&
-        event.source === 'load' &&
-        toPistar(event.model) === toPistar(seed)
-      )
-        return;
-      const previous = shown;
-      shown = event.model;
-      for (const listener of storeListeners) listener({ ...event, previous });
-    });
-    return next;
-  };
-  let mirror = follow(0);
-  const ready = mirror.ready;
+  // the seed until the worker answers (no empty flash on open), kept if the
+  // worker's model is equal; each file is read with the metamodel it is
+  // written in, so the mirror follows a conversion to another framework or
+  // dialect, and an undo across it (istar-ts#250)
+  const mirror = createMirrorStore<string, string>(mirrorRemote, {
+    initial: seed,
+    metamodelFor,
+    fileMetamodel: true,
+  });
 
   // the surface a sourceModelChanged came from, from the dispatch's own
   // origin (istar-ts#213): survives the round trip to the worker
@@ -257,25 +208,16 @@ export const createModelSession = (
   const unsubscribe = remote.subscribe((action) => {
     if (disposed) return;
     if (action.kind === 'setDirtyState') dirty = action.isDirty;
-    const extras =
-      action.kind === 'sourceModelChanged' ? changeExtrasOf(action) : null;
-    if (
-      extras &&
-      extras.metamodelKey !== mirrorKey &&
-      metamodels[extras.metamodelKey]
-    ) {
-      mirror.dispose();
-      mirrorKey = extras.metamodelKey;
-      mirror = follow(mirrorKey);
-    }
     for (const listener of toMirror) listener(action);
-    if (action.kind === 'sourceModelChanged')
+    if (action.kind === 'sourceModelChanged') {
+      const model = mirror.getModel();
       onChange({
-        model: shown,
+        model,
         action,
         surface: surfaceOf(action.origin),
-        text: extras?.text ?? toPistar(shown),
+        text: changeTextOf(action) ?? toPistar(model),
       });
+    }
     for (const listener of subscribers) listener(action);
   });
 
@@ -314,49 +256,15 @@ export const createModelSession = (
     inspector: tagged('inspector'),
   };
 
-  const store: ModelStore<string, string> = {
-    getModel: () => shown,
-    subscribe: (listener) => {
-      storeListeners.add(listener);
-      return () => {
-        storeListeners.delete(listener);
-      };
-    },
-    canLink: (source, target, kind) => canLink(shown, source, target, kind),
-    // one undo stack, the worker's: glspUndo/glspRedo
-    undo: () => mirror.undo(),
-    redo: () => mirror.redo(),
-    canUndo: () => mirror.canUndo(),
-    canRedo: () => mirror.canRedo(),
-    addElement: readOnly,
-    updateElement: readOnly,
-    moveElement: readOnly,
-    nestElement: readOnly,
-    removeElement: readOnly,
-    removeElements: readOnly,
-    setCollapsed: readOnly,
-    connect: readOnly,
-    addDependency: readOnly,
-    addLeg: readOnly,
-    removeLeg: readOnly,
-    updateLink: readOnly,
-    disconnect: readOnly,
-    updateDiagram: readOnly,
-    replace: readOnly,
-    load: readOnly,
-    transaction: readOnly,
-    clearHistory: readOnly,
-  };
-
   let palette: AnyPaletteDescription = DEFAULT_PALETTE;
   let sizes: GModelSizeOverrides | undefined;
   let served = 0;
   return {
     id,
-    store,
+    store: mirror,
     dispatcher,
     dispatcherFor: (tag) => surfaces[tag],
-    ready,
+    ready: mirror.ready,
     setMode: (mode) => post({ type: 'mode', mode }),
     setPalette: (next) => {
       palette = next ?? DEFAULT_PALETTE;
@@ -367,13 +275,7 @@ export const createModelSession = (
       sizes = next;
     },
     getSizes: () => sizes,
-    write: (written, model) =>
-      post({
-        type: 'write',
-        text: written,
-        apply: model !== null,
-        metamodelKey: model ? metamodelKey(model) : mirrorKey,
-      }),
+    write: (written, apply) => post({ type: 'write', text: written, apply }),
     serve: (port) => {
       const serveId = (served += 1);
       post({ type: 'serve', id: serveId }, [port]);

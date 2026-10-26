@@ -10,8 +10,7 @@
  *   ordered with its dispatches: a mode change or a palette is in place before
  *   the next action sent after it.
  * - Each `sourceModelChanged` the worker sends carries `ModelChangeExtras`
- *   next to its `newRoot`: the text derived from the model, and which
- *   metamodel the mirror reads `newRoot` with.
+ *   next to its `newRoot`: the text derived from the model.
  * - The session's port also carries, worker to main, the active mode's
  *   guard report (goal-controller#471): not a response to anything the main
  *   thread asked, so it isn't a JSON-RPC frame either.
@@ -51,8 +50,6 @@ export type ModelSessionControl =
       readonly type: 'write';
       readonly text: string;
       readonly apply: boolean;
-      /** the metamodel the written model is read with, by `metamodelKey` */
-      readonly metamodelKey: number;
     }
   | {
       /**
@@ -85,13 +82,6 @@ export type ModelChangeExtras = {
    * of the history (undo, redo), else serialized like the previous text.
    */
   readonly text: string;
-  /**
-   * Which metamodel `newRoot` is read with: the main thread numbers them as
-   * it writes models (`write`'s `metamodelKey`, 0 for the opened one) and the
-   * worker tags every model of the history with its own, so an undo across a
-   * conversion is read with the metamodel it was written in.
-   */
-  readonly metamodelKey: number;
 };
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -118,13 +108,8 @@ export const isModelSessionReport = (
   value.type === 'report' &&
   Array.isArray(value.diagnostics);
 
-/** The extras the worker attached to `action`; none from a dispatcher that doesn't add them. */
-export const changeExtrasOf = (
+/** The text the worker attached to `action`; none from a dispatcher that doesn't add it. */
+export const changeTextOf = (
   action: ModelSourceChangedAction,
-): ModelChangeExtras | null =>
-  'text' in action &&
-  typeof action.text === 'string' &&
-  'metamodelKey' in action &&
-  typeof action.metamodelKey === 'number'
-    ? { text: action.text, metamodelKey: action.metamodelKey }
-    : null;
+): ModelChangeExtras['text'] | null =>
+  'text' in action && typeof action.text === 'string' ? action.text : null;

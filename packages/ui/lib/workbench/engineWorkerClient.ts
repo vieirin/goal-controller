@@ -90,8 +90,6 @@ export const useEngineWorker = (
   engine: TransformEngine,
   pistar: boolean,
   onAnalysis: (outcome: EngineAnalysisOutcome) => void,
-  /** the open model's root metamodel (`rootMetamodelOf(model).name`, goal-controller#467) */
-  metamodelName: string,
 ): EngineWorkerClient => {
   const workerRef = useRef<Worker | null>(null);
   const pending = useRef(new Map<number, PendingTransform>());
@@ -197,21 +195,16 @@ export const useEngineWorker = (
     if (!worker) return undefined;
     const { port1, port2 } = new MessageChannel();
     const disconnect = connect(port1);
-    worker.postMessage(
-      { type: 'connect', metamodelName } satisfies EngineWorkerRequest,
-      [port2],
-    );
+    worker.postMessage({ type: 'connect' } satisfies EngineWorkerRequest, [
+      port2,
+    ]);
     return () => {
       disconnect();
       // the model they were asked for is gone: their answers would label
       // a run of the next one
       settleAll(() => ({ status: 'cancelled', reason: 'session' }));
     };
-    // a new metamodelName (the root metamodel changed, goal-controller#467)
-    // reconnects with a fresh mirror built for it, the same as a session
-    // change: the worker can't be handed a live `Metamodel`, so this is the
-    // only way it learns of the change
-  }, [connect, metamodelName, workerVersion, settleAll]);
+  }, [connect, workerVersion, settleAll]);
 
   useEffect(() => {
     const worker = workerRef.current;

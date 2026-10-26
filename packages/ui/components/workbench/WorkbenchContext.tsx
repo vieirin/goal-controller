@@ -36,11 +36,7 @@ import {
 } from '@/lib/workbench/localProblems';
 import type { GoalView } from '@goal-controller/goal-tree';
 import type { GoalDiagnostic, ModelStore, PistarFile } from '@istar-ts/core';
-import {
-  emptyModel,
-  fileMetamodelForText,
-  rootMetamodelOf,
-} from '@/lib/workbench/dialects';
+import { emptyModel, fileMetamodelForText } from '@/lib/workbench/dialects';
 import {
   createModelSession,
   dispatchOrFallback,
@@ -1025,12 +1021,12 @@ function WorkbenchState({
         // text is already-valid JSON (built, not typed, by every caller that
         // passes skipStore), so there is nothing here for readText to catch
         setJsonError(null);
-        sessionRef.current.write(text, null);
+        sessionRef.current.write(text, false);
       } else {
         const read = readText(text);
         // one undoable edit in the worker's store, the text kept as written
         // (the worker reads it again: a model can't cross postMessage, #434)
-        sessionRef.current.write(text, 'model' in read ? read.model : null);
+        sessionRef.current.write(text, 'model' in read);
         setJsonError('model' in read ? null : jsonProblem(text, read.error));
       }
       commit(text, source);
@@ -1722,21 +1718,11 @@ function WorkbenchState({
     },
     [engine],
   );
-  // the engine worker's mirror can't be handed a `Metamodel` directly (its
-  // link rules are functions, not structured-clonable), so it is given the
-  // same choice `rootMetamodelOf` makes for this model, by name
-  // (goal-controller#467); a reconnect follows a metamodel change (KAOS ↔
-  // iStar, NFR, a conversion) the same way a session change already does
-  const metamodelName = useMemo(
-    () => rootMetamodelOf(storeModel).name,
-    [storeModel],
-  );
   const engineWorker = useEngineWorker(
     session.serve,
     engine,
     pistar,
     applyAnalysisOutcome,
-    metamodelName,
   );
   useEffect(() => {
     if (!model.text.trim() || pistar) applyAnalysisOutcome({ kind: 'cleared' });

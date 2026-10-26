@@ -36,7 +36,7 @@ import { toPistar } from '@istar-ts/core';
 import { analyze } from '@/services/analyze';
 import { transform } from '@/services/transform';
 import type { TransformEngine } from '@/lib/types';
-import { metamodelByName } from './dialects';
+import { metamodelFor } from './dialects';
 import { analysisKey, modelSignature } from './signature';
 import type {
   AnalysisWorkerRequest,
@@ -144,18 +144,18 @@ const scheduleAnalysis = (): void => {
 };
 
 /**
- * The mirror's `metamodel` (goal-controller#467): `metamodelName` is
- * `rootMetamodelOf(model).name` (`dialects.ts`), the one function that
- * decides a model's root metamodel; a `Metamodel` object itself can't cross
- * `postMessage` (its link rules are functions), so this thread looks it up
- * by name instead of recomputing the choice on its own.
+ * The mirror reads each file with the metamodel it is written in
+ * (`metamodelFor`, `dialects.ts`, goal-controller#467, istar-ts#250): the
+ * same choice the main thread's mirror makes, so a KAOS, NFR or dialect
+ * model is analysed as itself, and a conversion is followed without a
+ * reconnect.
  */
-const connect = (port: MessagePort, metamodelName: string): void => {
+const connect = (port: MessagePort): void => {
   mirror?.dispose();
   if (analysisTimer !== null) clearTimeout(analysisTimer);
   const remote = createRemoteDispatcher<string, string, MessageEvent>(port);
   const next = createMirrorStore<string, string>(remote, {
-    metamodel: metamodelByName(metamodelName),
+    metamodelFor,
     fileMetamodel: true,
   });
   mirror = next;
@@ -193,7 +193,7 @@ scope.onmessage = (event: MessageEvent<EngineWorkerRequest>) => {
   const message = event.data;
   if (message.type === 'connect') {
     const port = event.ports[0];
-    if (port) connect(port, message.metamodelName);
+    if (port) connect(port);
     return;
   }
   if (message.type === 'configure') {

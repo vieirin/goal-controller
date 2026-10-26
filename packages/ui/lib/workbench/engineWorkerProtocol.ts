@@ -37,14 +37,6 @@ export type TransformOutcome = {
 /** Sent once, with the mirror's `MessagePort` transferred alongside it. */
 export type EngineWorkerConnect = {
   readonly type: 'connect';
-  /**
-   * The model's root metamodel, by `rootMetamodelOf(model).name`
-   * (`dialects.ts`, goal-controller#467): a `Metamodel` object can't cross
-   * `postMessage` (its link rules are functions), so the worker looks this
-   * up itself (`metamodelByName`) to build its mirror with the same choice
-   * the main thread made.
-   */
-  readonly metamodelName: string;
 };
 
 /** Main thread → worker. */

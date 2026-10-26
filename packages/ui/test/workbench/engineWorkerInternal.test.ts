@@ -14,21 +14,17 @@
  * outstanding must get an instant `pong`, never queued behind it.
  *
  * The #467 point: the mirror reads the remote with the connecting model's
- * own root metamodel (`rootMetamodelOf`, `dialects.ts`), not always iStar
- * 2.0 — a KAOS or NFR model (or a conversion between frameworks within one
- * connection) must parse and analyse for real, not as an empty model.
+ * own metamodel (`metamodelFor`, `dialects.ts`, istar-ts#250), not always
+ * iStar 2.0 — a KAOS or NFR model (or a conversion between frameworks within
+ * one connection) must parse and analyse for real, not as an empty model.
  */
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { connectDispatcher, createActionDispatcher } from '@istar-ts/actions';
-import { createModelStore } from '@istar-ts/core';
+import { createModelStore, toPistar } from '@istar-ts/core';
 import type { AnyModel } from '@goal-controller/lib';
-import {
-  emptyModel,
-  parseModel,
-  rootMetamodelOf,
-} from '@/lib/workbench/dialects';
+import { emptyModel, parseModel } from '@/lib/workbench/dialects';
 import type { TransformEngine } from '@/lib/types';
 import type {
   AnalysisWorkerRequest,
@@ -39,6 +35,7 @@ import type {
   EngineWorkerResponse,
 } from '@/lib/workbench/engineWorkerProtocol';
 import type { AnalyzeResponse } from '@/lib/workbench/types';
+import { analysisKey } from '@/lib/workbench/signature';
 
 const read = (path: string): string =>
   readFileSync(join(__dirname, '../../../../examples', path), 'utf8');
@@ -113,9 +110,9 @@ const remoteFor = (model: AnyModel) =>
 
 /**
  * A fresh module instance, connected to a real dispatcher over `model`
- * (default: empty, iStar 2.0), as `connect` expects: the metamodel it is
- * given is `rootMetamodelOf(model)`'s name, the same choice the main thread
- * makes (goal-controller#467).
+ * (default: empty, iStar 2.0), as `connect` expects: the mirror reads each
+ * file with `metamodelFor`, the same choice the main thread's mirror makes
+ * (goal-controller#467, istar-ts#250).
  */
 const connectRaw = async (
   model: AnyModel = emptyModel(),
@@ -133,7 +130,7 @@ const connectRaw = async (
       ports: message.type === 'connect' ? [port2] : [],
     } as unknown as MessageEvent<EngineWorkerRequest>);
   };
-  send({ type: 'connect', metamodelName: rootMetamodelOf(model).name });
+  send({ type: 'connect' });
   return { send };
 };
 
@@ -331,9 +328,7 @@ describe('the mirror reads the model with its own root metamodel (goal-controlle
     const nfr = parseModel(read('nfr/nfr-welcome.txt'));
     const nfrPorts = new MessageChannel();
     connectDispatcher(nfrPorts.port1, remoteFor(nfr));
-    send({ type: 'connect', metamodelName: rootMetamodelOf(nfr).name }, [
-      nfrPorts.port2,
-    ]);
+    send({ type: 'connect' }, [nfrPorts.port2]);
     send({ type: 'configure', engine: 'nfrprop', pistar: false });
     const first = await nthAnalysis(1);
     expect(first.success).toBe(true);
@@ -342,12 +337,43 @@ describe('the mirror reads the model with its own root metamodel (goal-controlle
     const kaos = parseModel(read('kaos/kaos-welcome.txt'));
     const kaosPorts = new MessageChannel();
     connectDispatcher(kaosPorts.port1, remoteFor(kaos));
-    send({ type: 'connect', metamodelName: rootMetamodelOf(kaos).name }, [
-      kaosPorts.port2,
-    ]);
+    send({ type: 'connect' }, [kaosPorts.port2]);
     send({ type: 'configure', engine: 'kaosprop', pistar: false });
     const second = await nthAnalysis(2);
     expect(second.success).toBe(true);
     expect(second.problems).toEqual([]);
+  });
+
+  it('a conversion iStar 2.0 → KAOS within one connection is read as KAOS, no reconnect', async () => {
+    vi.stubGlobal('Worker', undefined);
+    const istar = parseModel(read('edge/simpleChoice.txt'));
+    const store = createModelStore(istar);
+    vi.resetModules();
+    await import('@/lib/workbench/engineWorker');
+    const scope = self as unknown as Scope;
+    const { port1, port2 } = new MessageChannel();
+    connectDispatcher(
+      port1,
+      createActionDispatcher(store, { sendModel: true }),
+    );
+    const send = (message: EngineWorkerRequest, ports: MessagePort[] = []) =>
+      scope.onmessage?.({
+        data: message,
+        ports,
+      } as unknown as MessageEvent<EngineWorkerRequest>);
+    send({ type: 'connect' }, [port2]);
+    send({ type: 'configure', engine: 'edgev2', pistar: false });
+    expect((await nthAnalysis(1)).success).toBe(true);
+
+    // the same connection: the model worker's store replaced by a KAOS model
+    store.replace(parseModel(read('kaos/kaos-welcome.txt')));
+    send({ type: 'configure', engine: 'kaosprop', pistar: false });
+    const kaos = await nthAnalysis(2);
+    expect(kaos.success).toBe(true);
+    expect(kaos.problems).toEqual([]);
+    // what was analysed is the KAOS model itself, as the remote holds it
+    expect(posted.filter(isAnalyzed)[1]?.key).toBe(
+      analysisKey(toPistar(store.getModel()), 'kaosprop'),
+    );
   });
 });

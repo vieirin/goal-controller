@@ -60,9 +60,6 @@ const hostSession = (
   if ('model' in read) textOf.set(opened, text);
   // the text the next derived one takes its indentation from
   let lastText = text;
-  // the metamodel each model of the history is read with (ModelChangeExtras)
-  const metamodelKeyOf = new WeakMap<AnyModel, number>([[opened, 0]]);
-  let metamodelKey = 0;
   // what requestContextActions answers: the canvas's palette (istar-ts#202)
   let palette: AnyPaletteDescription = DEFAULT_PALETTE;
   // the mode's own guards (oneActorOnly, an edgeV2 check, #412), read fresh
@@ -95,9 +92,7 @@ const hostSession = (
     const derived = textOf.get(model) ?? serializeModel(model, lastText);
     textOf.set(model, derived);
     lastText = derived;
-    metamodelKey = metamodelKeyOf.get(model) ?? metamodelKey;
-    metamodelKeyOf.set(model, metamodelKey);
-    extrasOf.set(action, { text: derived, metamodelKey });
+    extrasOf.set(action, { text: derived });
   });
   // the main thread's connection: every change with its extras
   const withExtras: ActionDispatcher<string, string> = {
@@ -113,14 +108,13 @@ const hostSession = (
   };
   const served = new Map<number, () => void>();
 
-  const write = (next: string, apply: boolean, key: number): void => {
+  const write = (next: string, apply: boolean): void => {
     lastText = next;
     if (!apply) return;
     const written = readModelText(next);
     // the main thread read it first: it does parse
     if (!('model' in written)) return;
     textOf.set(written.model, next);
-    metamodelKeyOf.set(written.model, key);
     // a host-side edit, as `wb.setText`'s was before the worker (#410): one
     // undo step; a conversion's text may be of another metamodel, which
     // `istar.replaceModel` (read with the dispatcher's own) can't take
@@ -168,7 +162,7 @@ const hostSession = (
         palette = message.palette ?? DEFAULT_PALETTE;
         return;
       case 'write':
-        write(message.text, message.apply, message.metamodelKey);
+        write(message.text, message.apply);
         return;
       case 'serve': {
         const other = ports[0];
