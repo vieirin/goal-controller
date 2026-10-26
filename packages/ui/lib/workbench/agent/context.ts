@@ -1,15 +1,17 @@
 /**
- * M6's agent context (goal-controller#415), composed: the root's part (the
- * model's istar-ts metamodel, `rootContextOf`), the notation's part
+ * M6's agent context (goal-controller#415), composed: the notation's part
  * (goal-language's `notationHelpOf`, for the mode's dialect), the engine's
  * part (its registry entry's `agentContext`, or its dialect binding's in
  * lib) and the mode's guards' descriptions (`modeGuards.ts`, ui's own
- * guards). Nothing about a metamodel, a dialect or the notation is worked
+ * guards). The root's part (the model's istar-ts metamodel) is no longer
+ * composed here: `@istar-ts/actions`' own metamodel context provider is
+ * prepended automatically, by every MCP session and `runAgent`/
+ * `systemPromptWith` call that gets a model (istar-ts#240,
+ * goal-controller#450). Nothing about a dialect or the notation is worked
  * out here: the system prompt's sections and the host tools read these
  * same objects.
  */
 import type { HostContextProvider } from '@istar-ts/actions';
-import { metamodelOf } from '@istar-ts/core';
 import type { AnyDialect } from '@goal-controller/dialect';
 import {
   notationHelpOf,
@@ -19,8 +21,6 @@ import {
 } from '@goal-controller/goal-language';
 import {
   engineContextText,
-  rootContextOf,
-  rootContextText,
   type EngineContext,
   type PoolRegistration,
 } from '@goal-controller/lib';
@@ -87,22 +87,18 @@ export const agentModeOf = (mode: ModelMode): AgentMode => {
 };
 
 /**
- * The parts as `HostContextProvider`s, one system-prompt section each, the
- * root's first, read off the model each time the prompt is written. Every
- * one sets `resource: false`: `list-types` and `notation-help` are host
- * tools of the same names (hostTools.ts), and server-mcp's default
- * `dataMode: 'tools'` would otherwise register a second tool of each name.
+ * The parts as `HostContextProvider`s, one system-prompt section each. The
+ * root's part isn't one of these: the built-in metamodel context provider
+ * (istar-ts#240) is prepended automatically, ahead of them, by every MCP
+ * session and `runAgent`/`systemPromptWith` call. Every one of these sets
+ * `resource: false`: `notation-help` is a host tool of the same name
+ * (hostTools.ts), and server-mcp's default `dataMode: 'tools'` would
+ * otherwise register a second tool of that name.
  */
 export const contextProviders = (
   mode: ModelMode,
   { notation, engine, guards }: AgentContextParts,
 ): HostContextProvider[] => [
-  {
-    name: 'metamodel',
-    title: "The model's metamodel: its element and link kinds",
-    text: (model) => rootContextText(rootContextOf(metamodelOf(model))),
-    resource: false,
-  },
   ...(engine
     ? [
         {
@@ -135,6 +131,6 @@ export const contextProviders = (
     : []),
 ];
 
-/** A mode's context providers: the root's part, and its mode's three, composed. */
+/** A mode's context providers: its mode's parts, composed. */
 export const contextProvidersFor = (mode: ModelMode): HostContextProvider[] =>
   contextProviders(mode, agentModeOf(mode));

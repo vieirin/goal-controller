@@ -39,6 +39,46 @@ describe('the metamodel extension', () => {
       ],
     });
   });
+
+  it('keeps a kind’s description (istar-ts#241), presentation still left out', () => {
+    const extension: ExtensionDefinition = {
+      ...dialect,
+      elements: [
+        {
+          kind: 'toyish.Box',
+          category: 'node',
+          shape: 'M 0 0 L 10 0 L 10 10 Z',
+          textBox: { top: 0.1, right: 0.1, bottom: 0.1, left: 0.1 },
+          description: 'A box that holds things.',
+        },
+      ],
+      links: [
+        {
+          kind: 'toyish.Feeds',
+          rules: { sources: ['toyish.Box'], targets: ['istar.Goal'] },
+          line: { dash: 'dashed' },
+          description: 'Feeds a goal.',
+        },
+      ],
+    };
+    expect(metamodelExtensionOf(extension)).to.deep.equal({
+      name: 'toyish',
+      elements: [
+        {
+          kind: 'toyish.Box',
+          category: 'node',
+          description: 'A box that holds things.',
+        },
+      ],
+      links: [
+        {
+          kind: 'toyish.Feeds',
+          rules: { sources: ['toyish.Box'], targets: ['istar.Goal'] },
+          description: 'Feeds a goal.',
+        },
+      ],
+    });
+  });
 });
 
 describe('the metamodel extension: where a node may be (#194)', () => {

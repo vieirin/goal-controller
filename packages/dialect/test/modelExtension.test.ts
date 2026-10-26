@@ -25,6 +25,8 @@ describe('model extensions', () => {
         category: 'node',
         pistarType: 'istar.Mission',
         shape: { path: 'M 0 0 L 10 0 L 10 10 Z' },
+        textBox: { top: 0.1, right: 0.1, bottom: 0.1, left: 0.1 },
+        description: 'A mission the model adds.',
       },
     ],
     links: [
@@ -34,6 +36,7 @@ describe('model extensions', () => {
         pistarType: 'istar.Assigns',
         rules: { sources: ['model.Mission'], targets: ['istar.Goal'] },
         line: { dash: '1,3' },
+        description: 'Assigns a mission to its actor.',
       },
     ],
     groupers: { missions: ['model.Mission', 'istar.Task'] },
@@ -49,12 +52,30 @@ describe('model extensions', () => {
       'toyish.Box',
       'model.Mission',
     ]);
-    // istar-ts draws the model's kinds: their drawing is not the dialect's
+    // its textBox and description go with it (istar-ts#241's
+    // metamodelContext reads the description); its own `shape` (istar-ts's
+    // `KindShape` object) doesn't fit this package's dialect-authoring
+    // `ExtensionElementDefinition.shape` (an SVG path string), so it stays
+    // out, as before: istar-ts draws it from the file's own "metamodel"
+    // block directly (dialects.ts's metamodelOfMode), not from this merged
+    // ExtensionDefinition
     expect(read.elements[2]).to.deep.equal({
       kind: 'model.Mission',
       label: 'Mission',
       category: 'node',
       pistarType: 'istar.Mission',
+      textBox: { top: 0.1, right: 0.1, bottom: 0.1, left: 0.1 },
+      description: 'A mission the model adds.',
+    });
+    // a link's own description survives too; its raw dash (istar-ts's
+    // `KindLine`) doesn't fit `ExtensionLinkDefinition.line`'s author-facing
+    // enum either, so it stays out the same way
+    expect(read.links[1]).to.deep.equal({
+      kind: 'model.Assigns',
+      label: 'Assigns',
+      pistarType: 'istar.Assigns',
+      rules: { sources: ['model.Mission'], targets: ['istar.Goal'] },
+      description: 'Assigns a mission to its actor.',
     });
     expect(profileOf(read, 'model.Mission').stereotypes).to.deep.equal([
       'late',

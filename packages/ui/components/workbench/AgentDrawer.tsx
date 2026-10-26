@@ -2,27 +2,22 @@
 
 /**
  * The agent drawer (goal-controller#415), modelled on istar-ts's playground
- * drawer (`@istar-ts/agent`'s README usage). Auto mode runs on M5's MCP
- * server (`wb.glspMcp`, with goal-controller's host tools), through
- * `createMcpToolRegistry`: one call, one undo step. Propose mode dry-runs on
- * istar-ts's own scratch GLSP session (`proposeChangeSet`,
- * `createGlspChangeSet`): the drawer shows each proposed step in words (or
- * why it was refused), and applies the approved ones as one undo step.
- * The system prompt gets goal-controller's context providers. The
- * endpoint, model and API key are typed into the drawer's own settings and
- * kept in `localStorage` only (`agentSettings.ts`): never in the project
+ * drawer (`@istar-ts/agent`'s README usage). Both modes run over backend A's
+ * session (`wb.glspSession`, `openGlspMcpSession`, istar-ts#239,
+ * goal-controller#450): Auto mode calls `liveRegistry` directly (one call,
+ * one undo step); Propose mode dry-runs on `changeSet`'s scratch session (a
+ * fresh one per run) and shows each proposed step in words (or why it was
+ * refused, possibly already at preview: a batch breaking the mode's own
+ * post-guard is refused on the scratch session itself), applying the
+ * approved ones as one undo step. The system prompt gets goal-controller's
+ * context providers, the same ones `wb.glspSession` serves as MCP resources.
+ * The endpoint, model and API key are typed into the drawer's own settings
+ * and kept in `localStorage` only (`agentSettings.ts`): never in the project
  * file, never sent anywhere but the configured endpoint.
  */
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Loader2, Send, Settings2 } from 'lucide-react';
-import { Client } from '@modelcontextprotocol/sdk/client/index.js';
-import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
-import type {
-  AgentEvent,
-  ChangeSetEntry,
-  ChatClient,
-  ToolRegistry,
-} from '@istar-ts/agent';
+import type { AgentEvent, ChangeSetEntry, ChatClient } from '@istar-ts/agent';
 import type { GlspChangeSet } from '@istar-ts/agent/glsp';
 import { contextProvidersFor } from '@/lib/workbench/agent/context';
 import {
@@ -30,8 +25,6 @@ import {
   saveAgentSettings,
   type AgentSettings,
 } from '@/lib/workbench/agent/agentSettings';
-import { proposeChangeSet } from '@/lib/workbench/agent/proposeChangeSet';
-import type { GlspMcpHandle } from '@/lib/workbench/glspServer';
 import { useWorkbench } from './WorkbenchContext';
 import { Button, Segmented, cx } from './ui';
 
@@ -78,37 +71,9 @@ function AgentPanel() {
   const [running, setRunning] = useState(false);
   const [lines, setLines] = useState<TranscriptLine[]>([]);
   const [pending, setPending] = useState<Pending | null>(null);
-  // Auto mode's registry, for the MCP handle it was connected to
-  const [connected, setConnected] = useState<{
-    handle: GlspMcpHandle;
-    registry: ToolRegistry;
-  } | null>(null);
   const clientRef = useRef<ChatClient | null>(null);
 
-  const glspMcp = wb.glspMcp;
-  const registry =
-    glspMcp && connected?.handle === glspMcp ? connected.registry : null;
-  useEffect(() => {
-    if (!glspMcp) return;
-    let disposed = false;
-    void (async () => {
-      const { createMcpToolRegistry } = await import('@istar-ts/agent');
-      const client = new Client({ name: 'goal-controller', version: '1.0.0' });
-      await client.connect(
-        new StreamableHTTPClientTransport(glspMcp.url, {
-          fetch: glspMcp.fetch,
-        }),
-      );
-      const connectedRegistry = await createMcpToolRegistry(client, {
-        boundArgs: { sessionId: glspMcp.sessionId },
-      });
-      if (!disposed)
-        setConnected({ handle: glspMcp, registry: connectedRegistry });
-    })();
-    return () => {
-      disposed = true;
-    };
-  }, [glspMcp]);
+  const registry = wb.glspSession?.liveRegistry ?? null;
 
   const contextProviders = useMemo(
     () => contextProvidersFor(wb.mode),
@@ -165,11 +130,9 @@ function AgentPanel() {
             { kind: 'assistant', text: last.content! },
           ]);
       } else {
-        const changeSet = await proposeChangeSet(
-          wb.session,
-          wb.mode,
-          wb.agentWorkspace,
-        );
+        // `registry` (above) is `wb.glspSession`'s, so this run would not
+        // have started without it
+        const { changeSet } = wb.glspSession!;
         const { transcript, changeSet: entries } = await runAgent({
           ...common,
           approval: 'propose',

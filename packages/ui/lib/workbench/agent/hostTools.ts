@@ -2,16 +2,18 @@
  * Goal-controller's own MCP host tools for M6's agent (goal-controller#415):
  * `list-types`, `pool-lookup`, `notation-help` and `validate-notation`,
  * registered next to istar's `set-properties`/`set-link-value`/`check-edge`
- * (M5, #414). Each reads the mode's parts (`agentModeOf`, context.ts), the
- * same objects the system prompt's sections are written from. Every one is
- * read-only: none dispatches an edit, so none needs the review step a
- * mutating host tool would.
+ * (M5, #414) through `GlspMcpBackendOptions.hostTools` (istar-ts#239,
+ * goal-controller#450). Each reads the mode's parts (`agentModeOf`,
+ * context.ts), the same objects the system prompt's sections are written
+ * from. Every one is read-only: none dispatches an edit, so none needs the
+ * review step a mutating host tool would.
  */
 import * as z from 'zod';
-import type {
-  HostTool,
-  HostToolContext,
-  HostToolResult,
+import {
+  metamodelContext,
+  type HostTool,
+  type HostToolContext,
+  type HostToolResult,
 } from '@istar-ts/actions';
 import { metamodelOf } from '@istar-ts/core';
 import {
@@ -19,11 +21,7 @@ import {
   type NotationInputs,
   type NotationTree,
 } from '@goal-controller/goal-language';
-import {
-  createPool,
-  rootContextOf,
-  type PoolRegistration,
-} from '@goal-controller/lib';
+import { createPool, type PoolRegistration } from '@goal-controller/lib';
 import type { ModelMode } from '@/lib/workbench/pistar';
 import {
   poolDocuments,
@@ -66,14 +64,14 @@ const refusal = (source: string, message: string): HostToolResult => ({
   diagnostics: [{ elementId: '', severity: 'error', message, source }],
 });
 
-/** `list-types`: the root's part (the model's metamodel's kinds) and the engine's (its kinds, property schemas, constraints). */
+/** `list-types`: the root's part (istar-ts's `metamodelContext`, istar-ts#240) and the engine's (its kinds, property schemas, constraints). */
 const listTypesTool = ({ engine }: AgentMode): HostTool =>
   toolSchema(
     'list-types',
     "The model's element, link and actor kinds, and the active dialect's id prefixes, property schemas and constraints.",
     z.object({}),
     (_args, { getModel }) =>
-      ok({ root: rootContextOf(metamodelOf(getModel())), engine }),
+      ok({ root: metamodelContext(metamodelOf(getModel())), engine }),
   );
 
 const poolLookupSchema = z.object({

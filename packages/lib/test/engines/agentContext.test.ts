@@ -8,8 +8,10 @@ import * as assert from 'assert';
 import { describe, it } from 'mocha';
 import type { AnyDialect } from '@goal-controller/dialect';
 import { notationHelpOf, readLine } from '@goal-controller/goal-language';
+import { metamodelContext } from '@istar-ts/actions';
 import { ISTAR_2_0 } from '@istar-ts/core';
 import { KAOS_OBSTACLES } from '@istar-ts/dsm3-kaos/metamodel';
+import { NFR } from '@istar-ts/dsm3-nfr/metamodel';
 import * as lib from '../../src';
 import {
   edgeV2Engine,
@@ -18,7 +20,6 @@ import {
   kaosAgentContext,
   nfr,
   nfrAgentContext,
-  rootContextOf,
   type Engine,
 } from '../../src';
 
@@ -83,20 +84,19 @@ describe("an engine's agent context (goal-controller#415)", () => {
     );
   });
 
-  it("the root's part is the metamodel's own kinds, istar-ts's", () => {
-    const istar = rootContextOf(ISTAR_2_0);
-    assert.deepStrictEqual(
-      istar.actors.map(({ kind }) => kind),
-      ['istar.Actor', 'istar.Agent', 'istar.Role'],
-    );
+  it("the root's part is istar-ts's own metamodelContext (goal-controller#450), with kind descriptions (istar-ts#241)", () => {
+    const istar = metamodelContext(ISTAR_2_0);
+    assert.ok(istar.elements.find((e) => e.kind === 'istar.Task')?.description);
     assert.ok(
       istar.links.some(({ kind }) => kind === 'istar.AndRefinementLink'),
     );
-    const kaosRoot = rootContextOf(KAOS_OBSTACLES);
-    assert.deepStrictEqual(kaosRoot.actors, []);
+    const kaosCtx = metamodelContext(KAOS_OBSTACLES);
     assert.ok(
-      kaosRoot.nodes.some(({ kind }) => kind === 'kaos.BehavioralGoal'),
+      kaosCtx.elements.find((e) => e.kind === 'kaos.BehavioralGoal')
+        ?.description,
     );
+    const nfrCtx = metamodelContext(NFR);
+    assert.ok(nfrCtx.elements.find((e) => e.kind === 'nfr.NFR')?.description);
   });
 
   it("an engine's own constraints come after its dialect's", () => {
