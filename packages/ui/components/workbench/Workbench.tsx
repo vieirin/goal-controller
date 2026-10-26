@@ -461,6 +461,19 @@ function ModelColumn() {
       aria-label='Goal model'
     >
       <OpenInspectorOnSelect open={() => setInspectorOpen(true)} />
+      {wb.modelWorkerNotice && (
+        <p
+          role='status'
+          className='flex items-start gap-2 border-b border-line bg-danger-soft px-3 py-1.5 text-2xs text-danger'
+        >
+          <span className='flex-1'>{wb.modelWorkerNotice}</span>
+          <IconButton
+            icon={X}
+            label='Dismiss'
+            onClick={wb.dismissModelWorkerNotice}
+          />
+        </p>
+      )}
       {wb.editRejected.length > 0 && (
         <p
           role='alert'

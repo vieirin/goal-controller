@@ -31,7 +31,13 @@ import type { AnyModel } from '@goal-controller/lib';
 import { emptyModel, metamodelFor } from './dialects';
 import { isGuardRejection } from './guardDiagnostics';
 import { readModelText, type ModelMode } from './pistar';
-import { modelWorker } from './modelWorkerClient';
+import {
+  MODEL_WORKER_PONG_TIMEOUT_MS,
+  MODEL_WORKER_SLOW_MS,
+  modelWorker,
+  onModelWorkerCrash,
+  pingModelWorker,
+} from './modelWorkerClient';
 import {
   changeTextOf,
   isModelSessionReport,
@@ -120,6 +126,15 @@ export type ModelSession = {
    * call run here.
    */
   serveAgent(port: MessagePort, tools: readonly WorkspaceTool[]): () => void;
+  /**
+   * Fires once if the model worker crashes while this session is open
+   * (goal-controller#469), with an error describing it: every in-flight
+   * `dispatch`/`synced()` wait already rejects with the same error. Already
+   * crashed: the listener runs at once. For a consumer that opens its own
+   * port into the worker next to this session's (the agent's drawer,
+   * `glspSession.ts`), so its own pending calls can reject too.
+   */
+  onCrash(listener: (error: Error) => void): () => void;
   /** set once `dispose` runs: `startSession` disposes the old one synchronously */
   readonly disposed: boolean;
   /** closes the worker's session: its store, dispatcher and connections */
@@ -206,6 +221,41 @@ export const createModelSession = (
     if (!disposed) channel?.port1.postMessage(message, transfer);
   };
 
+  // crash recovery (goal-controller#469): once the worker crashes, every
+  // listener here (an in-flight dispatch's own race below, or a consumer's
+  // `onCrash`, e.g. the agent drawer's own port) hears the same error, once;
+  // `crashError` makes every dispatch after that reject immediately instead
+  // of trying a dead port
+  let crashError: Error | null = null;
+  const crashListeners = new Set<(error: Error) => void>();
+  const stopWatchingForCrash = channel
+    ? onModelWorkerCrash((message) => {
+        if (disposed || crashError) return;
+        crashError = new Error(message);
+        for (const listener of crashListeners) listener(crashError);
+      })
+    : null;
+  const raceCrash = <T>(pending: Promise<T>): Promise<T> => {
+    if (crashError) return Promise.reject(crashError);
+    return new Promise<T>((resolve, reject) => {
+      const onCrashed = (error: Error): void => {
+        crashListeners.delete(onCrashed);
+        reject(error);
+      };
+      crashListeners.add(onCrashed);
+      pending.then(
+        (value) => {
+          crashListeners.delete(onCrashed);
+          resolve(value);
+        },
+        (error) => {
+          crashListeners.delete(onCrashed);
+          reject(error);
+        },
+      );
+    });
+  };
+
   // the remote's notifications reach the mirror first, then the session's
   // listener, then the dispatcher's own subscribers: each sees the model
   // the change made
@@ -255,9 +305,23 @@ export const createModelSession = (
       action: A,
       dispatchOptions?: DispatchOptions,
     ) {
-      const result = await remote.dispatch(action, dispatchOptions);
-      await mirror.synced();
-      return result;
+      // a dispatch this slow pings the worker (goal-controller#469): a
+      // healthy one answers long before this fires, so it never sends one;
+      // no pong within its own deadline is the crash path's job, not this
+      // dispatch's — it just rides whatever `raceCrash` below does with it
+      const slow = setTimeout(
+        () => pingModelWorker(MODEL_WORKER_PONG_TIMEOUT_MS),
+        MODEL_WORKER_SLOW_MS,
+      );
+      try {
+        const result = await raceCrash(
+          remote.dispatch(action, dispatchOptions),
+        );
+        await raceCrash(mirror.synced());
+        return result;
+      } finally {
+        clearTimeout(slow);
+      }
     },
     subscribe: (listener) => {
       subscribers.add(listener);
@@ -339,6 +403,16 @@ export const createModelSession = (
         post({ type: 'unagent', id: agent });
       };
     },
+    onCrash: (listener) => {
+      if (crashError) {
+        listener(crashError);
+        return () => {};
+      }
+      crashListeners.add(listener);
+      return () => {
+        crashListeners.delete(listener);
+      };
+    },
     get disposed() {
       return disposed;
     },
@@ -346,6 +420,7 @@ export const createModelSession = (
       if (disposed) return;
       post({ type: 'close' });
       disposed = true;
+      stopWatchingForCrash?.();
       unsubscribe();
       mirror.dispose();
       channel?.port1.close();

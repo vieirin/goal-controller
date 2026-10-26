@@ -412,6 +412,15 @@ export type Workbench = {
   editRejected: readonly GoalDiagnostic[];
   notifyEditRejected: (diagnostics: readonly GoalDiagnostic[]) => void;
   dismissEditRejected: () => void;
+  /**
+   * Set once a model-worker crash (goal-controller#469) has replaced the
+   * session with a fresh one on the same text and mode: the undo history is
+   * lost, so the user is told. Dismissed, or replaced by the next crash's.
+   */
+  modelWorkerNotice: string | null;
+  dismissModelWorkerNotice: () => void;
+  /** bumped on every crash recovery, for a consumer (the agent drawer) to react once per occurrence */
+  modelWorkerIncident: number;
   recent: RecentFile[];
   /** `id`: the entry's recentId */
   forgetRecent: (id: string) => void;
@@ -945,6 +954,44 @@ function WorkbenchState({
       }, 0);
     };
   }, []);
+  // a model-worker crash (goal-controller#469): the crashed session's own
+  // in-flight dispatches and `synced()` waits already reject (modelSession.ts);
+  // here, replace it with a fresh one opened on the last derived text and the
+  // current mode, so editing works again. The engine worker and the agent's
+  // session reconnect on their own: both are keyed on `session`'s identity
+  // (`useEngineWorker(session.serve, …)`, the GLSP effect below), so a new
+  // session is enough to re-point them at the respawned worker.
+  const [workerIncident, setWorkerIncident] = useState(0);
+  const [dismissedIncident, setDismissedIncident] = useState(0);
+  useEffect(
+    () =>
+      session.onCrash(() => {
+        // a crash heard by a session already replaced for another reason
+        // (startSession ran first) needs no recovery of its own
+        if (sessionRef.current !== session) return;
+        const text = textRef.current;
+        const read = readText(text);
+        const next = newSession(
+          text,
+          'model' in read ? read.model : emptyModel(),
+        );
+        session.dispose();
+        sessionRef.current = next;
+        setSession(next);
+        setEditRejected([]);
+        setGuardReport([]);
+        setWorkerIncident((n) => n + 1);
+      }),
+    [session, newSession, readText],
+  );
+  const dismissModelWorkerNotice = useCallback(
+    () => setDismissedIncident(workerIncident),
+    [workerIncident],
+  );
+  const modelWorkerNotice =
+    workerIncident !== dismissedIncident
+      ? 'The editor restarted; undo history was reset.'
+      : null;
   // the mode's own guards (oneActorOnly, the edgeV2 resource-bounds check,
   // goal-controller#412): the session's, not whichever diagram happens to be
   // mounted (the Source tab unmounts the diagram entirely, #439 review) —
@@ -980,16 +1027,19 @@ function WorkbenchState({
     if (!glspEnabled) return undefined;
     let disposed = false;
     let opened: GlspSession | null = null;
-    void openGlspSession(session, mode, () => workspaceRef.current()).then(
-      (started) => {
+    void openGlspSession(session, mode, () => workspaceRef.current())
+      .then((started) => {
         if (disposed) {
           started.close();
           return;
         }
         opened = started;
         setGlspSession(started);
-      },
-    );
+      })
+      // a model-worker crash (goal-controller#469) while this was opening:
+      // the session this effect reruns for (a fresh one, once the workbench
+      // recovers) opens its own, so there's nothing to show for this one
+      .catch(() => undefined);
     return () => {
       disposed = true;
       setGlspSession(null);
@@ -2803,6 +2853,9 @@ function WorkbenchState({
     editRejected,
     notifyEditRejected,
     dismissEditRejected,
+    modelWorkerNotice,
+    dismissModelWorkerNotice,
+    modelWorkerIncident: workerIncident,
     recent,
     forgetRecent,
     tree,

@@ -8,6 +8,6 @@
  */
 import { createModelWorkerHost } from './modelWorkerHost';
 
-const host = createModelWorkerHost();
+const host = createModelWorkerHost((pong) => self.postMessage(pong));
 
 self.onmessage = (event: MessageEvent) => host.onMessage(event);

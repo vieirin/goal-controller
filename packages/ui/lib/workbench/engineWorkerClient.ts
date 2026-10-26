@@ -22,6 +22,7 @@ import type {
   TransformOutcome,
   TransformRequestOptions,
 } from './engineWorkerProtocol';
+import { createWorkerPing, type WorkerPing } from './workerPing';
 
 /** what the worker says about analysis: a result or a failure for a key, or that it died */
 export type EngineAnalysisOutcome =
@@ -94,13 +95,9 @@ export const useEngineWorker = (
   const workerRef = useRef<Worker | null>(null);
   const pending = useRef(new Map<number, PendingTransform>());
   const nextRequestId = useRef(0);
-  const probing = useRef<{
-    readonly id: number;
-    readonly timer: ReturnType<typeof setTimeout>;
-  } | null>(null);
-  const nextProbeId = useRef(0);
-  // the current worker's crash path, for a probe that times out
-  const crashRef = useRef<((message: string) => void) | null>(null);
+  // the current worker's own probe (workerPing.ts, shared with the model
+  // worker's, goal-controller#469), recreated with it on each respawn
+  const pingerRef = useRef<WorkerPing | null>(null);
   // the latest callback, so the worker's handlers never need re-binding
   const onAnalysisRef = useRef(onAnalysis);
   useEffect(() => {
@@ -126,24 +123,27 @@ export const useEngineWorker = (
     },
     [settle],
   );
-  const stopProbing = useCallback((): void => {
-    if (probing.current) clearTimeout(probing.current.timer);
-    probing.current = null;
-  }, []);
-
   useEffect(() => {
     if (typeof Worker === 'undefined') return undefined;
     const worker = spawnWorker();
     const crash = (message: string): void => {
       if (workerRef.current !== worker) return;
       workerRef.current = null;
-      stopProbing();
+      pinger.stop();
       worker.terminate();
       settleAll((requestId) => failed(requestId, message));
       onAnalysisRef.current({ kind: 'crashed', message });
       setWorkerVersion((version) => version + 1);
     };
-    crashRef.current = crash;
+    const pinger = createWorkerPing(
+      (id) =>
+        worker.postMessage({ type: 'ping', id } satisfies EngineWorkerCommand),
+      (timeoutMs) =>
+        crash(
+          `The engine worker stopped responding (no reply in ${timeoutMs / 1000}s); it was restarted.`,
+        ),
+    );
+    pingerRef.current = pinger;
     worker.onmessage = (event: MessageEvent<EngineWorkerResponse>) => {
       const message = event.data;
       if (message.type === 'analyzed') {
@@ -163,7 +163,7 @@ export const useEngineWorker = (
         return;
       }
       if (message.type === 'pong') {
-        if (probing.current?.id === message.id) stopProbing();
+        pinger.pong(message.id);
         return;
       }
       // none pending: it was already cancelled (superseded, or its session gone)
@@ -184,11 +184,11 @@ export const useEngineWorker = (
       worker.terminate();
       if (workerRef.current === worker) {
         workerRef.current = null;
-        stopProbing();
+        pinger.stop();
         settleAll(() => ({ status: 'cancelled', reason: 'unmounted' }));
       }
     };
-  }, [workerVersion, settle, settleAll, stopProbing]);
+  }, [workerVersion, settle, settleAll]);
 
   useEffect(() => {
     const worker = workerRef.current;
@@ -238,21 +238,7 @@ export const useEngineWorker = (
   );
 
   const probe = useCallback((timeoutMs: number): void => {
-    const worker = workerRef.current;
-    if (!worker || probing.current) return;
-    const id = (nextProbeId.current += 1);
-    probing.current = {
-      id,
-      timer: setTimeout(
-        () =>
-          crashRef.current?.(
-            `The engine worker stopped responding (no reply in ${timeoutMs / 1000}s); it was restarted.`,
-          ),
-        timeoutMs,
-      ),
-    };
-    const message: EngineWorkerCommand = { type: 'ping', id };
-    worker.postMessage(message);
+    pingerRef.current?.start(timeoutMs);
   }, []);
 
   const pendingTransforms = useCallback(() => pending.current.size, []);

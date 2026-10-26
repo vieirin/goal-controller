@@ -32,11 +32,13 @@ import { readModelText, serializeModel, type ModelMode } from './pistar';
 import {
   isModelSessionControl,
   isModelWorkerOpen,
+  isModelWorkerPing,
   type ModelChangeExtras,
   type ModelSessionControl,
   type ModelSessionReport,
   type ModelSessionToolCall,
   type ModelWorkerOpen,
+  type ModelWorkerPong,
 } from './modelWorkerProtocol';
 
 /** A message as the worker (or its in-process stand-in) receives it. */
@@ -291,16 +293,27 @@ const hostSession = (
   return { close };
 };
 
-/** The worker's sessions, and the handler for its own channel's messages. */
-export const createModelWorkerHost = () => {
+/**
+ * The worker's sessions, and the handler for its own channel's messages.
+ * `postPong` answers a `ping` (goal-controller#469's liveness probe): `self.postMessage`
+ * in the real worker (modelWorker.ts), or the in-process stand-in's own relay
+ * (modelWorkerLocal.ts).
+ */
+export const createModelWorkerHost = (
+  postPong: (pong: ModelWorkerPong) => void,
+) => {
   const sessions = new Map<number, HostedSession>();
-  const onMessage = ({ data: open, ports }: ModelWorkerEvent): void => {
+  const onMessage = ({ data, ports }: ModelWorkerEvent): void => {
+    if (isModelWorkerPing(data)) {
+      postPong({ type: 'pong', id: data.id });
+      return;
+    }
     const port = ports[0];
-    if (!isModelWorkerOpen(open) || !port) return;
-    sessions.get(open.session)?.close();
+    if (!isModelWorkerOpen(data) || !port) return;
+    sessions.get(data.session)?.close();
     sessions.set(
-      open.session,
-      hostSession(open, port, () => sessions.delete(open.session)),
+      data.session,
+      hostSession(data, port, () => sessions.delete(data.session)),
     );
   };
   return {

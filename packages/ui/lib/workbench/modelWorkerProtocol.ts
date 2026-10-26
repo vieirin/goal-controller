@@ -36,6 +36,20 @@ export type ModelWorkerOpen = {
   readonly text: string;
 };
 
+/**
+ * Main thread → worker, on the worker itself: a liveness probe
+ * (goal-controller#469), answered with a `pong` of the same `id`, instantly,
+ * as long as the worker is alive (the same shape `engineWorkerProtocol.ts`
+ * uses, `workerPing.ts`'s `send`/`onTimeout` contract).
+ */
+export type ModelWorkerPing = { readonly type: 'ping'; readonly id: number };
+
+/** Worker → main thread, on the worker itself: the answer to a `ModelWorkerPing`. */
+export type ModelWorkerPong = { readonly type: 'pong'; readonly id: number };
+
+/** Everything the worker's own channel receives. */
+export type ModelWorkerRequest = ModelWorkerOpen | ModelWorkerPing;
+
 /** Main thread → worker, on a session's port. */
 export type ModelSessionControl =
   | {
@@ -137,6 +151,14 @@ export const isModelWorkerOpen = (value: unknown): value is ModelWorkerOpen =>
   value.type === 'open' &&
   typeof value.session === 'number' &&
   typeof value.text === 'string';
+
+/** The worker's `ping`, as its channel receives it. */
+export const isModelWorkerPing = (value: unknown): value is ModelWorkerPing =>
+  isRecord(value) && value.type === 'ping' && typeof value.id === 'number';
+
+/** The worker's `pong`, as the main thread receives it. */
+export const isModelWorkerPong = (value: unknown): value is ModelWorkerPong =>
+  isRecord(value) && value.type === 'pong' && typeof value.id === 'number';
 
 /** A session control message, not an action-protocol frame (those carry `jsonrpc`). */
 export const isModelSessionControl = (
