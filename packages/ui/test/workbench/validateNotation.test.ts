@@ -97,7 +97,7 @@ describe('validate-notation and the Notation editor (#415 review)', () => {
     const tool = hostToolsFor('mutrose', () => workspace).find(
       (t) => t.name === 'validate-notation',
     )!;
-    const session = createModelSession(model, () => {});
+    const session = createModelSession(MODEL, () => {}, { seed: model });
     const result = await tool.handler(
       { text },
       {

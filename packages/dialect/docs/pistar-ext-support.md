@@ -320,7 +320,8 @@ From `~/vieirin/istar-ts` @ `cb0ab99`. Nothing there was changed.
 - **Groupers and validation hooks.** A kind-set concept in `metamodel.ts` used
   by the rules, plus an extension-level veto/validation hook. The workbench's
   own rules live outside istar-ts today, as pre- and post-dispatch guards
-  per mode (`components/workbench/engines/modeGuards.ts`): a pre-guard
+  per mode (`packages/ui/lib/workbench/modeGuards.ts`, run in the model
+  worker): a pre-guard
   (`ActionGuard`) can reject an operation before it applies, a post-guard
   (`ActionPostGuard`) runs after and reports a diagnostic — a warning rather
   than an error when the Inspector can only reach a valid state one field

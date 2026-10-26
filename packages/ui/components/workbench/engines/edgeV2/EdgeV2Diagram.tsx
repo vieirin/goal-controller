@@ -1,12 +1,7 @@
 'use client';
 
-import type { ActionPostGuard } from '@istar-ts/actions';
 import type { IstarExtension } from '@istar-ts/react';
-import {
-  edgeOneActor,
-  edgePalette,
-  edgeV2ResourceBoundsGuard,
-} from '../edgeFamily/extensions';
+import { edgePalette } from '../edgeFamily/extensions';
 import { rtNumbering } from '../shared/extensions';
 import WorkbenchCanvas from '../shared/WorkbenchCanvas';
 
@@ -19,17 +14,6 @@ export const EDGEV2_PALETTE: readonly IstarExtension[] = [
   edgePalette,
 ];
 
-// the engine's own check (goal-controller#412): edgeV2 only, per the migration plan
-const EDGEV2_POST_GUARDS: readonly ActionPostGuard<string, string>[] = [
-  edgeOneActor,
-  edgeV2ResourceBoundsGuard,
-];
-
 export default function EdgeV2Diagram() {
-  return (
-    <WorkbenchCanvas
-      extensions={EDGEV2_EXTENSIONS}
-      postGuards={EDGEV2_POST_GUARDS}
-    />
-  );
+  return <WorkbenchCanvas extensions={EDGEV2_EXTENSIONS} />;
 }

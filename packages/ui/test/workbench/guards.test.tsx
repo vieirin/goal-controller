@@ -15,10 +15,6 @@ import {
   type Workbench,
 } from '@/components/workbench/WorkbenchContext';
 import WorkbenchCanvas from '@/components/workbench/engines/shared/WorkbenchCanvas';
-import {
-  edgeOneActor,
-  edgeV2ResourceBoundsGuard,
-} from '@/components/workbench/engines/edgeFamily/extensions';
 import { writeModelMode } from '@/lib/workbench/pistar';
 import { mockReactFlowDom } from './reactFlowDom';
 
@@ -49,10 +45,7 @@ const workbench = () => {
   const view = render(
     <WorkbenchProvider lockedEngine={null}>
       <Probe />
-      <WorkbenchCanvas
-        extensions={[]}
-        postGuards={[edgeOneActor, edgeV2ResourceBoundsGuard]}
-      />
+      <WorkbenchCanvas extensions={[]} />
     </WorkbenchProvider>,
   );
   return { wb: () => wb!, container: view.container };
@@ -84,12 +77,7 @@ const workbenchWithToggleableCanvas = () => {
   const ToggleableCanvas = () => {
     const [shown, setShown] = useState(true);
     hide = () => setShown(false);
-    return shown ? (
-      <WorkbenchCanvas
-        extensions={[]}
-        postGuards={[edgeOneActor, edgeV2ResourceBoundsGuard]}
-      />
-    ) : null;
+    return shown ? <WorkbenchCanvas extensions={[]} /> : null;
   };
   render(
     <WorkbenchProvider lockedEngine={null}>
@@ -265,8 +253,8 @@ describe('a guard still applies once the diagram unmounts (#439 review)', () => 
     await waitFor(() => expect(view.wb().tree).not.toBeNull());
     await waitFor(() => expect(view.wb().mode).toBe('edgev2'));
 
-    // switching to the Source tab unmounts the diagram (and its GuardsBridge);
-    // the session's own per-mode registry must still have the guard set
+    // switching to the Source tab unmounts the diagram; the worker's
+    // dispatcher still runs the mode's guards (#434: set by mode, not by diagram)
     view.hideCanvas();
     const before = view.wb().session.store.getModel();
 

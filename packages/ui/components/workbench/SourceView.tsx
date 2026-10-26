@@ -44,7 +44,7 @@ export default function SourceView() {
   // kept as typed (goal-controller#411); a dispatch the vocabulary itself
   // rejects (an unknown kind) falls back the same way. A guard's rejection
   // (goal-controller#439 review) never falls back — that would apply through
-  // `setText`'s quiet `store.replace` exactly what the guard just refused —
+  // `setText`'s host-side write exactly what the guard just refused —
   // so the model stays untouched; the typed text is still shown (`skipStore`),
   // its diagnostics inline where JSON parse problems already are.
   const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);

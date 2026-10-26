@@ -23,7 +23,6 @@ import {
   WorkbenchProvider,
   type Workbench,
 } from '@/components/workbench/WorkbenchContext';
-import { emptyModel } from '@/lib/workbench/dialects';
 import {
   useEngineWorker,
   type EngineTransformResult,
@@ -33,6 +32,7 @@ import type {
   EngineWorkerResponse,
 } from '@/lib/workbench/engineWorkerProtocol';
 import { createModelSession } from '@/lib/workbench/modelSession';
+import { createLocalModelWorker } from '@/lib/workbench/modelWorkerLocal';
 import { publishDiagnostics } from '@/lib/workbench/diagnosticsStore';
 import type { AnalyzeResponse } from '@/lib/workbench/types';
 import { writeModelMode } from '@/lib/workbench/pistar';
@@ -77,7 +77,11 @@ beforeEach(() => {
   vi.stubGlobal(
     'Worker',
     class {
-      constructor() {
+      constructor(url: URL) {
+        // the model worker (#434) runs for real, in-process: only the engine
+        // worker is faked here
+        if (url.pathname.endsWith('/modelWorker.ts'))
+          return createLocalModelWorker();
         const worker = new FakeWorker();
         workers.push(worker);
         return worker;
@@ -369,17 +373,16 @@ describe('the engine worker (#413)', () => {
 
   describe('every transform settles once and is forgotten (goal-controller#432 review)', () => {
     const client = () => {
-      const first = createModelSession(emptyModel(), () => {});
-      const second = createModelSession(emptyModel(), () => {});
+      const first = createModelSession('', () => {});
+      const second = createModelSession('', () => {});
       const hook = renderHook(
-        ({ dispatcher }) =>
-          useEngineWorker(dispatcher, 'edgev2', false, () => {}),
-        { initialProps: { dispatcher: first.dispatcher } },
+        ({ connect }) => useEngineWorker(connect, 'edgev2', false, () => {}),
+        { initialProps: { connect: first.serve } },
       );
       return {
         hook,
         worker: workers[0]!,
-        switchSession: () => hook.rerender({ dispatcher: second.dispatcher }),
+        switchSession: () => hook.rerender({ connect: second.serve }),
       };
     };
     const options = { engine: 'edgev2', fileName: 'model' } as const;

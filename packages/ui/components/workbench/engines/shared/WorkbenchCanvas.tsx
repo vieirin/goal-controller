@@ -1,6 +1,5 @@
 'use client';
 
-import type { ActionGuard, ActionPostGuard } from '@istar-ts/actions';
 import {
   IstarCanvas,
   IstarPalette,
@@ -41,6 +40,8 @@ import type { ModelSession } from '@/lib/workbench/modelSession';
  * The goal model as an editable iStar diagram (@istar-ts/react), a client of
  * the workbench's store and dispatcher (#410): its edits are actions on the
  * model, the text follows from it, and the selection follows the workbench's.
+ * The store is a mirror of the model worker's and the dispatcher the
+ * worker's (#434): the mode's guards run there, by `wb.mode`, not per diagram.
  * Each mode's diagram (engines/<engine>/, engines/pistar/) declares what it adds.
  */
 
@@ -155,34 +156,6 @@ function PaletteBridge({
   return null;
 }
 
-/**
- * Gives the session the mode's guards (oneActorOnly, an edgeV2 check,
- * goal-controller#412): rejected before an edit applies, not undone after.
- * The session's own per-mode registry (`WorkbenchContext`, goal-controller#439
- * review) already sets these by `wb.mode`, so they stay in force even while
- * no diagram is mounted (the Source tab); this only reaffirms the same ones
- * on each render of the mode's diagram, and must not clear them on unmount —
- * that would undo the registry's own, read fresh by the dispatcher on the
- * very next edit, from whatever surface (the Inspector) is still mounted.
- */
-function GuardsBridge({
-  session,
-  guards,
-  postGuards,
-}: {
-  session: ModelSession;
-  guards: readonly ActionGuard<string, string>[];
-  postGuards: readonly ActionPostGuard<string, string>[];
-}) {
-  useLayoutEffect(() => {
-    session.setGuards(guards);
-  }, [session, guards]);
-  useLayoutEffect(() => {
-    session.setPostGuards(postGuards);
-  }, [session, postGuards]);
-  return null;
-}
-
 /** Two-way selection sync between the diagram (piStar ids) and the workbench (RT ids). */
 function SelectionSync({
   canvas,
@@ -251,14 +224,9 @@ function SelectionSync({
   return null;
 }
 
-const NO_GUARDS: readonly ActionGuard<string, string>[] = [];
-const NO_POST_GUARDS: readonly ActionPostGuard<string, string>[] = [];
-
 export default function WorkbenchCanvas({
   extensions,
   aside,
-  guards = NO_GUARDS,
-  postGuards = NO_POST_GUARDS,
   paletteOnTop = false,
   paletteEnd,
   fitKey = '',
@@ -267,10 +235,6 @@ export default function WorkbenchCanvas({
   extensions: readonly IstarExtension<string, string>[];
   /** beside the canvas (piStar mode: the editor's own inspector) */
   aside?: ReactNode;
-  /** the mode's rules, rejected before they apply (oneActorOnly, goal-controller#412) */
-  guards?: readonly ActionGuard<string, string>[];
-  /** like `guards`, checked after the operation applies (an edgeV2 check, #412) */
-  postGuards?: readonly ActionPostGuard<string, string>[];
   /** the palette as a bar on top (piStar mode); otherwise on the left, on top in full screen */
   paletteOnTop?: boolean;
   /** fits the diagram again when it changes (a different palette) */
@@ -372,11 +336,6 @@ export default function WorkbenchCanvas({
       >
         <PaletteBridge session={session} extensions={extensions} />
         <SelectionSync canvas={canvas} />
-        <GuardsBridge
-          session={session}
-          guards={guards}
-          postGuards={postGuards}
-        />
         {/* piStar mode and full screen: piStar's bar on top; read-only has none */}
         {paletteEnd &&
         !modelReadOnly &&

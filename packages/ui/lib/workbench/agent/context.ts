@@ -37,7 +37,7 @@ import {
   FRAMEWORK_DIALECTS,
   isFrameworkMode,
 } from '@/lib/workbench/frameworkModes';
-import { guardsForMode } from '@/components/workbench/engines/modeGuards';
+import { guardsForMode } from '@/lib/workbench/modeGuards';
 
 /** The three parts of a mode's context, each its owner's (the root's is the model's metamodel's). */
 export type AgentContextParts = {

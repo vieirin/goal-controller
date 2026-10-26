@@ -2,14 +2,12 @@
 
 import { ENGINE_DIALECTS } from '@/lib/workbench/engineDialects';
 import { nextRtId } from '@/lib/workbench/pistar';
-import type { ActionPostGuard } from '@istar-ts/actions';
 import {
   DefaultElementComponent,
   type ElementComponentProps,
   type IstarExtension,
 } from '@istar-ts/react';
 import type { ReactElement } from 'react';
-import { oneActorOnly } from '../shared/extensions';
 import WorkbenchCanvas from '../shared/WorkbenchCanvas';
 
 const { mutrose } = ENGINE_DIALECTS;
@@ -105,18 +103,6 @@ const MUTROSE_EXTENSIONS: readonly IstarExtension[] = [mutrosePalette];
 /** What piStar mode's palette toggle adds for a file recorded for MutRoSe. */
 export const MUTROSE_PALETTE: readonly IstarExtension[] = [mutrosePalette];
 
-const mutroseOneActor = oneActorOnly(
-  'MutRoSe reads a single actor (its mission): add goals and tasks inside the existing one.',
-);
-const MUTROSE_POST_GUARDS: readonly ActionPostGuard<string, string>[] = [
-  mutroseOneActor,
-];
-
 export default function MutroseDiagram() {
-  return (
-    <WorkbenchCanvas
-      extensions={MUTROSE_EXTENSIONS}
-      postGuards={MUTROSE_POST_GUARDS}
-    />
-  );
+  return <WorkbenchCanvas extensions={MUTROSE_EXTENSIONS} />;
 }

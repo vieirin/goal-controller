@@ -878,7 +878,7 @@ type KindModel = {
 | 4   | `services/goalModel.ts` | `parseForMission(json, options) { return this.parseWith(json, missionEngineMapper, options) }` |
 | 5   | `services/transform.ts` | its branch: `GoalModel.parseForMission(…)`, then `({ files } = missionOutput(tree, { modelName, … }))`: the pane shows a tab per file, "Download all" zips them, and "Save the output in the project" writes them under `out/` |
 | 6   | `services/analyze.ts` | its branch in `parsed`; the problems its template finds across elements (MutRoSe's variable scoping) go to `response.problems` |
-| 7   | `components/workbench/engines/mission/MissionDiagram.tsx` | `<WorkbenchCanvas extensions={[rtNumbering, missionPalette]} />` (problem badges come from the diagnostics store; nothing to add): the palette offers the kinds your definition lists (copy `mutrose/MutroseDiagram.tsx`); `oneActorOnly(message)` as a post-guard, below, if it reads one actor |
+| 7   | `components/workbench/engines/mission/MissionDiagram.tsx` | `<WorkbenchCanvas extensions={[rtNumbering, missionPalette]} />` (problem badges come from the diagnostics store; nothing to add): the palette offers the kinds your definition lists (copy `mutrose/MutroseDiagram.tsx`); its rules (`oneActorOnly(message)` if it reads one actor) go in the guard registry, below, not here |
 | 8   | `components/workbench/engines/mission/MissionInspector.tsx` | `return <DefinitionInspector engine='mission' />` (that's the whole file) |
 | 9   | `engines/ModelDiagram.tsx`, `engines/ModelInspector.tsx`, `engines/pistar/PistarDiagram.tsx` | its `case` (the last: its palette for piStar mode's toggle, or `null`) |
 | 10  | `lib/workbench/pistar.ts` | `ENGINE_READS.mission`: the iStar kinds a model converted to it may have (new elements get its definition's id prefixes) |
@@ -889,8 +889,8 @@ type KindModel = {
 
 A mode's rules (`oneActorOnly`, edgeV2's resource-bounds check) are not a
 canvas prop: they are entries in the guard registry,
-`components/workbench/engines/modeGuards.ts`, keyed by `wb.mode`. Add
-`mission` to `MODE_GUARDS` there:
+`lib/workbench/modeGuards.ts`, keyed by `wb.mode`. Add `mission` to
+`MODE_GUARDS` there:
 
 - **`guards`** (istar-ts `ActionGuard`s) run before an operation applies and
   can reject it outright: nothing reaches the model.
@@ -898,7 +898,7 @@ canvas prop: they are entries in the guard registry,
   model that results, and return diagnostics instead of rejecting — the
   edit stands, but a problem is reported alongside it. Prefer a post-guard
   whenever the Inspector can only reach a valid state one field at a time:
-  `edgeV2ResourceBoundsGuard` (`engines/edgeFamily/extensions.tsx`) reports a
+  `edgeV2ResourceBoundsGuard` (also in `lib/workbench/modeGuards.ts`) reports a
   `severity: 'warning'`, not an error, because an `int` resource's
   `lowerBound`/`initialValue`/`upperBound` only ever land in a consistent
   combination after several single-property edits — a guard would reject
@@ -908,9 +908,12 @@ canvas prop: they are entries in the guard registry,
   rejection message), read by M6's agent so it knows the mode's constraints
   before it edits.
 
-These guards are not a `MissionDiagram` concern: the session reads
-`guardsForMode(mode)` once and installs it on itself
-(`WorkbenchContext.tsx`), so the same rules apply to every surface that can
+These guards are not a `MissionDiagram` concern: the dispatcher lives in
+the model worker (`lib/workbench/modelWorkerHost.ts`, goal-controller#434),
+and the workbench sends it the mode (`session.setMode`, `WorkbenchContext.tsx`),
+from which the worker builds `guardsForMode(mode)` itself (a function can't
+cross `postMessage`, so keep `modeGuards.ts` and what it imports free of
+React and the DOM). The same rules apply to every surface that can
 change the model under that mode — the canvas, the Inspector, the Source
 tab's JSON editing, the MCP tool calls in a live session
 (`lib/workbench/agent/glspSession.ts`), and the agent. A diagram-level
