@@ -36,6 +36,7 @@ import { toPistar } from '@istar-ts/core';
 import { analyze } from '@/services/analyze';
 import { transform } from '@/services/transform';
 import type { TransformEngine } from '@/lib/types';
+import { metamodelByName } from './dialects';
 import { analysisKey, modelSignature } from './signature';
 import type {
   AnalysisWorkerRequest,
@@ -142,11 +143,21 @@ const scheduleAnalysis = (): void => {
   analysisTimer = setTimeout(runAnalysis, ANALYSIS_DEBOUNCE_MS);
 };
 
-const connect = (port: MessagePort): void => {
+/**
+ * The mirror's `metamodel` (goal-controller#467): `metamodelName` is
+ * `rootMetamodelOf(model).name` (`dialects.ts`), the one function that
+ * decides a model's root metamodel; a `Metamodel` object itself can't cross
+ * `postMessage` (its link rules are functions), so this thread looks it up
+ * by name instead of recomputing the choice on its own.
+ */
+const connect = (port: MessagePort, metamodelName: string): void => {
   mirror?.dispose();
   if (analysisTimer !== null) clearTimeout(analysisTimer);
   const remote = createRemoteDispatcher<string, string, MessageEvent>(port);
-  const next = createMirrorStore<string, string>(remote);
+  const next = createMirrorStore<string, string>(remote, {
+    metamodel: metamodelByName(metamodelName),
+    fileMetamodel: true,
+  });
   mirror = next;
   next.subscribe(scheduleAnalysis);
   void next.ready.then(scheduleAnalysis);
@@ -182,7 +193,7 @@ scope.onmessage = (event: MessageEvent<EngineWorkerRequest>) => {
   const message = event.data;
   if (message.type === 'connect') {
     const port = event.ports[0];
-    if (port) connect(port);
+    if (port) connect(port, message.metamodelName);
     return;
   }
   if (message.type === 'configure') {
