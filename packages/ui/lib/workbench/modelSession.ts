@@ -17,7 +17,6 @@ import {
   type DispatchOptions,
   type IstarAction,
   type ModelSourceChangedAction,
-  type StoreActionDispatcher,
 } from '@istar-ts/actions';
 import {
   DEFAULT_PALETTE,
@@ -64,11 +63,11 @@ export type ModelSession = {
   readonly store: ModelStore<string, string>;
   /**
    * The worker's dispatcher: `dispatch` resolves once `store` shows what the
-   * action did (a rejected one changes nothing, mirror included). A
-   * `StoreActionDispatcher`: a GLSP server hosted over this session
-   * (goal-controller#414, agent/glspSession.ts) reads `isDirty` at runtime.
+   * action did (a rejected one changes nothing, mirror included). A GLSP
+   * server hosted over it tracks its dirty state from the `setDirtyState`
+   * notifications it relays (`withDirtyState`, istar-ts#249).
    */
-  readonly dispatcher: StoreActionDispatcher<string, string>;
+  readonly dispatcher: ActionDispatcher<string, string>;
   /** the dispatcher, tagged with the surface that sends through it */
   dispatcherFor(surface: IstarSurface): ActionDispatcher<string, string>;
   /** resolves once `store` shows the worker's own model */
@@ -203,11 +202,8 @@ export const createModelSession = (
   // origin (istar-ts#213): survives the round trip to the worker
   const surfaceOf = (origin: string | undefined): IstarSurface | null =>
     origin === 'canvas' || origin === 'inspector' ? origin : null;
-  // the worker's dirty state, as its setDirtyState notifications say
-  let dirty = false;
   const unsubscribe = remote.subscribe((action) => {
     if (disposed) return;
-    if (action.kind === 'setDirtyState') dirty = action.isDirty;
     for (const listener of toMirror) listener(action);
     if (action.kind === 'sourceModelChanged') {
       const model = mirror.getModel();
@@ -221,7 +217,7 @@ export const createModelSession = (
     for (const listener of subscribers) listener(action);
   });
 
-  const dispatcher: StoreActionDispatcher<string, string> = {
+  const dispatcher: ActionDispatcher<string, string> = {
     async dispatch<A extends IstarAction<string, string>>(
       action: A,
       dispatchOptions?: DispatchOptions,
@@ -236,9 +232,6 @@ export const createModelSession = (
         subscribers.delete(listener);
       };
     },
-    isDirty: () => dirty,
-    // nothing of its own to stop: the session's `dispose` closes it all
-    dispose: () => {},
   };
   const tagged = (tag: IstarSurface): ActionDispatcher<string, string> => ({
     dispatch<A extends IstarAction<string, string>>(

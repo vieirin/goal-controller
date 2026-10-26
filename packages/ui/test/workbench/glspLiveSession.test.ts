@@ -99,4 +99,30 @@ describe('the live session (goal-controller#450, istar-ts#239)', () => {
       glsp.close();
     },
   );
+
+  it("closing while an edit's validation is still on its way to the worker throws nothing (istar-ts#249)", async () => {
+    const { session, glsp } = await opened();
+    const unhandled: unknown[] = [];
+    const onUnhandled = (reason: unknown) => unhandled.push(reason);
+    process.on('unhandledRejection', onUnhandled);
+    try {
+      const renamed = await glsp.liveRegistry.call('set-properties', {
+        elementId: G1,
+        properties: { name: 'Renamed while closing' },
+      });
+      expect(renamed.ok).toBe(true);
+      // its live validation is still on its way to the worker and back
+      glsp.close();
+      // what the worker answers after the close, and what GLSP does with it
+      await session.dispatcher.dispatch({
+        kind: 'requestTypeHints',
+        requestId: 'settled',
+      });
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      expect(unhandled).toEqual([]);
+    } finally {
+      process.off('unhandledRejection', onUnhandled);
+      session.dispose();
+    }
+  });
 });
