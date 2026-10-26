@@ -61,7 +61,11 @@ const context: DefinitionContext = {
 
 describe('applyCodeAction (#416, #440)', () => {
   it('creates the node inside the actor the server names from the document, through the dispatcher; one undo removes it', async () => {
-    const session = createModelSession('', () => {});
+    const session = createModelSession(
+      '',
+      () => {},
+      () => {},
+    );
     const dispatcher = session.dispatcherFor('inspector');
 
     const actor = await dispatcher.dispatch({
@@ -115,7 +119,11 @@ describe('applyCodeAction (#416, #440)', () => {
   });
 
   it('offers no fix when the element has no owner and its kind cannot be on paper', async () => {
-    const session = createModelSession('', () => {});
+    const session = createModelSession(
+      '',
+      () => {},
+      () => {},
+    );
     const { shared, store } = createGoalLspServices();
     // no actors in the context: T9 nests under nothing the model owns
     store.set({ dialect, context: { elements: {}, variables: [] } });

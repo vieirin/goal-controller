@@ -219,7 +219,11 @@ describe('the model lives in the worker; the main thread holds a mirror (#434)',
 
 describe('the engine worker follows the model worker directly (#434)', () => {
   it("a port served by the session hears the worker's changes, with no main-thread dispatcher in between", async () => {
-    const session = createModelSession(ISTAR, () => {});
+    const session = createModelSession(
+      ISTAR,
+      () => {},
+      () => {},
+    );
     await session.ready;
     const { port1, port2 } = new MessageChannel();
     const stop = session.serve(port1);

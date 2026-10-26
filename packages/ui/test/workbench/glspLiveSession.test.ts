@@ -27,9 +27,13 @@ const G1 = '117b97d7-775b-41a9-8fec-9e923edde772';
 
 /** An edgev2 session (its mode's guards on it) and its live backend-A session. */
 const opened = async () => {
-  const session: ModelSession = createModelSession(EDGEV2, () => {
-    /* no listener needed: the tests read the store directly */
-  });
+  const session: ModelSession = createModelSession(
+    EDGEV2,
+    () => {
+      /* no listener needed: the tests read the store directly */
+    },
+    () => {},
+  );
   session.setMode('edgev2');
   const glsp = await openGlspSession(session, 'edgev2', () => ({
     tree: null,

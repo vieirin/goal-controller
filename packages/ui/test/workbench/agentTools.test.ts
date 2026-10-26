@@ -78,7 +78,11 @@ const call = async (
 ): Promise<HostToolResult> => {
   const tool = tools.find((t) => t.name === name);
   if (!tool) throw new Error(`no ${name}`);
-  const session = createModelSession(text, () => {});
+  const session = createModelSession(
+    text,
+    () => {},
+    () => {},
+  );
   return tool.handler(args, {
     getModel: () => session.store.getModel(),
     dispatcher: session.dispatcher,
@@ -262,7 +266,11 @@ const task = (id: string, text: string) =>
 
 /** An edgev2 session (its mode's guards on it), its backend-A session, and a run of `toolCalls` on it. */
 const proposed = async (toolCalls: readonly ToolCall[]) => {
-  const session: ModelSession = createModelSession(EDGEV2, () => {});
+  const session: ModelSession = createModelSession(
+    EDGEV2,
+    () => {},
+    () => {},
+  );
   session.setMode('edgev2');
   const glsp = await openGlspSession(session, 'edgev2', NO_WORKSPACE);
   const { changeSet } = glsp;
@@ -339,7 +347,11 @@ describe('Propose mode: refused at preview, one approval one undo step (#415, #4
   });
 
   it("the live session's registry has goal-controller's four host tools (goal-controller#450)", async () => {
-    const session = createModelSession(EDGEV2, () => {});
+    const session = createModelSession(
+      EDGEV2,
+      () => {},
+      () => {},
+    );
     const glsp = await openGlspSession(session, 'edgev2', NO_WORKSPACE);
     const names = glsp.liveRegistry.list().map((spec) => spec.name);
     expect(names).toEqual(
@@ -354,7 +366,11 @@ describe('Propose mode: refused at preview, one approval one undo step (#415, #4
   });
 
   it("the scratch session's registry has goal-controller's host tools", async () => {
-    const session = createModelSession(EDGEV2, () => {});
+    const session = createModelSession(
+      EDGEV2,
+      () => {},
+      () => {},
+    );
     const glsp = await openGlspSession(session, 'edgev2', NO_WORKSPACE);
     const scratch = await glsp.changeSet.openScratch();
     const names = scratch.registry.list().map((spec) => spec.name);

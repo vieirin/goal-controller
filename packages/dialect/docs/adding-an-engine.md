@@ -920,6 +920,33 @@ tab's JSON editing, the MCP tool calls in a live session
 `rejectEdit` prop existed before the istar-ts migration (goal-controller#412)
 and is gone; nothing in `MissionDiagram.tsx` itself needs to know its rules.
 
+**A raw write (an import, a conversion, ModelSettings) is not a dispatch**
+(goal-controller#471), so it reaches the model by another path — decide
+which of the two your caller is:
+
+- **An import or a file open** (`openModel`/`startSession`,
+  `WorkbenchContext.tsx`) applies the text as written, mode guards included:
+  that's arguably right for a file that says what it is, but the model can
+  now break the active mode's rules with no warning. So
+  `modelWorkerHost.ts` runs the mode's guards and post-guards again, in
+  **report mode** — the same two lists `guardsForMode` already built, over
+  the model as it stands, never rejecting — and sends their diagnostics to
+  the main thread as a `report` message on the session's port. One function
+  (`report` in `modelWorkerHost.ts`) does this, called after every `mode`
+  message, so it also re-runs when the mode changes under the model that's
+  already open. The main thread publishes it to `serviceDiagnostics`
+  (`GUARD_REPORT_SERVICE`, `WorkbenchContext.tsx`), so it shows as a Problem,
+  anchored to its element where the diagnostic has one.
+- **A conversion or a ModelSettings edit** is an edit, even though its
+  caller builds the next model as a whole piStar file rather than a single
+  operation: it dispatches `istar.replaceModel` like any other edit
+  (`applyConversion`, `WorkbenchContext.tsx`), so a guard rejects it before
+  anything applies — the model stays as it was, in the mode it was already
+  in, and the rejection shows where every other guard rejection does
+  (`wb.editRejected`, `notifyEditRejected`). Only a rejection the vocabulary
+  itself makes (not one of the mode's own guards) falls back to the raw,
+  unchecked write, as a parse failure already does.
+
 ### 4.1 An engine of another framework
 
 Most of the twelve edits are the same. These differ:
