@@ -878,12 +878,44 @@ type KindModel = {
 | 4   | `services/goalModel.ts` | `parseForMission(json, options) { return this.parseWith(json, missionEngineMapper, options) }` |
 | 5   | `services/transform.ts` | its branch: `GoalModel.parseForMission(…)`, then `({ files } = missionOutput(tree, { modelName, … }))`: the pane shows a tab per file, "Download all" zips them, and "Save the output in the project" writes them under `out/` |
 | 6   | `services/analyze.ts` | its branch in `parsed`; the problems its template finds across elements (MutRoSe's variable scoping) go to `response.problems` |
-| 7   | `components/workbench/engines/mission/MissionDiagram.tsx` | `<WorkbenchCanvas extensions={[rtNumbering, missionPalette]} rejectEdit={…} />` (problem badges come from the diagnostics store; nothing to add): the palette offers the kinds your definition lists (copy `mutrose/MutroseDiagram.tsx`); `oneActorOnly(message)` if it reads one actor |
+| 7   | `components/workbench/engines/mission/MissionDiagram.tsx` | `<WorkbenchCanvas extensions={[rtNumbering, missionPalette]} />` (problem badges come from the diagnostics store; nothing to add): the palette offers the kinds your definition lists (copy `mutrose/MutroseDiagram.tsx`); `oneActorOnly(message)` as a post-guard, below, if it reads one actor |
 | 8   | `components/workbench/engines/mission/MissionInspector.tsx` | `return <DefinitionInspector engine='mission' />` (that's the whole file) |
 | 9   | `engines/ModelDiagram.tsx`, `engines/ModelInspector.tsx`, `engines/pistar/PistarDiagram.tsx` | its `case` (the last: its palette for piStar mode's toggle, or `null`) |
 | 10  | `lib/workbench/pistar.ts` | `ENGINE_READS.mission`: the iStar kinds a model converted to it may have (new elements get its definition's id prefixes) |
 | 11  | `components/workbench/engines/shared/inspector.tsx` | `ENGINE_KEYS.mission`: where its keys are declared and read (the inspector's "add it to …" hint for unread properties) |
 | 12  | `services/examples.ts` | `EXAMPLE_ENGINES`: `mission: 'mission'`, so `examples/mission/` opens for it (a project folder with a `project.json` opens with its `dialect`) |
+
+### Your engine's own editing rules
+
+A mode's rules (`oneActorOnly`, edgeV2's resource-bounds check) are not a
+canvas prop: they are entries in the guard registry,
+`components/workbench/engines/modeGuards.ts`, keyed by `wb.mode`. Add
+`mission` to `MODE_GUARDS` there:
+
+- **`guards`** (istar-ts `ActionGuard`s) run before an operation applies and
+  can reject it outright: nothing reaches the model.
+- **`postGuards`** (`ActionPostGuard`s) run after it applies, against the
+  model that results, and return diagnostics instead of rejecting — the
+  edit stands, but a problem is reported alongside it. Prefer a post-guard
+  whenever the Inspector can only reach a valid state one field at a time:
+  `edgeV2ResourceBoundsGuard` (`engines/edgeFamily/extensions.tsx`) reports a
+  `severity: 'warning'`, not an error, because an `int` resource's
+  `lowerBound`/`initialValue`/`upperBound` only ever land in a consistent
+  combination after several single-property edits — a guard would reject
+  every intermediate state and make a bool→int switch impossible through
+  that UI at all.
+- **`describe`**: one plain-language sentence per rule (not the guard's
+  rejection message), read by M6's agent so it knows the mode's constraints
+  before it edits.
+
+These guards are not a `MissionDiagram` concern: the session reads
+`guardsForMode(mode)` once and installs it on itself
+(`WorkbenchContext.tsx`), so the same rules apply to every surface that can
+change the model under that mode — the canvas, the Inspector, the Source
+tab's JSON editing, the MCP tool calls in a live session
+(`lib/workbench/agent/glspSession.ts`), and the agent. A diagram-level
+`rejectEdit` prop existed before the istar-ts migration (goal-controller#412)
+and is gone; nothing in `MissionDiagram.tsx` itself needs to know its rules.
 
 ### 4.1 An engine of another framework
 
