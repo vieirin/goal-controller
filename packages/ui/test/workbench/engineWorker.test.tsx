@@ -375,8 +375,16 @@ describe('the engine worker (#413)', () => {
 
   describe('every transform settles once and is forgotten (goal-controller#432 review)', () => {
     const client = () => {
-      const first = createModelSession('', () => {});
-      const second = createModelSession('', () => {});
+      const first = createModelSession(
+        '',
+        () => {},
+        () => {},
+      );
+      const second = createModelSession(
+        '',
+        () => {},
+        () => {},
+      );
       const hook = renderHook(
         ({ connect }) =>
           useEngineWorker(

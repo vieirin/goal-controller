@@ -15,11 +15,14 @@ import {
   type ActionPostGuard,
   type MessagePortLike,
   type ModelSourceChangedAction,
+  type ReplaceModelOperation,
 } from '@istar-ts/actions';
 import {
   createModelStore,
   DEFAULT_PALETTE,
+  toPistarObject,
   type AnyPaletteDescription,
+  type GoalDiagnostic,
 } from '@istar-ts/core';
 import type { AnyModel } from '@goal-controller/lib';
 import { emptyModel, pistarExtMetamodelGuard } from './dialects';
@@ -30,6 +33,7 @@ import {
   isModelWorkerOpen,
   type ModelChangeExtras,
   type ModelSessionControl,
+  type ModelSessionReport,
   type ModelWorkerOpen,
 } from './modelWorkerProtocol';
 
@@ -123,6 +127,28 @@ const hostSession = (
     store.replace(written.model);
   };
 
+  /**
+   * The active mode's guards and post-guards, run in report mode
+   * (goal-controller#471) over the model as it stands: never rejects, so an
+   * import or an open applies as written and its diagnostics show as
+   * Problems instead. `istar.replaceModel` stands in for "this is the
+   * model", since a guard reads its operation and the model the same way
+   * for any operation that replaces the whole thing.
+   */
+  const report = (): readonly GoalDiagnostic[] => {
+    const model = store.getModel();
+    const operation: ReplaceModelOperation = {
+      kind: 'istar.replaceModel',
+      model: toPistarObject(model),
+    };
+    return [
+      ...modeGuards.flatMap((guard) => guard(operation, model) ?? []),
+      ...modePostGuards.flatMap(
+        (guard) => guard(operation, model, model) ?? [],
+      ),
+    ];
+  };
+
   const control = (
     message: ModelSessionControl,
     ports: readonly MessagePort[],
@@ -132,6 +158,10 @@ const hostSession = (
         const { guards, postGuards } = guardsForMode(message.mode);
         modeGuards = guards;
         modePostGuards = postGuards;
+        port.postMessage({
+          type: 'report',
+          diagnostics: report(),
+        } satisfies ModelSessionReport);
         return;
       }
       case 'palette':

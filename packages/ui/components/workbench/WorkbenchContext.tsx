@@ -47,6 +47,7 @@ import {
   type ModelChanged,
   type ModelSession,
 } from '@/lib/workbench/modelSession';
+import { isGuardRejection } from '@/lib/workbench/guardDiagnostics';
 import {
   openGlspSession,
   type GlspSession,
@@ -365,12 +366,14 @@ export type Workbench = {
   /**
    * the text as the model's, shown as given at once and read into the model
    * worker's store as one undoable edit (#434: a host-side write there, not
-   * an action, so a conversion to another metamodel can go through it); a
-   * text that doesn't parse is kept, the store left as it was. The raw-text
-   * paths (a conversion, an import, SourceView's fallback) write through it
-   * (#411). `skipStore` (#439): the text is shown as given (so it isn't reset
-   * under the caller), but never read into the store — for a dispatch a
-   * guard rejected, whose raw text the write would otherwise apply unchecked.
+   * an action, so a model of another metamodel can go through it, and the
+   * mode's guards never reject it — #471, the import/open path); a text
+   * that doesn't parse is kept, the store left as it was. The raw-text paths
+   * (an import, SourceView's and `applyConversion`'s vocabulary-rejection
+   * fallback) write through it (#411). `skipStore` (#439): the text is
+   * shown as given (so it isn't reset under the caller), but never read
+   * into the store — for a dispatch a guard rejected, whose raw text the
+   * write would otherwise apply unchecked.
    */
   setText: (
     text: string,
@@ -702,6 +705,11 @@ export const ANALYSIS_UNRESPONSIVE_MS = 50_000;
 // under (goal-controller#433): not a Problem.source (each one already
 // carries its own, set by `analyze`), just this store's replace-bookkeeping
 const ENGINE_DIAGNOSTICS_SERVICE = 'engine';
+// the diagnosticsStore "service" key the active mode's guard report
+// publishes under (goal-controller#471): same replace-bookkeeping role as
+// ENGINE_DIAGNOSTICS_SERVICE, each diagnostic's own `source` ('shield') is
+// what Problems groups by
+const GUARD_REPORT_SERVICE = 'guard-report';
 
 /** The store's current model, kept driftless by subscribing to it directly
  * (#449, #451 review) instead of mirroring it into a `useState` that every
@@ -899,13 +907,21 @@ function WorkbenchState({
   );
   const onModelChangedRef = useRef(onModelChanged);
   onModelChangedRef.current = onModelChanged;
+  // the active mode's guard diagnostics, in report mode (goal-controller#471):
+  // sent after this session's model opens, and again on every mode switch
+  const [guardReport, setGuardReport] = useState<readonly GoalDiagnostic[]>([]);
   const newSession = useCallback(
     (text: string, seed: AnyModel): ModelSession =>
-      createModelSession(text, (change) => onModelChangedRef.current(change), {
-        seed,
-        // the server's prerender has no worker to open it in
-        connect: typeof window !== 'undefined',
-      }),
+      createModelSession(
+        text,
+        (change) => onModelChangedRef.current(change),
+        (diagnostics) => setGuardReport(diagnostics),
+        {
+          seed,
+          // the server's prerender has no worker to open it in
+          connect: typeof window !== 'undefined',
+        },
+      ),
     [],
   );
   const [session, setSession] = useState(() => newSession('', emptyModel()));
@@ -996,6 +1012,7 @@ function WorkbenchState({
       setSession(next);
       setJsonError('error' in read ? jsonProblem(text, read.error) : null);
       setEditRejected([]);
+      setGuardReport([]);
     },
     [readText, newSession],
   );
@@ -1181,11 +1198,53 @@ function WorkbenchState({
   );
   const applyConversion = useCallback(
     (target: ConversionTarget, text: string) => {
-      setText(text, 'convert');
-      enterMode(target);
       setConversion(null);
+      let model: PistarFile;
+      try {
+        model = JSON.parse(text);
+      } catch {
+        // not JSON: there is nothing a guard could check (goal-controller#451 review)
+        setText(text, 'convert');
+        enterMode(target);
+        return;
+      }
+      const current = settingsRef.current;
+      const currentMode: ModelMode = current.pistar
+        ? (current.dialect ?? 'pistar')
+        : (lockedEngine ?? current.engine);
+      const session = sessionRef.current;
+      // the conversion is an edit (goal-controller#471): through the target
+      // mode's own guards, as a dispatch under that mode would be — ahead
+      // of the dispatch, so the worker checks the converted model with it
+      // (`session.setMode`, not yet `enterMode`, which only runs once the
+      // dispatch succeeds); a rejection sets the guards back to the mode the
+      // model is staying in
+      session.setMode(target);
+      void session
+        .dispatcherFor('inspector')
+        .dispatch({
+          kind: 'istar.replaceModel',
+          model,
+          fileMetamodel: fileMetamodelForText(text),
+        })
+        .then((result) => {
+          if (session.disposed) return;
+          if (result.ok) {
+            enterMode(target);
+          } else if (isGuardRejection(result.diagnostics)) {
+            // the model stays as it was, in the mode it was already in
+            session.setMode(currentMode);
+            notifyEditRejected(result.diagnostics);
+          } else {
+            // the vocabulary itself rejected it, not one of our guards
+            // (goal-controller#439 review): the same fallback SourceView and
+            // requestMode use, applied unchecked
+            setText(text, 'convert');
+            enterMode(target);
+          }
+        });
     },
-    [setText, enterMode],
+    [setText, enterMode, notifyEditRejected, lockedEngine],
   );
   const cancelConversion = useCallback(() => setConversion(null), []);
   const openConversion = useCallback(
@@ -2572,6 +2631,16 @@ function WorkbenchState({
     );
     return () => publishDiagnostics(ENGINE_DIAGNOSTICS_SERVICE, document, []);
   }, [analysis, jsonError, session.id]);
+  // the active mode's guard report (goal-controller#471): an import or an
+  // open applies as written, the mode's own rules checked afterwards and
+  // shown as Problems instead of rejecting it; re-published under the
+  // current session's id, as the engine's own diagnostics are, so a session
+  // switch retracts the old one's
+  useEffect(() => {
+    const document = String(session.id);
+    publishDiagnostics(GUARD_REPORT_SERVICE, document, guardReport);
+    return () => publishDiagnostics(GUARD_REPORT_SERVICE, document, []);
+  }, [guardReport, session.id]);
   const problems = useMemo(() => {
     const list: Problem[] = [];
     if (jsonError) list.push(jsonError);

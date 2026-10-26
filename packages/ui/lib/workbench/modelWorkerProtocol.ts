@@ -12,9 +12,12 @@
  * - Each `sourceModelChanged` the worker sends carries `ModelChangeExtras`
  *   next to its `newRoot`: the text derived from the model, and which
  *   metamodel the mirror reads `newRoot` with.
+ * - The session's port also carries, worker to main, the active mode's
+ *   guard report (goal-controller#471): not a response to anything the main
+ *   thread asked, so it isn't a JSON-RPC frame either.
  */
 import type { ModelSourceChangedAction } from '@istar-ts/actions';
-import type { AnyPaletteDescription } from '@istar-ts/core';
+import type { AnyPaletteDescription, GoalDiagnostic } from '@istar-ts/core';
 import type { ModelMode } from './pistar';
 
 /** Main thread → worker, on the worker itself. */
@@ -62,6 +65,19 @@ export type ModelSessionControl =
   | { readonly type: 'unserve'; readonly id: number }
   | { readonly type: 'close' };
 
+/**
+ * Worker → main thread, on a session's port: the active mode's guards and
+ * post-guards, run in report mode (goal-controller#471) over the model as it
+ * stands — applied already, never rejected — so its diagnostics show as
+ * Problems instead. Sent after every `mode` message, so it covers both an
+ * import or open (whose raw write is never rejected) and a mode switch
+ * (re-run for the model as it now stands). Replaces the session's last one.
+ */
+export type ModelSessionReport = {
+  readonly type: 'report';
+  readonly diagnostics: readonly GoalDiagnostic[];
+};
+
 /** What the worker adds to each `sourceModelChanged` it sends the main thread. */
 export type ModelChangeExtras = {
   /**
@@ -93,6 +109,14 @@ export const isModelSessionControl = (
   value: unknown,
 ): value is ModelSessionControl =>
   isRecord(value) && !('jsonrpc' in value) && typeof value.type === 'string';
+
+/** A report, as the session's port receives it (not a JSON-RPC frame). */
+export const isModelSessionReport = (
+  value: unknown,
+): value is ModelSessionReport =>
+  isRecord(value) &&
+  value.type === 'report' &&
+  Array.isArray(value.diagnostics);
 
 /** The extras the worker attached to `action`; none from a dispatcher that doesn't add them. */
 export const changeExtrasOf = (

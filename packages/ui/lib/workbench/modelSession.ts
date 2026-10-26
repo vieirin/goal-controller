@@ -40,6 +40,7 @@ import { readModelText, type ModelMode } from './pistar';
 import { modelWorker } from './modelWorkerClient';
 import {
   changeExtrasOf,
+  isModelSessionReport,
   type ModelSessionControl,
   type ModelWorkerOpen,
 } from './modelWorkerProtocol';
@@ -143,10 +144,14 @@ let sessions = 0;
  * Opens a session on `text` in the model worker. `seed`: the model as the
  * main thread read it (default: read here), shown until the worker answers.
  * `connect: false` (a server prerender): no worker, the seed only.
+ * `onReport`: the active mode's guard diagnostics, in report mode
+ * (goal-controller#471) — after this session's model is opened, and again
+ * after every `setMode`.
  */
 export const createModelSession = (
   text: string,
   onChange: (change: ModelChanged) => void,
+  onReport: (diagnostics: readonly GoalDiagnostic[]) => void,
   options: { readonly seed?: AnyModel; readonly connect?: boolean } = {},
 ): ModelSession => {
   const id = (sessions += 1);
@@ -161,6 +166,11 @@ export const createModelSession = (
   const remote = channel
     ? createRemoteDispatcher<string, string, MessageEvent>(channel.port1)
     : offline;
+  // the report (goal-controller#471): not a JSON-RPC frame, so it reaches
+  // its own listener rather than the remote dispatcher's `onmessage`
+  channel?.port1.addEventListener('message', (event: MessageEvent) => {
+    if (isModelSessionReport(event.data)) onReport(event.data.diagnostics);
+  });
   if (channel)
     modelWorker().postMessage(
       { type: 'open', session: id, text } satisfies ModelWorkerOpen,
