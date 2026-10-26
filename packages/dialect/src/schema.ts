@@ -1944,6 +1944,8 @@ export type ExtensionElementDefinition = {
    * (presentation only; e.g. a shape's arrow tip is no place for text)
    */
   textBox?: { top: number; right: number; bottom: number; left: number };
+  /** what the kind means and when to use it (istar-ts#241): rendered by `metamodelContext` */
+  description?: string;
 };
 
 /** Where a node may be: in an actor, as a dependum, on the paper (istar-ts's `NodeInfo`). */
@@ -1985,6 +1987,8 @@ export type ExtensionLinkDefinition = {
     marker?: string;
     markerFilled?: boolean;
   };
+  /** what the kind means and when to use it (istar-ts#241): rendered by `metamodelContext` */
+  description?: string;
 };
 
 /** A stereotype or tagged value, on kinds or groupers (by name). */

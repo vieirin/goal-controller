@@ -24,6 +24,9 @@ import {
 /**
  * `@istar-ts/core`'s `MetamodelExtension`, structurally (this package has no
  * dependencies), its kinds `EK` and `LK` (an extension's own, as literals).
+ * Presentation (`shape`, `textBox`, `line`) is left out: istar-ts draws a
+ * dialect's own kinds from its `ExtensionDefinition` directly
+ * (`pistarExtExtension`), not from this.
  */
 export type MetamodelExtensionData<
   EK extends string = string,
@@ -38,6 +41,7 @@ export type MetamodelExtensionData<
     pistarType?: string;
     size?: { width: number; height: number };
     info?: NodeInfo;
+    description?: string;
   }[];
   links: {
     kind: LK;
@@ -46,6 +50,7 @@ export type MetamodelExtensionData<
     rules?: LinkRulesDefinition;
     pistarType?: string;
     arity?: 'n';
+    description?: string;
   }[];
 };
 
@@ -54,6 +59,74 @@ export const defined = <T extends object>(value: T): T =>
   Object.fromEntries(
     Object.entries(value).filter(([, v]) => v !== undefined),
   ) as T;
+
+/**
+ * An element kind's fields resolved the same way whichever kind declares it
+ * (a dialect's own or a model's own addition, modelExtension.ts), undefined
+ * ones dropped: its `shape` is each caller's own to add (a dialect's is SVG
+ * path data, `ExtensionElementDefinition`'s; a model's own is istar-ts's
+ * `KindShape` object, `ModelElementKind`'s — not the same shape).
+ */
+export const extensionElementOf = <
+  T extends {
+    kind: string;
+    label?: string;
+    category?: 'node' | 'actor';
+    behavesLike?: string;
+    pistarType?: string;
+    size?: { width: number; height: number };
+    info?: NodeInfo;
+    textBox?: { top: number; right: number; bottom: number; left: number };
+    description?: string;
+  },
+>({
+  kind,
+  label,
+  category,
+  behavesLike,
+  pistarType,
+  size,
+  info,
+  textBox,
+  description,
+}: T) =>
+  defined({
+    kind,
+    label,
+    category,
+    behavesLike,
+    pistarType,
+    size,
+    info,
+    textBox,
+    description,
+  });
+
+/**
+ * A link kind's fields resolved the same way whichever kind declares it (a
+ * dialect's own or a model's own addition, modelExtension.ts), undefined
+ * ones dropped: its presentation (a dialect's `line`'s dash/marker enum, an
+ * n-ary kind's generated `arity`; a model's own raw dash string) is each
+ * caller's own to add, the two not sharing a shape (ExtensionLinkDefinition
+ * vs. istar-ts's own `KindLine`).
+ */
+export const extensionLinkOf = <
+  T extends {
+    kind: string;
+    label?: string;
+    behavesLike?: string;
+    rules?: LinkRulesDefinition;
+    pistarType?: string;
+    description?: string;
+  },
+>({
+  kind,
+  label,
+  behavesLike,
+  rules,
+  pistarType,
+  description,
+}: T) => defined({ kind, label, behavesLike, rules, pistarType, description });
 
 /** The metamodel extension a dialect's models are read with (presentation left out), its kinds' literal types kept. */
 export const metamodelExtensionOf = <
@@ -65,13 +138,12 @@ export const metamodelExtensionOf = <
   E['links'][number]['kind']
 > => ({
   name: extension.name,
-  elements: extension.elements.map(
-    ({ kind, label, category, behavesLike, pistarType, size, info }) =>
-      defined({ kind, label, category, behavesLike, pistarType, size, info }),
-  ),
-  links: extension.links.map(
-    ({ kind, label, behavesLike, rules, pistarType, arity }) =>
-      defined({ kind, label, behavesLike, rules, pistarType, arity }),
+  elements: extension.elements.map((element) => {
+    const { textBox: _textBox, ...rest } = extensionElementOf(element);
+    return rest;
+  }),
+  links: extension.links.map((link) =>
+    defined({ ...extensionLinkOf(link), arity: link.arity }),
   ),
 });
 

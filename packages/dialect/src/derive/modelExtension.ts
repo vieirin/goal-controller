@@ -17,12 +17,18 @@ import {
   type StereotypeDefinition,
   type TaggedValueDefinition,
 } from '../schema';
-import { defined, kindLabel } from './extensions';
+import { extensionElementOf, extensionLinkOf, kindLabel } from './extensions';
 
 /** The namespace of a model's own kinds (`model.Mission`), and its block's name. */
 export const MODEL_NAMESPACE = 'model';
 
-/** A node or actor kind the model declares (istar-ts's `FileElementKind`, as far as it is read here). */
+/**
+ * A node or actor kind the model declares (istar-ts's `FileElementKind`, as
+ * far as it is read here): the same fields a dialect's own kind has, except
+ * its `shape` is istar-ts's own `KindShape` (a path and an optional
+ * viewBox, as AddConstruct.tsx saves it), not a dialect's author-facing SVG
+ * path string (`ExtensionElementDefinition.shape`).
+ */
 export type ModelElementKind = {
   kind: string;
   label?: string;
@@ -37,7 +43,12 @@ export type ModelElementKind = {
   description?: string;
 };
 
-/** A link kind the model declares (istar-ts's `FileLinkKind`, as far as it is read here). */
+/**
+ * A link kind the model declares (istar-ts's `FileLinkKind`, as far as it is
+ * read here): the same fields a dialect's own link has, except its line is
+ * istar-ts's own `KindLine` (a raw dash string, as AddConstruct.tsx saves
+ * it), not a dialect's author-facing dash/marker enum (`ExtensionLinkDefinition.line`).
+ */
 export type ModelLinkKind = {
   kind: string;
   label?: string;
@@ -134,14 +145,17 @@ export const withModelEntries = (
     const taken = takenName(dialect, category, name);
     if (taken) fail(taken);
   }
-  const elements = (model.elements ?? []).map(
-    ({ kind, label, category, behavesLike, pistarType, size }) =>
-      defined({ kind, label, category, behavesLike, pistarType, size }),
-  );
-  const links = (model.links ?? []).map(
-    ({ kind, label, behavesLike, rules, pistarType }) =>
-      defined({ kind, label, behavesLike, rules, pistarType }),
-  );
+  // the model's own kinds are istar-ts's to draw: istar-ts reads their
+  // presentation (shape, a link's line) straight from the file's own
+  // "metamodel" block (dialects.ts's metamodelOfMode), not from this merged
+  // ExtensionDefinition, whose kinds share one shape
+  // (ExtensionElementDefinition/ExtensionLinkDefinition, this package's own
+  // dialect-authoring one) that a model's raw shape/line don't fit; their
+  // other declared fields (description included) go with them, the same
+  // common-field mapper a dialect's own kinds are read with
+  // (metamodelExtensionOf).
+  const elements = (model.elements ?? []).map(extensionElementOf);
+  const links = (model.links ?? []).map(extensionLinkOf);
   // every name its entries use: the dialect's or its own
   defineExtension(
     {

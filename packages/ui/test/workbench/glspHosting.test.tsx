@@ -82,12 +82,12 @@ const workbench = () => {
     });
     return null;
   };
-  render(
+  const { unmount } = render(
     <WorkbenchProvider lockedEngine={null}>
       <Probe />
     </WorkbenchProvider>,
   );
-  return { wb: () => wb! };
+  return { wb: () => wb!, unmount };
 };
 
 describe("backend A's session over the workbench session, lazily (#414, #450)", () => {
@@ -188,6 +188,22 @@ describe("backend A's session over the workbench session, lazily (#414, #450)", 
     settle();
     await waitFor(() => expect(wb().glspSession).not.toBeNull());
     expect(closes[1]).not.toHaveBeenCalled();
+  });
+
+  it('unmounting disposes the live session', async () => {
+    const { settle, closes } = deferredGlspSession();
+    const { wb, unmount } = workbench();
+    await act(() => wb().openModelFile('simpleChoice.txt', ISTAR));
+    act(() => wb().setGlspEnabled(true));
+    await act(async () => {
+      settle();
+      await Promise.resolve();
+    });
+    await waitFor(() => expect(wb().glspSession).not.toBeNull());
+
+    unmount();
+
+    expect(closes[0]).toHaveBeenCalledTimes(1);
   });
 
   it('a session switch while the session is starting: the old session is closed, the new session gets its own', async () => {
