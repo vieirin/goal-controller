@@ -17,7 +17,15 @@ import {
   type StereotypeDefinition,
   type TaggedValueDefinition,
 } from '../schema';
-import { extensionElementOf, extensionLinkOf, kindLabel } from './extensions';
+import {
+  extensionElementOf,
+  extensionLinkOf,
+  kindLabel,
+  lineOfFile,
+  shapeOfFile,
+  type FileLine,
+  type FileShape,
+} from './extensions';
 
 /** The namespace of a model's own kinds (`model.Mission`), and its block's name. */
 export const MODEL_NAMESPACE = 'model';
@@ -27,7 +35,8 @@ export const MODEL_NAMESPACE = 'model';
  * far as it is read here): the same fields a dialect's own kind has, except
  * its `shape` is istar-ts's own `KindShape` (a path and an optional
  * viewBox, as AddConstruct.tsx saves it), not a dialect's author-facing SVG
- * path string (`ExtensionElementDefinition.shape`).
+ * path string (`ExtensionElementDefinition.shape`) — `shapeOfFile` converts
+ * it, `withModelEntries` below.
  */
 export type ModelElementKind = {
   kind: string;
@@ -37,7 +46,7 @@ export type ModelElementKind = {
   pistarType?: string;
   size?: { width: number; height: number };
   /** drawn by istar-ts */
-  shape?: { path: string; viewBox?: string };
+  shape?: FileShape;
   textBox?: { top: number; right: number; bottom: number; left: number };
   /** what the kind means and when to use it (istar-ts#241): rendered by `metamodelContext` */
   description?: string;
@@ -47,7 +56,9 @@ export type ModelElementKind = {
  * A link kind the model declares (istar-ts's `FileLinkKind`, as far as it is
  * read here): the same fields a dialect's own link has, except its line is
  * istar-ts's own `KindLine` (a raw dash string, as AddConstruct.tsx saves
- * it), not a dialect's author-facing dash/marker enum (`ExtensionLinkDefinition.line`).
+ * it), not a dialect's author-facing dash/marker enum
+ * (`ExtensionLinkDefinition.line`) — `lineOfFile` converts it,
+ * `withModelEntries` below.
  */
 export type ModelLinkKind = {
   kind: string;
@@ -56,7 +67,7 @@ export type ModelLinkKind = {
   rules?: LinkRulesDefinition;
   pistarType?: string;
   /** drawn by istar-ts: an SVG dash array, a marker path */
-  line?: { dash?: string; marker?: string | false; markerFilled?: boolean };
+  line?: FileLine;
   /** what the kind means and when to use it (istar-ts#241): rendered by `metamodelContext` */
   description?: string;
 };
@@ -145,17 +156,25 @@ export const withModelEntries = (
     const taken = takenName(dialect, category, name);
     if (taken) fail(taken);
   }
-  // the model's own kinds are istar-ts's to draw: istar-ts reads their
-  // presentation (shape, a link's line) straight from the file's own
-  // "metamodel" block (dialects.ts's metamodelOfMode), not from this merged
-  // ExtensionDefinition, whose kinds share one shape
-  // (ExtensionElementDefinition/ExtensionLinkDefinition, this package's own
-  // dialect-authoring one) that a model's raw shape/line don't fit; their
-  // other declared fields (description included) go with them, the same
-  // common-field mapper a dialect's own kinds are read with
-  // (metamodelExtensionOf).
-  const elements = (model.elements ?? []).map(extensionElementOf);
-  const links = (model.links ?? []).map(extensionLinkOf);
+  // the model's own kinds, read with the same common-field mapper a
+  // dialect's own kinds are (metamodelExtensionOf): their shape/line (istar-ts's
+  // own `KindShape`/`KindLine`, as AddConstruct.tsx saves them) converted to
+  // a dialect's own (an SVG path string, a dash/marker enum) first, so a
+  // model's own addition draws on the canvas the same way a dialect's own
+  // kind does (pistarExtExtension reads the merged ExtensionDefinition's
+  // elements/links directly, not through this mapper)
+  const elements = (model.elements ?? []).map(({ shape, ...element }) =>
+    extensionElementOf({
+      ...element,
+      ...(shape && { shape: shapeOfFile(shape) }),
+    }),
+  );
+  const links = (model.links ?? []).map(({ line, ...link }) =>
+    extensionLinkOf({
+      ...link,
+      ...(line && { line: lineOfFile(line) }),
+    }),
+  );
   // every name its entries use: the dialect's or its own
   defineExtension(
     {

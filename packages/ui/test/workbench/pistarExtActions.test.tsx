@@ -29,6 +29,7 @@ import AddConstruct from '@/components/workbench/engines/pistarExt/AddConstruct'
 import PistarExtInspector from '@/components/workbench/engines/pistarExt/PistarExtInspector';
 import { pistarExtExtension } from '@/components/workbench/engines/pistarExt/extensions';
 import { usePistarExt } from '@/components/workbench/engines/pistarExt/usePistarExt';
+import { modelDialect, modelExtensionOf } from '@/lib/workbench/dialects';
 import { mockReactFlowDom } from './reactFlowDom';
 
 const ISTAR = readFileSync(
@@ -127,6 +128,53 @@ describe('piStar-ext dispatches istar.setFileMetamodel (#411)', () => {
 
     await commandZ(container);
     expect(fileMetamodelOf(wb().session.store.getModel())).toBeUndefined();
+  });
+
+  it('a new construct’s shape and line of its own draw on the canvas, the same way a dialect’s own construct’s do (#457)', async () => {
+    const { wb, container } = await opened();
+    const path = 'M 0 0 L 10 0 L 10 10 Z';
+
+    fireEvent.click(
+      await waitFor(() => {
+        const found = [...container.querySelectorAll('button')].find(
+          (b) => b.textContent === 'Add new',
+        );
+        expect(found).toBeDefined();
+        return found!;
+      }),
+    );
+    const dialog = await waitFor(() => {
+      const found = document.querySelector('[role=dialog]');
+      expect(found).not.toBeNull();
+      return found!;
+    });
+    const name = dialog.querySelector('input')!;
+    // the dialog's second textarea: description, then shape (SVG path data)
+    const shapeInput = dialog.querySelectorAll('textarea')[1]!;
+    act(() => {
+      fireEvent.change(name, { target: { value: 'Mission' } });
+      fireEvent.change(shapeInput, { target: { value: path } });
+    });
+    const create = [...dialog.querySelectorAll('button')].find(
+      (b) => b.textContent === 'Create',
+    )!;
+    fireEvent.click(create);
+
+    await waitFor(() => {
+      const found = fileMetamodelOf(wb().session.store.getModel());
+      expect(found?.elements).toMatchObject([
+        { kind: 'model.Mission', shape: { path } },
+      ]);
+    });
+    // the canvas draws the model's own construct the same way PistarExtDiagram
+    // builds its extensions: the merged dialect (withModelEntries), through
+    // pistarExtExtension — its shape (istar-ts's KindShape) survives the
+    // shared mapper, converted back from the dialect's own SVG path string
+    const model = modelExtensionOf(wb().session.store.getModel());
+    const { extension } = modelDialect('pistarext', model);
+    expect(
+      pistarExtExtension(extension).elements?.['model.Mission']?.shape,
+    ).toEqual({ path });
   });
 
   it("the model panel's stereotype add/remove dispatch istar.setFileMetamodel, each one undo step", async () => {
