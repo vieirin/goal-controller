@@ -45,6 +45,14 @@ jobs:
         if: steps.affected.outputs.run == 'true'
         run: pnpm test
 
+      - name: Type-check lib (src and tests)
+        if: steps.affected.outputs.run == 'true'
+        run: cd packages/lib && pnpm exec tsc --noEmit -p tsconfig.test.json
+
+      - name: Type-check ui (src and tests)
+        if: steps.affected.outputs.run == 'true'
+        run: pnpm --filter @goal-controller/ui exec tsc --noEmit -p .
+
       - name: Install Playwright Chromium
         if: steps.affected.outputs.run == 'true'
         run: pnpm --filter @goal-controller/ui exec playwright install --with-deps chromium
