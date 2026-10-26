@@ -27,6 +27,7 @@ import {
   shownStep,
 } from '@/lib/workbench/analysis';
 import { nativeFileOf } from '@/lib/workbench/nativeFiles';
+import { mockReactFlowDom } from './reactFlowDom';
 
 const ROOT = join(__dirname, '../../../..');
 const read = (path: string) => readFileSync(join(ROOT, path), 'utf8');
@@ -35,35 +36,7 @@ const AMBULANCE = read('examples/kaos/ambulance/ambulance.kaos');
 const FLOOD = read('examples/kaos/flood/flood.kaos');
 const ISTAR = read('examples/edge/simpleChoice.txt');
 
-// what React Flow needs that jsdom lacks (istar-ts's react test setup)
-beforeAll(() => {
-  class ResizeObserverMock {
-    constructor(private callback: ResizeObserverCallback) {}
-    observe(target: Element) {
-      this.callback(
-        [
-          {
-            target,
-            contentRect: { width: 800, height: 600 },
-          } as unknown as ResizeObserverEntry,
-        ],
-        this as unknown as ResizeObserver,
-      );
-    }
-    unobserve() {}
-    disconnect() {}
-  }
-  class DOMMatrixReadOnlyMock {
-    m22 = 1;
-  }
-  Object.assign(globalThis, {
-    ResizeObserver: ResizeObserverMock,
-    DOMMatrixReadOnly: DOMMatrixReadOnlyMock,
-  });
-  (
-    globalThis.SVGElement.prototype as unknown as { getBBox: () => DOMRect }
-  ).getBBox = () => ({ x: 0, y: 0, width: 0, height: 0 }) as DOMRect;
-});
+beforeAll(mockReactFlowDom);
 
 afterEach(() => cleanup());
 
