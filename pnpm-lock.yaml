@@ -31,6 +31,9 @@ importers:
 
   packages/dialect:
     dependencies:
+      '@istar-ts/core':
+        specifier: ^0.15.1
+        version: 0.15.1
       '@istar-ts/dsm3-kaos':
         specifier: ^0.15.1
         version: 0.15.1(@istar-ts/react@0.15.1)(react-dom@19.2.3)(react@19.2.3)
@@ -38,9 +41,6 @@ importers:
         specifier: ^0.15.1
         version: 0.15.1(@istar-ts/react@0.15.1)(react-dom@19.2.3)(react@19.2.3)
     devDependencies:
-      '@istar-ts/core':
-        specifier: ^0.15.1
-        version: 0.15.1
       '@types/chai':
         specifier: ^4.3.11
         version: 4.3.20
