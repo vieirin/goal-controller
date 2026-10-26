@@ -18,9 +18,9 @@
 #
 # Conventions (see roles/*.md next to this script):
 #   roles   orchestrator | builder | scout | reviewer   (-r; default builder)
-#   cost    cheapest first. Defaults: scout haiku/low/plan, one-shot (-1: `claude -p`,
+#   cost    cheapest first. Defaults: scout haiku/low/readonly, one-shot (-1: `claude -p`,
 #           answer in `agent-factory result NAME`, workspace closes itself); builder
-#           sonnet/medium/auto; reviewer sonnet/medium/plan; the orchestrator runs in auto
+#           sonnet/medium/auto; reviewer sonnet/medium/readonly (no approval gates, no Edit/NotebookEdit); the orchestrator runs in auto
 #           mode too (-p overrides any of these); `-m opus` implies effort high.
 #           Only an abstract or cross-package task gets opus; the orchestrator decides.
 #   -w      the worker gets .claude/worktrees/NAME on branch BRANCH from BASE (default
@@ -122,6 +122,20 @@ lean_settings() { # -> a settings file turning off the user's plugins except hoo
   [ -n "$off" ] || return 0
   printf '%s' "$off" | jq -Rn '{enabledPlugins: ([inputs | {(.): false}] | add)}' > "$out" && echo "$out"
 }
+# every factory session accepts cross-session messages whatever the sender's permission mode:
+# a session given a plan-mode -p, or any other mode class than its peer's, would otherwise have
+# its messages held by Claude Code until the user approves them
+INBOUND='{"crossSessionInbound":"accept"}'
+factory_settings() { # LEAN(1|"") -> one settings file: INBOUND, plus lean's plugin switches when LEAN
+  local lean=$1 out s
+  if [ -n "$lean" ] && s=$(lean_settings) && [ -n "$s" ] && command -v jq >/dev/null 2>&1; then
+    out="$AF_HOME/factory-settings-lean.json"
+    jq -s '.[0] * .[1]' <(printf '%s' "$INBOUND") "$s" > "$out" && echo "$out"
+  else
+    out="$AF_HOME/factory-settings.json"
+    printf '%s\n' "$INBOUND" > "$out" && echo "$out"
+  fi
+}
 
 # the worker's launcher: one file, so the cmux command stays short and the brief is never shell-quoted
 write_runner() { # NAME MODEL EFFORT ROLE PERM BRIEF ONESHOT CHROME
@@ -132,10 +146,19 @@ write_runner() { # NAME MODEL EFFORT ROLE PERM BRIEF ONESHOT CHROME
     echo "cd $(printf %q "$(recall "$name" dir)")"
     echo "AF_PLACE=$(printf %q "$(recall "$name" place)")"
     local args="--model $model --effort $effort --session-id $sid"
-    case "$perm" in "") ;; skip) args+=" --dangerously-skip-permissions";; *) args+=" --permission-mode $perm";; esac
+    # readonly: the orchestrator's permission class (no approval prompts, no plan-mode "ready to
+    # code?" gate before a reviewer may write its findings file or message back), with the
+    # editing tools taken away; Write stays for the findings file the role asks for
+    case "$perm" in
+      "") ;;
+      skip) args+=" --dangerously-skip-permissions";;
+      readonly) args+=" --dangerously-skip-permissions --disallowedTools Edit,NotebookEdit";;
+      *) args+=" --permission-mode $perm";;
+    esac
     [ -f "$ROLES/$role.md" ] && args+=" --append-system-prompt-file $(printf %q "$ROLES/$role.md")"
-    if [ "${AGENT_FACTORY_LEAN:-1}" != 0 ]; then
-      local s; s=$(lean_settings); [ -n "$s" ] && args+=" --settings $(printf %q "$s")"
+    local lean=""; [ "${AGENT_FACTORY_LEAN:-1}" != 0 ] && lean=1
+    local s; s=$(factory_settings "$lean"); [ -n "$s" ] && args+=" --settings $(printf %q "$s")"
+    if [ -n "$lean" ]; then
       if [ -n "$chrome" ]; then args+=" --chrome"; else args+=" --strict-mcp-config --no-chrome"; fi
     fi
     if [ -n "$oneshot" ]; then
@@ -199,8 +222,8 @@ cmd_spawn() {
 
   # cost defaults by role: the cheapest tier that does the job; opus only when asked, and then at high effort
   case $role in
-    scout)    : "${model:=haiku}";  : "${effort:=low}";    : "${perm:=plan}"; : "${oneshot:=1}";;
-    reviewer) : "${model:=sonnet}"; : "${effort:=medium}"; : "${perm:=plan}";;
+    scout)    : "${model:=haiku}";  : "${effort:=low}";    : "${perm:=readonly}"; : "${oneshot:=1}";;
+    reviewer) : "${model:=sonnet}"; : "${effort:=medium}"; : "${perm:=readonly}";;
     *)        : "${model:=sonnet}"; : "${effort:=medium}"; : "${perm:=skip}";;
   esac
   { [ "$model" = opus ] || [ "$model" = fable ]; } && [ "$effort" = medium ] && effort=high
