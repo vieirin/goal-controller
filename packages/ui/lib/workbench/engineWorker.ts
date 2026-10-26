@@ -7,6 +7,14 @@
  * main thread; a transform runs once per `transform` request. Both read the
  * mirror's model, serialized to piStar JSON once per run: `analyze` and
  * `transform` only take text, not a model object.
+ *
+ * `analyze()` runs in a nested `analysisWorker.ts`, not on this thread
+ * (goal-controller#437): this thread's `ping` handler is a plain, instant
+ * `postMessage`, so it is never delayed by how long the analysis underneath
+ * takes. Before this, `runAnalysis` ran `analyze()` synchronously here, so a
+ * `ping` arriving mid-analysis queued behind it; an analysis slower than
+ * `ANALYSIS_UNRESPONSIVE_MS` (goal-controller#432's backstop) missed its
+ * `pong` deadline and was killed and respawned as if it had hung.
  */
 import {
   createMirrorStore,
@@ -14,10 +22,13 @@ import {
   type MirrorStore,
 } from '@istar-ts/actions';
 import { toPistar } from '@istar-ts/core';
-import { analyze } from '@/services/analyze';
 import { transform } from '@/services/transform';
 import type { TransformEngine } from '@/lib/types';
 import { analysisKey, modelSignature } from './signature';
+import type {
+  AnalysisWorkerRequest,
+  AnalysisWorkerResponse,
+} from './analysisWorker';
 import type {
   EngineWorkerRequest,
   EngineWorkerResponse,
@@ -37,19 +48,61 @@ let engine: TransformEngine = 'edgev2';
 let pistar = false;
 let analysisTimer: ReturnType<typeof setTimeout> | null = null;
 
+let analysisWorker: Worker | null = null;
+let nextAnalysisRequestId = 0;
+// the request this thread is still waiting an answer for; a response for
+// any other id is stale (a model or engine change moved on without it) and
+// is dropped
+let pendingAnalysis: {
+  readonly requestId: number;
+  readonly key: string;
+} | null = null;
+
+const spawnAnalysisWorker = (): Worker => {
+  const worker = new Worker(new URL('./analysisWorker.ts', import.meta.url), {
+    type: 'module',
+  });
+  worker.onmessage = (event: MessageEvent<AnalysisWorkerResponse>) => {
+    const message = event.data;
+    if (!pendingAnalysis || message.requestId !== pendingAnalysis.requestId)
+      return;
+    const { key } = pendingAnalysis;
+    pendingAnalysis = null;
+    if (message.ok) post({ type: 'analyzed', key, data: message.data });
+    else post({ type: 'analyzeFailed', key, message: message.message });
+  };
+  // a crash in the analysis worker itself (not an engine throw, which
+  // `analysisWorker.ts` already catches and reports as `ok: false`): fail
+  // the analysis this thread is waiting for, and spawn a fresh one for the
+  // next request
+  worker.onerror = (event: ErrorEvent) => {
+    if (analysisWorker !== worker) return;
+    analysisWorker = null;
+    worker.terminate();
+    if (!pendingAnalysis) return;
+    const { key } = pendingAnalysis;
+    pendingAnalysis = null;
+    post({
+      type: 'analyzeFailed',
+      key,
+      message: event.message || 'the analysis worker crashed',
+    });
+  };
+  return worker;
+};
+
 const runAnalysis = (): void => {
   if (!mirror || pistar) return;
   const text = toPistar(mirror.getModel());
   const key = analysisKey(text, engine);
-  try {
-    post({ type: 'analyzed', key, data: analyze(text, engine) });
-  } catch (error) {
-    post({
-      type: 'analyzeFailed',
-      key,
-      message: error instanceof Error ? error.message : String(error),
-    });
-  }
+  const requestId = (nextAnalysisRequestId += 1);
+  pendingAnalysis = { requestId, key };
+  analysisWorker ??= spawnAnalysisWorker();
+  analysisWorker.postMessage({
+    requestId,
+    text,
+    engine,
+  } satisfies AnalysisWorkerRequest);
 };
 
 const scheduleAnalysis = (): void => {
