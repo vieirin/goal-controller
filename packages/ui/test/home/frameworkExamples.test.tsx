@@ -149,12 +149,18 @@ describe('Home: the KAOS and NFR seeds (#171)', () => {
   it('draws each seed on its card', async () => {
     home();
     for (const folder of ['kaos', 'nfr'])
-      await waitFor(async () =>
-        expect(
-          (await section(folder)).querySelectorAll('svg rect, svg polygon')
-            .length,
-          folder,
-        ).toBeGreaterThan(3),
+      await waitFor(
+        async () =>
+          expect(
+            (await section(folder)).querySelectorAll('svg rect, svg polygon')
+              .length,
+            folder,
+          ).toBeGreaterThan(3),
+        // kaos alone draws over 20 cards' thumbnails: a render cost, not a
+        // slow async source (listExamplePreviews resolves its mocked data
+        // immediately), so under CPU contention it needs more than the
+        // default 5 s asyncUtilTimeout (#473)
+        { timeout: 15_000 },
       );
   });
 
