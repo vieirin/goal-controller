@@ -82,9 +82,11 @@ export type FileShape = { path: string; viewBox?: string };
 /**
  * The raw SVG dash array a dialect's line enum is drawn with, by
  * `@istar-ts/react`'s own `LINE_DASHES` (this package's own copy: it has no
- * dependency on `@istar-ts/react`).
+ * dependency on `@istar-ts/react`; the ui package's own tests assert this
+ * copy equals the original, dash key by dash key).
  */
-const DASH_OF = {
+// TODO(istar-ts): LINE_DASHES from @istar-ts/core
+export const DASH_OF = {
   continuous: undefined,
   dashed: '10,5',
   dotted: '1,3',
