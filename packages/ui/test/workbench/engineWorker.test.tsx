@@ -494,6 +494,45 @@ describe('the engine worker (#413)', () => {
     expect(worker.terminate).not.toHaveBeenCalled();
   });
 
+  it('a healthy analysis that takes 90s of fake time completes with its result, no false error, no respawn (goal-controller#437)', async () => {
+    const { wb, worker } = await editAfterAnalysis();
+    act(() => vi.advanceTimersByTime(ANALYSIS_SLOW_MS + 1));
+    expect(wb().analysisSlow).toBe(true);
+    // the worker's `ping` handler never blocks on the analysis underneath
+    // (goal-controller#437): its `pong` arrives well before the
+    // unresponsive deadline even though the result itself is still miles
+    // away
+    await act(async () => {
+      worker.respond({ type: 'pong', id: postedOf(worker, 'ping')[0]!.id });
+    });
+    expect(wb().analyzing).toBe(true);
+
+    act(() => vi.advanceTimersByTime(90_000 - ANALYSIS_SLOW_MS - 1));
+    expect(workers).toHaveLength(1);
+    expect(worker.terminate).not.toHaveBeenCalled();
+    expect(wb().analyzing).toBe(true);
+
+    const renamed = {
+      ...response,
+      variables: [{ name: 'renamed_var', kind: 'achievability', usedBy: [G1] }],
+    } satisfies AnalyzeResponse;
+    await act(async () => {
+      worker.respond({
+        type: 'analyzed',
+        key: analysisKey(wb().text, 'edgev2'),
+        data: renamed,
+      });
+    });
+    expect(wb().analyzing).toBe(false);
+    expect(wb().analysisSlow).toBe(false);
+    expect(wb().variables).toEqual(renamed.variables);
+    expect(
+      wb().problems.some((p) => /did not finish|responding/.test(p.message)),
+    ).toBe(false);
+    expect(workers).toHaveLength(1);
+    expect(worker.terminate).not.toHaveBeenCalled();
+  });
+
   it('a hung worker (no pong) ends the analysis in an error and is respawned (goal-controller#432 review)', async () => {
     const { wb, worker } = await editAfterAnalysis();
     act(() => vi.advanceTimersByTime(ANALYSIS_SLOW_MS + 1));
