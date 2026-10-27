@@ -36,6 +36,7 @@ import {
 import * as glspSessionModule from '@/lib/workbench/agent/glspSession';
 import { restartModelWorker } from '@/lib/workbench/modelWorkerClient';
 import type { GlspSession } from '@/lib/workbench/agent/glspSession';
+import { settled } from './modelWorker';
 import { mockReactFlowDom } from './reactFlowDom';
 
 const ISTAR = readFileSync(
@@ -295,6 +296,10 @@ describe('the agent drawer', () => {
     it('by a model-worker restart', async () => {
       const { wb, card } = await proposed();
       const incident = wb().modelWorkerIncident;
+      // off the canvas: its editor's mount-time requests on the crashed
+      // session reject unhandled (goal-controller#492)
+      act(() => wb().setModelTab('source'));
+      await settled(wb().session);
       act(() => restartModelWorker());
       await waitFor(() =>
         expect(wb().modelWorkerIncident).toBeGreaterThan(incident),
