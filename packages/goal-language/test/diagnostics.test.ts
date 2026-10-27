@@ -443,6 +443,10 @@ describe('what the dialect allows', () => {
     expect(found('G1: Go [[G2;T1]|G2]')).to.deep.equal([
       ['[G2;T1]', 'Toy refinements are flat: `[G2;T1]|G2` has a nested group'],
     ]);
+    // a group right inside another: the outermost one only, once
+    expect(found('G1: Go [[[G2;T1]]]')).to.deep.equal([
+      ['[[G2;T1]]', 'Toy refinements are flat: `[[G2;T1]]` has a nested group'],
+    ]);
     expect(found('G1: Go [G2;T1|G2]')).to.deep.equal([
       [
         '|',

@@ -253,6 +253,25 @@ describe('the host tools read the same parts (goal-controller#415)', () => {
       '`#` and `;` mixed in one refinement: EdgeV2 refinements are flat, so one needs an intermediate goal',
     );
   });
+
+  it('validate-notation reports a nested group: EdgeV2 refinements are flat (goal-controller#502)', async () => {
+    const dialect = dialectOf('edgev2')!;
+    const tree = goalView(parsePistar(EDGEV2), dialect);
+    const text = 'G2: Grouped [[G13#G14];G12]';
+    const workspace = { tree, resources: [], variables: [] };
+    const result = await call(
+      allToolsFor('edgev2', () => workspace),
+      'validate-notation',
+      { text },
+      EDGEV2,
+    );
+    const { diagnostics } = contentOf(result) as {
+      diagnostics: readonly { message: string }[];
+    };
+    expect(diagnostics.map((d) => d.message)).toContain(
+      'EdgeV2 refinements are flat: `[G13#G14];G12` has a nested group',
+    );
+  });
 });
 
 /** A `ChatClient` that makes `toolCalls`, one per turn, then answers. */

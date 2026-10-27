@@ -297,15 +297,19 @@ const mixedOperators = (expr: RtExpr): MixedOperators[] => {
   return found;
 };
 
-/** Every `[...]`/`(...)` group's span in a notation, wherever it is (`RtGroup`'s own span is never the shared, climbed one). */
+/**
+ * Every `[...]`/`(...)` group's span in a notation, wherever it is
+ * (`RtGroup`'s own span is never the shared, climbed one): the outermost
+ * one only where one is nested right inside another (`[[[G2]]]`'s one, not
+ * also its own and its own again).
+ */
 const groupSpans = (expr: RtExpr | undefined): Span[] => {
   if (!expr) return [];
   switch (expr.$type) {
-    case 'RtGroup':
-      return [
-        ...(spanOf(expr.$cstNode) ? [spanOf(expr.$cstNode)!] : []),
-        ...groupSpans(expr.expr),
-      ];
+    case 'RtGroup': {
+      const span = spanOf(expr.$cstNode);
+      return span ? [span] : [];
+    }
     case 'RtComma':
     case 'RtBinary':
       return [...groupSpans(expr.left), ...groupSpans(expr.right)];

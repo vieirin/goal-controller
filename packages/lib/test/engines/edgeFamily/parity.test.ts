@@ -196,14 +196,29 @@ describe('parity with the ANTLR readers', () => {
   });
 
   it('rejects a nested group: a refinement list is flat (`notation.grouping: false`), not a cascade over the group RTRegex.g4 read', () => {
-    const text = 'G1: Group [[G2;G3]#G4]';
-    for (const grammar of ['edge', 'edgeV2'] as const) {
-      assert.strictEqual(read(grammar, text).rejected, true, grammar);
-      // RTRegex.g4 accepted it (its listener's cascade picked the group's
-      // sequence over the interleaving around it); flat refinements are
-      // our own choice (goal-controller#502), not a reference defect
-      assert.strictEqual(ORACLE.goalTexts[grammar][text]!.rejected, false);
-    }
+    const texts = [
+      'G1: Group [[G2;G3]#G4]',
+      'G1: Group [G2;[G3#G4]]',
+      'G1: Group [[[G2]]]',
+      'G1: Retry [[G2;G3]@2->G4]',
+    ];
+    for (const text of texts)
+      for (const grammar of ['edge', 'edgeV2'] as const) {
+        assert.strictEqual(
+          read(grammar, text).rejected,
+          true,
+          `${grammar} ${text}`,
+        );
+        // RTRegex.g4 accepted every one of these (its listener's cascade
+        // picked one construct over the other, or just read through the
+        // group); flat refinements are our own choice (goal-controller#502),
+        // not a reference defect
+        assert.strictEqual(
+          ORACLE.goalTexts[grammar][text]!.rejected,
+          false,
+          `${grammar} ${text}`,
+        );
+      }
   });
 
   it('reads every recorded assertion as AssertionRegex.g4 did', () => {
