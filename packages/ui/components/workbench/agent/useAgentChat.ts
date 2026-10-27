@@ -140,18 +140,17 @@ export function useAgentChat() {
   ) => {
     const glsp = wb.glspSession;
     if (!glsp || running || !text.trim()) return;
-    const provider = PROVIDERS[settings.providerId];
+    setRunning(true);
+    // a new request supersedes a change set still waiting for review
+    setProposalState('discarded', (e) => e.state === 'pending');
+    append({ kind: 'user', id: nextId(), text, attachments });
     const { createChatClient, runAgent } = await import('@istar-ts/agent');
     const client = createChatClient({
-      provider,
+      provider: PROVIDERS[settings.providerId],
       model: settings.model,
       apiKey: settings.apiKey,
       stream: true,
     });
-    // a new request supersedes a change set still waiting for review
-    setProposalState('discarded', (e) => e.state === 'pending');
-    append({ kind: 'user', id: nextId(), text, attachments });
-    setRunning(true);
     const run = nextId();
     const diffs = diffRecorder();
     const onEvent = (event: AgentEvent) => {
