@@ -23,9 +23,15 @@ import {
   problemKey,
   revisionPrompt,
   toolCallChip,
+  type StoredChatEntry,
 } from '@/lib/workbench/agent/chatTranscript';
+import {
+  forgetConversation,
+  loadConversation,
+  saveConversation,
+} from '@/lib/workbench/agent/conversationStorage';
 import { projectFilesOf } from '@/lib/workbench/agent/projectFiles';
-import { PROVIDERS } from '@/lib/workbench/agent/providers';
+import { effectivePrices, PROVIDERS } from '@/lib/workbench/agent/providers';
 import {
   addUsage,
   formatTokens,
@@ -352,6 +358,48 @@ describe("a conversation's usage", () => {
     });
   });
 
+  it("falls back to the model's list price, lets a typed one override it, and leaves an unlisted model with none", () => {
+    // deepseek-flash: input $0.30, cache hit $0.006, output $1.20 per 1M
+    expect(
+      effectivePrices(
+        { input: null, cachedInput: null, output: null },
+        'deepseek-flash',
+      ),
+    ).toEqual({
+      prices: { input: 0.3, cachedInput: 0.006, output: 1.2 },
+      fromList: true,
+    });
+    expect(
+      effectivePrices(
+        { input: 1, cachedInput: 0.5, output: 2 },
+        'deepseek-flash',
+      ),
+    ).toEqual({
+      prices: { input: 1, cachedInput: 0.5, output: 2 },
+      fromList: false,
+    });
+    // one field typed, the rest from the list: still an estimate
+    expect(
+      effectivePrices(
+        { input: 1, cachedInput: null, output: null },
+        'deepseek-flash',
+      ),
+    ).toEqual({
+      prices: { input: 1, cachedInput: 0.006, output: 1.2 },
+      fromList: true,
+    });
+    // deepseek-chat has no published list price: nothing to fall back to
+    expect(
+      effectivePrices(
+        { input: null, cachedInput: null, output: null },
+        'deepseek-chat',
+      ),
+    ).toEqual({
+      prices: { input: null, cachedInput: null, output: null },
+      fromList: false,
+    });
+  });
+
   it('formats token counts', () => {
     expect(formatTokens(950)).toBe('950');
     expect(formatTokens(12_400)).toBe('12.4k');
@@ -390,5 +438,40 @@ describe('the problems an edit introduced', () => {
     expect(prompt).toContain(
       '- error: G9 has no children or tasks; every goal must be refined',
     );
+  });
+});
+
+describe("a model's stored conversation", () => {
+  afterEach(() => window.localStorage.clear());
+
+  const key = { fileName: 'deltaIoT.txt', source: undefined, aside: undefined };
+  const notice = (id: string): StoredChatEntry => ({
+    kind: 'notice',
+    id,
+    text: id,
+  });
+
+  it('is kept under its recentId, read back for that model only, dropped once empty', () => {
+    saveConversation(key, { entries: [notice('a')], usage: NO_USAGE });
+    expect(loadConversation(key)?.entries).toEqual([notice('a')]);
+    expect(loadConversation({ ...key, fileName: 'other.txt' })).toBeNull();
+
+    saveConversation(key, { entries: [], usage: NO_USAGE });
+    expect(loadConversation(key)).toBeNull();
+  });
+
+  it('forgets a conversation on request', () => {
+    saveConversation(key, { entries: [notice('a')], usage: NO_USAGE });
+    forgetConversation(key);
+    expect(loadConversation(key)).toBeNull();
+  });
+
+  it('caps itself to the latest 200 entries', () => {
+    const many = Array.from({ length: 250 }, (_, i) => notice(`e${i}`));
+    saveConversation(key, { entries: many, usage: NO_USAGE });
+    const kept = loadConversation(key)?.entries ?? [];
+    expect(kept).toHaveLength(200);
+    expect(kept[0]).toEqual(notice('e50'));
+    expect(kept.at(-1)).toEqual(notice('e249'));
   });
 });

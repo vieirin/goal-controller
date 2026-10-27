@@ -27,12 +27,24 @@ import {
   problemKey,
   problemsText,
   revisionPrompt,
+  toStoredEntry,
   type ChatEntry,
   type PreviewView,
+  type StoredChatEntry,
 } from '@/lib/workbench/agent/chatTranscript';
+import {
+  forgetConversation,
+  loadConversation,
+  saveConversation,
+  type ConversationKey,
+} from '@/lib/workbench/agent/conversationStorage';
 import { previewProposal } from '@/lib/workbench/agent/proposalPreview';
 import { diffModel, snapshotModel } from '@/lib/workbench/agentChanges';
-import { PROVIDERS, type Attachment } from '@/lib/workbench/agent/providers';
+import {
+  effectivePrices,
+  PROVIDERS,
+  type Attachment,
+} from '@/lib/workbench/agent/providers';
 import {
   addUsage,
   NO_USAGE,
@@ -64,6 +76,40 @@ export function useAgentChat() {
    */
   const history = useRef<readonly ChatMessage[]>([]);
   const [usage, setUsage] = useState<ConversationUsage>(NO_USAGE);
+  /**
+   * The model being left's earlier conversation, if any (goal-controller#485
+   * follow-up): shown read-only, above today's, until "Forget". Never fed
+   * into `history.current` — nothing of it reaches the agent.
+   */
+  const [storedEntries, setStoredEntries] = useState<
+    readonly StoredChatEntry[]
+  >([]);
+  const [storedUsage, setStoredUsage] = useState<ConversationUsage | null>(
+    null,
+  );
+  /** what the open model is kept under in Recent, and so its conversation too */
+  const identity = (): ConversationKey => ({
+    fileName: wb.fileName,
+    source: wb.projectSource ?? undefined,
+    aside: wb.aside,
+  });
+  // the model already open when the host mounts: later ones go through the
+  // switch effect below, which never fires for this one (its session id is
+  // seen from the start)
+  useEffect(() => {
+    const stored = loadConversation(identity());
+    if (stored) {
+      setStoredEntries(stored.entries);
+      setStoredUsage(stored.usage);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  /** the model being left: its conversation, not sent anywhere, forgotten */
+  const forgetStored = () => {
+    forgetConversation(identity());
+    setStoredEntries([]);
+    setStoredUsage(null);
+  };
   /** the model's problems as last rendered: what a run starts from */
   const latestProblems = useRef(wb.problems);
   latestProblems.current = wb.problems;
@@ -135,20 +181,28 @@ export function useAgentChat() {
   const seenSession = useRef({
     id: wb.session.id,
     incident: wb.modelWorkerIncident,
+    identity: identity(),
   });
   useEffect(() => {
     const seen = seenSession.current;
     if (wb.session.id === seen.id) return;
+    const left = seen.identity;
     seenSession.current = {
       id: wb.session.id,
       incident: wb.modelWorkerIncident,
+      identity: identity(),
     };
     if (wb.modelWorkerIncident !== seen.incident) return;
     runController.current?.abort();
+    saveConversation(left, { entries: entries.map(toStoredEntry), usage });
+    const stored = loadConversation(seenSession.current.identity);
+    setStoredEntries(stored?.entries ?? []);
+    setStoredUsage(stored?.usage ?? null);
     setEntries([]);
     history.current = [];
     setUsage(NO_USAGE);
     setConversation((n) => n + 1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [wb.session.id, wb.modelWorkerIncident]);
 
   const contextProviders = useMemo(
@@ -228,7 +282,9 @@ export function useAgentChat() {
     if (!glsp) return null;
     const { costPerMillionTokens, createChatClient, runAgent } =
       await import('@istar-ts/agent');
-    const prices = pricesOf(settings.prices);
+    const prices = pricesOf(
+      effectivePrices(settings.prices, settings.model).prices,
+    );
     const cost = prices ? costPerMillionTokens(prices) : null;
     const client = createChatClient({
       provider: PROVIDERS[settings.providerId],
@@ -421,6 +477,9 @@ export function useAgentChat() {
     running,
     conversation,
     usage,
+    storedEntries,
+    storedUsage,
+    forgetStored,
     send,
     approve,
     reject,

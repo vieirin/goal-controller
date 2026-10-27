@@ -541,14 +541,86 @@ describe('the agent drawer', () => {
     ask('Two');
     await screen.findByText('Used 1400.');
     // context: the last call's; total: both; cost: 2.4k in at $1/M, 500 out at $2/M
+    // ("est.": deepseek-flash's cache-hit list price fills in the untyped field)
     expect(screen.getByLabelText('Usage').textContent).toBe(
-      'context 1.7ktotal 2.9k$0.0034',
+      'context 1.7ktotal 2.9kest. $0.0034',
     );
 
     const session = wb().session.id;
     await act(() => wb().openModelFile('other.txt', ISTAR));
     await waitFor(() => expect(wb().session.id).not.toBe(session));
     await waitFor(() => expect(screen.queryByLabelText('Usage')).toBeNull());
+  });
+
+  it("keeps a model's conversation, read-only, for when it reopens", async () => {
+    const wb = await opened();
+    fireEvent.click(screen.getByRole('button', { name: 'Show the agent' }));
+    await waitFor(() => expect(wb().glspSession).not.toBeNull());
+    turns.push({ deltas: [], completion: finalAnswer('G1 is a goal.') });
+    ask('What is G1?');
+    await screen.findByText('G1 is a goal.');
+
+    // another model opens: nothing of simpleChoice.txt's conversation shows
+    const session = wb().session.id;
+    await act(() => wb().openModelFile('other.txt', ISTAR));
+    await waitFor(() => expect(wb().session.id).not.toBe(session));
+    expect(screen.queryByText('Earlier conversation · read-only')).toBeNull();
+    expect(screen.queryByText('What is G1?')).toBeNull();
+
+    // simpleChoice.txt reopens: its conversation is back, above a divider
+    const session2 = wb().session.id;
+    await act(() => wb().openModelFile('simpleChoice.txt', ISTAR));
+    await waitFor(() => expect(wb().session.id).not.toBe(session2));
+    await screen.findByText('Earlier conversation · read-only');
+    const transcript = screen.getByRole('log', { name: 'Transcript' });
+    within(transcript).getByText('What is G1?');
+    within(transcript).getByText('G1 is a goal.');
+    // read-only: no way to act on it
+    expect(
+      within(transcript).queryByRole('button', { name: 'Approve' }),
+    ).toBeNull();
+
+    // a new message appends below the divider; its own history, not the old one
+    turns.push({ deltas: [], completion: finalAnswer('Hello again.') });
+    ask('Hi');
+    await screen.findByText('Hello again.');
+    expect(requests.at(-1)?.filter(({ role }) => role !== 'system')).toEqual([
+      { role: 'user', content: 'Hi' },
+    ]);
+
+    // Forget clears it
+    fireEvent.click(screen.getByRole('button', { name: 'Forget' }));
+    expect(screen.queryByText('Earlier conversation · read-only')).toBeNull();
+    expect(within(transcript).queryByText('What is G1?')).toBeNull();
+    // the live conversation stays
+    screen.getByText('Hello again.');
+  });
+
+  it('shows a stored pending proposal as "Not applied", with nothing to act on', async () => {
+    const wb = await opened();
+    fireEvent.click(screen.getByRole('button', { name: 'Show the agent' }));
+    await waitFor(() => expect(wb().glspSession).not.toBeNull());
+    turns.push(
+      { deltas: [], completion: renameCall },
+      { deltas: [], completion: finalAnswer('Proposed a rename.') },
+    );
+    ask('Rename G1');
+    await screen.findByRole('region', { name: 'Proposed changes' });
+
+    const session = wb().session.id;
+    await act(() => wb().openModelFile('other.txt', ISTAR));
+    await waitFor(() => expect(wb().session.id).not.toBe(session));
+    const session2 = wb().session.id;
+    await act(() => wb().openModelFile('simpleChoice.txt', ISTAR));
+    await waitFor(() => expect(wb().session.id).not.toBe(session2));
+
+    const card = await screen.findByRole('region', {
+      name: 'Proposed changes',
+    });
+    expect(card.textContent).toContain('Not applied');
+    expect(within(card).queryByRole('button', { name: 'Approve' })).toBeNull();
+    expect(within(card).queryByRole('button', { name: 'Reject' })).toBeNull();
+    expect(applied).not.toHaveBeenCalled();
   });
 
   it('follows new entries only while scrolled to the end', async () => {

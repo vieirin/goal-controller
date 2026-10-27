@@ -14,10 +14,12 @@ import {
 import type { TokenPrices } from '@/lib/workbench/agent/usage';
 import {
   isProviderId,
+  LIST_PRICES,
   PROVIDERS,
   type ChatProviderId,
   type ModelInfo,
 } from '@/lib/workbench/agent/providers';
+import { NO_PRICES } from '@/lib/workbench/agent/usage';
 
 const KEY_SETTLE_MS = 400;
 
@@ -45,6 +47,7 @@ export function AgentSettingsPanel({
   onChange: (next: AgentSettings) => void;
 }) {
   const provider = PROVIDERS[settings.providerId];
+  const listPrices = LIST_PRICES[settings.model] ?? NO_PRICES;
   const [models, setModels] = useState<readonly ModelInfo[]>(
     provider.fallbackModels,
   );
@@ -132,7 +135,8 @@ export function AgentSettingsPanel({
       </label>
       <fieldset className='flex flex-col gap-1'>
         <legend className='mb-1 text-ink-muted'>
-          Prices, USD per 1M tokens (for the cost shown)
+          Prices, USD per 1M tokens (blank: the model&apos;s list price, where
+          known)
         </legend>
         <div className='grid grid-cols-3 gap-2'>
           {PRICE_FIELDS.map(({ key, label }) => (
@@ -143,6 +147,9 @@ export function AgentSettingsPanel({
                 min={0}
                 step='any'
                 className={FIELD}
+                placeholder={
+                  listPrices[key] === null ? undefined : String(listPrices[key])
+                }
                 value={settings.prices[key] ?? ''}
                 onChange={(e) =>
                   onChange({

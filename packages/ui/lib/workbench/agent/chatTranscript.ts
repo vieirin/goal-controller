@@ -79,6 +79,76 @@ export type ChatEntry =
   | { kind: 'notice'; id: string; text: string }
   | { kind: 'error'; id: string; text: string };
 
+/**
+ * `ChatEntry`, stripped of what only the run or session it came from can
+ * read back: a 'diff's `touched`/`baseline` (the live model's problems,
+ * which a reopened conversation shows none of) and a 'proposal's live
+ * `changeSet`/`entries` (its `step` closes over the run's own scratch
+ * session), each entry's change described once instead, while both are
+ * still live (`toStoredEntry`). What a model's earlier conversation is kept
+ * as, and shown as, read-only.
+ */
+export type StoredChatEntry =
+  | {
+      kind: 'user';
+      id: string;
+      text: string;
+      attachments: readonly Attachment[];
+    }
+  | { kind: 'assistant'; id: string; text: string }
+  | { kind: 'tool'; id: string; call: TranscriptToolCall }
+  | {
+      kind: 'diff';
+      id: string;
+      fileName: string;
+      before: string;
+      after: string;
+      undone: boolean;
+    }
+  | {
+      kind: 'proposal';
+      id: string;
+      state: ProposalState;
+      preview: PreviewView;
+      described: readonly {
+        toolCallId: string;
+        name: string;
+        refused: boolean;
+        lines: readonly string[];
+      }[];
+    }
+  | { kind: 'notice'; id: string; text: string }
+  | { kind: 'error'; id: string; text: string };
+
+/** `entry`, as kept for a model that isn't open now (`StoredChatEntry`) */
+export const toStoredEntry = (entry: ChatEntry): StoredChatEntry => {
+  switch (entry.kind) {
+    case 'diff':
+      return {
+        kind: 'diff',
+        id: entry.id,
+        fileName: entry.fileName,
+        before: entry.before,
+        after: entry.after,
+        undone: entry.undone,
+      };
+    case 'proposal':
+      return {
+        kind: 'proposal',
+        id: entry.id,
+        state: entry.state,
+        preview: entry.preview,
+        described: entry.entries.map((proposed) => ({
+          toolCallId: proposed.toolCallId,
+          name: proposed.name,
+          ...describeEntry(entry.changeSet, proposed),
+        })),
+      };
+    default:
+      return entry;
+  }
+};
+
 export type ChipTone = 'ok' | 'caution' | 'danger' | 'muted';
 
 const isRecord = (

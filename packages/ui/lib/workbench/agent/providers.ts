@@ -11,6 +11,7 @@ import {
   type ChatProvider,
   type ChatProviderId,
 } from '@istar-ts/agent';
+import { NO_PRICES, type TokenPrices } from './usage';
 
 export type {
   Attachment,
@@ -59,3 +60,39 @@ export const PROVIDERS: Record<ChatProviderId, ChatProvider> = {
 
 export const isProviderId = (value: unknown): value is ChatProviderId =>
   typeof value === 'string' && Object.hasOwn(PROVIDERS, value);
+
+/**
+ * DeepSeek's published list prices, USD per 1M tokens, peak rate
+ * (https://api-docs.deepseek.com/quick_start/pricing, read 2026-10-27;
+ * off-peak, 01:00–04:00 and 06:00–10:00 UTC on weekdays, is half). No entry
+ * for a model DeepSeek hasn't published one for (`deepseek-chat`,
+ * `deepseek-reasoner`): `effectivePrices` falls back to nothing for it,
+ * unless the settings type one in.
+ */
+export const LIST_PRICES: Partial<Record<string, TokenPrices>> = {
+  'deepseek-flash': { input: 0.3, cachedInput: 0.006, output: 1.2 },
+  'deepseek-v4-pro': { input: 1.32, cachedInput: 0.044, output: 3.96 },
+};
+
+/**
+ * `typed` (the settings' prices), each field falling back to `model`'s list
+ * price (none listed: unset, as `typed` alone would leave it). `fromList`:
+ * at least one field is the list's, not typed in the settings — what the
+ * usage line's "est." and its title read off.
+ */
+export const effectivePrices = (
+  typed: TokenPrices,
+  model: string,
+): { prices: TokenPrices; fromList: boolean } => {
+  const list = LIST_PRICES[model] ?? NO_PRICES;
+  const prices: TokenPrices = {
+    input: typed.input ?? list.input,
+    cachedInput: typed.cachedInput ?? list.cachedInput,
+    output: typed.output ?? list.output,
+  };
+  const fromList =
+    (typed.input === null && list.input !== null) ||
+    (typed.cachedInput === null && list.cachedInput !== null) ||
+    (typed.output === null && list.output !== null);
+  return { prices, fromList };
+};

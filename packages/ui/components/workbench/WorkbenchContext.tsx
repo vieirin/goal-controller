@@ -375,6 +375,8 @@ export type Workbench = {
   openRecent: (entry: RecentFile) => Promise<void>;
   /** where the open model's project came from (a single file: an implicit project) */
   projectSource: ProjectSource | null;
+  /** the open model's Recent entry, moved aside (RecentEntry.aside); none for most */
+  aside: number | undefined;
   /** close the model and go back to the start screen; it stays in Recent with its edits */
   closeModel: () => void;
   /**
@@ -2934,6 +2936,7 @@ function WorkbenchState({
     regenerateNative,
     reimportModel,
     projectSource: model.projectSource,
+    aside: model.aside,
     closeModel,
     setText,
     renameFile,
