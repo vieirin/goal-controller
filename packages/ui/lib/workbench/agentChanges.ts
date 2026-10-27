@@ -5,10 +5,32 @@
  * into what earlier runs already marked. Ids are the model's own (an
  * `IstarElement.id`/`IstarLink.id`, React Flow's `data-id` on the diagram) so
  * the canvas can badge a node or an edge directly; a link has no line of its
- * own in the notation views, so its change also marks its source element.
+ * own in the notation views, so its change also marks the element whose line
+ * carries it (`lineOwnerOf`).
  */
 import type { AnyIstarModel, IstarElement, IstarLink } from '@istar-ts/core';
 import type { LineMark } from './codemirror';
+import { cssString } from './analysis';
+
+/**
+ * The three link kinds goal-tree's `linkRelation` (packages/goal-tree/src/
+ * internal/roots.ts) turns into a parent/child pair, regardless of dialect:
+ * the notation writes them on the parent's (`target`'s) line, as a bracket
+ * in its children list (`document.ts`'s `node.children`), not under their
+ * own `source` the way a link with writable properties is (`hasLinkLine`,
+ * e.g. a Contribution's weight, a Dependency's or a Qualification's own
+ * properties — under `source`, unaffected here).
+ */
+const RELATION_LINK_KINDS = new Set([
+  'istar.AndRefinementLink',
+  'istar.OrRefinementLink',
+  'istar.NeededByLink',
+]);
+
+/** The element whose notation line a link's change shows up on. */
+const lineOwnerOf = (
+  link: Pick<IstarLink<string>, 'kind' | 'source' | 'target'>,
+): string => (RELATION_LINK_KINDS.has(link.kind) ? link.target : link.source);
 
 export type AgentChanges = {
   readonly added: ReadonlySet<string>;
@@ -27,7 +49,7 @@ export type AgentChangeSnapshot = {
   readonly elements: ReadonlyMap<string, string>;
   readonly links: ReadonlyMap<
     string,
-    { readonly hash: string; readonly source: string }
+    { readonly hash: string; readonly lineOwner: string }
   >;
 };
 
@@ -55,7 +77,7 @@ export const snapshotModel = (model: AnyIstarModel): AgentChangeSnapshot => ({
   links: new Map(
     [...model.links].map(([id, link]) => [
       id,
-      { hash: hashLink(link), source: link.source },
+      { hash: hashLink(link), lineOwner: lineOwnerOf(link) },
     ]),
   ),
 });
@@ -78,24 +100,27 @@ export const diffModel = (
     if (!model.elements.has(id)) removed.add(id);
 
   // a link's own id, for the canvas (every link is drawn as its own edge);
-  // its source element too, for the notation views (no line of their own for a link)
-  const markSource = (source: string): void => {
-    if (model.elements.has(source) && !added.has(source)) edited.add(source);
+  // its line-owning element too, for the notation views (no line of their own for a link)
+  const markLineOwner = (owner: string): void => {
+    if (model.elements.has(owner) && !added.has(owner)) edited.add(owner);
   };
   for (const [id, link] of model.links) {
     const prev = snapshot.links.get(id);
     if (prev === undefined) {
       added.add(id);
-      markSource(link.source);
+      markLineOwner(lineOwnerOf(link));
     } else if (prev.hash !== hashLink(link)) {
       edited.add(id);
-      markSource(link.source);
+      // a re-pointed link (another source or target): both the line it now
+      // shows up on and the one it no longer does
+      markLineOwner(lineOwnerOf(link));
+      markLineOwner(prev.lineOwner);
     }
   }
   for (const [id, prev] of snapshot.links)
     if (!model.links.has(id)) {
       removed.add(id);
-      markSource(prev.source);
+      markLineOwner(prev.lineOwner);
     }
 
   return { added, edited, removed };
@@ -165,9 +190,6 @@ export const agentLineMarks = (
 /** The canvas container's attribute while `agentChangeStyle` has a stylesheet to show (goal-controller#107's `SELECTION_ATTRIBUTE` pattern). */
 export const AGENT_CHANGE_ATTRIBUTE = 'data-agent-changes';
 
-/** An id as a CSS attribute-selector string. */
-const cssId = (id: string): string => `"${id.replace(/["\\]/g, '\\$&')}"`;
-
 /** Mirrors tailwind.config.js's `added`/`caution` tokens: a plain string can't read the theme (see `selectionStyle`, which hardcodes its own values too). */
 const ADDED_COLOR = '#1E8E3E';
 const EDITED_COLOR = '#9A6B00';
@@ -175,10 +197,11 @@ const EDITED_COLOR = '#9A6B00';
 const canvasRules = (ids: ReadonlySet<string>, color: string, badge: string) =>
   [...ids]
     .map((id) => {
-      const node = `[${AGENT_CHANGE_ATTRIBUTE}] .react-flow__node[data-id=${cssId(id)}]`;
-      const edge = `[${AGENT_CHANGE_ATTRIBUTE}] .react-flow__edge[data-id=${cssId(id)}] path`;
+      const node = `[${AGENT_CHANGE_ATTRIBUTE}] .react-flow__node[data-id=${cssString(id)}]`;
+      const edge = `[${AGENT_CHANGE_ATTRIBUTE}] .react-flow__edge[data-id=${cssString(id)}] path`;
       return (
-        `${node} { box-shadow: 0 0 0 2px ${color}; border-radius: 6px; }\n` +
+        // !important: a marked node stays visible even dimmed by a selection case (selectionStyle, goal-controller#152)
+        `${node} { box-shadow: 0 0 0 2px ${color}; border-radius: 6px; opacity: 1 !important; }\n` +
         `${node}::after { content: "${badge}"; position: absolute; top: -9px; right: -6px; z-index: 20; ` +
         `font-size: 9px; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase; ` +
         `padding: 1px 5px; border-radius: 4px; color: #fff; background: ${color}; pointer-events: none; }\n` +

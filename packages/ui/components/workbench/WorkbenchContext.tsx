@@ -1711,10 +1711,11 @@ function WorkbenchState({
     setAnalysisRun(null);
     clearSelection();
     setConversion(null);
+    clearAgentChanges();
     setProject(null);
     setModelPath(null);
     forceHistory((n) => n + 1);
-  }, [leaving, adoptSettings, clearSelection, startSession]);
+  }, [leaving, adoptSettings, clearSelection, startSession, clearAgentChanges]);
 
   const renameFile = useCallback((fileName: string) => {
     // the entry under the old name is replaced by the next Recent sync; a renamed

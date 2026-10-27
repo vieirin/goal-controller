@@ -67,7 +67,7 @@ export const analysisDiagnostics = (
 export const SELECTION_ATTRIBUTE = 'data-analysis-selection';
 
 /** An id as a CSS string, for an attribute selector. */
-const cssString = (id: string) => `"${id.replace(/["\\]/g, '\\$&')}"`;
+export const cssString = (id: string) => `"${id.replace(/["\\]/g, '\\$&')}"`;
 
 /**
  * How the canvas draws a case that is a selection (goal-controller#152): a

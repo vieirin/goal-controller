@@ -5,7 +5,10 @@
  * links against a snapshot, folded into what earlier runs found, and what
  * the canvas and the notation editors draw from it.
  */
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { parsePistar } from '@istar-ts/core';
 import type { AnyIstarModel, IstarElement, IstarLink } from '@istar-ts/core';
 import {
   agentChangeStyle,
@@ -17,6 +20,32 @@ import {
   type AgentChanges,
 } from '@/lib/workbench/agentChanges';
 
+// deltaIoT: a real EdgeV2 model, for real link directions (AndRefinementLink
+// and NeededByLink point from the child to the parent — the opposite of
+// where the notation prints their change, goal-controller#491 review)
+const DELTA_IOT = readFileSync(
+  join(__dirname, '../../../../examples/edgeV2/deltaIoT/deltaIoT.txt'),
+  'utf8',
+);
+const deltaIoT = parsePistar(DELTA_IOT);
+const elementNamed = (prefix: string): IstarElement =>
+  [...deltaIoT.elements.values()].find((e) => e.name.startsWith(`${prefix}:`))!;
+const linkBetween = (kind: string, source: string, target: string): IstarLink =>
+  [...deltaIoT.links.values()].find(
+    (l) => l.kind === kind && l.source === source && l.target === target,
+  )!;
+
+// G8: Power fitted to link SNR, AND-refined by T2 (source) — the notation
+// prints this on G8's line (the parent, `target`), not T2's
+const G8 = elementNamed('G8').id;
+const T2 = elementNamed('T2').id;
+const T2_AND_G8 = linkBetween('istar.AndRefinementLink', T2, G8);
+// T1: Lower transmission power, needed by R0 (source) — printed on T1's
+// line (the parent, `target`) too
+const T1 = elementNamed('T1').id;
+const R0 = elementNamed('R0').id;
+const R0_NEEDS_T1 = linkBetween('istar.NeededByLink', R0, T1);
+
 const element = (
   id: string,
   name: string,
@@ -25,20 +54,14 @@ const element = (
 
 const link = (
   id: string,
+  kind: string,
   source: string,
   target: string,
-  extra: Partial<IstarLink> = {},
-): IstarLink => ({
-  id,
-  kind: 'istar.AndRefinementLink',
-  source,
-  target,
-  ...extra,
-});
+): IstarLink<string> => ({ id, kind, source, target });
 
 const model = (
-  elements: readonly IstarElement[],
-  links: readonly IstarLink[] = [],
+  elements: readonly IstarElement<string>[],
+  links: readonly IstarLink<string>[] = [],
 ): AnyIstarModel => ({
   elements: new Map(elements.map((e) => [e.id, e])),
   links: new Map(links.map((l) => [l.id, l])),
@@ -68,50 +91,67 @@ describe('diffModel', () => {
     );
   });
 
-  it('marks a new link’s source element as edited (no line of its own in the notation)', () => {
+  it('marks a new AndRefinementLink on its parent’s line (the link’s own target), not its child’s (the link’s `source`)', () => {
+    const before = model([elementNamed('G8'), elementNamed('T2')]);
+    const after = model([elementNamed('G8'), elementNamed('T2')], [T2_AND_G8]);
+    const diff = diffModel(snapshotModel(before), after);
+    expect(diff.added).toEqual(new Set([T2_AND_G8.id]));
+    expect(diff.edited).toEqual(new Set([G8]));
+    expect(diff.edited.has(T2)).toBe(false);
+  });
+
+  it('marks a new NeededByLink on the task it needs (the link’s `target`), not the resource (the link’s `source`)', () => {
+    const before = model([elementNamed('T1'), elementNamed('R0')]);
+    const after = model(
+      [elementNamed('T1'), elementNamed('R0')],
+      [R0_NEEDS_T1],
+    );
+    const diff = diffModel(snapshotModel(before), after);
+    expect(diff.added).toEqual(new Set([R0_NEEDS_T1.id]));
+    expect(diff.edited).toEqual(new Set([T1]));
+    expect(diff.edited.has(R0)).toBe(false);
+  });
+
+  it('marks a new link with writable properties (not a relation kind) on its `source`, as the notation’s own link line does', () => {
     const before = model([element('G1', 'A'), element('T1', 'B')]);
     const after = model(
       [element('G1', 'A'), element('T1', 'B')],
-      [link('L1', 'G1', 'T1')],
+      [link('L1', 'istar.ContributionLink', 'T1', 'G1')],
     );
     const diff = diffModel(snapshotModel(before), after);
     expect(diff.added).toEqual(new Set(['L1']));
-    expect(diff.edited).toEqual(new Set(['G1']));
+    expect(diff.edited).toEqual(new Set(['T1']));
   });
 
-  it('does not also mark the source as edited when the source element is itself new', () => {
-    const before = model([element('T1', 'B')]);
-    const after = model(
-      [element('G1', 'A'), element('T1', 'B')],
-      [link('L1', 'G1', 'T1')],
-    );
+  it('does not also mark the line owner as edited when that element is itself new', () => {
+    const before = model([elementNamed('T2')]);
+    const after = model([elementNamed('T2'), elementNamed('G8')], [T2_AND_G8]);
     const diff = diffModel(snapshotModel(before), after);
-    expect(diff.added).toEqual(new Set(['G1', 'L1']));
+    expect(diff.added).toEqual(new Set([G8, T2_AND_G8.id]));
     expect(diff.edited.size).toBe(0);
   });
 
-  it('marks a removed link’s former source as edited, by its own id too', () => {
-    const before = model(
-      [element('G1', 'A'), element('T1', 'B')],
-      [link('L1', 'G1', 'T1')],
-    );
-    const after = model([element('G1', 'A'), element('T1', 'B')]);
+  it('marks a removed link’s former line owner as edited, by the link’s own id too', () => {
+    const before = model([elementNamed('G8'), elementNamed('T2')], [T2_AND_G8]);
+    const after = model([elementNamed('G8'), elementNamed('T2')]);
     const diff = diffModel(snapshotModel(before), after);
-    expect(diff.removed).toEqual(new Set(['L1']));
-    expect(diff.edited).toEqual(new Set(['G1']));
+    expect(diff.removed).toEqual(new Set([T2_AND_G8.id]));
+    expect(diff.edited).toEqual(new Set([G8]));
   });
 
-  it('marks an edited link’s source as edited too', () => {
+  it('marks both the old and the new line owner when an edited link is re-pointed', () => {
     const before = model(
-      [element('G1', 'A'), element('T1', 'B'), element('T2', 'C')],
-      [link('L1', 'G1', 'T1')],
+      [elementNamed('G8'), elementNamed('T2'), elementNamed('G7')],
+      [T2_AND_G8],
     );
     const after = model(
-      [element('G1', 'A'), element('T1', 'B'), element('T2', 'C')],
-      [link('L1', 'G1', 'T2')],
+      [elementNamed('G8'), elementNamed('T2'), elementNamed('G7')],
+      [{ ...T2_AND_G8, target: elementNamed('G7').id }],
     );
     const diff = diffModel(snapshotModel(before), after);
-    expect(diff.edited).toEqual(new Set(['L1', 'G1']));
+    expect(diff.edited).toEqual(
+      new Set([T2_AND_G8.id, G8, elementNamed('G7').id]),
+    );
   });
 });
 
