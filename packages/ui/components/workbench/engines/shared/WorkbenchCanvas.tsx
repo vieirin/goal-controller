@@ -33,6 +33,10 @@ import {
   shownCase,
   shownStep,
 } from '@/lib/workbench/analysis';
+import {
+  agentChangeStyle,
+  AGENT_CHANGE_ATTRIBUTE,
+} from '@/lib/workbench/agentChanges';
 import { useShell } from '../../shell';
 import type { ModelSession } from '@/lib/workbench/modelSession';
 
@@ -292,6 +296,11 @@ export default function WorkbenchCanvas({
     () => (wb.analysisStale ? null : selectionStyle(shownCase(wb.analysisRun))),
     [wb.analysisRun, wb.analysisStale],
   );
+  // what the agent added or edited this session (goal-controller#415's drawer)
+  const agentChangeCss = useMemo(
+    () => agentChangeStyle(wb.agentChanges),
+    [wb.agentChanges],
+  );
 
   // one undo history for the whole workbench, the dispatcher's: ⌘Z here is a
   // glspUndo, whichever editor made the edit (not caught again by the workbench's)
@@ -322,8 +331,10 @@ export default function WorkbenchCanvas({
       onKeyDownCapture={onKeyDownCapture}
       data-workbench-ready={canvasReady}
       {...(selection && { [SELECTION_ATTRIBUTE]: '' })}
+      {...(agentChangeCss && { [AGENT_CHANGE_ATTRIBUTE]: '' })}
     >
       {selection && <style>{selection}</style>}
+      {agentChangeCss && <style>{agentChangeCss}</style>}
       <IstarProvider
         // a new session is another model: the editor starts over
         key={session.id}

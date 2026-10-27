@@ -38,6 +38,14 @@ import type { GoalView } from '@goal-controller/goal-tree';
 import type { GoalDiagnostic, ModelStore, PistarFile } from '@istar-ts/core';
 import { emptyModel, fileMetamodelForText } from '@/lib/workbench/dialects';
 import {
+  diffModel,
+  EMPTY_AGENT_CHANGES,
+  mergeAgentChanges,
+  snapshotModel,
+  type AgentChangeSnapshot,
+  type AgentChanges,
+} from '@/lib/workbench/agentChanges';
+import {
   createModelSession,
   dispatchOrFallback,
   ModelWorkerCrashError,
@@ -574,6 +582,16 @@ export type Workbench = {
   // problems
   problems: Problem[];
 
+  // agent changes (goal-controller#415's drawer): what it added, edited or
+  // removed since the last clear, accumulated across its runs
+  agentChanges: AgentChanges;
+  /** snapshots the open model, for `endAgentChanges` to diff against (one run) */
+  beginAgentChanges: () => void;
+  /** diffs the model against the last `beginAgentChanges` snapshot, and folds it into `agentChanges` */
+  endAgentChanges: () => void;
+  /** drops every run's `agentChanges` so far (also done when another model opens) */
+  clearAgentChanges: () => void;
+
   // selection (what is selected: useSelection) & navigation
   select: (id: string | null, origin: SelectOrigin) => void;
   modelTab: ModelTab;
@@ -950,6 +968,27 @@ function WorkbenchState({
   // (#451 review) instead of by auditing every store-mutation call site
   const storeModel = useStoreModel(session.store);
   const sessionRef = useRef(session);
+  // the agent's changes (goal-controller#415's drawer): a run's snapshot,
+  // taken by beginAgentChanges, read back by endAgentChanges against the
+  // model sessionRef.current now has (the latest session, not a stale one
+  // a callback closed over)
+  const agentSnapshot = useRef<AgentChangeSnapshot | null>(null);
+  const [agentChanges, setAgentChanges] =
+    useState<AgentChanges>(EMPTY_AGENT_CHANGES);
+  const beginAgentChanges = useCallback(() => {
+    agentSnapshot.current = snapshotModel(sessionRef.current.store.getModel());
+  }, []);
+  const endAgentChanges = useCallback(() => {
+    const snapshot = agentSnapshot.current;
+    if (!snapshot) return;
+    agentSnapshot.current = null;
+    const diff = diffModel(snapshot, sessionRef.current.store.getModel());
+    setAgentChanges((prev) => mergeAgentChanges(prev, diff));
+  }, []);
+  const clearAgentChanges = useCallback(() => {
+    agentSnapshot.current = null;
+    setAgentChanges(EMPTY_AGENT_CHANGES);
+  }, []);
   // disposes the session that's current when the provider unmounts for real.
   // Strict Mode mounts, cleans up, and remounts the same session: the
   // cleanup only *schedules* the dispose, so the second mount can cancel it
@@ -1423,9 +1462,10 @@ function WorkbenchState({
       setAnalysisRun(null);
       clearSelection();
       setConversion(null);
+      clearAgentChanges();
       forceHistory((n) => n + 1);
     },
-    [leaving, adoptSettings, clearSelection, startSession],
+    [leaving, adoptSettings, clearSelection, startSession, clearAgentChanges],
   );
 
   // the saved text of each model of the open project left for another (#329)
@@ -1671,10 +1711,11 @@ function WorkbenchState({
     setAnalysisRun(null);
     clearSelection();
     setConversion(null);
+    clearAgentChanges();
     setProject(null);
     setModelPath(null);
     forceHistory((n) => n + 1);
-  }, [leaving, adoptSettings, clearSelection, startSession]);
+  }, [leaving, adoptSettings, clearSelection, startSession, clearAgentChanges]);
 
   const renameFile = useCallback((fileName: string) => {
     // the entry under the old name is replaced by the next Recent sync; a renamed
@@ -2938,6 +2979,10 @@ function WorkbenchState({
     clearAnalysis,
     exportProject,
     problems,
+    agentChanges,
+    beginAgentChanges,
+    endAgentChanges,
+    clearAgentChanges,
     select,
     modelTab,
     setModelTab,
