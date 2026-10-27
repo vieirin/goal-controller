@@ -4,7 +4,9 @@
  * through it: the prose shows while it streams, the edit call's card and
  * the diff of the model's JSON text after it. The chat client is a stand-in
  * (`createChatClient` mocked); `runAgent` is the library's own, over a
- * stand-in session whose one tool edits the real model session.
+ * stand-in session whose one tool edits the real model session. A Propose
+ * run's change set still pending is never applied once it is superseded: by
+ * a new request, a model-worker restart, or another model opened.
  */
 import {
   act,
@@ -32,6 +34,7 @@ import {
   type Workbench,
 } from '@/components/workbench/WorkbenchContext';
 import * as glspSessionModule from '@/lib/workbench/agent/glspSession';
+import { restartModelWorker } from '@/lib/workbench/modelWorkerClient';
 import type { GlspSession } from '@/lib/workbench/agent/glspSession';
 import { mockReactFlowDom } from './reactFlowDom';
 
@@ -73,9 +76,42 @@ afterEach(() => {
   vi.restoreAllMocks();
   window.localStorage.clear();
   turns.length = 0;
+  applied.mockClear();
 });
 
-/** a session whose one tool renames G1 in the live model */
+const renameCall: ChatCompletion = {
+  message: {
+    role: 'assistant',
+    content: null,
+    tool_calls: [
+      {
+        id: 'call-1',
+        type: 'function',
+        function: { name: 'rename', arguments: '{}' },
+      },
+    ],
+  },
+  finishReason: 'tool_calls',
+};
+
+const finalAnswer = (content: string): ChatCompletion => ({
+  message: { role: 'assistant', content },
+  finishReason: 'stop',
+});
+
+const ask = (text: string) => {
+  const box = screen.getByRole('textbox', { name: 'Message the agent' });
+  fireEvent.change(box, { target: { value: text } });
+  fireEvent.keyDown(box, { key: 'Enter' });
+};
+
+/** what Propose mode's change sets were applied with */
+const applied = vi.fn(async () => ({ ok: true as const, content: null }));
+
+/**
+ * a session whose one tool renames G1 in the live model; Propose mode's
+ * scratch session only says it did
+ */
 const standInSession = (wb: () => Workbench): GlspSession => {
   const rename = async (): Promise<ToolResult> => {
     const result = await wb().session.dispatcher.dispatch({
@@ -97,11 +133,18 @@ const standInSession = (wb: () => Workbench): GlspSession => {
     ],
     call: rename,
   };
+  const scratch = {
+    list: registry.list,
+    call: async (): Promise<ToolResult> => ({
+      ok: true,
+      content: { renamed: G1 },
+    }),
+  };
   return {
     liveRegistry: registry,
     changeSet: {
-      openScratch: async () => ({ registry }),
-      apply: async () => ({ ok: true, content: null }),
+      openScratch: async () => ({ registry: scratch }),
+      apply: applied,
       step: () => undefined,
       describeUndo: () => undefined,
     },
@@ -213,5 +256,59 @@ describe('the agent drawer', () => {
     await act(async () => open());
     await screen.findByText(/as asked/);
     expect(wb().text).toContain('Renamed');
+  });
+
+  describe('a pending proposal is never applied once superseded', () => {
+    /** a Propose run (the default) that leaves its rename for review */
+    const proposed = async () => {
+      const wb = await opened();
+      fireEvent.click(screen.getByRole('button', { name: 'Show the agent' }));
+      await waitFor(() => expect(wb().glspSession).not.toBeNull());
+      turns.push(
+        { deltas: [], completion: renameCall },
+        { deltas: [], completion: finalAnswer('Proposed a rename.') },
+      );
+      ask('Rename G1');
+      const card = await screen.findByRole('region', {
+        name: 'Proposed changes',
+      });
+      within(card).getByRole('button', { name: 'Approve' });
+      return { wb, card };
+    };
+
+    const notApplied = async (card: HTMLElement) => {
+      await waitFor(() => expect(card.textContent).toContain('Not applied'));
+      expect(
+        within(card).queryByRole('button', { name: 'Approve' }),
+      ).toBeNull();
+      expect(applied).not.toHaveBeenCalled();
+    };
+
+    it('by a new request', async () => {
+      const { card } = await proposed();
+      turns.push({ deltas: [], completion: finalAnswer('Nothing to do.') });
+      ask('Never mind');
+      await notApplied(card);
+      await screen.findByText('Nothing to do.');
+    });
+
+    it('by a model-worker restart', async () => {
+      const { wb, card } = await proposed();
+      const incident = wb().modelWorkerIncident;
+      act(() => restartModelWorker());
+      await waitFor(() =>
+        expect(wb().modelWorkerIncident).toBeGreaterThan(incident),
+      );
+      await notApplied(card);
+      screen.getByText('The editor restarted; the proposal was discarded.');
+    });
+
+    it('by another model opened', async () => {
+      const { wb, card } = await proposed();
+      const session = wb().session.id;
+      await act(() => wb().openModelFile('other.txt', ISTAR));
+      await waitFor(() => expect(wb().session.id).not.toBe(session));
+      await notApplied(card);
+    });
   });
 });
