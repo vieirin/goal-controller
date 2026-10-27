@@ -10,6 +10,7 @@
   },
   "scripts": {
     "build": "rm -rf out tsconfig.tsbuildinfo && node scripts/langium-generate.mjs && tsc && node build.mjs",
+    "compile": "node scripts/langium-generate.mjs && tsc && node build.mjs",
     "watch": "node build.mjs --watch & tsc --watch",
     "test": "TS_NODE_COMPILER_OPTIONS='{\"strict\":false,\"noImplicitAny\":false}' mocha && pnpm run test:dialect",
     "test:dialect": "TS_NODE_PROJECT=./tsconfig.dialect-test.json mocha --config .mocharc.dialect.json",
