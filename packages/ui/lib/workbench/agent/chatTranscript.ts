@@ -42,7 +42,11 @@ export type PreviewView =
     }
   | { ok: false; message: string };
 
-export type ChatEntry =
+/**
+ * The entry kinds a live transcript and a stored, read-only one render the
+ * same (`SharedEntryCard`): nothing here is a run's or a session's own.
+ */
+export type SharedEntry =
   | {
       kind: 'user';
       id: string;
@@ -52,6 +56,12 @@ export type ChatEntry =
   /** a step's prose, streamed in as it arrives */
   | { kind: 'assistant'; id: string; text: string }
   | { kind: 'tool'; id: string; call: TranscriptToolCall }
+  /** what the drawer did on its own (sent a proposal back to the agent) */
+  | { kind: 'notice'; id: string; text: string }
+  | { kind: 'error'; id: string; text: string };
+
+export type ChatEntry =
+  | SharedEntry
   /**
    * the model's JSON text before and after an edit; the elements and links
    * it added or changed, and the model's problems before its run (as
@@ -74,10 +84,7 @@ export type ChatEntry =
       entries: readonly ChangeSetEntry[];
       preview: PreviewView;
       state: ProposalState;
-    }
-  /** what the drawer did on its own (sent a proposal back to the agent) */
-  | { kind: 'notice'; id: string; text: string }
-  | { kind: 'error'; id: string; text: string };
+    };
 
 /**
  * `ChatEntry`, stripped of what only the run or session it came from can
@@ -89,14 +96,7 @@ export type ChatEntry =
  * as, and shown as, read-only.
  */
 export type StoredChatEntry =
-  | {
-      kind: 'user';
-      id: string;
-      text: string;
-      attachments: readonly Attachment[];
-    }
-  | { kind: 'assistant'; id: string; text: string }
-  | { kind: 'tool'; id: string; call: TranscriptToolCall }
+  | SharedEntry
   | {
       kind: 'diff';
       id: string;
@@ -116,9 +116,7 @@ export type StoredChatEntry =
         refused: boolean;
         lines: readonly string[];
       }[];
-    }
-  | { kind: 'notice'; id: string; text: string }
-  | { kind: 'error'; id: string; text: string };
+    };
 
 /** `entry`, as kept for a model that isn't open now (`StoredChatEntry`) */
 export const toStoredEntry = (entry: ChatEntry): StoredChatEntry => {

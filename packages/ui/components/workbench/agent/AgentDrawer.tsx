@@ -30,15 +30,11 @@ import {
 import { useWorkbench } from '../WorkbenchContext';
 import { Button, IconButton, Segmented } from '../ui';
 import { AgentSettingsPanel } from './AgentSettingsPanel';
-import { AssistantProse } from './AssistantProse';
 import { Composer } from './Composer';
 import { DiffCard } from './DiffCard';
-import { ErrorLine } from './ErrorLine';
-import { NoticeLine } from './NoticeLine';
 import { ProposalCard } from './ProposalCard';
 import { ReadOnlyEntry } from './ReadOnlyEntry';
-import { ToolCallCard } from './ToolCallCard';
-import { UserCard } from './UserCard';
+import { SharedEntryCard } from './SharedEntryCard';
 import { useAgentChatContext } from './AgentChatHost';
 
 /** how near its end the transcript still counts as at its end */
@@ -273,12 +269,6 @@ function TranscriptEntry({
   onReject: (proposal: Proposal) => void;
 }) {
   switch (entry.kind) {
-    case 'user':
-      return <UserCard text={entry.text} attachments={entry.attachments} />;
-    case 'assistant':
-      return <AssistantProse text={entry.text} />;
-    case 'tool':
-      return <ToolCallCard call={entry.call} />;
     case 'diff':
       return (
         <DiffCard
@@ -307,9 +297,7 @@ function TranscriptEntry({
           onReject={() => onReject(entry)}
         />
       );
-    case 'error':
-      return <ErrorLine text={entry.text} />;
-    case 'notice':
-      return <NoticeLine text={entry.text} />;
+    default:
+      return <SharedEntryCard entry={entry} />;
   }
 }

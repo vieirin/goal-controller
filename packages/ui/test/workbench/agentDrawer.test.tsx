@@ -597,6 +597,49 @@ describe('the agent drawer', () => {
     screen.getByText('Hello again.');
   });
 
+  it('carries an earlier stored conversation into a later save, rather than replacing it (goal-controller#501 review)', async () => {
+    const wb = await opened();
+    fireEvent.click(screen.getByRole('button', { name: 'Show the agent' }));
+    await waitFor(() => expect(wb().glspSession).not.toBeNull());
+    turns.push({ deltas: [], completion: finalAnswer('G1 is a goal.') });
+    ask('What is G1?');
+    await screen.findByText('G1 is a goal.');
+
+    // leave, then reopen: the first exchange comes back read-only
+    let session = wb().session.id;
+    await act(() => wb().openModelFile('other.txt', ISTAR));
+    await waitFor(() => expect(wb().session.id).not.toBe(session));
+    session = wb().session.id;
+    await act(() => wb().openModelFile('simpleChoice.txt', ISTAR));
+    await waitFor(() => expect(wb().session.id).not.toBe(session));
+    await screen.findByText('Earlier conversation · read-only');
+
+    // reply, in a conversation of its own below the divider
+    turns.push({ deltas: [], completion: finalAnswer('It has two children.') });
+    ask('And its children?');
+    await screen.findByText('It has two children.');
+
+    // leave, then reopen again: both exchanges show, read-only, in order
+    session = wb().session.id;
+    await act(() => wb().openModelFile('other.txt', ISTAR));
+    await waitFor(() => expect(wb().session.id).not.toBe(session));
+    session = wb().session.id;
+    await act(() => wb().openModelFile('simpleChoice.txt', ISTAR));
+    await waitFor(() => expect(wb().session.id).not.toBe(session));
+    await screen.findByText('Earlier conversation · read-only');
+
+    const transcript = screen.getByRole('log', { name: 'Transcript' });
+    const items = within(transcript)
+      .getAllByRole('listitem')
+      .map((li) => li.textContent ?? '');
+    const at = (text: string) => items.findIndex((t) => t.includes(text));
+    expect(at('What is G1?')).toBeGreaterThanOrEqual(0);
+    expect(at('What is G1?')).toBeLessThan(at('G1 is a goal.'));
+    expect(at('G1 is a goal.')).toBeLessThan(at('And its children?'));
+    expect(at('And its children?')).toBeLessThan(at('It has two children.'));
+    expect(at('It has two children.')).toBeLessThan(at('Earlier conversation'));
+  });
+
   it('saves the live conversation a short while after it changes, for a reload (not just a model switch) to find', async () => {
     const wb = await opened();
     fireEvent.click(screen.getByRole('button', { name: 'Show the agent' }));

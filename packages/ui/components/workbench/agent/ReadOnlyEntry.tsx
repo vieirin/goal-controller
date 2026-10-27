@@ -6,22 +6,12 @@
  * the live run's own) and no Undo.
  */
 import type { StoredChatEntry } from '@/lib/workbench/agent/chatTranscript';
-import { AssistantProse } from './AssistantProse';
 import { DiffCard } from './DiffCard';
-import { ErrorLine } from './ErrorLine';
-import { NoticeLine } from './NoticeLine';
 import { ReadOnlyProposal } from './ReadOnlyProposal';
-import { ToolCallCard } from './ToolCallCard';
-import { UserCard } from './UserCard';
+import { SharedEntryCard } from './SharedEntryCard';
 
 export function ReadOnlyEntry({ entry }: { entry: StoredChatEntry }) {
   switch (entry.kind) {
-    case 'user':
-      return <UserCard text={entry.text} attachments={entry.attachments} />;
-    case 'assistant':
-      return <AssistantProse text={entry.text} />;
-    case 'tool':
-      return <ToolCallCard call={entry.call} />;
     case 'diff':
       return (
         <DiffCard
@@ -33,9 +23,7 @@ export function ReadOnlyEntry({ entry }: { entry: StoredChatEntry }) {
       );
     case 'proposal':
       return <ReadOnlyProposal proposal={entry} />;
-    case 'error':
-      return <ErrorLine text={entry.text} />;
-    case 'notice':
-      return <NoticeLine text={entry.text} />;
+    default:
+      return <SharedEntryCard entry={entry} />;
   }
 }

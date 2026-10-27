@@ -68,3 +68,21 @@ export const formatTokens = (tokens: number): string =>
 
 /** "$0.0123": four places, fractions of a cent being what one request costs */
 export const formatCost = (cost: number): string => `$${cost.toFixed(4)}`;
+
+/**
+ * `older`'s usage and `newer`'s joined (goal-controller#501 review): a
+ * model's stored usage, carried into a later save alongside its live one.
+ * `contextTokens`: the more recent of the two (what the next request would
+ * start from, were the conversation to go on); the rest summed.
+ */
+export const mergeUsage = (
+  older: ConversationUsage,
+  newer: ConversationUsage,
+): ConversationUsage => ({
+  contextTokens: newer.contextTokens || older.contextTokens,
+  totalTokens: older.totalTokens + newer.totalTokens,
+  cost:
+    older.cost === null && newer.cost === null
+      ? null
+      : (older.cost ?? 0) + (newer.cost ?? 0),
+});

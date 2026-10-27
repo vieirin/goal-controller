@@ -21,6 +21,7 @@ import type {
 } from '@istar-ts/agent';
 import type { GlspChangeSet } from '@istar-ts/agent/glsp';
 import { toPistar } from '@istar-ts/core';
+import { recentId } from '@/lib/project';
 import { contextProvidersFor } from '@/lib/workbench/agent/context';
 import type { AgentSettings } from '@/lib/workbench/agent/agentSettings';
 import {
@@ -36,7 +37,7 @@ import {
   forgetConversation,
   loadConversation,
   saveConversation,
-  type ConversationKey,
+  type StoredConversation,
 } from '@/lib/workbench/agent/conversationStorage';
 import { previewProposal } from '@/lib/workbench/agent/proposalPreview';
 import { diffModel, snapshotModel } from '@/lib/workbench/agentChanges';
@@ -47,6 +48,7 @@ import {
 } from '@/lib/workbench/agent/providers';
 import {
   addUsage,
+  mergeUsage,
   NO_USAGE,
   pricesOf,
   type ConversationUsage,
@@ -90,26 +92,31 @@ export function useAgentChat() {
   const [storedUsage, setStoredUsage] = useState<ConversationUsage | null>(
     null,
   );
-  /** what the open model is kept under in Recent, and so its conversation too */
-  const identity = (): ConversationKey => ({
-    fileName: wb.fileName,
-    source: wb.projectSource ?? undefined,
-    aside: wb.aside,
-  });
+  /** what the open model is kept under in Recent (`recentId`), and so its conversation too */
+  const identityId = (): string =>
+    recentId({
+      fileName: wb.fileName,
+      source: wb.projectSource ?? undefined,
+      aside: wb.aside,
+    });
   // the model already open when the host mounts: later ones go through the
   // switch effect below, which never fires for this one (its session id is
   // seen from the start)
   useEffect(() => {
-    const stored = loadConversation(identity());
+    const stored = loadConversation(identityId());
     if (stored) {
       setStoredEntries(stored.entries);
       setStoredUsage(stored.usage);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  /** the model being left: its conversation, not sent anywhere, forgotten */
+  /** the model being left: its stored conversation, not sent anywhere, forgotten */
   const forgetStored = () => {
-    forgetConversation(identity());
+    // a save already in flight closed over this visit's entries *and* the
+    // stored ones just forgotten (`persist` below): it would undo the
+    // forget, in part, once it fires
+    cancelSave();
+    forgetConversation(identityId());
     setStoredEntries([]);
     setStoredUsage(null);
   };
@@ -121,28 +128,39 @@ export function useAgentChat() {
     saveTimer.current = null;
   };
   /**
-   * `pending` kept under `key`; nothing new said this visit (`pending` empty)
-   * leaves whatever is already stored there alone, rather than erasing it.
+   * `pending`, the live conversation so far, on top of `before` (what was
+   * already stored for this model when this visit started, or nothing new
+   * yet said this visit, which leaves `before` untouched instead of erasing
+   * it): the whole of what `id`'s model keeps, going forward.
    */
   const persist = (
-    key: ConversationKey,
+    id: string,
+    before: StoredConversation,
     pending: readonly ChatEntry[],
     pendingUsage: ConversationUsage,
   ) => {
-    if (pending.length > 0)
-      saveConversation(key, {
-        entries: pending.map(toStoredEntry),
-        usage: pendingUsage,
-      });
+    if (pending.length === 0) return;
+    saveConversation(id, {
+      entries: [...before.entries, ...pending.map(toStoredEntry)],
+      usage: mergeUsage(before.usage, pendingUsage),
+    });
   };
   // read by the unload flush below, which a stale render's closure can't:
   // the tab may close well after the render that last touched these
-  const liveIdentity = useRef(identity());
-  liveIdentity.current = identity();
+  const liveIdentity = useRef(identityId());
+  liveIdentity.current = identityId();
   const liveEntries = useRef(entries);
   liveEntries.current = entries;
   const liveUsage = useRef(usage);
   liveUsage.current = usage;
+  const liveStored = useRef<StoredConversation>({
+    entries: storedEntries,
+    usage: storedUsage ?? NO_USAGE,
+  });
+  liveStored.current = {
+    entries: storedEntries,
+    usage: storedUsage ?? NO_USAGE,
+  };
   /** the model's problems as last rendered: what a run starts from */
   const latestProblems = useRef(wb.problems);
   latestProblems.current = wb.problems;
@@ -214,7 +232,7 @@ export function useAgentChat() {
   const seenSession = useRef({
     id: wb.session.id,
     incident: wb.modelWorkerIncident,
-    identity: identity(),
+    identity: identityId(),
   });
   useEffect(() => {
     const seen = seenSession.current;
@@ -223,12 +241,17 @@ export function useAgentChat() {
     seenSession.current = {
       id: wb.session.id,
       incident: wb.modelWorkerIncident,
-      identity: identity(),
+      identity: identityId(),
     };
     if (wb.modelWorkerIncident !== seen.incident) return;
     runController.current?.abort();
     cancelSave();
-    persist(left, entries, usage);
+    persist(
+      left,
+      { entries: storedEntries, usage: storedUsage ?? NO_USAGE },
+      entries,
+      usage,
+    );
     const stored = loadConversation(seenSession.current.identity);
     setStoredEntries(stored?.entries ?? []);
     setStoredUsage(stored?.usage ?? null);
@@ -245,11 +268,12 @@ export function useAgentChat() {
   // streamed delta
   useEffect(() => {
     if (entries.length === 0) return;
-    const key = identity();
+    const key = identityId();
+    const before = { entries: storedEntries, usage: storedUsage ?? NO_USAGE };
     cancelSave();
     saveTimer.current = setTimeout(() => {
       saveTimer.current = null;
-      persist(key, entries, usage);
+      persist(key, before, entries, usage);
     }, SAVE_DEBOUNCE_MS);
     return cancelSave;
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -258,7 +282,12 @@ export function useAgentChat() {
   useEffect(() => {
     const flush = () => {
       cancelSave();
-      persist(liveIdentity.current, liveEntries.current, liveUsage.current);
+      persist(
+        liveIdentity.current,
+        liveStored.current,
+        liveEntries.current,
+        liveUsage.current,
+      );
     };
     window.addEventListener('pagehide', flush);
     window.addEventListener('beforeunload', flush);

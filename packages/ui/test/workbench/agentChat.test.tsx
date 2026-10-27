@@ -28,9 +28,12 @@ import {
 import {
   forgetConversation,
   loadConversation,
+  pruneConversations,
   saveConversation,
 } from '@/lib/workbench/agent/conversationStorage';
 import { projectFilesOf } from '@/lib/workbench/agent/projectFiles';
+import { recentId } from '@/lib/project';
+import { forgetRecent, rememberRecent } from '@/lib/workbench/storage';
 import { effectivePrices, PROVIDERS } from '@/lib/workbench/agent/providers';
 import {
   addUsage,
@@ -444,34 +447,88 @@ describe('the problems an edit introduced', () => {
 describe("a model's stored conversation", () => {
   afterEach(() => window.localStorage.clear());
 
-  const key = { fileName: 'deltaIoT.txt', source: undefined, aside: undefined };
-  const notice = (id: string): StoredChatEntry => ({
+  const id = recentId({ fileName: 'deltaIoT.txt' });
+  const otherId = recentId({ fileName: 'other.txt' });
+  const notice = (noticeId: string): StoredChatEntry => ({
     kind: 'notice',
-    id,
-    text: id,
+    id: noticeId,
+    text: noticeId,
   });
 
   it('is kept under its recentId, read back for that model only, dropped once empty', () => {
-    saveConversation(key, { entries: [notice('a')], usage: NO_USAGE });
-    expect(loadConversation(key)?.entries).toEqual([notice('a')]);
-    expect(loadConversation({ ...key, fileName: 'other.txt' })).toBeNull();
+    saveConversation(id, { entries: [notice('a')], usage: NO_USAGE });
+    expect(loadConversation(id)?.entries).toEqual([notice('a')]);
+    expect(loadConversation(otherId)).toBeNull();
 
-    saveConversation(key, { entries: [], usage: NO_USAGE });
-    expect(loadConversation(key)).toBeNull();
+    saveConversation(id, { entries: [], usage: NO_USAGE });
+    expect(loadConversation(id)).toBeNull();
   });
 
   it('forgets a conversation on request', () => {
-    saveConversation(key, { entries: [notice('a')], usage: NO_USAGE });
-    forgetConversation(key);
-    expect(loadConversation(key)).toBeNull();
+    saveConversation(id, { entries: [notice('a')], usage: NO_USAGE });
+    forgetConversation(id);
+    expect(loadConversation(id)).toBeNull();
   });
 
   it('caps itself to the latest 200 entries', () => {
     const many = Array.from({ length: 250 }, (_, i) => notice(`e${i}`));
-    saveConversation(key, { entries: many, usage: NO_USAGE });
-    const kept = loadConversation(key)?.entries ?? [];
+    saveConversation(id, { entries: many, usage: NO_USAGE });
+    const kept = loadConversation(id)?.entries ?? [];
     expect(kept).toHaveLength(200);
     expect(kept[0]).toEqual(notice('e50'));
     expect(kept.at(-1)).toEqual(notice('e249'));
+  });
+
+  it('drops a stored conversation whose model Recent no longer keeps (goal-controller#501 review)', () => {
+    saveConversation(id, { entries: [notice('a')], usage: NO_USAGE });
+    saveConversation(otherId, { entries: [notice('b')], usage: NO_USAGE });
+    pruneConversations(new Set([otherId]));
+    expect(loadConversation(id)).toBeNull();
+    expect(loadConversation(otherId)?.entries).toEqual([notice('b')]);
+  });
+
+  it('ignores a malformed entry instead of failing the whole read', () => {
+    window.localStorage.setItem(
+      'goal-workbench:agent:conversations:v1',
+      JSON.stringify({
+        [id]: { entries: [notice('a')], usage: NO_USAGE },
+        [otherId]: { entries: 'not an array', usage: NO_USAGE },
+      }),
+    );
+    expect(loadConversation(id)?.entries).toEqual([notice('a')]);
+    expect(loadConversation(otherId)).toBeNull();
+  });
+});
+
+describe("a Recent entry's conversation, once Recent drops the entry (goal-controller#501 review)", () => {
+  afterEach(() => window.localStorage.clear());
+
+  const notice = (noticeId: string): StoredChatEntry => ({
+    kind: 'notice',
+    id: noticeId,
+    text: noticeId,
+  });
+
+  it('forgetRecent forgets its conversation too', () => {
+    const [entry] = rememberRecent({ fileName: 'a.txt', text: '{}' });
+    const id = recentId(entry!);
+    saveConversation(id, { entries: [notice('hi')], usage: NO_USAGE });
+    expect(loadConversation(id)).not.toBeNull();
+
+    forgetRecent(id);
+    expect(loadConversation(id)).toBeNull();
+  });
+
+  it("Recent's 8-entry cap drops the evicted entry's conversation too", () => {
+    const ids = Array.from({ length: 8 }, (_, i) => {
+      const [entry] = rememberRecent({ fileName: `f${i}.txt`, text: '{}' });
+      return recentId(entry!);
+    });
+    saveConversation(ids[0]!, { entries: [notice('hi')], usage: NO_USAGE });
+    expect(loadConversation(ids[0]!)).not.toBeNull();
+
+    // a 9th entry evicts the oldest (f0.txt)
+    rememberRecent({ fileName: 'f8.txt', text: '{}' });
+    expect(loadConversation(ids[0]!)).toBeNull();
   });
 });
