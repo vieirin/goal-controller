@@ -25,6 +25,7 @@
 #           Only an abstract or cross-package task gets opus; the orchestrator decides.
 #   -w      the worker gets .claude/worktrees/NAME on branch BRANCH from BASE (default
 #           origin/main); without -w it shares the project checkout (scouts, reviewers).
+#           graphify-out/ (if built at the root) is symlinked into the worktree, not rebuilt.
 #   -P      a split pane next to the orchestrator; -W a separate workspace (sidebar entry).
 #   lean    sessions start without MCP servers, Claude in Chrome, or user plugins (hooks-only
 #           plugins stay); -c gives one the browser back; AGENT_FACTORY_LEAN=0 turns this off.
@@ -244,6 +245,9 @@ cmd_spawn() {
         ( cd "$dir" && CI=true pnpm install --frozen-lockfile --prefer-offline >&2 ) \
           || echo "agent-factory: pnpm install failed in $dir; run it by hand" >&2
       fi
+      # graphify-out/ is gitignored and per machine: give the worktree the root's graph
+      # (if any) via a symlink rather than rebuilding it
+      [ -d "$root/graphify-out" ] && [ ! -e "$dir/graphify-out" ] && ln -s "$root/graphify-out" "$dir/graphify-out"
     else
       local cur; cur=$(git -C "$dir" branch --show-current 2>/dev/null)
       [ "$cur" = "$branch" ] || echo "agent-factory: worktree $dir is on $cur, not $branch; reusing it" >&2
