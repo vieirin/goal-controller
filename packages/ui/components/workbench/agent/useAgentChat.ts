@@ -21,20 +21,34 @@ import type {
 } from '@istar-ts/agent';
 import type { GlspChangeSet } from '@istar-ts/agent/glsp';
 import { toPistar } from '@istar-ts/core';
+import { recentId } from '@/lib/project';
 import { contextProvidersFor } from '@/lib/workbench/agent/context';
 import type { AgentSettings } from '@/lib/workbench/agent/agentSettings';
 import {
   problemKey,
   problemsText,
   revisionPrompt,
+  toStoredEntry,
   type ChatEntry,
   type PreviewView,
+  type StoredChatEntry,
 } from '@/lib/workbench/agent/chatTranscript';
+import {
+  forgetConversation,
+  loadConversation,
+  saveConversation,
+  type StoredConversation,
+} from '@/lib/workbench/agent/conversationStorage';
 import { previewProposal } from '@/lib/workbench/agent/proposalPreview';
 import { diffModel, snapshotModel } from '@/lib/workbench/agentChanges';
-import { PROVIDERS, type Attachment } from '@/lib/workbench/agent/providers';
+import {
+  effectivePrices,
+  PROVIDERS,
+  type Attachment,
+} from '@/lib/workbench/agent/providers';
 import {
   addUsage,
+  mergeUsage,
   NO_USAGE,
   pricesOf,
   type ConversationUsage,
@@ -45,6 +59,9 @@ type Proposal = Extract<ChatEntry, { kind: 'proposal' }>;
 
 /** how many times a proposal that would leave errors goes back to the agent */
 export const MAX_REVISIONS = 2;
+
+/** how long an entry/usage change waits before it is saved (goal-controller#501 review) */
+export const SAVE_DEBOUNCE_MS = 500;
 
 const messageOf = (error: unknown): string =>
   error instanceof Error ? error.message : String(error);
@@ -64,6 +81,86 @@ export function useAgentChat() {
    */
   const history = useRef<readonly ChatMessage[]>([]);
   const [usage, setUsage] = useState<ConversationUsage>(NO_USAGE);
+  /**
+   * The model being left's earlier conversation, if any (goal-controller#485
+   * follow-up): shown read-only, above today's, until "Forget". Never fed
+   * into `history.current` — nothing of it reaches the agent.
+   */
+  const [storedEntries, setStoredEntries] = useState<
+    readonly StoredChatEntry[]
+  >([]);
+  const [storedUsage, setStoredUsage] = useState<ConversationUsage | null>(
+    null,
+  );
+  /** what the open model is kept under in Recent (`recentId`), and so its conversation too */
+  const identityId = (): string =>
+    recentId({
+      fileName: wb.fileName,
+      source: wb.projectSource ?? undefined,
+      aside: wb.aside,
+    });
+  // the model already open when the host mounts: later ones go through the
+  // switch effect below, which never fires for this one (its session id is
+  // seen from the start)
+  useEffect(() => {
+    const stored = loadConversation(identityId());
+    if (stored) {
+      setStoredEntries(stored.entries);
+      setStoredUsage(stored.usage);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  /** the model being left: its stored conversation, not sent anywhere, forgotten */
+  const forgetStored = () => {
+    // a save already in flight closed over this visit's entries *and* the
+    // stored ones just forgotten (`persist` below): it would undo the
+    // forget, in part, once it fires
+    cancelSave();
+    forgetConversation(identityId());
+    setStoredEntries([]);
+    setStoredUsage(null);
+  };
+  /** a pending debounced save (below); cleared once it runs, or superseded */
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cancelSave = () => {
+    if (saveTimer.current === null) return;
+    clearTimeout(saveTimer.current);
+    saveTimer.current = null;
+  };
+  /**
+   * `pending`, the live conversation so far, on top of `before` (what was
+   * already stored for this model when this visit started, or nothing new
+   * yet said this visit, which leaves `before` untouched instead of erasing
+   * it): the whole of what `id`'s model keeps, going forward.
+   */
+  const persist = (
+    id: string,
+    before: StoredConversation,
+    pending: readonly ChatEntry[],
+    pendingUsage: ConversationUsage,
+  ) => {
+    if (pending.length === 0) return;
+    saveConversation(id, {
+      entries: [...before.entries, ...pending.map(toStoredEntry)],
+      usage: mergeUsage(before.usage, pendingUsage),
+    });
+  };
+  // read by the unload flush below, which a stale render's closure can't:
+  // the tab may close well after the render that last touched these
+  const liveIdentity = useRef(identityId());
+  liveIdentity.current = identityId();
+  const liveEntries = useRef(entries);
+  liveEntries.current = entries;
+  const liveUsage = useRef(usage);
+  liveUsage.current = usage;
+  const liveStored = useRef<StoredConversation>({
+    entries: storedEntries,
+    usage: storedUsage ?? NO_USAGE,
+  });
+  liveStored.current = {
+    entries: storedEntries,
+    usage: storedUsage ?? NO_USAGE,
+  };
   /** the model's problems as last rendered: what a run starts from */
   const latestProblems = useRef(wb.problems);
   latestProblems.current = wb.problems;
@@ -135,21 +232,70 @@ export function useAgentChat() {
   const seenSession = useRef({
     id: wb.session.id,
     incident: wb.modelWorkerIncident,
+    identity: identityId(),
   });
   useEffect(() => {
     const seen = seenSession.current;
     if (wb.session.id === seen.id) return;
+    const left = seen.identity;
     seenSession.current = {
       id: wb.session.id,
       incident: wb.modelWorkerIncident,
+      identity: identityId(),
     };
     if (wb.modelWorkerIncident !== seen.incident) return;
     runController.current?.abort();
+    cancelSave();
+    persist(
+      left,
+      { entries: storedEntries, usage: storedUsage ?? NO_USAGE },
+      entries,
+      usage,
+    );
+    const stored = loadConversation(seenSession.current.identity);
+    setStoredEntries(stored?.entries ?? []);
+    setStoredUsage(stored?.usage ?? null);
     setEntries([]);
     history.current = [];
     setUsage(NO_USAGE);
     setConversation((n) => n + 1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [wb.session.id, wb.modelWorkerIncident]);
+
+  // the live conversation, saved a short while after it last changed (and
+  // flushed right away if the tab closes or reloads first): so closing it
+  // and reopening the same model finds it again, without saving on every
+  // streamed delta
+  useEffect(() => {
+    if (entries.length === 0) return;
+    const key = identityId();
+    const before = { entries: storedEntries, usage: storedUsage ?? NO_USAGE };
+    cancelSave();
+    saveTimer.current = setTimeout(() => {
+      saveTimer.current = null;
+      persist(key, before, entries, usage);
+    }, SAVE_DEBOUNCE_MS);
+    return cancelSave;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entries, usage]);
+
+  useEffect(() => {
+    const flush = () => {
+      cancelSave();
+      persist(
+        liveIdentity.current,
+        liveStored.current,
+        liveEntries.current,
+        liveUsage.current,
+      );
+    };
+    window.addEventListener('pagehide', flush);
+    window.addEventListener('beforeunload', flush);
+    return () => {
+      window.removeEventListener('pagehide', flush);
+      window.removeEventListener('beforeunload', flush);
+    };
+  }, []);
 
   const contextProviders = useMemo(
     () => contextProvidersFor(wb.mode),
@@ -228,7 +374,9 @@ export function useAgentChat() {
     if (!glsp) return null;
     const { costPerMillionTokens, createChatClient, runAgent } =
       await import('@istar-ts/agent');
-    const prices = pricesOf(settings.prices);
+    const prices = pricesOf(
+      effectivePrices(settings.prices, settings.model).prices,
+    );
     const cost = prices ? costPerMillionTokens(prices) : null;
     const client = createChatClient({
       provider: PROVIDERS[settings.providerId],
@@ -421,6 +569,9 @@ export function useAgentChat() {
     running,
     conversation,
     usage,
+    storedEntries,
+    storedUsage,
+    forgetStored,
     send,
     approve,
     reject,

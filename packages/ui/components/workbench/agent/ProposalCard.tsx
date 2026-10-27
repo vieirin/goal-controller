@@ -13,7 +13,8 @@ import { StatusChip } from './StatusChip';
 
 type Proposal = Extract<ChatEntry, { kind: 'proposal' }>;
 
-const SETTLED: Record<
+/** a settled proposal's chip (`ReadOnlyProposal` reads this too, for a stored one) */
+export const SETTLED: Record<
   Exclude<ProposalState, 'pending'>,
   { label: string; tone: ChipTone }
 > = {
@@ -22,6 +23,54 @@ const SETTLED: Record<
   discarded: { label: 'Not applied', tone: 'muted' },
   revised: { label: 'Sent back', tone: 'caution' },
 };
+
+/** one numbered row of a change set: its step in words, a refused one's reasons in danger */
+export function ProposalEntryRow({
+  index,
+  toolCallId,
+  name,
+  refused,
+  lines,
+}: {
+  index: number;
+  toolCallId: string;
+  name: string;
+  refused: boolean;
+  lines: readonly string[];
+}) {
+  return (
+    <li
+      key={toolCallId}
+      className={cx(
+        'flex gap-2 rounded-md border px-2 py-1.5',
+        refused ? 'border-danger/30 bg-danger-soft' : 'border-line bg-white',
+      )}
+    >
+      <span className='w-4 shrink-0 font-mono text-xs font-semibold text-ink'>
+        {index + 1}
+      </span>
+      <div className='min-w-0 flex-1'>
+        <div className='flex items-center gap-2'>
+          <span className='truncate font-mono text-xs font-semibold text-ink'>
+            {name}
+          </span>
+          {refused && <StatusChip tone='danger'>refused</StatusChip>}
+        </div>
+        {lines.map((line, j) => (
+          <p
+            key={j}
+            className={cx(
+              'text-xs',
+              refused ? 'text-danger' : 'text-ink-muted',
+            )}
+          >
+            {line}
+          </p>
+        ))}
+      </div>
+    </li>
+  );
+}
 
 /**
  * Propose mode's change set: one numbered row per proposed call, its step
@@ -54,45 +103,17 @@ export function ProposalCard({
         )}
       </header>
       <ol className='flex flex-col gap-1.5'>
-        {entries.map((entry, i) => {
-          const { refused, lines } = describeEntry(changeSet, entry);
-          return (
-            <li
-              key={entry.toolCallId}
-              className={cx(
-                'flex gap-2 rounded-md border px-2 py-1.5',
-                refused
-                  ? 'border-danger/30 bg-danger-soft'
-                  : 'border-line bg-white',
-              )}
-            >
-              <span className='w-4 shrink-0 font-mono text-xs font-semibold text-ink'>
-                {i + 1}
-              </span>
-              <div className='min-w-0 flex-1'>
-                <div className='flex items-center gap-2'>
-                  <span className='truncate font-mono text-xs font-semibold text-ink'>
-                    {entry.name}
-                  </span>
-                  {refused && <StatusChip tone='danger'>refused</StatusChip>}
-                </div>
-                {lines.map((line, j) => (
-                  <p
-                    key={j}
-                    className={cx(
-                      'text-xs',
-                      refused ? 'text-danger' : 'text-ink-muted',
-                    )}
-                  >
-                    {line}
-                  </p>
-                ))}
-              </div>
-            </li>
-          );
-        })}
+        {entries.map((entry, i) => (
+          <ProposalEntryRow
+            key={entry.toolCallId}
+            index={i}
+            toolCallId={entry.toolCallId}
+            name={entry.name}
+            {...describeEntry(changeSet, entry)}
+          />
+        ))}
       </ol>
-      <ProposalPreview proposal={proposal} />
+      <ProposalPreview preview={proposal.preview} />
       {state === 'pending' && (
         <div className='mt-2 flex gap-2'>
           <Button variant='primary' onClick={onApprove}>
@@ -109,11 +130,11 @@ export function ProposalCard({
 
 /**
  * What the change set would do to the model: the problems it would leave,
- * always; its diff, on demand.
+ * always; its diff, on demand. `ReadOnlyProposal` reads a stored one's
+ * `preview` through this too.
  */
-function ProposalPreview({ proposal }: { proposal: Proposal }) {
+export function ProposalPreview({ preview }: { preview: Proposal['preview'] }) {
   const [open, setOpen] = useState(false);
-  const { preview } = proposal;
   if (!preview.ok)
     return (
       <p className='mt-2 text-2xs text-ink-muted'>

@@ -42,7 +42,11 @@ export type PreviewView =
     }
   | { ok: false; message: string };
 
-export type ChatEntry =
+/**
+ * The entry kinds a live transcript and a stored, read-only one render the
+ * same (`SharedEntryCard`): nothing here is a run's or a session's own.
+ */
+export type SharedEntry =
   | {
       kind: 'user';
       id: string;
@@ -52,6 +56,12 @@ export type ChatEntry =
   /** a step's prose, streamed in as it arrives */
   | { kind: 'assistant'; id: string; text: string }
   | { kind: 'tool'; id: string; call: TranscriptToolCall }
+  /** what the drawer did on its own (sent a proposal back to the agent) */
+  | { kind: 'notice'; id: string; text: string }
+  | { kind: 'error'; id: string; text: string };
+
+export type ChatEntry =
+  | SharedEntry
   /**
    * the model's JSON text before and after an edit; the elements and links
    * it added or changed, and the model's problems before its run (as
@@ -74,10 +84,68 @@ export type ChatEntry =
       entries: readonly ChangeSetEntry[];
       preview: PreviewView;
       state: ProposalState;
+    };
+
+/**
+ * `ChatEntry`, stripped of what only the run or session it came from can
+ * read back: a 'diff's `touched`/`baseline` (the live model's problems,
+ * which a reopened conversation shows none of) and a 'proposal's live
+ * `changeSet`/`entries` (its `step` closes over the run's own scratch
+ * session), each entry's change described once instead, while both are
+ * still live (`toStoredEntry`). What a model's earlier conversation is kept
+ * as, and shown as, read-only.
+ */
+export type StoredChatEntry =
+  | SharedEntry
+  | {
+      kind: 'diff';
+      id: string;
+      fileName: string;
+      before: string;
+      after: string;
+      undone: boolean;
     }
-  /** what the drawer did on its own (sent a proposal back to the agent) */
-  | { kind: 'notice'; id: string; text: string }
-  | { kind: 'error'; id: string; text: string };
+  | {
+      kind: 'proposal';
+      id: string;
+      state: ProposalState;
+      preview: PreviewView;
+      described: readonly {
+        toolCallId: string;
+        name: string;
+        refused: boolean;
+        lines: readonly string[];
+      }[];
+    };
+
+/** `entry`, as kept for a model that isn't open now (`StoredChatEntry`) */
+export const toStoredEntry = (entry: ChatEntry): StoredChatEntry => {
+  switch (entry.kind) {
+    case 'diff':
+      return {
+        kind: 'diff',
+        id: entry.id,
+        fileName: entry.fileName,
+        before: entry.before,
+        after: entry.after,
+        undone: entry.undone,
+      };
+    case 'proposal':
+      return {
+        kind: 'proposal',
+        id: entry.id,
+        state: entry.state,
+        preview: entry.preview,
+        described: entry.entries.map((proposed) => ({
+          toolCallId: proposed.toolCallId,
+          name: proposed.name,
+          ...describeEntry(entry.changeSet, proposed),
+        })),
+      };
+    default:
+      return entry;
+  }
+};
 
 export type ChipTone = 'ok' | 'caution' | 'danger' | 'muted';
 

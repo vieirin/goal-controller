@@ -21,7 +21,7 @@ import {
 } from '@/lib/workbench/agent/chatTranscript';
 import type { Problem } from '@/lib/workbench/types';
 import { toPistar } from '@istar-ts/core';
-import { PROVIDERS } from '@/lib/workbench/agent/providers';
+import { effectivePrices, PROVIDERS } from '@/lib/workbench/agent/providers';
 import { formatCost, formatTokens } from '@/lib/workbench/agent/usage';
 import {
   projectFilesOf,
@@ -30,14 +30,11 @@ import {
 import { useWorkbench } from '../WorkbenchContext';
 import { Button, IconButton, Segmented } from '../ui';
 import { AgentSettingsPanel } from './AgentSettingsPanel';
-import { AssistantProse } from './AssistantProse';
 import { Composer } from './Composer';
 import { DiffCard } from './DiffCard';
-import { ErrorLine } from './ErrorLine';
-import { NoticeLine } from './NoticeLine';
 import { ProposalCard } from './ProposalCard';
-import { ToolCallCard } from './ToolCallCard';
-import { UserCard } from './UserCard';
+import { ReadOnlyEntry } from './ReadOnlyEntry';
+import { SharedEntryCard } from './SharedEntryCard';
 import { useAgentChatContext } from './AgentChatHost';
 
 /** how near its end the transcript still counts as at its end */
@@ -91,6 +88,7 @@ export default function AgentDrawer({ onClose }: { onClose: () => void }) {
     latestDiff?.kind === 'diff' && latestDiff.after === modelNow
       ? latestDiff.id
       : null;
+  const { fromList } = effectivePrices(settings.prices, settings.model);
   // what the model's views badge (EDITED, NEW, …) until cleared
   const { added, edited, removed } = wb.agentChanges;
   const marked = added.size + edited.size + removed.size;
@@ -178,6 +176,21 @@ export default function AgentDrawer({ onClose }: { onClose: () => void }) {
           </div>
         ) : (
           <ol className='flex flex-col gap-3'>
+            {chat.storedEntries.map((entry) => (
+              <li key={entry.id} className='opacity-60'>
+                <ReadOnlyEntry entry={entry} />
+              </li>
+            ))}
+            {chat.storedEntries.length > 0 && (
+              <li className='flex items-center gap-2 text-2xs text-ink-muted'>
+                <span className='h-px flex-1 bg-line' />
+                <span>Earlier conversation · read-only</span>
+                <span className='h-px flex-1 bg-line' />
+                <Button variant='quiet' onClick={chat.forgetStored}>
+                  Forget
+                </Button>
+              </li>
+            )}
             {chat.entries.map((entry) => (
               <li key={entry.id}>
                 <TranscriptEntry
@@ -216,7 +229,14 @@ export default function AgentDrawer({ onClose }: { onClose: () => void }) {
             total {formatTokens(chat.usage.totalTokens)}
           </span>
           {chat.usage.cost !== null && (
-            <span title='At the prices in the settings'>
+            <span
+              title={
+                fromList
+                  ? "Estimated at DeepSeek's peak list prices of 2026-10-27; set prices in the settings to override"
+                  : 'At the prices in the settings'
+              }
+            >
+              {fromList ? 'est. ' : ''}
               {formatCost(chat.usage.cost)}
             </span>
           )}
@@ -249,12 +269,6 @@ function TranscriptEntry({
   onReject: (proposal: Proposal) => void;
 }) {
   switch (entry.kind) {
-    case 'user':
-      return <UserCard text={entry.text} attachments={entry.attachments} />;
-    case 'assistant':
-      return <AssistantProse text={entry.text} />;
-    case 'tool':
-      return <ToolCallCard call={entry.call} />;
     case 'diff':
       return (
         <DiffCard
@@ -283,9 +297,7 @@ function TranscriptEntry({
           onReject={() => onReject(entry)}
         />
       );
-    case 'error':
-      return <ErrorLine text={entry.text} />;
-    case 'notice':
-      return <NoticeLine text={entry.text} />;
+    default:
+      return <SharedEntryCard entry={entry} />;
   }
 }

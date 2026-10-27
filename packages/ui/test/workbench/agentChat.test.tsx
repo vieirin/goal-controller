@@ -23,9 +23,18 @@ import {
   problemKey,
   revisionPrompt,
   toolCallChip,
+  type StoredChatEntry,
 } from '@/lib/workbench/agent/chatTranscript';
+import {
+  forgetConversation,
+  loadConversation,
+  pruneConversations,
+  saveConversation,
+} from '@/lib/workbench/agent/conversationStorage';
 import { projectFilesOf } from '@/lib/workbench/agent/projectFiles';
-import { PROVIDERS } from '@/lib/workbench/agent/providers';
+import { recentId } from '@/lib/project';
+import { forgetRecent, rememberRecent } from '@/lib/workbench/storage';
+import { effectivePrices, PROVIDERS } from '@/lib/workbench/agent/providers';
 import {
   addUsage,
   formatTokens,
@@ -352,6 +361,48 @@ describe("a conversation's usage", () => {
     });
   });
 
+  it("falls back to the model's list price, lets a typed one override it, and leaves an unlisted model with none", () => {
+    // deepseek-flash: input $0.30, cache hit $0.006, output $1.20 per 1M
+    expect(
+      effectivePrices(
+        { input: null, cachedInput: null, output: null },
+        'deepseek-flash',
+      ),
+    ).toEqual({
+      prices: { input: 0.3, cachedInput: 0.006, output: 1.2 },
+      fromList: true,
+    });
+    expect(
+      effectivePrices(
+        { input: 1, cachedInput: 0.5, output: 2 },
+        'deepseek-flash',
+      ),
+    ).toEqual({
+      prices: { input: 1, cachedInput: 0.5, output: 2 },
+      fromList: false,
+    });
+    // one field typed, the rest from the list: still an estimate
+    expect(
+      effectivePrices(
+        { input: 1, cachedInput: null, output: null },
+        'deepseek-flash',
+      ),
+    ).toEqual({
+      prices: { input: 1, cachedInput: 0.006, output: 1.2 },
+      fromList: true,
+    });
+    // deepseek-chat has no published list price: nothing to fall back to
+    expect(
+      effectivePrices(
+        { input: null, cachedInput: null, output: null },
+        'deepseek-chat',
+      ),
+    ).toEqual({
+      prices: { input: null, cachedInput: null, output: null },
+      fromList: false,
+    });
+  });
+
   it('formats token counts', () => {
     expect(formatTokens(950)).toBe('950');
     expect(formatTokens(12_400)).toBe('12.4k');
@@ -390,5 +441,94 @@ describe('the problems an edit introduced', () => {
     expect(prompt).toContain(
       '- error: G9 has no children or tasks; every goal must be refined',
     );
+  });
+});
+
+describe("a model's stored conversation", () => {
+  afterEach(() => window.localStorage.clear());
+
+  const id = recentId({ fileName: 'deltaIoT.txt' });
+  const otherId = recentId({ fileName: 'other.txt' });
+  const notice = (noticeId: string): StoredChatEntry => ({
+    kind: 'notice',
+    id: noticeId,
+    text: noticeId,
+  });
+
+  it('is kept under its recentId, read back for that model only, dropped once empty', () => {
+    saveConversation(id, { entries: [notice('a')], usage: NO_USAGE });
+    expect(loadConversation(id)?.entries).toEqual([notice('a')]);
+    expect(loadConversation(otherId)).toBeNull();
+
+    saveConversation(id, { entries: [], usage: NO_USAGE });
+    expect(loadConversation(id)).toBeNull();
+  });
+
+  it('forgets a conversation on request', () => {
+    saveConversation(id, { entries: [notice('a')], usage: NO_USAGE });
+    forgetConversation(id);
+    expect(loadConversation(id)).toBeNull();
+  });
+
+  it('caps itself to the latest 200 entries', () => {
+    const many = Array.from({ length: 250 }, (_, i) => notice(`e${i}`));
+    saveConversation(id, { entries: many, usage: NO_USAGE });
+    const kept = loadConversation(id)?.entries ?? [];
+    expect(kept).toHaveLength(200);
+    expect(kept[0]).toEqual(notice('e50'));
+    expect(kept.at(-1)).toEqual(notice('e249'));
+  });
+
+  it('drops a stored conversation whose model Recent no longer keeps (goal-controller#501 review)', () => {
+    saveConversation(id, { entries: [notice('a')], usage: NO_USAGE });
+    saveConversation(otherId, { entries: [notice('b')], usage: NO_USAGE });
+    pruneConversations(new Set([otherId]));
+    expect(loadConversation(id)).toBeNull();
+    expect(loadConversation(otherId)?.entries).toEqual([notice('b')]);
+  });
+
+  it('ignores a malformed entry instead of failing the whole read', () => {
+    window.localStorage.setItem(
+      'goal-workbench:agent:conversations:v1',
+      JSON.stringify({
+        [id]: { entries: [notice('a')], usage: NO_USAGE },
+        [otherId]: { entries: 'not an array', usage: NO_USAGE },
+      }),
+    );
+    expect(loadConversation(id)?.entries).toEqual([notice('a')]);
+    expect(loadConversation(otherId)).toBeNull();
+  });
+});
+
+describe("a Recent entry's conversation, once Recent drops the entry (goal-controller#501 review)", () => {
+  afterEach(() => window.localStorage.clear());
+
+  const notice = (noticeId: string): StoredChatEntry => ({
+    kind: 'notice',
+    id: noticeId,
+    text: noticeId,
+  });
+
+  it('forgetRecent forgets its conversation too', () => {
+    const [entry] = rememberRecent({ fileName: 'a.txt', text: '{}' });
+    const id = recentId(entry!);
+    saveConversation(id, { entries: [notice('hi')], usage: NO_USAGE });
+    expect(loadConversation(id)).not.toBeNull();
+
+    forgetRecent(id);
+    expect(loadConversation(id)).toBeNull();
+  });
+
+  it("Recent's 8-entry cap drops the evicted entry's conversation too", () => {
+    const ids = Array.from({ length: 8 }, (_, i) => {
+      const [entry] = rememberRecent({ fileName: `f${i}.txt`, text: '{}' });
+      return recentId(entry!);
+    });
+    saveConversation(ids[0]!, { entries: [notice('hi')], usage: NO_USAGE });
+    expect(loadConversation(ids[0]!)).not.toBeNull();
+
+    // a 9th entry evicts the oldest (f0.txt)
+    rememberRecent({ fileName: 'f8.txt', text: '{}' });
+    expect(loadConversation(ids[0]!)).toBeNull();
   });
 });

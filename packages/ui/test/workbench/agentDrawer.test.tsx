@@ -36,6 +36,7 @@ import {
   WorkbenchProvider,
   type Workbench,
 } from '@/components/workbench/WorkbenchContext';
+import { SAVE_DEBOUNCE_MS } from '@/components/workbench/agent/useAgentChat';
 import * as glspSessionModule from '@/lib/workbench/agent/glspSession';
 import { restartModelWorker } from '@/lib/workbench/modelWorkerClient';
 import type { GlspSession } from '@/lib/workbench/agent/glspSession';
@@ -541,14 +542,154 @@ describe('the agent drawer', () => {
     ask('Two');
     await screen.findByText('Used 1400.');
     // context: the last call's; total: both; cost: 2.4k in at $1/M, 500 out at $2/M
+    // ("est.": deepseek-flash's cache-hit list price fills in the untyped field)
     expect(screen.getByLabelText('Usage').textContent).toBe(
-      'context 1.7ktotal 2.9k$0.0034',
+      'context 1.7ktotal 2.9kest. $0.0034',
     );
 
     const session = wb().session.id;
     await act(() => wb().openModelFile('other.txt', ISTAR));
     await waitFor(() => expect(wb().session.id).not.toBe(session));
     await waitFor(() => expect(screen.queryByLabelText('Usage')).toBeNull());
+  });
+
+  it("keeps a model's conversation, read-only, for when it reopens", async () => {
+    const wb = await opened();
+    fireEvent.click(screen.getByRole('button', { name: 'Show the agent' }));
+    await waitFor(() => expect(wb().glspSession).not.toBeNull());
+    turns.push({ deltas: [], completion: finalAnswer('G1 is a goal.') });
+    ask('What is G1?');
+    await screen.findByText('G1 is a goal.');
+
+    // another model opens: nothing of simpleChoice.txt's conversation shows
+    const session = wb().session.id;
+    await act(() => wb().openModelFile('other.txt', ISTAR));
+    await waitFor(() => expect(wb().session.id).not.toBe(session));
+    expect(screen.queryByText('Earlier conversation · read-only')).toBeNull();
+    expect(screen.queryByText('What is G1?')).toBeNull();
+
+    // simpleChoice.txt reopens: its conversation is back, above a divider
+    const session2 = wb().session.id;
+    await act(() => wb().openModelFile('simpleChoice.txt', ISTAR));
+    await waitFor(() => expect(wb().session.id).not.toBe(session2));
+    await screen.findByText('Earlier conversation · read-only');
+    const transcript = screen.getByRole('log', { name: 'Transcript' });
+    within(transcript).getByText('What is G1?');
+    within(transcript).getByText('G1 is a goal.');
+    // read-only: no way to act on it
+    expect(
+      within(transcript).queryByRole('button', { name: 'Approve' }),
+    ).toBeNull();
+
+    // a new message appends below the divider; its own history, not the old one
+    turns.push({ deltas: [], completion: finalAnswer('Hello again.') });
+    ask('Hi');
+    await screen.findByText('Hello again.');
+    expect(requests.at(-1)?.filter(({ role }) => role !== 'system')).toEqual([
+      { role: 'user', content: 'Hi' },
+    ]);
+
+    // Forget clears it
+    fireEvent.click(screen.getByRole('button', { name: 'Forget' }));
+    expect(screen.queryByText('Earlier conversation · read-only')).toBeNull();
+    expect(within(transcript).queryByText('What is G1?')).toBeNull();
+    // the live conversation stays
+    screen.getByText('Hello again.');
+  });
+
+  it('carries an earlier stored conversation into a later save, rather than replacing it (goal-controller#501 review)', async () => {
+    const wb = await opened();
+    fireEvent.click(screen.getByRole('button', { name: 'Show the agent' }));
+    await waitFor(() => expect(wb().glspSession).not.toBeNull());
+    turns.push({ deltas: [], completion: finalAnswer('G1 is a goal.') });
+    ask('What is G1?');
+    await screen.findByText('G1 is a goal.');
+
+    // leave, then reopen: the first exchange comes back read-only
+    let session = wb().session.id;
+    await act(() => wb().openModelFile('other.txt', ISTAR));
+    await waitFor(() => expect(wb().session.id).not.toBe(session));
+    session = wb().session.id;
+    await act(() => wb().openModelFile('simpleChoice.txt', ISTAR));
+    await waitFor(() => expect(wb().session.id).not.toBe(session));
+    await screen.findByText('Earlier conversation · read-only');
+
+    // reply, in a conversation of its own below the divider
+    turns.push({ deltas: [], completion: finalAnswer('It has two children.') });
+    ask('And its children?');
+    await screen.findByText('It has two children.');
+
+    // leave, then reopen again: both exchanges show, read-only, in order
+    session = wb().session.id;
+    await act(() => wb().openModelFile('other.txt', ISTAR));
+    await waitFor(() => expect(wb().session.id).not.toBe(session));
+    session = wb().session.id;
+    await act(() => wb().openModelFile('simpleChoice.txt', ISTAR));
+    await waitFor(() => expect(wb().session.id).not.toBe(session));
+    await screen.findByText('Earlier conversation · read-only');
+
+    const transcript = screen.getByRole('log', { name: 'Transcript' });
+    const items = within(transcript)
+      .getAllByRole('listitem')
+      .map((li) => li.textContent ?? '');
+    const at = (text: string) => items.findIndex((t) => t.includes(text));
+    expect(at('What is G1?')).toBeGreaterThanOrEqual(0);
+    expect(at('What is G1?')).toBeLessThan(at('G1 is a goal.'));
+    expect(at('G1 is a goal.')).toBeLessThan(at('And its children?'));
+    expect(at('And its children?')).toBeLessThan(at('It has two children.'));
+    expect(at('It has two children.')).toBeLessThan(at('Earlier conversation'));
+  });
+
+  it('saves the live conversation a short while after it changes, for a reload (not just a model switch) to find', async () => {
+    const wb = await opened();
+    fireEvent.click(screen.getByRole('button', { name: 'Show the agent' }));
+    await waitFor(() => expect(wb().glspSession).not.toBeNull());
+    turns.push({ deltas: [], completion: finalAnswer('G1 is a goal.') });
+    ask('What is G1?');
+    await screen.findByText('G1 is a goal.');
+
+    // nothing of a reload between the request and its debounced save
+    await act(
+      () =>
+        new Promise((resolve) => setTimeout(resolve, SAVE_DEBOUNCE_MS + 100)),
+    );
+
+    // a reload: a fresh host, same model, localStorage untouched
+    cleanup();
+    const wb2 = await opened();
+    fireEvent.click(screen.getByRole('button', { name: 'Show the agent' }));
+    await waitFor(() => expect(wb2().glspSession).not.toBeNull());
+    await screen.findByText('Earlier conversation · read-only');
+    const transcript = screen.getByRole('log', { name: 'Transcript' });
+    within(transcript).getByText('What is G1?');
+    within(transcript).getByText('G1 is a goal.');
+  });
+
+  it('shows a stored pending proposal as "Not applied", with nothing to act on', async () => {
+    const wb = await opened();
+    fireEvent.click(screen.getByRole('button', { name: 'Show the agent' }));
+    await waitFor(() => expect(wb().glspSession).not.toBeNull());
+    turns.push(
+      { deltas: [], completion: renameCall },
+      { deltas: [], completion: finalAnswer('Proposed a rename.') },
+    );
+    ask('Rename G1');
+    await screen.findByRole('region', { name: 'Proposed changes' });
+
+    const session = wb().session.id;
+    await act(() => wb().openModelFile('other.txt', ISTAR));
+    await waitFor(() => expect(wb().session.id).not.toBe(session));
+    const session2 = wb().session.id;
+    await act(() => wb().openModelFile('simpleChoice.txt', ISTAR));
+    await waitFor(() => expect(wb().session.id).not.toBe(session2));
+
+    const card = await screen.findByRole('region', {
+      name: 'Proposed changes',
+    });
+    expect(card.textContent).toContain('Not applied');
+    expect(within(card).queryByRole('button', { name: 'Approve' })).toBeNull();
+    expect(within(card).queryByRole('button', { name: 'Reject' })).toBeNull();
+    expect(applied).not.toHaveBeenCalled();
   });
 
   describe('the Inspector moves opposite the agent drawer', () => {
