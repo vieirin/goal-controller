@@ -58,6 +58,9 @@ type Proposal = Extract<ChatEntry, { kind: 'proposal' }>;
 /** how many times a proposal that would leave errors goes back to the agent */
 export const MAX_REVISIONS = 2;
 
+/** how long an entry/usage change waits before it is saved (goal-controller#501 review) */
+export const SAVE_DEBOUNCE_MS = 500;
+
 const messageOf = (error: unknown): string =>
   error instanceof Error ? error.message : String(error);
 
@@ -110,6 +113,36 @@ export function useAgentChat() {
     setStoredEntries([]);
     setStoredUsage(null);
   };
+  /** a pending debounced save (below); cleared once it runs, or superseded */
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cancelSave = () => {
+    if (saveTimer.current === null) return;
+    clearTimeout(saveTimer.current);
+    saveTimer.current = null;
+  };
+  /**
+   * `pending` kept under `key`; nothing new said this visit (`pending` empty)
+   * leaves whatever is already stored there alone, rather than erasing it.
+   */
+  const persist = (
+    key: ConversationKey,
+    pending: readonly ChatEntry[],
+    pendingUsage: ConversationUsage,
+  ) => {
+    if (pending.length > 0)
+      saveConversation(key, {
+        entries: pending.map(toStoredEntry),
+        usage: pendingUsage,
+      });
+  };
+  // read by the unload flush below, which a stale render's closure can't:
+  // the tab may close well after the render that last touched these
+  const liveIdentity = useRef(identity());
+  liveIdentity.current = identity();
+  const liveEntries = useRef(entries);
+  liveEntries.current = entries;
+  const liveUsage = useRef(usage);
+  liveUsage.current = usage;
   /** the model's problems as last rendered: what a run starts from */
   const latestProblems = useRef(wb.problems);
   latestProblems.current = wb.problems;
@@ -194,7 +227,8 @@ export function useAgentChat() {
     };
     if (wb.modelWorkerIncident !== seen.incident) return;
     runController.current?.abort();
-    saveConversation(left, { entries: entries.map(toStoredEntry), usage });
+    cancelSave();
+    persist(left, entries, usage);
     const stored = loadConversation(seenSession.current.identity);
     setStoredEntries(stored?.entries ?? []);
     setStoredUsage(stored?.usage ?? null);
@@ -204,6 +238,35 @@ export function useAgentChat() {
     setConversation((n) => n + 1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [wb.session.id, wb.modelWorkerIncident]);
+
+  // the live conversation, saved a short while after it last changed (and
+  // flushed right away if the tab closes or reloads first): so closing it
+  // and reopening the same model finds it again, without saving on every
+  // streamed delta
+  useEffect(() => {
+    if (entries.length === 0) return;
+    const key = identity();
+    cancelSave();
+    saveTimer.current = setTimeout(() => {
+      saveTimer.current = null;
+      persist(key, entries, usage);
+    }, SAVE_DEBOUNCE_MS);
+    return cancelSave;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entries, usage]);
+
+  useEffect(() => {
+    const flush = () => {
+      cancelSave();
+      persist(liveIdentity.current, liveEntries.current, liveUsage.current);
+    };
+    window.addEventListener('pagehide', flush);
+    window.addEventListener('beforeunload', flush);
+    return () => {
+      window.removeEventListener('pagehide', flush);
+      window.removeEventListener('beforeunload', flush);
+    };
+  }, []);
 
   const contextProviders = useMemo(
     () => contextProvidersFor(wb.mode),

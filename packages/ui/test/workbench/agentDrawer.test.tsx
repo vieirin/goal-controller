@@ -36,6 +36,7 @@ import {
   WorkbenchProvider,
   type Workbench,
 } from '@/components/workbench/WorkbenchContext';
+import { SAVE_DEBOUNCE_MS } from '@/components/workbench/agent/useAgentChat';
 import * as glspSessionModule from '@/lib/workbench/agent/glspSession';
 import { restartModelWorker } from '@/lib/workbench/modelWorkerClient';
 import type { GlspSession } from '@/lib/workbench/agent/glspSession';
@@ -594,6 +595,31 @@ describe('the agent drawer', () => {
     expect(within(transcript).queryByText('What is G1?')).toBeNull();
     // the live conversation stays
     screen.getByText('Hello again.');
+  });
+
+  it('saves the live conversation a short while after it changes, for a reload (not just a model switch) to find', async () => {
+    const wb = await opened();
+    fireEvent.click(screen.getByRole('button', { name: 'Show the agent' }));
+    await waitFor(() => expect(wb().glspSession).not.toBeNull());
+    turns.push({ deltas: [], completion: finalAnswer('G1 is a goal.') });
+    ask('What is G1?');
+    await screen.findByText('G1 is a goal.');
+
+    // nothing of a reload between the request and its debounced save
+    await act(
+      () =>
+        new Promise((resolve) => setTimeout(resolve, SAVE_DEBOUNCE_MS + 100)),
+    );
+
+    // a reload: a fresh host, same model, localStorage untouched
+    cleanup();
+    const wb2 = await opened();
+    fireEvent.click(screen.getByRole('button', { name: 'Show the agent' }));
+    await waitFor(() => expect(wb2().glspSession).not.toBeNull());
+    await screen.findByText('Earlier conversation · read-only');
+    const transcript = screen.getByRole('log', { name: 'Transcript' });
+    within(transcript).getByText('What is G1?');
+    within(transcript).getByText('G1 is a goal.');
   });
 
   it('shows a stored pending proposal as "Not applied", with nothing to act on', async () => {
