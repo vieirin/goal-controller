@@ -7,6 +7,8 @@ import {
   Minimize2,
   PanelBottomClose,
   PanelBottomOpen,
+  PanelLeftClose,
+  PanelLeftOpen,
   PanelRightClose,
   PanelRightOpen,
   Unlock,
@@ -527,13 +529,17 @@ export function ModelColumn() {
             {showInspector && (
               <IconButton
                 icon={
-                  modelFullscreen
+                  agentOpen
                     ? inspectorOpen
-                      ? PanelRightClose
-                      : PanelRightOpen
-                    : inspectorOpen
-                      ? PanelBottomClose
-                      : PanelBottomOpen
+                      ? PanelLeftClose
+                      : PanelLeftOpen
+                    : modelFullscreen
+                      ? inspectorOpen
+                        ? PanelRightClose
+                        : PanelRightOpen
+                      : inspectorOpen
+                        ? PanelBottomClose
+                        : PanelBottomOpen
                 }
                 label={
                   inspectorOpen ? 'Hide the Inspector' : 'Show the Inspector'
@@ -566,20 +572,37 @@ export function ModelColumn() {
       <AgentChatHost>
         <Group orientation='horizontal' className='min-h-0 flex-1'>
           <Panel id='model-views' minSize='30%'>
-            {/* keyed by orientation so each layout starts from its own default sizes */}
+            {/* keyed by placement so each layout starts from its own default sizes;
+                the agent drawer takes the right, so an open drawer pushes the
+                Inspector to the left instead of below/right of the views */}
             <Group
-              key={modelFullscreen ? 'side' : 'below'}
-              orientation={modelFullscreen ? 'horizontal' : 'vertical'}
+              key={agentOpen ? 'left' : modelFullscreen ? 'side' : 'below'}
+              orientation={
+                agentOpen || modelFullscreen ? 'horizontal' : 'vertical'
+              }
               className='h-full'
             >
+              {showInspector && inspectorOpen && agentOpen && (
+                <>
+                  <Panel id='inspector' defaultSize='380px' minSize='280px'>
+                    <aside
+                      className='h-full overflow-auto bg-white'
+                      aria-label='Inspector'
+                    >
+                      <ModelInspector />
+                    </aside>
+                  </Panel>
+                  <Separator />
+                </>
+              )}
               <Panel
                 id='model-view'
-                defaultSize={modelFullscreen ? undefined : '58%'}
+                defaultSize={modelFullscreen || agentOpen ? undefined : '58%'}
                 minSize='25%'
               >
                 <ModelTabView />
               </Panel>
-              {showInspector && inspectorOpen && (
+              {showInspector && inspectorOpen && !agentOpen && (
                 <>
                   <Separator />
                   <Panel

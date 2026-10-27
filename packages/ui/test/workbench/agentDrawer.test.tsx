@@ -551,6 +551,64 @@ describe('the agent drawer', () => {
     await waitFor(() => expect(screen.queryByLabelText('Usage')).toBeNull());
   });
 
+  describe('the Inspector moves opposite the agent drawer', () => {
+    // document order, not call order: Node.DOCUMENT_POSITION_FOLLOWING
+    const order = () =>
+      [
+        screen.queryByRole('complementary', { name: 'Inspector' }),
+        document.getElementById('model-view'),
+        screen.queryByRole('complementary', { name: 'Agent' }),
+      ]
+        .filter((el): el is HTMLElement => el !== null)
+        .sort((a, b) =>
+          a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING
+            ? -1
+            : 1,
+        );
+
+    it('drawer closed: the Inspector stays below the views, unmoved', async () => {
+      const wb = await opened(writeModelMode(ISTAR, 'edgev2'));
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Show the Inspector' }),
+      );
+      screen.getByRole('complementary', { name: 'Inspector' });
+      expect(wb().glspEnabled).toBe(false);
+      const [first, second] = order();
+      expect(first).toBe(document.getElementById('model-view'));
+      expect(second).toBe(
+        screen.getByRole('complementary', { name: 'Inspector' }),
+      );
+    });
+
+    it('drawer open: the Inspector moves to the left of the views', async () => {
+      await opened(writeModelMode(ISTAR, 'edgev2'));
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Show the Inspector' }),
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'Show the agent' }));
+      const [first, second, third] = order();
+      expect(first).toBe(
+        screen.getByRole('complementary', { name: 'Inspector' }),
+      );
+      expect(second).toBe(document.getElementById('model-view'));
+      expect(third).toBe(screen.getByRole('complementary', { name: 'Agent' }));
+    });
+
+    it('closing the drawer again puts the Inspector back below the views', async () => {
+      await opened(writeModelMode(ISTAR, 'edgev2'));
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Show the Inspector' }),
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'Show the agent' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Hide the agent' }));
+      const [first, second] = order();
+      expect(first).toBe(document.getElementById('model-view'));
+      expect(second).toBe(
+        screen.getByRole('complementary', { name: 'Inspector' }),
+      );
+    });
+  });
+
   it('follows new entries only while scrolled to the end', async () => {
     const wb = await opened();
     fireEvent.click(screen.getByRole('button', { name: 'Show the agent' }));
