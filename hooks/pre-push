@@ -2,6 +2,11 @@
 
 # Block push if commits being pushed fail oxfmt --check or oxlint.
 # Runs tests only for packages touched by the push (and their dependents).
+# Rebuilds affected packages with `compile:*`, not `build:*`: build scripts
+# start with `rm -rf out`, which races a concurrently running dev watcher
+# (tsc --watch / build.mjs --watch) and aborts the push on an unrelated
+# "Directory not empty" error (goal-controller#494). compile:* recompiles
+# in place without deleting out/ first.
 
 set -euo pipefail
 
@@ -30,8 +35,19 @@ while read -r local_ref local_sha remote_ref remote_sha; do
 done | awk 'NF && !seen[$0]++' >"$ALL"
 
 # Lint/format: source-like files that still exist in the tree.
+# Skip paths oxfmt ignores (see .oxfmtrc.json ignorePatterns) so example-only
+# JSON changes do not abort with "Expected at least one target file".
 awk '
   /node_modules\// { next }
+  /^examples\// { next }
+  /^dissertationExamples\// { next }
+  /^old_examples\// { next }
+  /^experiments\// { next }
+  /^input\// { next }
+  /^output\// { next }
+  /^logs\// { next }
+  /^reference\// { next }
+  /^result_plots\// { next }
   /\.(ts|tsx|js|jsx|mjs|cjs|json|css)$/ { print }
 ' "$ALL" | while IFS= read -r file; do
   [ -f "$file" ] && printf '%s\n' "$file"
@@ -121,20 +137,20 @@ BUILD_PLAN="$(
 )"
 case "$BUILD_PLAN" in
   build:lib)
-    echo "🔨 Building lib (and its dependencies)..."
-    pnpm run build:lib
+    echo "🔨 Compiling lib (and its dependencies)..."
+    pnpm run compile:lib
     ;;
   tree)
-    echo "🔨 Building dialect, goal-language, goal-tree..."
-    pnpm run build:dialect && pnpm run build:goal-language && pnpm run build:goal-tree
+    echo "🔨 Compiling dialect, goal-language, goal-tree..."
+    pnpm run compile:dialect && pnpm run compile:goal-language && pnpm run compile:goal-tree
     ;;
   lang)
-    echo "🔨 Building dialect, goal-language..."
-    pnpm run build:dialect && pnpm run build:goal-language
+    echo "🔨 Compiling dialect, goal-language..."
+    pnpm run compile:dialect && pnpm run compile:goal-language
     ;;
   dialect)
-    echo "🔨 Building dialect..."
-    pnpm run build:dialect
+    echo "🔨 Compiling dialect..."
+    pnpm run compile:dialect
     ;;
 esac
 
