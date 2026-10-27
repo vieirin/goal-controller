@@ -11,12 +11,12 @@ ln -sf "$PWD/scripts/agent-factory/agent-factory" ~/.local/bin/agent-factory
 Workers and the orchestrator look in [graphify](https://github.com/Graphify-Labs/graphify)'s knowledge graph before grepping:
 
 ```sh
-uv tool install graphifyy    # or: pipx install graphifyy; needs Python 3.10+
-graphify .                   # once, at the repo root; writes graphify-out/
+pipx install graphifyy       # or: uv tool install graphifyy; needs Python 3.10+
+GRAPHIFY_BACKEND=claude-cli graphify .   # once, at the repo root; writes graphify-out/
 graphify . --update          # after pulling: re-extracts only changed files
 ```
 
-`graphify-out/` (graph.json, graph.html, GRAPH_REPORT.md, obsidian/, wiki/, cache/) is per machine and gitignored.
+`graphify-out/` (graph.json, graph.html, GRAPH_REPORT.md, obsidian/, wiki/, cache/) is per machine and gitignored. Doc/paper chunking needs an LLM backend (auto-detected from env keys); `GRAPHIFY_BACKEND=claude-cli` routes it through the local `claude` CLI instead, billed to the plan with nothing extra to install — an OPENAI/DEEPSEEK key instead needs `pipx inject graphifyy openai`. `graphify . --code-only` (AST only, no LLM) and `graphify update .` (code only) are the cheap variants.
 
 ## Use
 
