@@ -153,6 +153,8 @@ export function useAgentChat() {
     });
     const run = nextId();
     const diffs = diffRecorder();
+    // what the run changes is marked on the model's views (`wb.agentChanges`)
+    wb.beginAgentChanges();
     const onEvent = (event: AgentEvent) => {
       switch (event.type) {
         case 'delta':
@@ -219,6 +221,9 @@ export function useAgentChat() {
     } catch (error) {
       append({ kind: 'error', id: nextId(), text: messageOf(error) });
     } finally {
+      // once the mirror shows the run's last edit
+      await diffs.done();
+      wb.endAgentChanges();
       setRunning(false);
     }
   };
@@ -227,6 +232,7 @@ export function useAgentChat() {
   const approve = async ({ id, changeSet, entries: proposed }: Proposal) => {
     setProposalState('applied', (e) => e.id === id);
     const diffs = diffRecorder();
+    wb.beginAgentChanges();
     try {
       const result = await changeSet.apply(proposed);
       if (!result.ok) {
@@ -239,9 +245,11 @@ export function useAgentChat() {
         return;
       }
       diffs.record(id);
-      await diffs.done();
     } catch (error) {
       append({ kind: 'error', id: nextId(), text: messageOf(error) });
+    } finally {
+      await diffs.done();
+      wb.endAgentChanges();
     }
   };
 

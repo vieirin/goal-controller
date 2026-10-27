@@ -259,6 +259,26 @@ describe('the agent drawer', () => {
     expect(wb().text).toContain('Renamed');
   });
 
+  it("marks the run's edits on the model (wb.agentChanges)", async () => {
+    window.localStorage.setItem(
+      'goal-workbench:agent:v1',
+      JSON.stringify({ approval: 'auto' }),
+    );
+    const wb = await opened();
+    fireEvent.click(screen.getByRole('button', { name: 'Show the agent' }));
+    await waitFor(() => expect(wb().glspSession).not.toBeNull());
+    expect(wb().agentChanges.edited.size).toBe(0);
+    turns.push(
+      { deltas: [], completion: renameCall },
+      { deltas: [], completion: finalAnswer('Renamed G1.') },
+    );
+    ask('Rename G1');
+    await screen.findByText('Renamed G1.');
+    await waitFor(() => expect(wb().agentChanges.edited.has(G1)).toBe(true));
+    expect(wb().agentChanges.added.size).toBe(0);
+    expect(wb().agentChanges.removed.size).toBe(0);
+  });
+
   describe('a pending proposal is never applied once superseded', () => {
     /** a Propose run (the default) that leaves its rename for review */
     const proposed = async () => {
