@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  Bot,
   Lock,
   Maximize2,
   Minimize2,
@@ -33,7 +34,8 @@ import FrameworkSwitchDialog from './FrameworkSwitchDialog';
 import OutputPane from './OutputPane';
 import { ModelTabView, modelTabsFor } from './modelTabs';
 import TopBar, { addUpload, openUpload } from './TopBar';
-import AgentDrawer from './AgentDrawer';
+import AgentDrawer from './agent/AgentDrawer';
+import { AgentChatHost } from './agent/AgentChatHost';
 import {
   WorkbenchProvider,
   useSelection,
@@ -332,7 +334,6 @@ function ShellLayout() {
         }}
       >
         <TopBar />
-        <AgentDrawer />
         <Group orientation='vertical' className='min-h-0 flex-1'>
           <Panel id='main' defaultSize='75%' minSize='30%'>
             <Group orientation='horizontal' className='h-full'>
@@ -447,6 +448,12 @@ function ModelColumn() {
   const showInspector = hasModelInspector(wb.mode);
   // hidden by default; selecting a node shows it; the button toggles it
   const [inspectorOpen, setInspectorOpen] = useState(false);
+  // closed by default; opening it starts the GLSP session it runs over
+  const [agentOpen, setAgentOpen] = useState(false);
+  const toggleAgent = () => {
+    if (!agentOpen && !wb.glspEnabled) wb.setGlspEnabled(true);
+    setAgentOpen(!agentOpen);
+  };
   const tabs = modelTabsFor(
     wb.mode,
     wb.engine,
@@ -536,6 +543,12 @@ function ModelColumn() {
               />
             )}
             <IconButton
+              icon={Bot}
+              label={agentOpen ? 'Hide the agent' : 'Show the agent'}
+              aria-pressed={agentOpen}
+              onClick={toggleAgent}
+            />
+            <IconButton
               icon={modelFullscreen ? Minimize2 : Maximize2}
               label={
                 modelFullscreen
@@ -549,37 +562,57 @@ function ModelColumn() {
           </>
         }
       />
-      {/* keyed by orientation so each layout starts from its own default sizes */}
-      <Group
-        key={modelFullscreen ? 'side' : 'below'}
-        orientation={modelFullscreen ? 'horizontal' : 'vertical'}
-        className='min-h-0 flex-1'
-      >
-        <Panel
-          id='model-view'
-          defaultSize={modelFullscreen ? undefined : '58%'}
-          minSize='25%'
-        >
-          <ModelTabView />
-        </Panel>
-        {showInspector && inspectorOpen && (
-          <>
-            <Separator />
-            <Panel
-              id='inspector'
-              defaultSize={modelFullscreen ? '380px' : '42%'}
-              minSize={modelFullscreen ? '280px' : '120px'}
+      {/* the agent beside the views and the Inspector, in either layout */}
+      <AgentChatHost>
+        <Group orientation='horizontal' className='min-h-0 flex-1'>
+          <Panel id='model-views' minSize='30%'>
+            {/* keyed by orientation so each layout starts from its own default sizes */}
+            <Group
+              key={modelFullscreen ? 'side' : 'below'}
+              orientation={modelFullscreen ? 'horizontal' : 'vertical'}
+              className='h-full'
             >
-              <aside
-                className='h-full overflow-auto bg-white'
-                aria-label='Inspector'
+              <Panel
+                id='model-view'
+                defaultSize={modelFullscreen ? undefined : '58%'}
+                minSize='25%'
               >
-                <ModelInspector />
-              </aside>
-            </Panel>
-          </>
-        )}
-      </Group>
+                <ModelTabView />
+              </Panel>
+              {showInspector && inspectorOpen && (
+                <>
+                  <Separator />
+                  <Panel
+                    id='inspector'
+                    defaultSize={modelFullscreen ? '380px' : '42%'}
+                    minSize={modelFullscreen ? '280px' : '120px'}
+                  >
+                    <aside
+                      className='h-full overflow-auto bg-white'
+                      aria-label='Inspector'
+                    >
+                      <ModelInspector />
+                    </aside>
+                  </Panel>
+                </>
+              )}
+            </Group>
+          </Panel>
+          {agentOpen && (
+            <>
+              <Separator />
+              <Panel
+                id='agent'
+                defaultSize='380px'
+                minSize='300px'
+                maxSize='70%'
+              >
+                <AgentDrawer onClose={() => setAgentOpen(false)} />
+              </Panel>
+            </>
+          )}
+        </Group>
+      </AgentChatHost>
     </section>
   );
 }
