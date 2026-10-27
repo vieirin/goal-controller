@@ -489,12 +489,6 @@ export default function TopBar() {
               description='Regenerate automatically after each change'
             />
           )}
-          <Switch
-            checked={wb.glspEnabled}
-            onChange={wb.setGlspEnabled}
-            label='Agent'
-            description='Host a GLSP/MCP server over this model, for an agent to use'
-          />
           {!shell.pistarMode && <AnalyseControl />}
           {!shell.pistarMode && generatesFiles(wb.engine) && (
             <Button
