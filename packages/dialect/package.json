@@ -6,6 +6,7 @@
   "types": "out/index.d.ts",
   "scripts": {
     "build": "rm -rf out tsconfig.tsbuildinfo && tsc",
+    "compile": "tsc",
     "watch": "tsc --watch",
     "test": "TS_NODE_PROJECT='./tsconfig.test.json' mocha",
     "clean": "rm -rf out tsconfig.tsbuildinfo"
