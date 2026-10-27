@@ -22,16 +22,15 @@ export const acceptedFileOf = (
 export const acceptAttribute = (provider: ChatProvider): string =>
   provider.acceptedFiles.map(({ extension }) => extension).join(',');
 
-/** a project file as an attachment: its accepted MIME type, else plain text */
+/** a project file as an attachment, if the provider takes its type */
 export const projectAttachment = (
   provider: ChatProvider,
   name: string,
   text: string,
-): Attachment => ({
-  name,
-  mime: acceptedFileOf(provider, name)?.mime ?? 'text/plain',
-  text,
-});
+): Attachment | undefined => {
+  const accepted = acceptedFileOf(provider, name);
+  return accepted && { name, mime: accepted.mime, text };
+};
 
 const readText = (file: Blob): Promise<string> =>
   new Promise((resolve, reject) => {

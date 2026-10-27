@@ -8,6 +8,7 @@ import { useRef, useState } from 'react';
 import { ArrowUp, Loader2, Paperclip } from 'lucide-react';
 import {
   acceptAttribute,
+  acceptedFileOf,
   projectAttachment,
   readUpload,
 } from '@/lib/workbench/agent/attachments';
@@ -61,9 +62,12 @@ export function Composer({
 
   const toggleProjectFile = ({ path, name, text: fileText }: ProjectFile) => {
     const key = `project:${path}`;
+    const attachment =
+      fileText === undefined
+        ? undefined
+        : projectAttachment(provider, name, fileText);
     if (attached.some((a) => a.key === key)) detach(key);
-    else if (fileText !== undefined)
-      attach(key, projectAttachment(provider, name, fileText));
+    else if (attachment) attach(key, attachment);
   };
 
   const addUploads = async (files: readonly File[]) => {
@@ -117,13 +121,18 @@ export function Composer({
           >
             {projectFiles.map((file) => {
               const on = attached.some((a) => a.key === `project:${file.path}`);
+              const refused = !acceptedFileOf(provider, file.name);
               return (
                 <button
                   key={file.path}
                   type='button'
-                  title={file.path}
+                  title={
+                    refused
+                      ? `${provider.label} doesn't take ${file.name}'s type`
+                      : file.path
+                  }
                   aria-pressed={on}
-                  disabled={file.text === undefined}
+                  disabled={refused || file.text === undefined}
                   onClick={() => toggleProjectFile(file)}
                   className={cx(
                     'max-w-[12rem] truncate rounded-full border px-2 py-0.5 font-mono text-2xs transition-colors disabled:opacity-40',

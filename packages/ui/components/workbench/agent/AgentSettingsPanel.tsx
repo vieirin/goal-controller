@@ -11,6 +11,7 @@ import {
   type AgentSettings,
 } from '@/lib/workbench/agent/agentSettings';
 import {
+  isProviderId,
   PROVIDERS,
   type ChatProviderId,
   type ModelInfo,
@@ -70,13 +71,10 @@ export function AgentSettingsPanel({
           className={FIELD}
           value={settings.providerId}
           onChange={(e) => {
-            const providerId = Object.values(PROVIDERS).find(
-              ({ id }) => id === e.target.value,
-            )?.id;
-            if (providerId) changeProvider(providerId);
+            if (isProviderId(e.target.value)) changeProvider(e.target.value);
           }}
         >
-          {Object.values(PROVIDERS).map(({ id, label }) => (
+          {Object.entries(PROVIDERS).map(([id, { label }]) => (
             <option key={id} value={id}>
               {label}
             </option>

@@ -435,7 +435,7 @@ function ShellLayout() {
 }
 
 /** Goal Model (diagram) / Source with the Inspector underneath (beside it in full screen). */
-function ModelColumn() {
+export function ModelColumn() {
   const wb = useWorkbench();
   const {
     modelFullscreen,

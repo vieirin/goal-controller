@@ -9,7 +9,7 @@
  */
 import type { ApprovalMode } from '@istar-ts/agent';
 import { z } from 'zod';
-import { PROVIDERS, type ChatProviderId } from './providers';
+import { isProviderId, PROVIDERS, type ChatProviderId } from './providers';
 
 const AGENT_SETTINGS_KEY = 'goal-workbench:agent:v1';
 
@@ -35,9 +35,7 @@ export const DEFAULT_AGENT_SETTINGS: AgentSettings = {
  */
 const storedSettings = z.object({
   providerId: z
-    .custom<ChatProviderId>(
-      (value) => typeof value === 'string' && value in PROVIDERS,
-    )
+    .custom<ChatProviderId>(isProviderId)
     .catch(DEFAULT_AGENT_SETTINGS.providerId),
   model: z.string().min(1).optional().catch(undefined),
   apiKey: z.string().catch(DEFAULT_AGENT_SETTINGS.apiKey),

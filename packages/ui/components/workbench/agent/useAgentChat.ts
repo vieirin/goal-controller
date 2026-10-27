@@ -143,7 +143,7 @@ export function useAgentChat() {
     const provider = PROVIDERS[settings.providerId];
     const { createChatClient, runAgent } = await import('@istar-ts/agent');
     const client = createChatClient({
-      baseUrl: provider.baseUrl,
+      provider,
       model: settings.model,
       apiKey: settings.apiKey,
       stream: true,
@@ -180,15 +180,11 @@ export function useAgentChat() {
           return;
       }
     };
-    // 0.15.1 has no `attachments` on `runAgent`: they go ahead of the prompt
-    const prompt =
-      attachments.length > 0
-        ? `${provider.attach(attachments)}\n\n${text}`
-        : text;
     try {
       const common = {
         client,
-        prompt,
+        prompt: text,
+        attachments,
         context: contextProviders,
         getModel: () => wb.session.store.getModel(),
         onEvent,

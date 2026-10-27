@@ -1,97 +1,52 @@
 /**
- * The chat providers the agent drawer offers: `@istar-ts/agent` 0.16.0's
- * provider layer (istar-ts#257), in the shapes it publishes, held here
- * until that version is on the registry. At the bump this file re-exports
- * the library's `ChatProvider`, `ModelInfo`, `Attachment` and `PROVIDERS`,
- * and `createChatClient`/`runAgent` take `provider` and `attachments`
- * themselves (goal-controller#485).
+ * The chat providers the agent drawer offers (goal-controller#485):
+ * `@istar-ts/agent`'s (istar-ts#257), each also taking the workbench's own
+ * file types as text — what an @-chip attaches (a `.props`, a framework's
+ * native file, a piStar model), which istar-ts, knowing no modeller's
+ * files, doesn't list. `createChatClient({ provider })` keeps the object,
+ * so `runAgent` inlines attachments with its `attach`.
  */
-import { DEEPSEEK } from '@istar-ts/agent';
-import { z } from 'zod';
+import {
+  PROVIDERS as AGENT_PROVIDERS,
+  type ChatProvider,
+  type ChatProviderId,
+} from '@istar-ts/agent';
 
-export type ChatProviderId = 'deepseek';
+export type {
+  Attachment,
+  ChatProvider,
+  ChatProviderId,
+  ModelInfo,
+} from '@istar-ts/agent';
 
-export type ModelInfo = { readonly id: string; readonly label?: string };
+export type AcceptedFile = ChatProvider['acceptedFiles'][number];
 
-/** A file the user attached to a message, read as text. */
-export type Attachment = {
-  readonly name: string;
-  readonly mime: string;
-  readonly text: string;
-};
-
-export type AcceptedFile = {
-  readonly extension: string;
-  readonly mime: string;
-};
-
-export type ChatProvider = {
-  readonly id: ChatProviderId;
-  readonly label: string;
-  readonly baseUrl: string;
-  readonly defaultModel: string;
-  /** what the model selector offers when `listModels` can't ask the provider */
-  readonly fallbackModels: readonly ModelInfo[];
-  /** the provider's models; never rejects (its `fallbackModels` instead) */
-  listModels(
-    apiKey: string,
-    fetchImpl?: typeof fetch,
-  ): Promise<readonly ModelInfo[]>;
-  /** the files `attach` takes, by extension (with the dot) */
-  readonly acceptedFiles: readonly AcceptedFile[];
-  /** the attachments as the text the request carries ahead of the prompt */
-  attach(files: readonly Attachment[]): string;
-};
-
-/** OpenAI-compatible `GET /models`. */
-const modelList = z.object({
-  data: z.array(z.object({ id: z.string() })),
-});
-
-const TEXT_FILES: readonly AcceptedFile[] = [
-  { extension: '.txt', mime: 'text/plain' },
-  { extension: '.md', mime: 'text/markdown' },
-  { extension: '.json', mime: 'application/json' },
-  { extension: '.csv', mime: 'text/csv' },
-  { extension: '.yaml', mime: 'application/yaml' },
-  { extension: '.yml', mime: 'application/yaml' },
-  { extension: '.xml', mime: 'application/xml' },
+const WORKBENCH_FILES: readonly AcceptedFile[] = [
   { extension: '.props', mime: 'text/plain' },
-  { extension: '.prism', mime: 'text/plain' },
-  { extension: '.pm', mime: 'text/plain' },
+  { extension: '.kaos', mime: 'text/plain' },
+  { extension: '.istardtx', mime: 'text/plain' },
+  { extension: '.tropos', mime: 'text/plain' },
+  { extension: '.jucm', mime: 'text/plain' },
+  { extension: '.hddl', mime: 'text/plain' },
+  { extension: '.istar', mime: 'text/plain' },
+  { extension: '.pistar', mime: 'text/plain' },
+  { extension: '.xml', mime: 'application/xml' },
 ];
 
-const DEEPSEEK_PROVIDER: ChatProvider = {
-  id: 'deepseek',
-  label: 'DeepSeek',
-  baseUrl: DEEPSEEK.baseUrl,
-  defaultModel: DEEPSEEK.model,
-  fallbackModels: [{ id: DEEPSEEK.model }],
-  async listModels(apiKey, fetchImpl = fetch) {
-    if (!apiKey) return DEEPSEEK_PROVIDER.fallbackModels;
-    try {
-      const response = await fetchImpl(`${DEEPSEEK.baseUrl}/models`, {
-        headers: { authorization: `Bearer ${apiKey}` },
-      });
-      if (!response.ok) return DEEPSEEK_PROVIDER.fallbackModels;
-      const parsed = modelList.safeParse(await response.json());
-      if (!parsed.success || parsed.data.data.length === 0)
-        return DEEPSEEK_PROVIDER.fallbackModels;
-      return parsed.data.data.map(({ id }) => ({ id }));
-    } catch {
-      return DEEPSEEK_PROVIDER.fallbackModels;
-    }
-  },
-  acceptedFiles: TEXT_FILES,
-  attach: (files) =>
-    files
-      .map(
-        ({ name, mime, text }) =>
-          `<file name="${name}" type="${mime}">\n${text}\n</file>`,
-      )
-      .join('\n\n'),
-};
+const withWorkbenchFiles = (provider: ChatProvider): ChatProvider => ({
+  ...provider,
+  acceptedFiles: [
+    ...provider.acceptedFiles,
+    ...WORKBENCH_FILES.filter(
+      ({ extension }) =>
+        !provider.acceptedFiles.some((file) => file.extension === extension),
+    ),
+  ],
+});
 
 export const PROVIDERS: Record<ChatProviderId, ChatProvider> = {
-  deepseek: DEEPSEEK_PROVIDER,
+  deepseek: withWorkbenchFiles(AGENT_PROVIDERS.deepseek),
 };
+
+export const isProviderId = (value: unknown): value is ChatProviderId =>
+  typeof value === 'string' && Object.hasOwn(PROVIDERS, value);
