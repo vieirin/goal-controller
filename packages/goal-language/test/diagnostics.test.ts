@@ -416,6 +416,47 @@ describe('what the dialect allows', () => {
     expect(read.constructs.get('sequence')).to.deep.equal(['T1']);
   });
 
+  it('flags two binary operators mixed without a bracket of their own', () => {
+    expect(messages('G1: Go [G2;T1|G2]')).to.deep.equal([
+      [
+        '|',
+        'error',
+        '`;` and `|` mixed in one refinement: group one of them, as in [[A;B]|C]',
+      ],
+    ]);
+    // a chain of one operator: fine
+    expect(messages('G1: Go [G2;T1;G2]')).to.deep.equal([]);
+    // grouped: the mix is in its own bracket, so it is fine
+    expect(messages('G1: Go [G2;[T1|G2]]')).to.deep.equal([]);
+  });
+
+  it('flags a bracket group everywhere, and says a mix needs an intermediate goal, in a dialect whose refinements are flat (`notation.grouping: false`)', () => {
+    const flat = {
+      ...toy,
+      notation: { ...toy.notation, grouping: false as const },
+    };
+    const found = (doc: string) =>
+      documentDiagnostics(flat, doc, context).map((d) => [
+        doc.slice(d.from, d.to),
+        d.message,
+      ]);
+    expect(found('G1: Go [[G2;T1]|G2]')).to.deep.equal([
+      ['[G2;T1]', 'Toy refinements are flat: `[G2;T1]|G2` has a nested group'],
+    ]);
+    // a group right inside another: the outermost one only, once
+    expect(found('G1: Go [[[G2;T1]]]')).to.deep.equal([
+      ['[[G2;T1]]', 'Toy refinements are flat: `[[G2;T1]]` has a nested group'],
+    ]);
+    expect(found('G1: Go [G2;T1|G2]')).to.deep.equal([
+      [
+        '|',
+        '`;` and `|` mixed in one refinement: Toy refinements are flat, so one needs an intermediate goal',
+      ],
+    ]);
+    // still a group: a dialect that allows it (the default) keeps accepting it
+    expect(messages('G1: Go [[G2;T1]|G2]')).to.deep.equal([]);
+  });
+
   it('flags skip where the dialect has no skip', () => {
     const strict = {
       ...toy,

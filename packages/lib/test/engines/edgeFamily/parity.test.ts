@@ -48,13 +48,15 @@ export const DIVERGENT = {
     'G1: Glued [G2G3]',
     // `,` was RTRegex.g4's argument list (no construct); it is the catalog's `,`
     'G1: Args [G2,G3]',
+    // a refinement list is flat (goal-controller#502): RTRegex.g4's
+    // listener read a group's construct cascading over the one around it
+    // (a group's sequence beat the interleaving around it); the goal
+    // language instead rejects the nested group outright
+    'G1: Group [[G2;G3]#G4]',
+    'G1: Group [G2;[G3#G4]]',
+    'G1: Group [[[G2]]]',
+    'G1: Retry [[G2;G3]@2->G4]',
   ],
-  /**
-   * ANTLR's listener kept each construct's last exit and picked one by a
-   * cascade (degradation, sequence, ...): a group's sequence beat the
-   * interleaving around it. A notation's construct is its outermost operator.
-   */
-  outermost: ['G1: Group [[G2;G3]#G4]'],
   /**
    * Texts both reject, read differently after the error: each parser
    * recovers its own way (what is read past an error is never used, the
@@ -126,13 +128,7 @@ describe('parity with the ANTLR readers', () => {
       const differ: string[] = [];
       let same = 0;
       for (const [text, antlr] of Object.entries(ORACLE.goalTexts[grammar])) {
-        if (
-          [
-            ...DIVERGENT.both,
-            ...DIVERGENT.outermost,
-            ...DIVERGENT.xIds,
-          ].includes(text as never)
-        )
+        if ([...DIVERGENT.both, ...DIVERGENT.xIds].includes(text as never))
           continue;
         // a cross-engine text: ANTLR recovered from the unknown operator
         if (grammar === 'edge' && usesEdgeV2Operators(text)) continue;
@@ -199,18 +195,28 @@ describe('parity with the ANTLR readers', () => {
     assert.strictEqual(read('edge', 'GX: name').detail.id, 'GX');
   });
 
-  it('reads a notation by its outermost operator, not the listener’s cascade', () => {
-    for (const text of DIVERGENT.outermost)
+  it('rejects a nested group: a refinement list is flat (`notation.grouping: false`), not a cascade over the group RTRegex.g4 read', () => {
+    const texts = [
+      'G1: Group [[G2;G3]#G4]',
+      'G1: Group [G2;[G3#G4]]',
+      'G1: Group [[[G2]]]',
+      'G1: Retry [[G2;G3]@2->G4]',
+    ];
+    for (const text of texts)
       for (const grammar of ['edge', 'edgeV2'] as const) {
-        assert.deepStrictEqual(read(grammar, text).detail.executionDetail, {
-          type: 'interleaved',
-          ids: ['G4'],
-          modifiers: {},
-        });
         assert.strictEqual(
-          (ORACLE.goalTexts[grammar][text]!.detail as AntlrDetail)
-            .executionDetail?.type,
-          'sequence',
+          read(grammar, text).rejected,
+          true,
+          `${grammar} ${text}`,
+        );
+        // RTRegex.g4 accepted every one of these (its listener's cascade
+        // picked one construct over the other, or just read through the
+        // group); flat refinements are our own choice (goal-controller#502),
+        // not a reference defect
+        assert.strictEqual(
+          ORACLE.goalTexts[grammar][text]!.rejected,
+          false,
+          `${grammar} ${text}`,
         );
       }
   });

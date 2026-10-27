@@ -441,6 +441,13 @@ export type NotationDefinition = {
    * is RTRegex.g4's WORD (letters, spaces, `-`, `'`).
    */
   names?: 'text';
+  /**
+   * `false`: a refinement list is flat, so a bracket group anywhere in it is
+   * an error (RTRegex.g4, edge and edgeV2: `[[G2;G3]#G4]` is rejected, not
+   * read as `G4`'s construct); mixing two operators there needs an
+   * intermediate goal, not a group. Default: a group is allowed.
+   */
+  grouping?: boolean;
 };
 
 export type Condition =
