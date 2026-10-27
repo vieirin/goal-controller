@@ -24,6 +24,7 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import type {
   ChatClient,
   ChatCompletion,
+  ChatMessage,
   ChatRequest,
   ToolResult,
 } from '@istar-ts/agent';
@@ -52,13 +53,16 @@ const turns: Array<{
   completion: ChatCompletion;
   gate?: Promise<void>;
 }> = [];
+/** what each request sent, in order */
+const requests: Array<readonly ChatMessage[]> = [];
 
 vi.mock('@istar-ts/agent', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@istar-ts/agent')>();
   const client: ChatClient = {
     model: 'stand-in',
     baseUrl: 'http://stand-in',
-    complete: async ({ onDelta }: ChatRequest) => {
+    complete: async ({ messages, onDelta }: ChatRequest) => {
+      requests.push([...messages]);
       const turn = turns.shift();
       if (!turn) throw new Error('no turn left');
       const [first, ...rest] = turn.deltas;
@@ -77,6 +81,7 @@ afterEach(() => {
   vi.restoreAllMocks();
   window.localStorage.clear();
   turns.length = 0;
+  requests.length = 0;
   applied.mockClear();
 });
 
@@ -277,6 +282,12 @@ describe('the agent drawer', () => {
     await waitFor(() => expect(wb().agentChanges.edited.has(G1)).toBe(true));
     expect(wb().agentChanges.added.size).toBe(0);
     expect(wb().agentChanges.removed.size).toBe(0);
+
+    // the drawer clears the marks, as the Notation view's legend does
+    screen.getByText('1 change by the agent marked on the model');
+    fireEvent.click(screen.getByRole('button', { name: 'Clear marks' }));
+    expect(wb().agentChanges.edited.size).toBe(0);
+    expect(screen.queryByRole('button', { name: 'Clear marks' })).toBeNull();
   });
 
   describe('a pending proposal is never applied once superseded', () => {
@@ -328,12 +339,129 @@ describe('the agent drawer', () => {
       screen.getByText('The editor restarted; the proposal was discarded.');
     });
 
-    it('by another model opened', async () => {
+    it('by another model opened: a new conversation', async () => {
       const { wb, card } = await proposed();
       const session = wb().session.id;
       await act(() => wb().openModelFile('other.txt', ISTAR));
       await waitFor(() => expect(wb().session.id).not.toBe(session));
-      await notApplied(card);
+      await waitFor(() => expect(card.isConnected).toBe(false));
+      const transcript = screen.getByRole('log', { name: 'Transcript' });
+      expect(within(transcript).queryAllByRole('listitem')).toHaveLength(0);
+      expect(applied).not.toHaveBeenCalled();
     });
+  });
+
+  it('sends the conversation so far with each request', async () => {
+    const wb = await opened();
+    fireEvent.click(screen.getByRole('button', { name: 'Show the agent' }));
+    await waitFor(() => expect(wb().glspSession).not.toBeNull());
+    const said = () =>
+      requests
+        .at(-1)
+        ?.flatMap((message) =>
+          message.role === 'system'
+            ? []
+            : [`${message.role}: ${message.content}`],
+        );
+
+    turns.push({ deltas: [], completion: finalAnswer('G1 is a goal.') });
+    ask('What is G1?');
+    await screen.findByText('G1 is a goal.');
+    expect(said()).toEqual(['user: What is G1?']);
+
+    turns.push({ deltas: [], completion: finalAnswer('It has two children.') });
+    ask('And its children?');
+    await screen.findByText('It has two children.');
+    expect(said()).toEqual([
+      'user: What is G1?',
+      'assistant: G1 is a goal.',
+      'user: And its children?',
+    ]);
+
+    // another model: a new conversation, nothing of the old one sent
+    const session = wb().session.id;
+    await act(() => wb().openModelFile('other.txt', ISTAR));
+    await waitFor(() => expect(wb().session.id).not.toBe(session));
+    turns.push({ deltas: [], completion: finalAnswer('Hello.') });
+    ask('Hi');
+    await screen.findByText('Hello.');
+    expect(said()).toEqual(['user: Hi']);
+  });
+
+  it("counts the conversation's context, tokens and cost", async () => {
+    window.localStorage.setItem(
+      'goal-workbench:agent:v1',
+      JSON.stringify({ prices: { input: 1, cachedInput: null, output: 2 } }),
+    );
+    const wb = await opened();
+    fireEvent.click(screen.getByRole('button', { name: 'Show the agent' }));
+    await waitFor(() => expect(wb().glspSession).not.toBeNull());
+    expect(screen.queryByLabelText('Usage')).toBeNull();
+    const used = (prompt: number, completion: number): ChatCompletion => ({
+      ...finalAnswer(`Used ${prompt}.`),
+      usage: {
+        prompt_tokens: prompt,
+        completion_tokens: completion,
+        total_tokens: prompt + completion,
+      },
+    });
+
+    turns.push({ deltas: [], completion: used(1000, 200) });
+    ask('One');
+    await screen.findByText('Used 1000.');
+    turns.push({ deltas: [], completion: used(1400, 300) });
+    ask('Two');
+    await screen.findByText('Used 1400.');
+    // context: the last call's; total: both; cost: 2.4k in at $1/M, 500 out at $2/M
+    expect(screen.getByLabelText('Usage').textContent).toBe(
+      'context 1.7ktotal 2.9k$0.0034',
+    );
+
+    const session = wb().session.id;
+    await act(() => wb().openModelFile('other.txt', ISTAR));
+    await waitFor(() => expect(wb().session.id).not.toBe(session));
+    await waitFor(() => expect(screen.queryByLabelText('Usage')).toBeNull());
+  });
+
+  it('follows new entries only while scrolled to the end', async () => {
+    const wb = await opened();
+    fireEvent.click(screen.getByRole('button', { name: 'Show the agent' }));
+    await waitFor(() => expect(wb().glspSession).not.toBeNull());
+    // jsdom lays nothing out: the transcript's heights are the test's
+    const transcript = screen.getByRole('log', { name: 'Transcript' });
+    let height = 500;
+    Object.defineProperty(transcript, 'scrollHeight', { get: () => height });
+    Object.defineProperty(transcript, 'clientHeight', { get: () => 100 });
+    const scrollTo = (top: number) => {
+      transcript.scrollTop = top;
+      fireEvent.scroll(transcript);
+    };
+
+    let open: () => void = () => undefined;
+    const gate = new Promise<void>((resolve) => {
+      open = resolve;
+    });
+    turns.push({
+      deltas: ['First part', ', second part.'],
+      gate,
+      completion: finalAnswer('First part, second part.'),
+    });
+    ask('Explain G1');
+    await screen.findByText('First part');
+    expect(transcript.scrollTop).toBe(500);
+
+    // scrolled up to read: the rest of the answer doesn't pull it down
+    height = 800;
+    scrollTo(0);
+    await act(async () => open());
+    await screen.findByText('First part, second part.');
+    expect(transcript.scrollTop).toBe(0);
+
+    // a new request follows again
+    turns.push({ deltas: [], completion: finalAnswer('Done.') });
+    height = 900;
+    ask('Thanks');
+    await screen.findByText('Done.');
+    expect(transcript.scrollTop).toBe(900);
   });
 });

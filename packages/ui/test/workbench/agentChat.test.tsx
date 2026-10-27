@@ -18,7 +18,14 @@ import { Composer } from '@/components/workbench/agent/Composer';
 import { DiffCard } from '@/components/workbench/agent/DiffCard';
 import { ToolCallCard } from '@/components/workbench/agent/ToolCallCard';
 import { flatTable, toolCallChip } from '@/lib/workbench/agent/chatTranscript';
+import { projectFilesOf } from '@/lib/workbench/agent/projectFiles';
 import { PROVIDERS } from '@/lib/workbench/agent/providers';
+import {
+  addUsage,
+  formatTokens,
+  NO_USAGE,
+  pricesOf,
+} from '@/lib/workbench/agent/usage';
 
 afterEach(cleanup);
 
@@ -226,7 +233,7 @@ describe('the composer', () => {
         projectFiles={[
           { path: 'deltaIoT.txt', name: 'deltaIoT.txt', text: '{"actors":[]}' },
           { path: 'deltaIoT.props', name: 'deltaIoT.props', text: 'P=? [F x]' },
-          { path: 'out/deltaIoT.prism', name: 'deltaIoT.prism', text: 'mdp' },
+          { path: 'figures/plot.png', name: 'plot.png', text: 'PNG' },
         ]}
         running={false}
         disabled={false}
@@ -236,7 +243,7 @@ describe('the composer', () => {
     // a type the provider doesn't take: there, but not attachable
     expect(
       screen.getByRole<HTMLButtonElement>('button', {
-        name: '@ deltaIoT.prism',
+        name: '@ plot.png',
       }).disabled,
     ).toBe(true);
     const chip = screen.getByRole('button', { name: '@ deltaIoT.props' });
@@ -257,5 +264,92 @@ describe('the composer', () => {
       { name: 'deltaIoT.props', mime: 'text/plain', text: 'P=? [F x]' },
     ]);
     expect(screen.queryByLabelText('Attached files')).toBeNull();
+  });
+});
+
+describe("the composer's project files", () => {
+  it("offer the engine's latest output, as generated, next to the project's files", () => {
+    const files = projectFilesOf({
+      model: { path: 'deltaIoT.txt', fileName: 'deltaIoT.txt', text: '{}' },
+      resourceSlots: [{ paths: ['variables.json'] }],
+      nativeSlots: [
+        { path: 'deltaIoT.props', missing: false },
+        { path: 'deltaIoT.kaos', missing: true },
+      ],
+      outputs: [
+        { fileName: 'deltaIoT.prism', text: 'mdp // fresh' },
+        { fileName: '../escape.prism', text: 'outside out/' },
+      ],
+      openedFiles: ['out/deltaIoT.prism', 'notes.md'],
+      texts: {
+        'variables.json': '{"x":1}',
+        'deltaIoT.props': 'P=? [F x]',
+        'out/deltaIoT.prism': 'mdp // saved',
+      },
+    });
+    expect(files.map(({ path }) => path)).toEqual([
+      'deltaIoT.txt',
+      'variables.json',
+      'deltaIoT.props',
+      'out/deltaIoT.prism',
+      'notes.md',
+    ]);
+    expect(files.find(({ name }) => name === 'deltaIoT.prism')?.text).toBe(
+      'mdp // fresh',
+    );
+    // a file open in a tab whose text hasn't been read yet
+    expect(files.at(-1)?.text).toBeUndefined();
+  });
+
+  it('can attach an output by its @-chip', () => {
+    const onSend = vi.fn();
+    render(
+      <Composer
+        provider={PROVIDERS.deepseek}
+        projectFiles={[
+          { path: 'out/deltaIoT.prism', name: 'deltaIoT.prism', text: 'mdp' },
+        ]}
+        running={false}
+        disabled={false}
+        onSend={onSend}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: '@ deltaIoT.prism' }));
+    const box = screen.getByRole('textbox', { name: 'Message the agent' });
+    fireEvent.change(box, { target: { value: 'Why does G8 deadlock?' } });
+    fireEvent.keyDown(box, { key: 'Enter' });
+    expect(onSend).toHaveBeenCalledWith('Why does G8 deadlock?', [
+      { name: 'deltaIoT.prism', mime: 'text/plain', text: 'mdp' },
+    ]);
+  });
+});
+
+describe("a conversation's usage", () => {
+  const step = (prompt: number, completion: number, hits = 0) => ({
+    prompt_tokens: prompt,
+    completion_tokens: completion,
+    total_tokens: prompt + completion,
+    prompt_cache_hit_tokens: hits,
+  });
+
+  it('adds each call: the context is the last one, the cost only with prices', () => {
+    const once = addUsage(NO_USAGE, step(1000, 100), null);
+    expect(once).toEqual({
+      contextTokens: 1100,
+      totalTokens: 1100,
+      cost: null,
+    });
+    expect(pricesOf({ input: 1, cachedInput: null, output: null })).toBeNull();
+    expect(pricesOf({ input: 1, cachedInput: null, output: 2 })).toEqual({
+      input: 1,
+      output: 2,
+    });
+  });
+
+  it('formats token counts', () => {
+    expect(formatTokens(950)).toBe('950');
+    expect(formatTokens(12_400)).toBe('12.4k');
+    expect(formatTokens(2000)).toBe('2k');
+    expect(formatTokens(1_250_000)).toBe('1.25M');
   });
 });

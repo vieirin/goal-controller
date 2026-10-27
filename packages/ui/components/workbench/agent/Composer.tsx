@@ -12,12 +12,10 @@ import {
   projectAttachment,
   readUpload,
 } from '@/lib/workbench/agent/attachments';
+import type { ProjectFile } from '@/lib/workbench/agent/projectFiles';
 import type { Attachment, ChatProvider } from '@/lib/workbench/agent/providers';
 import { IconButton, cx } from '../ui';
 import { AttachmentChip } from './AttachmentChip';
-
-/** one of the open project's files; no text while it hasn't been read */
-export type ProjectFile = { path: string; name: string; text?: string };
 
 type Attached = { key: string; attachment: Attachment };
 

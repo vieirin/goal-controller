@@ -13,12 +13,18 @@
  * call, an approved change set) the model's JSON text before and after it.
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { AgentEvent, AgentRun } from '@istar-ts/agent';
+import type { AgentEvent, AgentRun, ChatMessage } from '@istar-ts/agent';
 import { toPistar } from '@istar-ts/core';
 import { contextProvidersFor } from '@/lib/workbench/agent/context';
 import type { AgentSettings } from '@/lib/workbench/agent/agentSettings';
 import type { ChatEntry } from '@/lib/workbench/agent/chatTranscript';
 import { PROVIDERS, type Attachment } from '@/lib/workbench/agent/providers';
+import {
+  addUsage,
+  NO_USAGE,
+  pricesOf,
+  type ConversationUsage,
+} from '@/lib/workbench/agent/usage';
 import { useWorkbench } from '../WorkbenchContext';
 
 type Proposal = Extract<ChatEntry, { kind: 'proposal' }>;
@@ -30,16 +36,30 @@ export function useAgentChat() {
   const wb = useWorkbench();
   const [entries, setEntries] = useState<readonly ChatEntry[]>([]);
   const [running, setRunning] = useState(false);
+  /** bumped when another model opens: a new conversation (and composer) */
+  const [conversation, setConversation] = useState(0);
+  const runController = useRef<AbortController | null>(null);
+  /**
+   * The conversation so far (no system prompt), sent with each request: the
+   * system prompt is rebuilt each run, so it reads the model as it is now
+   * (a rejected change set's dry run is still in here, as the agent's
+   * proposal, but not in the model it is told of).
+   */
+  const history = useRef<readonly ChatMessage[]>([]);
+  const [usage, setUsage] = useState<ConversationUsage>(NO_USAGE);
   const ids = useRef(0);
   const nextId = () => `entry-${(ids.current += 1)}`;
 
   const append = (entry: ChatEntry) => setEntries((prev) => [...prev, entry]);
-  /** right after the entry `id` (a diff after its edit, however late it comes) */
+  /**
+   * right after the entry `id` (a diff after its edit, however late it
+   * comes); nowhere once that entry's conversation has been cleared
+   */
   const insertAfter = (id: string, entry: ChatEntry) =>
     setEntries((prev) => {
       const at = prev.findIndex((e) => e.id === id);
       return at < 0
-        ? [...prev, entry]
+        ? prev
         : [...prev.slice(0, at + 1), entry, ...prev.slice(at + 1)];
     });
   const setAssistantText = (id: string, next: (text: string) => string) =>
@@ -88,13 +108,28 @@ export function useAgentChat() {
     });
   }, [wb.modelWorkerIncident]);
 
-  // a change set previewed over the session a newly opened model replaced
-  const seenSession = useRef(wb.session.id);
+  // another model opened: a new conversation, the running request (if any)
+  // stopped. A crash recovery replaces the session on the same model (the
+  // incident, in the same render): the conversation goes on, its change
+  // set discarded above.
+  const seenSession = useRef({
+    id: wb.session.id,
+    incident: wb.modelWorkerIncident,
+  });
   useEffect(() => {
-    if (wb.session.id === seenSession.current) return;
-    seenSession.current = wb.session.id;
-    setProposalState('discarded', (e) => e.state === 'pending');
-  }, [wb.session.id]);
+    const seen = seenSession.current;
+    if (wb.session.id === seen.id) return;
+    seenSession.current = {
+      id: wb.session.id,
+      incident: wb.modelWorkerIncident,
+    };
+    if (wb.modelWorkerIncident !== seen.incident) return;
+    runController.current?.abort();
+    setEntries([]);
+    history.current = [];
+    setUsage(NO_USAGE);
+    setConversation((n) => n + 1);
+  }, [wb.session.id, wb.modelWorkerIncident]);
 
   const contextProviders = useMemo(
     () => contextProvidersFor(wb.mode),
@@ -144,7 +179,10 @@ export function useAgentChat() {
     // a new request supersedes a change set still waiting for review
     setProposalState('discarded', (e) => e.state === 'pending');
     append({ kind: 'user', id: nextId(), text, attachments });
-    const { createChatClient, runAgent } = await import('@istar-ts/agent');
+    const { costPerMillionTokens, createChatClient, runAgent } =
+      await import('@istar-ts/agent');
+    const prices = pricesOf(settings.prices);
+    const cost = prices ? costPerMillionTokens(prices) : null;
     const client = createChatClient({
       provider: PROVIDERS[settings.providerId],
       model: settings.model,
@@ -152,10 +190,14 @@ export function useAgentChat() {
       stream: true,
     });
     const run = nextId();
+    const controller = new AbortController();
+    runController.current = controller;
     const diffs = diffRecorder();
     // what the run changes is marked on the model's views (`wb.agentChanges`)
     wb.beginAgentChanges();
     const onEvent = (event: AgentEvent) => {
+      // its conversation was cleared: nothing more of it shows
+      if (controller.signal.aborted) return;
       switch (event.type) {
         case 'delta':
           if (event.delta.content)
@@ -165,6 +207,8 @@ export function useAgentChat() {
             );
           return;
         case 'step': {
+          const stepUsage = event.step.usage;
+          if (stepUsage) setUsage((prev) => addUsage(prev, stepUsage, cost));
           const content = event.step.message.content;
           if (content?.trim())
             setAssistantText(`${run}-step-${event.step.index}`, () => content);
@@ -186,9 +230,11 @@ export function useAgentChat() {
         client,
         prompt: text,
         attachments,
+        history: history.current,
         context: contextProviders,
         getModel: () => wb.session.store.getModel(),
         onEvent,
+        signal: controller.signal,
       };
       const result: AgentRun =
         settings.approval === 'auto'
@@ -203,6 +249,10 @@ export function useAgentChat() {
               changeSet: glsp.changeSet,
             });
       await diffs.done();
+      if (controller.signal.aborted) return;
+      history.current = result.transcript.messages.filter(
+        ({ role }) => role !== 'system',
+      );
       const { stop } = result.transcript;
       if (stop.reason !== 'final')
         append({
@@ -219,11 +269,13 @@ export function useAgentChat() {
           state: 'pending',
         });
     } catch (error) {
-      append({ kind: 'error', id: nextId(), text: messageOf(error) });
+      if (!controller.signal.aborted)
+        append({ kind: 'error', id: nextId(), text: messageOf(error) });
     } finally {
       // once the mirror shows the run's last edit
       await diffs.done();
-      wb.endAgentChanges();
+      // another model's snapshot says nothing about this one
+      if (!controller.signal.aborted) wb.endAgentChanges();
       setRunning(false);
     }
   };
@@ -256,7 +308,7 @@ export function useAgentChat() {
   const reject = ({ id }: Proposal) =>
     setProposalState('rejected', (e) => e.id === id);
 
-  return { entries, running, send, approve, reject };
+  return { entries, running, conversation, usage, send, approve, reject };
 }
 
 export type AgentChat = ReturnType<typeof useAgentChat>;

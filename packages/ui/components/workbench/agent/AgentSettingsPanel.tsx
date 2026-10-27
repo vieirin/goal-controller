@@ -1,8 +1,9 @@
 /**
  * The drawer's settings (goal-controller#485): the provider, one of its
  * models (asked of the provider with the key, `listModels`; its fallback
- * list until it answers or without a key) and the API key. The endpoint is
- * the provider's own.
+ * list until it answers or without a key), the API key, and the prices the
+ * conversation's cost is counted at (the provider tells none). The endpoint
+ * is the provider's own.
  */
 import { useEffect, useState } from 'react';
 import { Loader2 } from 'lucide-react';
@@ -10,6 +11,7 @@ import {
   modelIn,
   type AgentSettings,
 } from '@/lib/workbench/agent/agentSettings';
+import type { TokenPrices } from '@/lib/workbench/agent/usage';
 import {
   isProviderId,
   PROVIDERS,
@@ -20,6 +22,20 @@ import {
 const KEY_SETTLE_MS = 400;
 
 const FIELD = 'rounded-md border border-line-strong bg-white px-2 py-1';
+
+const PRICE_FIELDS: ReadonlyArray<{ key: keyof TokenPrices; label: string }> = [
+  { key: 'input', label: 'Input' },
+  { key: 'cachedInput', label: 'Cache hit' },
+  { key: 'output', label: 'Output' },
+];
+
+/** a price field's text as a price: empty (or not a number ≥ 0) is none */
+const priceOf = (text: string): number | null => {
+  const value = Number(text);
+  return text.trim() === '' || !Number.isFinite(value) || value < 0
+    ? null
+    : value;
+};
 
 export function AgentSettingsPanel({
   settings,
@@ -114,6 +130,34 @@ export function AgentSettingsPanel({
           onChange={(e) => onChange({ ...settings, apiKey: e.target.value })}
         />
       </label>
+      <fieldset className='flex flex-col gap-1'>
+        <legend className='mb-1 text-ink-muted'>
+          Prices, USD per 1M tokens (for the cost shown)
+        </legend>
+        <div className='grid grid-cols-3 gap-2'>
+          {PRICE_FIELDS.map(({ key, label }) => (
+            <label key={key} className='flex flex-col gap-0.5'>
+              <span className='text-2xs text-ink-muted'>{label}</span>
+              <input
+                type='number'
+                min={0}
+                step='any'
+                className={FIELD}
+                value={settings.prices[key] ?? ''}
+                onChange={(e) =>
+                  onChange({
+                    ...settings,
+                    prices: {
+                      ...settings.prices,
+                      [key]: priceOf(e.target.value),
+                    },
+                  })
+                }
+              />
+            </label>
+          ))}
+        </div>
+      </fieldset>
     </div>
   );
 }

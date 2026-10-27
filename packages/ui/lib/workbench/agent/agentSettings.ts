@@ -10,6 +10,7 @@
 import type { ApprovalMode } from '@istar-ts/agent';
 import { z } from 'zod';
 import { isProviderId, PROVIDERS, type ChatProviderId } from './providers';
+import { NO_PRICES, type TokenPrices } from './usage';
 
 const AGENT_SETTINGS_KEY = 'goal-workbench:agent:v1';
 
@@ -19,6 +20,8 @@ export type AgentSettings = {
   model: string;
   apiKey: string;
   approval: ApprovalMode;
+  /** what the drawer prices the conversation's tokens at (none set: no cost shown) */
+  prices: TokenPrices;
 };
 
 export const DEFAULT_AGENT_SETTINGS: AgentSettings = {
@@ -26,7 +29,10 @@ export const DEFAULT_AGENT_SETTINGS: AgentSettings = {
   model: PROVIDERS.deepseek.defaultModel,
   apiKey: '',
   approval: 'propose',
+  prices: NO_PRICES,
 };
+
+const price = z.number().nonnegative().nullable().catch(null);
 
 /**
  * Each field read on its own, the default for one that's missing or wrong:
@@ -40,6 +46,9 @@ const storedSettings = z.object({
   model: z.string().min(1).optional().catch(undefined),
   apiKey: z.string().catch(DEFAULT_AGENT_SETTINGS.apiKey),
   approval: z.enum(['propose', 'auto']).catch(DEFAULT_AGENT_SETTINGS.approval),
+  prices: z
+    .object({ input: price, cachedInput: price, output: price })
+    .catch(DEFAULT_AGENT_SETTINGS.prices),
 });
 
 export const loadAgentSettings = (): AgentSettings => {
@@ -48,12 +57,13 @@ export const loadAgentSettings = (): AgentSettings => {
     if (!raw) return DEFAULT_AGENT_SETTINGS;
     const parsed = storedSettings.safeParse(JSON.parse(raw));
     if (!parsed.success) return DEFAULT_AGENT_SETTINGS;
-    const { providerId, model, apiKey, approval } = parsed.data;
+    const { providerId, model, apiKey, approval, prices } = parsed.data;
     return {
       providerId,
       model: model ?? PROVIDERS[providerId].defaultModel,
       apiKey,
       approval,
+      prices,
     };
   } catch {
     return DEFAULT_AGENT_SETTINGS;
