@@ -557,7 +557,7 @@ function OpenInspectorOnSelect({ open }: { open: () => void }) {
   return null;
 }
 
-function StatusBar() {
+export function StatusBar() {
   const wb = useWorkbench();
   const errors = wb.problems.filter((p) => p.severity === 'error').length;
   const warnings = wb.problems.filter((p) => p.severity === 'warning').length;
@@ -573,9 +573,12 @@ function StatusBar() {
         onClick={() => wb.setBottomTab('problems')}
         className='hover:text-ink'
       >
-        <span className={errors ? 'text-danger' : ''}>{errors} errors</span> ·{' '}
+        <span className={errors ? 'text-danger' : ''}>
+          {errors} error{errors === 1 ? '' : 's'}
+        </span>{' '}
+        ·{' '}
         <span className={warnings ? 'text-caution' : ''}>
-          {warnings} warnings
+          {warnings} warning{warnings === 1 ? '' : 's'}
         </span>
       </button>
       {wb.current && (
