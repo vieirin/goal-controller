@@ -1,35 +1,70 @@
 /**
- * The agent drawer's own settings (goal-controller#415): the chat endpoint,
- * model and API key, typed into the drawer and kept in `localStorage` only —
- * never in the project file, and never sent anywhere but the endpoint the
- * user configured (`createChatClient`'s closure keeps the key out of the
- * transcript too). Separate key from `lib/workbench/storage.ts`'s workspace
- * preferences: those are exported with a project's settings; this isn't.
+ * The agent drawer's own settings (goal-controller#415, #485): the chat
+ * provider, its model and the API key, set in the drawer and kept in
+ * `localStorage` only — never in the project file, and never sent anywhere
+ * but the provider's endpoint (`createChatClient`'s closure keeps the key out
+ * of the transcript too). Separate key from `lib/workbench/storage.ts`'s
+ * workspace preferences: those are exported with a project's settings; this
+ * isn't.
  */
-import { DEEPSEEK } from '@istar-ts/agent';
 import type { ApprovalMode } from '@istar-ts/agent';
+import { z } from 'zod';
+import { isProviderId, PROVIDERS, type ChatProviderId } from './providers';
+import { NO_PRICES, type TokenPrices } from './usage';
 
 const AGENT_SETTINGS_KEY = 'goal-workbench:agent:v1';
 
 export type AgentSettings = {
-  baseUrl: string;
+  providerId: ChatProviderId;
+  /** one of the provider's models (`listModels`); its `defaultModel` at first */
   model: string;
   apiKey: string;
   approval: ApprovalMode;
+  /** what the drawer prices the conversation's tokens at (none set: no cost shown) */
+  prices: TokenPrices;
 };
 
 export const DEFAULT_AGENT_SETTINGS: AgentSettings = {
-  baseUrl: DEEPSEEK.baseUrl,
-  model: DEEPSEEK.model,
+  providerId: 'deepseek',
+  model: PROVIDERS.deepseek.defaultModel,
   apiKey: '',
   approval: 'propose',
+  prices: NO_PRICES,
 };
+
+const price = z.number().nonnegative().nullable().catch(null);
+
+/**
+ * Each field read on its own, the default for one that's missing or wrong:
+ * a stored entry from before the providers (a `baseUrl` endpoint, no provider) keeps its key, model
+ * and approval mode.
+ */
+const storedSettings = z.object({
+  providerId: z
+    .custom<ChatProviderId>(isProviderId)
+    .catch(DEFAULT_AGENT_SETTINGS.providerId),
+  model: z.string().min(1).optional().catch(undefined),
+  apiKey: z.string().catch(DEFAULT_AGENT_SETTINGS.apiKey),
+  approval: z.enum(['propose', 'auto']).catch(DEFAULT_AGENT_SETTINGS.approval),
+  prices: z
+    .object({ input: price, cachedInput: price, output: price })
+    .catch(DEFAULT_AGENT_SETTINGS.prices),
+});
 
 export const loadAgentSettings = (): AgentSettings => {
   try {
     const raw = window.localStorage.getItem(AGENT_SETTINGS_KEY);
     if (!raw) return DEFAULT_AGENT_SETTINGS;
-    return { ...DEFAULT_AGENT_SETTINGS, ...(JSON.parse(raw) as object) };
+    const parsed = storedSettings.safeParse(JSON.parse(raw));
+    if (!parsed.success) return DEFAULT_AGENT_SETTINGS;
+    const { providerId, model, apiKey, approval, prices } = parsed.data;
+    return {
+      providerId,
+      model: model ?? PROVIDERS[providerId].defaultModel,
+      apiKey,
+      approval,
+      prices,
+    };
   } catch {
     return DEFAULT_AGENT_SETTINGS;
   }
@@ -42,3 +77,18 @@ export const saveAgentSettings = (settings: AgentSettings): void => {
     // storage disabled or over quota: the drawer keeps the in-memory settings for this session
   }
 };
+
+/**
+ * `model` if the provider lists it, else its default model when listed, else
+ * the list's first: what the selector shows once `listModels` has answered.
+ */
+export const modelIn = (
+  models: readonly { id: string }[],
+  model: string,
+  defaultModel: string,
+): string =>
+  models.some(({ id }) => id === model)
+    ? model
+    : models.some(({ id }) => id === defaultModel)
+      ? defaultModel
+      : (models[0]?.id ?? defaultModel);

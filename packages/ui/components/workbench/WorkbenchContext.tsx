@@ -35,7 +35,12 @@ import {
   treeProblems,
 } from '@/lib/workbench/localProblems';
 import type { GoalView } from '@goal-controller/goal-tree';
-import type { GoalDiagnostic, ModelStore, PistarFile } from '@istar-ts/core';
+import type {
+  AnyIstarModel,
+  GoalDiagnostic,
+  ModelStore,
+  PistarFile,
+} from '@istar-ts/core';
 import { emptyModel, fileMetamodelForText } from '@/lib/workbench/dialects';
 import {
   diffModel,
@@ -581,6 +586,12 @@ export type Workbench = {
 
   // problems
   problems: Problem[];
+  /**
+   * What the workbench would say of `model` itself (its dialect's checks,
+   * iStar's notations, the shared language; no file, resource or run), in
+   * the open model's mode: a change set previewed before it is applied
+   */
+  previewProblems: (model: AnyIstarModel) => Problem[];
 
   // agent changes (goal-controller#415's drawer): what it added, edited or
   // removed since the last clear, accumulated across its runs
@@ -2742,6 +2753,51 @@ function WorkbenchState({
     publishDiagnostics(GUARD_REPORT_SERVICE, document, guardReport);
     return () => publishDiagnostics(GUARD_REPORT_SERVICE, document, []);
   }, [guardReport, session.id]);
+  /**
+   * What the workbench checks of a model itself, read through `checkedTree`
+   * (its goal-tree view; none: unread): a framework's dialect, or iStar's
+   * notations and the shared language. The model part of `problems`, and
+   * what the agent drawer previews a proposed change set with.
+   */
+  const modelProblemsOf = useCallback(
+    (checked: AnyIstarModel, checkedTree: GoalView | null): Problem[] => {
+      // a framework's model (goal-controller#171): what its dialect says of it,
+      // in its modelling mode or its engine's
+      const framework = pistar
+        ? isFrameworkMode(dialect)
+          ? FRAMEWORK_DIALECTS[dialect]
+          : null
+        : (frameworkEditorOf(engine)?.definition ?? null);
+      // with the vocabulary profile the model records (a CAIRIS model's, #192)
+      if (framework)
+        return frameworkProblems(
+          checked,
+          dialectForModel(framework, checked),
+          projectResources,
+        );
+      // piStar mode: only whether the file parses; the engine checks do not apply
+      if (pistar || !checkedTree) return [];
+      // the checks of iStar's notations, and the shared language on the
+      // model's own document, editors open or not
+      return [
+        ...treeProblems(checkedTree, engine),
+        ...(isDialectEngine(engine)
+          ? modelLanguageProblems(
+              engine,
+              checkedTree,
+              variables,
+              projectResources,
+            )
+          : []),
+      ];
+    },
+    [pistar, dialect, engine, projectResources, variables],
+  );
+  const previewProblems = useCallback(
+    (checked: AnyIstarModel): Problem[] =>
+      modelProblemsOf(checked, pistar ? null : treeView(checked, engine)),
+    [modelProblemsOf, pistar, engine],
+  );
   const problems = useMemo(() => {
     const list: Problem[] = [];
     if (jsonError) list.push(jsonError);
@@ -2751,33 +2807,11 @@ function WorkbenchState({
     list.push(...resourceProblemsNow);
     // the model's native files: out of sync, unreadable, or not written (goal-controller#143)
     list.push(...nativeProblemsNow);
-    // a framework's model (goal-controller#171): what its dialect says of it,
-    // in its modelling mode or its engine's
-    const framework = pistar
-      ? isFrameworkMode(dialect)
-        ? FRAMEWORK_DIALECTS[dialect]
-        : null
-      : (frameworkEditorOf(engine)?.definition ?? null);
-    // with the vocabulary profile the model records (a CAIRIS model's, #192)
-    if (framework && model.text.trim() && !jsonError)
-      list.push(
-        ...frameworkProblems(
-          storeModel,
-          dialectForModel(framework, storeModel),
-          projectResources,
-        ),
-      );
+    // the model's own (a framework's needs no tree; iStar's notations do)
+    if (model.text.trim() && !jsonError)
+      list.push(...modelProblemsOf(storeModel, tree));
     // piStar mode: only whether the file parses; the engine checks do not apply
     if (pistar) return list;
-    // the checks of iStar's notations: none in another framework
-    if (tree && !jsonError && !framework) {
-      list.push(...treeProblems(tree, engine));
-      // the shared language on the model's own document, editors open or not
-      if (isDialectEngine(engine))
-        list.push(
-          ...modelLanguageProblems(engine, tree, variables, projectResources),
-        );
-    }
     if (analysis && !jsonError)
       list.push(
         ...analysis.problems.filter(
@@ -2979,6 +3013,7 @@ function WorkbenchState({
     clearAnalysis,
     exportProject,
     problems,
+    previewProblems,
     agentChanges,
     beginAgentChanges,
     endAgentChanges,
