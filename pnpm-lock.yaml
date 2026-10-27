@@ -38,8 +38,8 @@ importers:
         specifier: ^0.16.0
         version: 0.16.0(@istar-ts/react@0.16.0)(react-dom@19.2.3)(react@19.2.3)
       '@istar-ts/dsm3-nfr':
-        specifier: ^0.15.1
-        version: 0.15.1(@istar-ts/react@0.16.0)(react-dom@19.2.3)(react@19.2.3)
+        specifier: ^0.16.0
+        version: 0.16.0(@istar-ts/react@0.16.0)(react-dom@19.2.3)(react@19.2.3)
     devDependencies:
       '@types/chai':
         specifier: ^4.3.11
@@ -170,8 +170,8 @@ importers:
         specifier: ^0.16.0
         version: 0.16.0(@istar-ts/react@0.16.0)(react-dom@19.2.3)(react@19.2.3)
       '@istar-ts/dsm3-nfr':
-        specifier: ^0.15.1
-        version: 0.15.1(@istar-ts/react@0.16.0)(react-dom@19.2.3)(react@19.2.3)
+        specifier: ^0.16.0
+        version: 0.16.0(@istar-ts/react@0.16.0)(react-dom@19.2.3)(react@19.2.3)
       '@rgrove/parse-xml':
         specifier: 4.2.3
         version: 4.2.3
@@ -345,11 +345,11 @@ importers:
         specifier: ^0.16.0
         version: 0.16.0(@istar-ts/react@0.16.0)(react-dom@19.2.3)(react@19.2.3)
       '@istar-ts/dsm3-nfr':
-        specifier: ^0.15.1
-        version: 0.15.1(@istar-ts/react@0.16.0)(react-dom@19.2.3)(react@19.2.3)
+        specifier: ^0.16.0
+        version: 0.16.0(@istar-ts/react@0.16.0)(react-dom@19.2.3)(react@19.2.3)
       '@istar-ts/glsp':
         specifier: ^0.16.0
-        version: 0.16.0(@eclipse-glsp/server-mcp@2.8.0)(@istar-ts/dsm3-kaos@0.16.0)(@istar-ts/dsm3-nfr@0.15.1)(zod@4.6.7)
+        version: 0.16.0(@eclipse-glsp/server-mcp@2.8.0)(@istar-ts/dsm3-kaos@0.16.0)(@istar-ts/dsm3-nfr@0.16.0)(zod@4.6.7)
       '@istar-ts/gmodel':
         specifier: ^0.16.0
         version: 0.16.0
@@ -1918,12 +1918,8 @@ packages:
     dependencies:
       '@istar-ts/actions': 0.16.0
       '@istar-ts/core': 0.16.0
-      '@istar-ts/glsp': 0.16.0(@eclipse-glsp/server-mcp@2.8.0)(@istar-ts/dsm3-kaos@0.16.0)(@istar-ts/dsm3-nfr@0.15.1)(zod@4.6.7)
+      '@istar-ts/glsp': 0.16.0(@eclipse-glsp/server-mcp@2.8.0)(@istar-ts/dsm3-kaos@0.16.0)(@istar-ts/dsm3-nfr@0.16.0)(zod@4.6.7)
       '@modelcontextprotocol/sdk': 1.32.2(zod@4.6.7)
-    dev: false
-
-  /@istar-ts/core@0.15.1:
-    resolution: {integrity: sha512-D4vPJcgE+YRuP/VEUnKoXsupIARDzfRbEphwp8E9h6njT3MPIVsKx6tkP1xaZ1CpA7dNAH6ZEDB+UvAeG5BLDQ==}
     dev: false
 
   /@istar-ts/core@0.16.0:
@@ -1949,10 +1945,10 @@ packages:
       react-dom: 19.2.3(react@19.2.3)
     dev: false
 
-  /@istar-ts/dsm3-nfr@0.15.1(@istar-ts/react@0.16.0)(react-dom@19.2.3)(react@19.2.3):
-    resolution: {integrity: sha512-4XtUHXHgijjsii7LWVtisuKxP4t+XoNFc+hR9kbGu7HK0xPGwBHczRjVlnLIBaxLVP03XIflk0jvHwDoXDEvDA==}
+  /@istar-ts/dsm3-nfr@0.16.0(@istar-ts/react@0.16.0)(react-dom@19.2.3)(react@19.2.3):
+    resolution: {integrity: sha512-VH0i1wbRqffBcbcOsTvM3LYA/NKbw3S1FMU85Tkee6t+iswviV8/K4T7lDEeBlHHqMr9/Q8s5og2HMbR0MvdiA==}
     peerDependencies:
-      '@istar-ts/react': ^0.15.1
+      '@istar-ts/react': ^0.16.0
       react: ^18.2.0 || ^19.0.0
       react-dom: ^18.2.0 || ^19.0.0
     peerDependenciesMeta:
@@ -1963,13 +1959,13 @@ packages:
       react-dom:
         optional: true
     dependencies:
-      '@istar-ts/core': 0.15.1
+      '@istar-ts/core': 0.16.0
       '@istar-ts/react': 0.16.0(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
     dev: false
 
-  /@istar-ts/glsp@0.16.0(@eclipse-glsp/server-mcp@2.8.0)(@istar-ts/dsm3-kaos@0.16.0)(@istar-ts/dsm3-nfr@0.15.1)(zod@4.6.7):
+  /@istar-ts/glsp@0.16.0(@eclipse-glsp/server-mcp@2.8.0)(@istar-ts/dsm3-kaos@0.16.0)(@istar-ts/dsm3-nfr@0.16.0)(zod@4.6.7):
     resolution: {integrity: sha512-VQArCvGIc6HmcQbZdRbysvlpoGTYQ4Jh1C+FjCzMXfcGqmnpF3OlVSx+zK7EPKQNXudjx8dnXAxjf+QYsIh7lw==}
     peerDependencies:
       '@eclipse-glsp/server-mcp': 2.8.0
@@ -1991,7 +1987,7 @@ packages:
       '@istar-ts/actions': 0.16.0
       '@istar-ts/core': 0.16.0
       '@istar-ts/dsm3-kaos': 0.16.0(@istar-ts/react@0.16.0)(react-dom@19.2.3)(react@19.2.3)
-      '@istar-ts/dsm3-nfr': 0.15.1(@istar-ts/react@0.16.0)(react-dom@19.2.3)(react@19.2.3)
+      '@istar-ts/dsm3-nfr': 0.16.0(@istar-ts/react@0.16.0)(react-dom@19.2.3)(react@19.2.3)
       '@istar-ts/gmodel': 0.16.0
       inversify: 6.2.2(reflect-metadata@0.2.2)
       reflect-metadata: 0.2.2

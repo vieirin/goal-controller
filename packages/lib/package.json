@@ -23,7 +23,7 @@
     "@goal-controller/goal-language": "workspace:*",
     "@goal-controller/goal-tree": "workspace:*",
     "@istar-ts/dsm3-kaos": "^0.16.0",
-    "@istar-ts/dsm3-nfr": "^0.15.1",
+    "@istar-ts/dsm3-nfr": "^0.16.0",
     "@rgrove/parse-xml": "4.2.3",
     "inquirer": "^12.5.2",
     "jsonc-parser": "^3.3",
