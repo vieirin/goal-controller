@@ -2283,10 +2283,15 @@ function WorkbenchState({
         ),
       );
     }
-    return mergeProblems(list, serviceProblems);
+    // the services speak of the open documents; with no model open there is
+    // none, whatever they still say of the one that just closed (goal-controller#469)
+    return model.text.trim()
+      ? mergeProblems(list, serviceProblems)
+      : mergeProblems(list, []);
   }, [
     parsed.error,
     parsed.istar,
+    model.text,
     modelOptions,
     resourceProblemsNow,
     nativeProblemsNow,
