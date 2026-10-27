@@ -25,6 +25,7 @@ When working on edgeV2, leave `engines/edge/` untouched: read it for reference, 
 ## Reading
 
 - For TypeScript symbols, ask the LSP first (definition, references, document symbols, hover): one call instead of a grep and a read per hit.
+- When `graphify-out/` exists, try `graphify query "…"` / `path` / `explain` before `rg -n`; the graph is per machine, build it with `graphify .`.
 - Search with `rg -n` (or the Grep tool) and read line ranges. Never `grep -r`: it ignores `.gitignore` and walks `node_modules` and `.claude/worktrees/`. Large files to read in ranges: `packages/ui/components/workbench/WorkbenchContext.tsx`, `packages/dialect/src/schema.ts`, `packages/dialect/docs/{frameworks,adding-an-engine,pistar-ext-support}.md`, `packages/goal-language/src/generated/grammar.ts` (generated).
 - Generated or reference output, not source: `examples/**/generated/`, `examples/goda/fragmented/reference/`, `examples/*/experiments/`, `experiments/**/results/`, `result_plots/`, `dissertationExamples/generatedPrism/`, `old_examples/`, `logs/`, `output/`, `packages/lib/test/engines/edgeFamily/antlr-oracle.json`. Open one only when the task is about that output, and then the single file it names.
 - Papers: `.cache/` holds the PDFs (not committed). Read a paper through its text transcription in `docs/papers/` when there is one; don't render pages to images.

@@ -11,6 +11,9 @@ packages/ui/out/
 # Output directory
 output/
 
+# graphify knowledge graph (per machine; symlinked into worktrees)
+graphify-out
+
 # Database
 packages/ui/data/
 data/
