@@ -195,6 +195,7 @@ Three more options, for what a lab dialect's text may be like (GODA's, [goda.md]
 
 - `notation.leafBracket: 'cost'`: a leaf's bracket holds its cost (`T1.1: Pick [W = 0.5x]`), not a notation. The mapper reads it with `parseElementLine(text).value.cost` (the task entry's `mapProps` is given the task's `text`). The validator reports a cost on a refined element and a notation on a leaf.
 - `notation.whitespace: 'ignore'`: the spaces in a bracket aren't read (`[D M(T1.1 2)]` is `[DM(T1.12)]`). The editors read the line without them and point at what they report where it is written. Read a text in the dialect with `parseElementLineIn(definition, text)`.
+- `notation.grouping: false` (edge, edgeV2): a refinement list is flat, so a bracket group anywhere in it is an error, not read (`[[G2;G3]#G4]` is rejected, not `G4`'s construct over `G2;G3`'s sequence). A mix of two operators there needs an intermediate goal, not a group — the validator's message says so instead of suggesting one. Default: a group is allowed.
 - `idScope: 'ancestorGoal'` (on the definition, not its notation): a task's id is unique under its goal only, so two goals may each have a `T1.1`.
 
 ### 2.4 Properties on links

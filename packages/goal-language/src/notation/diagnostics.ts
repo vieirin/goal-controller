@@ -159,6 +159,50 @@ const disabled = (
   ];
 };
 
+/**
+ * Where a notation mixes two binary operators without a bracket of its own
+ * (`G13#G14;G12`): a model that passes this has one operator per nesting
+ * level, so `outermost()` picks that level's construct unambiguously.
+ * Skipped where either operator isn't even one the dialect enables
+ * (`disabled` already says so).
+ */
+const mixed = (
+  definition: Pick<AnyDialect, 'name'> & WithNotation,
+  notation: NonNullable<ElementReading['notation']>,
+): Diagnostic[] =>
+  notation.mixed.flatMap(({ span, first, second }) =>
+    isEnabled(definition, first, 'infix') &&
+    isEnabled(definition, second, 'infix')
+      ? [
+          {
+            ...span,
+            severity: 'error' as const,
+            message:
+              definition.notation.grouping === false
+                ? `\`${first}\` and \`${second}\` mixed in one refinement: ${definition.name} refinements are flat, so one needs an intermediate goal`
+                : `\`${first}\` and \`${second}\` mixed in one refinement: group one of them, as in [[A${first}B]${second}C]`,
+          },
+        ]
+      : [],
+  );
+
+/**
+ * Where a notation has a bracket group it the dialect's refinements don't
+ * allow at all (`notation.grouping: false`, edge and edgeV2's flat list):
+ * every one, wherever it is.
+ */
+const nestedGroups = (
+  definition: Pick<AnyDialect, 'name'> & WithNotation,
+  notation: NonNullable<ElementReading['notation']>,
+): Diagnostic[] =>
+  definition.notation.grouping === false
+    ? notation.groups.map((span) => ({
+        ...span,
+        severity: 'error' as const,
+        message: `${definition.name} refinements are flat: \`${notation.text}\` has a nested group`,
+      }))
+    : [];
+
 export type Diagnostic = {
   from: number;
   to: number;
@@ -703,6 +747,11 @@ export const documentDiagnostics = (
       const notationSpan = at(read.notation.span);
       push(
         ...disabled(notated, read.notation).map((d) => ({ ...d, ...at(d) })),
+        ...mixed(notated, read.notation).map((d) => ({ ...d, ...at(d) })),
+        ...nestedGroups(notated, read.notation).map((d) => ({
+          ...d,
+          ...at(d),
+        })),
       );
       const listed: string[] = [];
       for (const ref of read.notation.refs) {

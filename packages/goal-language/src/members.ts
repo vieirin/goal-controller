@@ -51,6 +51,23 @@ export const notationText = (tree: RtTree | null): string => {
   }
 };
 
+/** Whether a notation has a bracket group anywhere in it (`notation.grouping: false`'s check). */
+export const notationHasGroup = (tree: RtTree | null): boolean => {
+  switch (tree?.kind) {
+    case 'group':
+      return true;
+    case 'prefix':
+    case 'postfix':
+      return notationHasGroup(tree.expr);
+    case 'binary':
+      return notationHasGroup(tree.left) || notationHasGroup(tree.right);
+    case 'call':
+      return tree.args.some(notationHasGroup);
+    default:
+      return false;
+  }
+};
+
 /**
  * An operand's element ids (and `skip`, and standalone symbols): through
  * operators and modifiers; a group's (`[...]`) and a call's
