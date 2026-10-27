@@ -37,8 +37,11 @@ import { ReadOnlyEntry } from './ReadOnlyEntry';
 import { SharedEntryCard } from './SharedEntryCard';
 import { useAgentChatContext } from './AgentChatHost';
 
-/** how near its end the transcript still counts as at its end */
+/** how near its end a scroll still counts as landing at its end */
 const FOLLOW_SLACK_PX = 24;
+
+/** the keys a user reaches for to read back up the transcript */
+const SCROLL_UP_KEYS = new Set(['PageUp', 'ArrowUp', 'Home']);
 
 const useProjectFiles = (): readonly ProjectFile[] => {
   const wb = useWorkbench();
@@ -99,16 +102,52 @@ export default function AgentDrawer({ onClose }: { onClose: () => void }) {
   }, []);
 
   // the latest entry in view, a streamed one as it grows, while the
-  // transcript is scrolled to its end: scrolling up stops following it,
-  // sending a request (or scrolling back down) resumes
+  // transcript is scrolled to its end: following is decided by intent, not
+  // by measuring the gap after the fact (goal-controller#504) — a wheel,
+  // touch or keyboard scroll up turns it off, a scroll that lands at the
+  // end turns it back on, and a programmatic scroll (ours) never turns it
+  // off, however much the content grew in between
   const scroller = useRef<HTMLDivElement>(null);
+  const list = useRef<HTMLOListElement>(null);
   const following = useRef(true);
+  // entries seen since following last stopped, for the "new messages" pill
+  const [pendingCount, setPendingCount] = useState<number | null>(null);
+  const seenLength = useRef(0);
+
+  const resumeFollowing = useCallback(() => {
+    following.current = true;
+    setPendingCount(null);
+  }, []);
+  const stopFollowing = useCallback(() => {
+    following.current = false;
+  }, []);
+
   useEffect(() => {
     const view = scroller.current;
     if (!view) return;
-    if (chat.entries.at(-1)?.kind === 'user') following.current = true;
-    if (following.current) view.scrollTop = view.scrollHeight;
-  }, [chat.entries]);
+    if (chat.entries.at(-1)?.kind === 'user') resumeFollowing();
+    if (following.current) {
+      view.scrollTop = view.scrollHeight;
+    } else {
+      const added = chat.entries.length - seenLength.current;
+      setPendingCount((prev) => (prev ?? 0) + Math.max(added, 0));
+    }
+    seenLength.current = chat.entries.length;
+  }, [chat.entries, resumeFollowing]);
+
+  // content that lays out after the commit (markdown, diffs, tool cards) or
+  // a drawer resize: keep pinned to the end while following
+  useEffect(() => {
+    const view = scroller.current;
+    const inner = list.current;
+    if (!view || !inner || typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(() => {
+      if (following.current) view.scrollTop = view.scrollHeight;
+    });
+    observer.observe(view);
+    observer.observe(inner);
+    return () => observer.disconnect();
+  }, [wb.glspEnabled]);
 
   return (
     <aside className='flex h-full flex-col bg-white' aria-label='Agent'>
@@ -154,57 +193,86 @@ export default function AgentDrawer({ onClose }: { onClose: () => void }) {
           </Button>
         </div>
       )}
-      <div
-        ref={scroller}
-        role='log'
-        aria-label='Transcript'
-        className='min-h-0 flex-1 overflow-y-auto px-3 py-3'
-        onScroll={({ currentTarget: view }) => {
-          following.current =
-            view.scrollHeight - view.scrollTop - view.clientHeight <
-            FOLLOW_SLACK_PX;
-        }}
-      >
-        {!wb.glspEnabled ? (
-          <div className='flex flex-col items-start gap-2 text-[13px] text-ink-muted'>
-            <p>
-              The agent edits the model through its GLSP session, which is off.
-            </p>
-            <Button variant='outline' onClick={() => wb.setGlspEnabled(true)}>
-              Turn it on
-            </Button>
-          </div>
-        ) : (
-          <ol className='flex flex-col gap-3'>
-            {chat.storedEntries.map((entry) => (
-              <li key={entry.id} className='opacity-60'>
-                <ReadOnlyEntry entry={entry} />
-              </li>
-            ))}
-            {chat.storedEntries.length > 0 && (
-              <li className='flex items-center gap-2 text-2xs text-ink-muted'>
-                <span className='h-px flex-1 bg-line' />
-                <span>Earlier conversation · read-only</span>
-                <span className='h-px flex-1 bg-line' />
-                <Button variant='quiet' onClick={chat.forgetStored}>
-                  Forget
-                </Button>
-              </li>
-            )}
-            {chat.entries.map((entry) => (
-              <li key={entry.id}>
-                <TranscriptEntry
-                  entry={entry}
-                  problems={wb.problems}
-                  keyOf={keyOf}
-                  undoable={entry.id === undoable}
-                  onUndo={chat.undo}
-                  onApprove={chat.approve}
-                  onReject={chat.reject}
-                />
-              </li>
-            ))}
-          </ol>
+      <div className='relative min-h-0 flex-1'>
+        <div
+          ref={scroller}
+          role='log'
+          aria-label='Transcript'
+          className='h-full overflow-y-auto px-3 py-3'
+          onScroll={({ currentTarget: view }) => {
+            if (
+              view.scrollHeight - view.scrollTop - view.clientHeight <
+              FOLLOW_SLACK_PX
+            ) {
+              resumeFollowing();
+            }
+          }}
+          onWheel={(e) => {
+            if (e.deltaY < 0) stopFollowing();
+          }}
+          onTouchMove={stopFollowing}
+          onKeyDown={(e) => {
+            if (SCROLL_UP_KEYS.has(e.key)) stopFollowing();
+          }}
+        >
+          {!wb.glspEnabled ? (
+            <div className='flex flex-col items-start gap-2 text-[13px] text-ink-muted'>
+              <p>
+                The agent edits the model through its GLSP session, which is
+                off.
+              </p>
+              <Button variant='outline' onClick={() => wb.setGlspEnabled(true)}>
+                Turn it on
+              </Button>
+            </div>
+          ) : (
+            <ol ref={list} className='flex flex-col gap-3'>
+              {chat.storedEntries.map((entry) => (
+                <li key={entry.id} className='opacity-60'>
+                  <ReadOnlyEntry entry={entry} />
+                </li>
+              ))}
+              {chat.storedEntries.length > 0 && (
+                <li className='flex items-center gap-2 text-2xs text-ink-muted'>
+                  <span className='h-px flex-1 bg-line' />
+                  <span>Earlier conversation · read-only</span>
+                  <span className='h-px flex-1 bg-line' />
+                  <Button variant='quiet' onClick={chat.forgetStored}>
+                    Forget
+                  </Button>
+                </li>
+              )}
+              {chat.entries.map((entry) => (
+                <li key={entry.id}>
+                  <TranscriptEntry
+                    entry={entry}
+                    problems={wb.problems}
+                    keyOf={keyOf}
+                    undoable={entry.id === undoable}
+                    onUndo={chat.undo}
+                    onApprove={chat.approve}
+                    onReject={chat.reject}
+                  />
+                </li>
+              ))}
+            </ol>
+          )}
+        </div>
+        {pendingCount !== null && (
+          <button
+            type='button'
+            className='absolute bottom-3 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-full bg-trace px-3 py-1 text-xs font-medium text-white shadow-sm transition-opacity hover:opacity-90'
+            onClick={() => {
+              const view = scroller.current;
+              if (view) view.scrollTop = view.scrollHeight;
+              resumeFollowing();
+            }}
+          >
+            {pendingCount > 0
+              ? `${pendingCount} new message${pendingCount === 1 ? '' : 's'}`
+              : 'New messages'}{' '}
+            ↓
+          </button>
         )}
       </div>
       <Composer

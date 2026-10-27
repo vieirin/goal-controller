@@ -763,6 +763,12 @@ describe('the agent drawer', () => {
       transcript.scrollTop = top;
       fireEvent.scroll(transcript);
     };
+    // a wheel up is the user's own intent to stop following; a scroll
+    // event alone (ours included) never does
+    const scrollUp = (top: number) => {
+      fireEvent.wheel(transcript, { deltaY: -100 });
+      scrollTo(top);
+    };
 
     let open: () => void = () => undefined;
     const gate = new Promise<void>((resolve) => {
@@ -779,12 +785,91 @@ describe('the agent drawer', () => {
 
     // scrolled up to read: the rest of the answer doesn't pull it down
     height = 800;
-    scrollTo(0);
+    scrollUp(0);
     await act(async () => open());
     await screen.findByText('First part, second part.');
     expect(transcript.scrollTop).toBe(0);
 
     // a new request follows again
+    turns.push({ deltas: [], completion: finalAnswer('Done.') });
+    height = 900;
+    ask('Thanks');
+    await screen.findByText('Done.');
+    expect(transcript.scrollTop).toBe(900);
+  });
+
+  it('keeps following a programmatic scroll that measures as short, however much the content grew by the time the event lands', async () => {
+    const wb = await opened();
+    fireEvent.click(screen.getByRole('button', { name: 'Show the agent' }));
+    await waitFor(() => expect(wb().glspSession).not.toBeNull());
+    const transcript = screen.getByRole('log', { name: 'Transcript' });
+    let height = 500;
+    Object.defineProperty(transcript, 'scrollHeight', { get: () => height });
+    Object.defineProperty(transcript, 'clientHeight', { get: () => 100 });
+
+    let open: () => void = () => undefined;
+    const gate = new Promise<void>((resolve) => {
+      open = resolve;
+    });
+    turns.push({
+      deltas: ['First part', ', second part.'],
+      gate,
+      completion: finalAnswer('First part, second part.'),
+    });
+    ask('Explain G1');
+    await screen.findByText('First part');
+    expect(transcript.scrollTop).toBe(500);
+
+    // the content (markdown, diff cards) grows well past the slack between
+    // our own `view.scrollTop = view.scrollHeight` and the scroll event it
+    // raises; that event alone must not read as the user scrolling away
+    height = 900;
+    transcript.scrollTop = 500;
+    fireEvent.scroll(transcript);
+
+    await act(async () => open());
+    await screen.findByText('First part, second part.');
+    expect(transcript.scrollTop).toBe(900);
+  });
+
+  it('a wheel up stops following; the pill appears once more arrives, and resuming scrolls to the end', async () => {
+    const wb = await opened();
+    fireEvent.click(screen.getByRole('button', { name: 'Show the agent' }));
+    await waitFor(() => expect(wb().glspSession).not.toBeNull());
+    const transcript = screen.getByRole('log', { name: 'Transcript' });
+    let height = 500;
+    Object.defineProperty(transcript, 'scrollHeight', { get: () => height });
+    Object.defineProperty(transcript, 'clientHeight', { get: () => 100 });
+
+    let open: () => void = () => undefined;
+    const gate = new Promise<void>((resolve) => {
+      open = resolve;
+    });
+    turns.push({
+      deltas: ['First part', ', second part.'],
+      gate,
+      completion: finalAnswer('First part, second part.'),
+    });
+    ask('Explain G1');
+    await screen.findByText('First part');
+
+    fireEvent.wheel(transcript, { deltaY: -100 });
+    transcript.scrollTop = 0;
+    fireEvent.scroll(transcript);
+    expect(screen.queryByRole('button', { name: /new message/i })).toBeNull();
+
+    // the rest of the streamed answer arrives while scrolled up: the pill shows
+    height = 800;
+    await act(async () => open());
+    await screen.findByText('First part, second part.');
+    expect(transcript.scrollTop).toBe(0);
+    const pill = await screen.findByRole('button', { name: /new message/i });
+
+    fireEvent.click(pill);
+    expect(transcript.scrollTop).toBe(800);
+    expect(screen.queryByRole('button', { name: /new message/i })).toBeNull();
+
+    // following resumed: a new request scrolls to the end on its own
     turns.push({ deltas: [], completion: finalAnswer('Done.') });
     height = 900;
     ask('Thanks');
