@@ -89,6 +89,34 @@ body {
 .cm-clickable-line {
   cursor: pointer;
 }
+/* an element the agent added or edited this session (agentChanges, goal-controller#415) */
+.cm-agent-new {
+  background-color: theme('colors.added.soft');
+  box-shadow: inset 2px 0 0 theme('colors.added.DEFAULT');
+}
+.cm-agent-edited {
+  background-color: theme('colors.caution.soft');
+  box-shadow: inset 2px 0 0 theme('colors.caution.DEFAULT');
+}
+.cm-agent-new[data-agent-badge]::after,
+.cm-agent-edited[data-agent-badge]::after {
+  content: attr(data-agent-badge);
+  float: right;
+  margin-left: 8px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 1px 5px;
+  border-radius: 3px;
+  color: #fff;
+}
+.cm-agent-new[data-agent-badge]::after {
+  background-color: theme('colors.added.DEFAULT');
+}
+.cm-agent-edited[data-agent-badge]::after {
+  background-color: theme('colors.caution.DEFAULT');
+}
 
 @media (prefers-reduced-motion: reduce) {
   *,

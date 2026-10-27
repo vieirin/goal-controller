@@ -272,7 +272,12 @@ export const workbenchTheme: Extension = [
 // Line / range decorations driven from React
 // ---------------------------------------------------------------------------
 
-export type LineMark = { line: number; className: string };
+export type LineMark = {
+  line: number;
+  className: string;
+  /** DOM attributes on the line (e.g. `data-agent-badge` for a CSS `::after` label) */
+  attributes?: Record<string, string>;
+};
 export type RangeMark = { from: number; to: number; className: string };
 
 export const setLineMarks = StateEffect.define<LineMark[]>();
@@ -291,7 +296,14 @@ export const lineMarksField = StateField.define<DecorationSet>({
           .sort((a, b) => a.line - b.line)
           .forEach((mark) => {
             const at = tr.state.doc.line(mark.line).from;
-            builder.add(at, at, Decoration.line({ class: mark.className }));
+            builder.add(
+              at,
+              at,
+              Decoration.line({
+                class: mark.className,
+                ...(mark.attributes && { attributes: mark.attributes }),
+              }),
+            );
           });
         next = builder.finish();
       }
