@@ -8,6 +8,16 @@ One orchestrator Claude session (fable or opus) spawns worker Claude sessions (s
 ln -sf "$PWD/scripts/agent-factory/agent-factory" ~/.local/bin/agent-factory
 ```
 
+Workers and the orchestrator look in [graphify](https://github.com/Graphify-Labs/graphify)'s knowledge graph before grepping:
+
+```sh
+uv tool install graphifyy    # or: pipx install graphifyy; needs Python 3.10+
+graphify .                   # once, at the repo root; writes graphify-out/
+graphify . --update          # after pulling: re-extracts only changed files
+```
+
+`graphify-out/` (graph.json, graph.html, GRAPH_REPORT.md, obsidian/, wiki/, cache/) is per machine and gitignored.
+
 ## Use
 
 ```sh

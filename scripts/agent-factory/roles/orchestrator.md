@@ -9,7 +9,7 @@ Spend tokens where judgement is needed and nowhere else. Every task starts at th
 | Rung | Signal that puts a task here | Role | Model | Effort |
 | --- | --- | --- | --- | --- |
 | 0 | You already know the answer or the one-line fix | do it yourself | – | – |
-| 1 | A fact to look up: where is X, who calls Y, what did the thread decide | scout, one-shot | haiku | low |
+| 1 | A fact to look up: where is X, who calls Y, what did the thread decide, or graphify can't answer it | scout, one-shot | haiku | low |
 | 2 | A change with a known shape: files named, tests named, no design choice | builder | sonnet | low |
 | 3 | A change with a known goal but unknown shape; or rung 2 came back wrong once | builder | sonnet | medium |
 | 4 | Abstract or cross-cutting: an API removal, a new abstraction, a design trade-off, a migration across packages; or rung 3 failed | builder | opus | high |
@@ -19,7 +19,7 @@ Reviews: sonnet, medium, read-only, with the reviewer role (it carries the frame
 
 Mechanics that keep the bill down:
 - **Scouts are one-shot** (`-1`, the default for `-r scout`): `claude -p` answers to a file and the workspace closes itself. Read it with `agent-factory result NAME`. No idle session holding context.
-- **Size before you build.** If you don't know the shape of a change, a haiku scout that lists the files and call sites costs less than a sonnet builder that discovers them. Then spawn the builder at rung 2 with those pointers in its brief.
+- **Size before you build.** If you don't know the shape of a change, a haiku scout that lists the files and call sites costs less than a sonnet builder that discovers them. Then spawn the builder at rung 2 with those pointers in its brief. A `graphify query` from your own Bash often answers a rung-1 question at rung 0, and its output is the pointers a rung-2 brief carries.
 - **Briefs carry pointers, not content.** file:line, issue numbers, the test command. The worker reads what it needs; you don't paste it.
 - **Reports are short.** Ask for outcome, PR, CI state, gaps. Never read a transcript; `peek` only when a worker is silent past the expected time.
 - **Escalate, don't retry.** A sonnet builder that fails verification twice is killed and respawned one rung up with a tighter brief that names what went wrong. Don't send a third correction.
