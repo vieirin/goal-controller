@@ -21,8 +21,10 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { useEffect } from 'react';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import type { IstarOperation } from '@istar-ts/actions';
 import type {
   ChatClient,
+  JsonValue,
   ChatCompletion,
   ChatMessage,
   ChatRequest,
@@ -38,6 +40,7 @@ import * as glspSessionModule from '@/lib/workbench/agent/glspSession';
 import { restartModelWorker } from '@/lib/workbench/modelWorkerClient';
 import type { GlspSession } from '@/lib/workbench/agent/glspSession';
 import { settled } from './modelWorker';
+import { writeModelMode } from '@/lib/workbench/pistar';
 import { mockReactFlowDom } from './reactFlowDom';
 
 const ISTAR = readFileSync(
@@ -85,20 +88,21 @@ afterEach(() => {
   applied.mockClear();
 });
 
-const renameCall: ChatCompletion = {
+const editCall = (edit: 'rename' | 'leaf'): ChatCompletion => ({
   message: {
     role: 'assistant',
     content: null,
     tool_calls: [
       {
-        id: 'call-1',
+        id: `call-${edit}`,
         type: 'function',
-        function: { name: 'rename', arguments: '{}' },
+        function: { name: 'rename', arguments: JSON.stringify({ edit }) },
       },
     ],
   },
   finishReason: 'tool_calls',
-};
+});
+const renameCall = editCall('rename');
 
 const finalAnswer = (content: string): ChatCompletion => ({
   message: { role: 'assistant', content },
@@ -114,51 +118,93 @@ const ask = (text: string) => {
 /** what Propose mode's change sets were applied with */
 const applied = vi.fn(async () => ({ ok: true as const, content: null }));
 
+// in simpleChoice.txt: the actor G1 is in
+const ACTOR = '08f209f3-3f64-4f1e-9638-d36d0f1de8a8';
+const LEAF = 'leaf-goal';
+
 /**
- * a session whose one tool renames G1 in the live model; Propose mode's
- * scratch session only says it did
+ * What the tool does: rename G1 (fine), or add a goal under G1 with nothing
+ * under it (a leaf: "every goal must be refined")
+ */
+const EDITS: Record<
+  'rename' | 'leaf',
+  readonly IstarOperation<string, string>[]
+> = {
+  rename: [{ kind: 'applyLabelEdit', labelId: G1, text: 'G1: Renamed [+]' }],
+  leaf: [
+    {
+      kind: 'createNode',
+      elementTypeId: 'istar.Goal',
+      containerId: ACTOR,
+      args: { id: LEAF, name: 'G9: Left unrefined' },
+    },
+    {
+      kind: 'createEdge',
+      elementTypeId: 'istar.OrRefinementLink',
+      sourceElementId: LEAF,
+      targetElementId: G1,
+    },
+  ],
+};
+const isRecord = (
+  value: JsonValue,
+): value is { readonly [key: string]: JsonValue } =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+const editOf = (args: JsonValue): 'rename' | 'leaf' =>
+  isRecord(args) && args.edit === 'leaf' ? 'leaf' : 'rename';
+
+/**
+ * a session whose one tool edits the live model (`EDITS`, by its `edit`
+ * argument); Propose mode's scratch session only says it did, its step
+ * holding the operations, as the real one's does
  */
 const standInSession = (wb: () => Workbench): GlspSession => {
-  const rename = async (): Promise<ToolResult> => {
+  const edit = async (_name: string, args: JsonValue): Promise<ToolResult> => {
+    // one call, one undo step
     const result = await wb().session.dispatcher.dispatch({
-      kind: 'applyLabelEdit',
-      labelId: G1,
-      text: 'G1: Renamed [+]',
+      kind: 'compound',
+      operationList: EDITS[editOf(args)],
     });
     return result.ok
-      ? { ok: true, content: { renamed: G1 } }
+      ? { ok: true, content: { edited: G1 } }
       : { ok: false, diagnostics: result.diagnostics };
   };
-  const registry = {
-    list: () => [
-      {
-        name: 'rename',
-        description: 'Renames G1.',
-        parameters: { type: 'object' },
-      },
-    ],
-    call: rename,
-  };
+  const list = () => [
+    {
+      name: 'rename',
+      description: 'Edits G1.',
+      parameters: { type: 'object' },
+    },
+  ];
   const scratch = {
-    list: registry.list,
-    call: async (): Promise<ToolResult> => ({
+    list,
+    call: async (_name: string, args: JsonValue): Promise<ToolResult> => ({
       ok: true,
-      content: { renamed: G1 },
+      content: { edited: G1 },
+      stepId: editOf(args),
     }),
   };
   return {
-    liveRegistry: registry,
+    liveRegistry: { list, call: edit },
     changeSet: {
       openScratch: async () => ({ registry: scratch }),
       apply: applied,
-      step: () => undefined,
+      step: ({ result }) =>
+        result.ok && (result.stepId === 'leaf' || result.stepId === 'rename')
+          ? {
+              operations: EDITS[result.stepId],
+              description: [`${result.stepId} G1`],
+              createdIds: [],
+            }
+          : undefined,
       describeUndo: () => undefined,
     },
     close: () => undefined,
   };
 };
 
-const opened = async () => {
+/** the model open (piStar mode: no engine checks), or `text` in its own mode */
+const opened = async (text = ISTAR) => {
   let wb: Workbench | null = null;
   const Probe = () => {
     const current = useWorkbench();
@@ -177,7 +223,7 @@ const opened = async () => {
   vi.spyOn(glspSessionModule, 'openGlspSession').mockImplementation(async () =>
     standInSession(current),
   );
-  await act(() => current().openModelFile('simpleChoice.txt', ISTAR));
+  await act(() => current().openModelFile('simpleChoice.txt', text));
   await waitFor(() => expect(current().tree).not.toBeNull());
   return current;
 };
@@ -349,6 +395,88 @@ describe('the agent drawer', () => {
       expect(within(transcript).queryAllByRole('listitem')).toHaveLength(0);
       expect(applied).not.toHaveBeenCalled();
     });
+  });
+
+  it('shows the problems an edit left, and undoes it', async () => {
+    window.localStorage.setItem(
+      'goal-workbench:agent:v1',
+      JSON.stringify({ approval: 'auto' }),
+    );
+    // edgev2's checks: every goal is refined
+    const wb = await opened(writeModelMode(ISTAR, 'edgev2'));
+    fireEvent.click(screen.getByRole('button', { name: 'Show the agent' }));
+    await waitFor(() => expect(wb().glspSession).not.toBeNull());
+    const before = wb().text;
+    turns.push(
+      { deltas: [], completion: editCall('leaf') },
+      { deltas: [], completion: finalAnswer('Added G9.') },
+    );
+    ask('Add a goal under G1');
+    await screen.findByText('Added G9.');
+    const diff = await screen.findByRole('figure', {
+      name: 'Changes to simpleChoice.txt',
+    });
+    const left = await within(diff).findByRole('group', {
+      name: 'It left these problems',
+    });
+    expect(left.textContent).toContain('G9 has no children or tasks');
+
+    fireEvent.click(within(diff).getByRole('button', { name: 'Undo' }));
+    await waitFor(() => expect(wb().text).toBe(before));
+    await waitFor(() => expect(diff.textContent).toContain('Undone'));
+    expect(within(diff).queryByRole('group')).toBeNull();
+    expect(within(diff).queryByRole('button', { name: 'Undo' })).toBeNull();
+  });
+
+  it('sends a proposal that would leave errors back to the agent', async () => {
+    // edgev2's checks: every goal is refined
+    const wb = await opened(writeModelMode(ISTAR, 'edgev2'));
+    fireEvent.click(screen.getByRole('button', { name: 'Show the agent' }));
+    await waitFor(() => expect(wb().glspSession).not.toBeNull());
+    turns.push(
+      { deltas: [], completion: editCall('leaf') },
+      { deltas: [], completion: finalAnswer('Proposed G9.') },
+      // the revision request
+      { deltas: [], completion: editCall('rename') },
+      { deltas: [], completion: finalAnswer('Renamed G1 instead.') },
+    );
+    ask('Add a goal under G1');
+    await screen.findByText('Renamed G1 instead.');
+
+    const [sentBack, revised] = screen.getAllByRole('region', {
+      name: 'Proposed changes',
+    });
+    expect(sentBack!.textContent).toContain('Sent back');
+    expect(
+      within(sentBack!).getByRole('group', {
+        name: 'It would leave these problems',
+      }).textContent,
+    ).toContain('G9 has no children or tasks');
+    expect(
+      within(sentBack!).queryByRole('button', { name: 'Approve' }),
+    ).toBeNull();
+    screen.getByText(/the agent is revising it \(1 of 2\)/);
+    // what the agent was told: the problems, and that nothing was applied
+    const told = requests[2]?.findLast(({ role }) => role === 'user');
+    expect(told?.content).toContain('was not applied');
+    expect(told?.content).toContain('G9 has no children or tasks');
+
+    // the revision is clean, for review; the preview shows what it does
+    expect(within(revised!).queryByRole('group')).toBeNull();
+    within(revised!).getByRole('button', { name: 'Approve' });
+    fireEvent.click(
+      within(revised!).getByRole('button', {
+        name: 'Preview the model after it',
+      }),
+    );
+    const preview = within(revised!).getByRole('figure', {
+      name: 'Changes to simpleChoice.txt',
+    });
+    expect(preview.textContent).toContain('Renamed');
+    expect(preview.textContent).toContain('Preview');
+    expect(applied).not.toHaveBeenCalled();
+    // the live model untouched
+    expect(wb().text).not.toContain('Renamed');
   });
 
   it('sends the conversation so far with each request', async () => {

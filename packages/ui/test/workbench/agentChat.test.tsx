@@ -17,7 +17,13 @@ import { AssistantProse } from '@/components/workbench/agent/AssistantProse';
 import { Composer } from '@/components/workbench/agent/Composer';
 import { DiffCard } from '@/components/workbench/agent/DiffCard';
 import { ToolCallCard } from '@/components/workbench/agent/ToolCallCard';
-import { flatTable, toolCallChip } from '@/lib/workbench/agent/chatTranscript';
+import {
+  flatTable,
+  introducedProblems,
+  problemKey,
+  revisionPrompt,
+  toolCallChip,
+} from '@/lib/workbench/agent/chatTranscript';
 import { projectFilesOf } from '@/lib/workbench/agent/projectFiles';
 import { PROVIDERS } from '@/lib/workbench/agent/providers';
 import {
@@ -351,5 +357,38 @@ describe("a conversation's usage", () => {
     expect(formatTokens(12_400)).toBe('12.4k');
     expect(formatTokens(2000)).toBe('2k');
     expect(formatTokens(1_250_000)).toBe('1.25M');
+  });
+});
+
+describe('the problems an edit introduced', () => {
+  const problem = (elementId: string, message: string) =>
+    ({ elementId, message, severity: 'error' }) as const;
+
+  it('are the new ones on what it touched, by id or RT id, positions aside', () => {
+    const before = [problem('G1', 'Not valid: 1:10 `+` is not an operator')];
+    const now = [
+      // the same problem, moved by a rename
+      problem('G1', 'Not valid: 1:13 `+` is not an operator'),
+      problem('G9', 'G9 has no children or tasks; every goal must be refined'),
+      // on an element the edit didn't touch
+      problem('G3', 'G3 has no children or tasks; every goal must be refined'),
+    ];
+    const introduced = introducedProblems(
+      now,
+      new Set(['uuid-of-g1', 'uuid-of-g9']),
+      new Set(before.map(problemKey)),
+      (id) => ({ 'uuid-of-g1': 'G1', 'uuid-of-g9': 'G9' })[id],
+    );
+    expect(introduced.map(({ elementId }) => elementId)).toEqual(['G9']);
+  });
+
+  it('go back to the agent, saying nothing was applied', () => {
+    const prompt = revisionPrompt([
+      problem('G9', 'G9 has no children or tasks; every goal must be refined'),
+    ]);
+    expect(prompt).toContain('was not applied');
+    expect(prompt).toContain(
+      '- error: G9 has no children or tasks; every goal must be refined',
+    );
   });
 });

@@ -1,20 +1,26 @@
+import { useState } from 'react';
+import { ChevronRight } from 'lucide-react';
 import type {
   ChatEntry,
+  ChipTone,
   ProposalState,
 } from '@/lib/workbench/agent/chatTranscript';
 import { describeEntry } from '@/lib/workbench/agent/chatTranscript';
 import { Button, cx } from '../ui';
+import { DiffCard } from './DiffCard';
+import { ProblemList } from './ProblemList';
 import { StatusChip } from './StatusChip';
 
 type Proposal = Extract<ChatEntry, { kind: 'proposal' }>;
 
 const SETTLED: Record<
   Exclude<ProposalState, 'pending'>,
-  { label: string; tone: 'ok' | 'muted' }
+  { label: string; tone: ChipTone }
 > = {
   applied: { label: 'Applied', tone: 'ok' },
   rejected: { label: 'Rejected', tone: 'muted' },
   discarded: { label: 'Not applied', tone: 'muted' },
+  revised: { label: 'Sent back', tone: 'caution' },
 };
 
 /**
@@ -86,6 +92,7 @@ export function ProposalCard({
           );
         })}
       </ol>
+      <ProposalPreview proposal={proposal} />
       {state === 'pending' && (
         <div className='mt-2 flex gap-2'>
           <Button variant='primary' onClick={onApprove}>
@@ -97,5 +104,52 @@ export function ProposalCard({
         </div>
       )}
     </section>
+  );
+}
+
+/**
+ * What the change set would do to the model: the problems it would leave,
+ * always; its diff, on demand.
+ */
+function ProposalPreview({ proposal }: { proposal: Proposal }) {
+  const [open, setOpen] = useState(false);
+  const { preview } = proposal;
+  if (!preview.ok)
+    return (
+      <p className='mt-2 text-2xs text-ink-muted'>
+        No preview: {preview.message}
+      </p>
+    );
+  return (
+    <div className='mt-2 flex flex-col gap-1.5'>
+      {preview.problems.length > 0 && (
+        <div className='rounded-md border border-line'>
+          <ProblemList
+            heading='It would leave these problems'
+            problems={preview.problems}
+          />
+        </div>
+      )}
+      <button
+        type='button'
+        aria-expanded={open}
+        onClick={() => setOpen((was) => !was)}
+        className='flex items-center gap-1 self-start text-2xs font-medium text-ink-soft hover:text-ink'
+      >
+        <ChevronRight
+          className={cx('h-3 w-3 transition-transform', open && 'rotate-90')}
+          aria-hidden
+        />
+        Preview the model after it
+      </button>
+      {open && (
+        <DiffCard
+          fileName={preview.fileName}
+          before={preview.before}
+          after={preview.after}
+          status='preview'
+        />
+      )}
+    </div>
   );
 }

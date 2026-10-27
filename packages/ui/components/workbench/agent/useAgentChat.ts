@@ -13,11 +13,25 @@
  * call, an approved change set) the model's JSON text before and after it.
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { AgentEvent, AgentRun, ChatMessage } from '@istar-ts/agent';
+import type {
+  AgentEvent,
+  AgentRun,
+  ChangeSetEntry,
+  ChatMessage,
+} from '@istar-ts/agent';
+import type { GlspChangeSet } from '@istar-ts/agent/glsp';
 import { toPistar } from '@istar-ts/core';
 import { contextProvidersFor } from '@/lib/workbench/agent/context';
 import type { AgentSettings } from '@/lib/workbench/agent/agentSettings';
-import type { ChatEntry } from '@/lib/workbench/agent/chatTranscript';
+import {
+  problemKey,
+  problemsText,
+  revisionPrompt,
+  type ChatEntry,
+  type PreviewView,
+} from '@/lib/workbench/agent/chatTranscript';
+import { previewProposal } from '@/lib/workbench/agent/proposalPreview';
+import { diffModel, snapshotModel } from '@/lib/workbench/agentChanges';
 import { PROVIDERS, type Attachment } from '@/lib/workbench/agent/providers';
 import {
   addUsage,
@@ -28,6 +42,9 @@ import {
 import { useWorkbench } from '../WorkbenchContext';
 
 type Proposal = Extract<ChatEntry, { kind: 'proposal' }>;
+
+/** how many times a proposal that would leave errors goes back to the agent */
+export const MAX_REVISIONS = 2;
 
 const messageOf = (error: unknown): string =>
   error instanceof Error ? error.message : String(error);
@@ -47,6 +64,9 @@ export function useAgentChat() {
    */
   const history = useRef<readonly ChatMessage[]>([]);
   const [usage, setUsage] = useState<ConversationUsage>(NO_USAGE);
+  /** the model's problems as last rendered: what a run starts from */
+  const latestProblems = useRef(wb.problems);
+  latestProblems.current = wb.problems;
   const ids = useRef(0);
   const nextId = () => `entry-${(ids.current += 1)}`;
 
@@ -144,23 +164,31 @@ export function useAgentChat() {
   const diffRecorder = () => {
     const session = wb.session;
     const fileName = wb.fileName || 'model.json';
-    const snapshot = () => toPistar(session.store.getModel());
-    let before = snapshot();
+    const baseline = new Set(latestProblems.current.map(problemKey));
+    let before = toPistar(session.store.getModel());
+    let beforeModel = snapshotModel(session.store.getModel());
     let chain = Promise.resolve();
     const record = (afterId: string) => {
       chain = chain
         .then(() => session.synced())
         .then(() => {
-          const after = snapshot();
-          if (after !== before)
+          const model = session.store.getModel();
+          const after = toPistar(model);
+          if (after !== before) {
+            const { added, edited } = diffModel(beforeModel, model);
             insertAfter(afterId, {
               kind: 'diff',
               id: nextId(),
               fileName,
               before,
               after,
+              touched: new Set([...added, ...edited]),
+              baseline,
+              undone: false,
             });
+          }
           before = after;
+          beforeModel = snapshotModel(model);
         })
         // the worker crashed: the incident says so, and the model was reset
         .catch(() => undefined);
@@ -168,17 +196,36 @@ export function useAgentChat() {
     return { record, done: () => chain };
   };
 
+  /** One request to the agent; a Propose run whose change set would leave errors asks for its revision. */
+  type Request = {
+    prompt: string;
+    attachments: readonly Attachment[];
+    /** how many times the agent was already sent back to revise its proposal */
+    revision: number;
+  };
+
   const send = async (
     text: string,
     attachments: readonly Attachment[],
     settings: AgentSettings,
   ) => {
-    const glsp = wb.glspSession;
-    if (!glsp || running || !text.trim()) return;
+    if (!wb.glspSession || running || !text.trim()) return;
     setRunning(true);
     // a new request supersedes a change set still waiting for review
     setProposalState('discarded', (e) => e.state === 'pending');
     append({ kind: 'user', id: nextId(), text, attachments });
+    let request: Request | null = { prompt: text, attachments, revision: 0 };
+    while (request) request = await runOnce(request, settings);
+    setRunning(false);
+  };
+
+  /** a run of `request`, and what to send next: a revision, or nothing */
+  const runOnce = async (
+    { prompt, attachments, revision }: Request,
+    settings: AgentSettings,
+  ): Promise<Request | null> => {
+    const glsp = wb.glspSession;
+    if (!glsp) return null;
     const { costPerMillionTokens, createChatClient, runAgent } =
       await import('@istar-ts/agent');
     const prices = pricesOf(settings.prices);
@@ -228,10 +275,20 @@ export function useAgentChat() {
     try {
       const common = {
         client,
-        prompt: text,
+        prompt,
         attachments,
         history: history.current,
-        context: contextProviders,
+        // the problems the workbench shows now, which no tool reports
+        // (an edit of an earlier request may have left some)
+        context: [
+          ...contextProviders,
+          {
+            name: 'model-problems',
+            title: 'Problems in the model now',
+            text: problemsText(latestProblems.current),
+            resource: false,
+          },
+        ],
         getModel: () => wb.session.store.getModel(),
         onEvent,
         signal: controller.signal,
@@ -249,7 +306,7 @@ export function useAgentChat() {
               changeSet: glsp.changeSet,
             });
       await diffs.done();
-      if (controller.signal.aborted) return;
+      if (controller.signal.aborted) return null;
       history.current = result.transcript.messages.filter(
         ({ role }) => role !== 'system',
       );
@@ -260,24 +317,65 @@ export function useAgentChat() {
           id: nextId(),
           text: `Stopped (${stop.reason})${stop.message ? `: ${stop.message}` : ''}`,
         });
-      if (result.changeSet.length > 0)
-        append({
-          kind: 'proposal',
-          id: nextId(),
-          changeSet: glsp.changeSet,
-          entries: result.changeSet,
-          state: 'pending',
-        });
+      if (result.changeSet.length === 0) return null;
+      const preview = await previewOf(glsp.changeSet, result.changeSet);
+      const errors = preview.ok
+        ? preview.problems.filter(({ severity }) => severity === 'error')
+        : [];
+      const sendBack = errors.length > 0 && revision < MAX_REVISIONS;
+      append({
+        kind: 'proposal',
+        id: nextId(),
+        changeSet: glsp.changeSet,
+        entries: result.changeSet,
+        preview,
+        state: sendBack ? 'revised' : 'pending',
+      });
+      if (!sendBack) return null;
+      append({
+        kind: 'notice',
+        id: nextId(),
+        text: `The proposal would leave ${errors.length} error${errors.length === 1 ? '' : 's'}: the agent is revising it (${revision + 1} of ${MAX_REVISIONS}).`,
+      });
+      return {
+        prompt: revisionPrompt(errors),
+        attachments: [],
+        revision: revision + 1,
+      };
     } catch (error) {
       if (!controller.signal.aborted)
         append({ kind: 'error', id: nextId(), text: messageOf(error) });
+      return null;
     } finally {
       // once the mirror shows the run's last edit
       await diffs.done();
       // another model's snapshot says nothing about this one
       if (!controller.signal.aborted) wb.endAgentChanges();
-      setRunning(false);
     }
+  };
+
+  /**
+   * The change set replayed on a copy of the live model: its JSON text
+   * before and after, and the problems the workbench would report after it
+   * that it doesn't now (`wb.previewProblems`, on both models alike).
+   */
+  const previewOf = async (
+    changeSet: GlspChangeSet,
+    proposed: readonly ChangeSetEntry[],
+  ): Promise<PreviewView> => {
+    const live = wb.session.store.getModel();
+    const replayed = await previewProposal(live, changeSet, proposed);
+    if (!replayed.ok) return replayed;
+    const now = new Set(wb.previewProblems(live).map(problemKey));
+    return {
+      ok: true,
+      fileName: wb.fileName || 'model.json',
+      before: toPistar(live),
+      after: toPistar(replayed.model),
+      problems: wb
+        .previewProblems(replayed.model)
+        .filter((problem) => !now.has(problemKey(problem))),
+    };
   };
 
   /** The approved change set, as one undo step: refused as a whole, the model untouched. */
@@ -305,10 +403,29 @@ export function useAgentChat() {
     }
   };
 
+  /** the diff `id`'s edit undone (the latest edit, nothing after it) */
+  const undo = (id: string) => {
+    wb.undo();
+    setEntries((prev) =>
+      prev.map((e) =>
+        e.kind === 'diff' && e.id === id ? { ...e, undone: true } : e,
+      ),
+    );
+  };
+
   const reject = ({ id }: Proposal) =>
     setProposalState('rejected', (e) => e.id === id);
 
-  return { entries, running, conversation, usage, send, approve, reject };
+  return {
+    entries,
+    running,
+    conversation,
+    usage,
+    send,
+    approve,
+    reject,
+    undo,
+  };
 }
 
 export type AgentChat = ReturnType<typeof useAgentChat>;

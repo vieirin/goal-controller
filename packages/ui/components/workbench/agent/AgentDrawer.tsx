@@ -15,7 +15,12 @@ import {
   saveAgentSettings,
   type AgentSettings,
 } from '@/lib/workbench/agent/agentSettings';
-import type { ChatEntry } from '@/lib/workbench/agent/chatTranscript';
+import {
+  introducedProblems,
+  type ChatEntry,
+} from '@/lib/workbench/agent/chatTranscript';
+import type { Problem } from '@/lib/workbench/types';
+import { toPistar } from '@istar-ts/core';
 import { PROVIDERS } from '@/lib/workbench/agent/providers';
 import { formatCost, formatTokens } from '@/lib/workbench/agent/usage';
 import {
@@ -29,6 +34,7 @@ import { AssistantProse } from './AssistantProse';
 import { Composer } from './Composer';
 import { DiffCard } from './DiffCard';
 import { ErrorLine } from './ErrorLine';
+import { NoticeLine } from './NoticeLine';
 import { ProposalCard } from './ProposalCard';
 import { ToolCallCard } from './ToolCallCard';
 import { UserCard } from './UserCard';
@@ -68,6 +74,23 @@ export default function AgentDrawer({ onClose }: { onClose: () => void }) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const chat = useAgentChatContext();
   const projectFiles = useProjectFiles();
+  const keyOf = useCallback(
+    (id: string) => wb.tree?.byIStarId.get(id)?.key,
+    [wb.tree],
+  );
+  // the latest edit, while nothing has changed the model since: undoable
+  const latestDiff = chat.entries.findLast(
+    (entry) => entry.kind === 'diff' && !entry.undone,
+  );
+  const modelNow = useMemo(
+    () => (latestDiff ? toPistar(wb.session.store.getModel()) : null),
+    // the text follows every change of the session's model
+    [latestDiff, wb.session, wb.text],
+  );
+  const undoable =
+    latestDiff?.kind === 'diff' && latestDiff.after === modelNow
+      ? latestDiff.id
+      : null;
   // what the model's views badge (EDITED, NEW, …) until cleared
   const { added, edited, removed } = wb.agentChanges;
   const marked = added.size + edited.size + removed.size;
@@ -159,6 +182,10 @@ export default function AgentDrawer({ onClose }: { onClose: () => void }) {
               <li key={entry.id}>
                 <TranscriptEntry
                   entry={entry}
+                  problems={wb.problems}
+                  keyOf={keyOf}
+                  undoable={entry.id === undoable}
+                  onUndo={chat.undo}
                   onApprove={chat.approve}
                   onReject={chat.reject}
                 />
@@ -203,10 +230,21 @@ type Proposal = Extract<ChatEntry, { kind: 'proposal' }>;
 
 function TranscriptEntry({
   entry,
+  problems,
+  keyOf,
+  undoable,
+  onUndo,
   onApprove,
   onReject,
 }: {
   entry: ChatEntry;
+  /** the model's problems now (`wb.problems`) */
+  problems: readonly Problem[];
+  /** an element's RT id, the notation's problems name it by */
+  keyOf: (id: string) => string | undefined;
+  /** a diff that is still the model's latest edit */
+  undoable: boolean;
+  onUndo: (id: string) => void;
   onApprove: (proposal: Proposal) => Promise<void>;
   onReject: (proposal: Proposal) => void;
 }) {
@@ -223,6 +261,18 @@ function TranscriptEntry({
           fileName={entry.fileName}
           before={entry.before}
           after={entry.after}
+          status={entry.undone ? 'undone' : 'accepted'}
+          problems={
+            entry.undone
+              ? []
+              : introducedProblems(
+                  problems,
+                  entry.touched,
+                  entry.baseline,
+                  keyOf,
+                )
+          }
+          onUndo={undoable ? () => onUndo(entry.id) : undefined}
         />
       );
     case 'proposal':
@@ -235,5 +285,7 @@ function TranscriptEntry({
       );
     case 'error':
       return <ErrorLine text={entry.text} />;
+    case 'notice':
+      return <NoticeLine text={entry.text} />;
   }
 }

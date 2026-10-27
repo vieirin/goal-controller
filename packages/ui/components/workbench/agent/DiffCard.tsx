@@ -1,7 +1,9 @@
 import { useMemo } from 'react';
-import { Check } from 'lucide-react';
+import { Check, Undo2 } from 'lucide-react';
+import type { Problem } from '@/lib/workbench/types';
 import { modelDiff, type DiffLine } from '@/lib/workbench/agent/chatTranscript';
-import { cx } from '../ui';
+import { Button, cx } from '../ui';
+import { ProblemList } from './ProblemList';
 import { StatusChip } from './StatusChip';
 
 const ROW: Record<DiffLine['kind'], string> = {
@@ -23,10 +25,19 @@ export function DiffCard({
   fileName,
   before,
   after,
+  status = 'accepted',
+  problems = [],
+  onUndo,
 }: {
   fileName: string;
   before: string;
   after: string;
+  /** an applied edit's, or undone since; a proposal's preview */
+  status?: 'accepted' | 'undone' | 'preview';
+  /** what the edit left (would leave) in the model */
+  problems?: readonly Problem[];
+  /** the edit undone: only while it is the model's latest */
+  onUndo?: () => void;
 }) {
   const { added, removed, lines } = useMemo(
     () => modelDiff(before, after),
@@ -44,10 +55,24 @@ export function DiffCard({
         <span className='text-and'>+{added}</span>
         <span className='text-danger'>−{removed}</span>
         <span className='flex-1' />
-        <StatusChip tone='ok'>
-          <Check className='h-3 w-3' aria-hidden />
-          Accepted
-        </StatusChip>
+        {onUndo && (
+          <Button
+            variant='quiet'
+            className='h-5 px-1.5 text-2xs'
+            onClick={onUndo}
+          >
+            <Undo2 className='h-3 w-3' aria-hidden />
+            Undo
+          </Button>
+        )}
+        {status === 'accepted' && (
+          <StatusChip tone='ok'>
+            <Check className='h-3 w-3' aria-hidden />
+            Accepted
+          </StatusChip>
+        )}
+        {status === 'undone' && <StatusChip tone='muted'>Undone</StatusChip>}
+        {status === 'preview' && <StatusChip tone='muted'>Preview</StatusChip>}
       </figcaption>
       <div className='max-h-80 overflow-auto'>
         <div className='min-w-max py-1 font-mono text-2xs'>
@@ -71,6 +96,14 @@ export function DiffCard({
           ))}
         </div>
       </div>
+      <ProblemList
+        heading={
+          status === 'preview'
+            ? 'It would leave these problems'
+            : 'It left these problems'
+        }
+        problems={problems}
+      />
     </figure>
   );
 }

@@ -11,6 +11,7 @@ import type {
 } from '@istar-ts/agent';
 import type { GlspChangeSet } from '@istar-ts/agent/glsp';
 import { structuredPatch } from 'diff';
+import type { Problem } from '@/lib/workbench/types';
 import type { Attachment } from './providers';
 
 /**
@@ -18,7 +19,28 @@ import type { Attachment } from './providers';
  * approved (`applied`), rejected, or `discarded` (the model worker it was
  * previewed in restarted, or a later run superseded it).
  */
-export type ProposalState = 'pending' | 'applied' | 'rejected' | 'discarded';
+export type ProposalState =
+  | 'pending'
+  | 'applied'
+  | 'rejected'
+  | 'discarded'
+  /** it would leave errors: sent back to the agent, which proposes again */
+  | 'revised';
+
+/**
+ * A change set replayed on a copy of the model (`previewProposal`): the
+ * model's JSON text before and after it, and the problems it would add;
+ * or why it couldn't be replayed.
+ */
+export type PreviewView =
+  | {
+      ok: true;
+      fileName: string;
+      before: string;
+      after: string;
+      problems: readonly Problem[];
+    }
+  | { ok: false; message: string };
 
 export type ChatEntry =
   | {
@@ -30,21 +52,31 @@ export type ChatEntry =
   /** a step's prose, streamed in as it arrives */
   | { kind: 'assistant'; id: string; text: string }
   | { kind: 'tool'; id: string; call: TranscriptToolCall }
-  /** the model's JSON text before and after an edit */
+  /**
+   * the model's JSON text before and after an edit; the elements and links
+   * it added or changed, and the model's problems before its run (as
+   * `problemKey`s), for the problems it introduced
+   */
   | {
       kind: 'diff';
       id: string;
       fileName: string;
       before: string;
       after: string;
+      touched: ReadonlySet<string>;
+      baseline: ReadonlySet<string>;
+      undone: boolean;
     }
   | {
       kind: 'proposal';
       id: string;
       changeSet: GlspChangeSet;
       entries: readonly ChangeSetEntry[];
+      preview: PreviewView;
       state: ProposalState;
     }
+  /** what the drawer did on its own (sent a proposal back to the agent) */
+  | { kind: 'notice'; id: string; text: string }
   | { kind: 'error'; id: string; text: string };
 
 export type ChipTone = 'ok' | 'caution' | 'danger' | 'muted';
@@ -186,3 +218,58 @@ export const describeEntry = (
     lines: changeSet.step(entry)?.description ?? [`${entry.name} (no change)`],
   };
 };
+
+/**
+ * a problem as itself: where, and what, its positions left out (an edit
+ * moves the same problem within its line: `1:10` before a rename, `1:13`
+ * after)
+ */
+export const problemKey = ({
+  elementId,
+  message,
+}: Pick<Problem, 'elementId' | 'message'>): string =>
+  `${elementId ?? ''}\u0000${message.replace(/\b\d+:\d+\b/g, '')}`;
+
+/**
+ * The problems an edit introduced, as the model is now: on an element or
+ * link it added or changed (by its id, or by `keyOf` it: the RT id the
+ * notation's problems name it by), and not there before its run. One fixed
+ * since is gone from the list.
+ */
+export const introducedProblems = (
+  problems: readonly Problem[],
+  touched: ReadonlySet<string>,
+  baseline: ReadonlySet<string>,
+  keyOf: (id: string) => string | undefined = () => undefined,
+): readonly Problem[] => {
+  const names = new Set(touched);
+  for (const id of touched) {
+    const key = keyOf(id);
+    if (key) names.add(key);
+  }
+  return problems.filter(
+    (problem) =>
+      problem.elementId !== undefined &&
+      names.has(problem.elementId) &&
+      !baseline.has(problemKey(problem)),
+  );
+};
+
+/** the model's problems, for the agent's next request (a system-prompt section) */
+export const problemsText = (problems: readonly Problem[]): string =>
+  problems.length === 0
+    ? 'None.'
+    : problems
+        .map(
+          ({ severity, message, elementId }) =>
+            `- ${severity}: ${message}${elementId ? ` (element ${elementId})` : ''}`,
+        )
+        .join('\n');
+
+/** what a proposal that would leave `errors` is sent back to the agent with */
+export const revisionPrompt = (errors: readonly Problem[]): string =>
+  [
+    'Your change set was not applied: it would leave these problems in the model.',
+    problemsText(errors),
+    'Propose the whole change again, from the model as it is now, so that it leaves none of them.',
+  ].join('\n\n');
