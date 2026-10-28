@@ -5,8 +5,11 @@
  */
 import { expect } from 'chai';
 import { parsePistar } from '@istar-ts/core';
-import { goalView } from '@goal-controller/goal-tree';
-import { checkContextOf } from '@goal-controller/goal-language';
+import { goalView, type AnyModel } from '@goal-controller/goal-tree';
+import {
+  checkContextOf,
+  notationContextOf,
+} from '@goal-controller/goal-language';
 import {
   toyAnalyses,
   toyAnalysisModel,
@@ -15,7 +18,6 @@ import {
 import { TOY_MODEL } from '../engines/analysis/toyModel';
 import {
   applyNotationEdits,
-  contextOf,
   notationDocument,
   notationEdits,
 } from '../../../ui/lib/workbench/notationDocument';
@@ -77,19 +79,15 @@ describe('links and actors in the view (#107)', () => {
     expect(model.links[0].customProperties).to.deep.equal({ weight: '9' });
   });
 
-  it('removes a link’s last property, and its customProperties with it', () => {
+  it('removes a link’s last property, keeping its customProperties as {} (istar-ts#219)', () => {
     const model = JSON.parse(setLinkProperty(TOY_MODEL, 'l1', 'weight', null));
-    expect(model.links[0]).not.to.have.property('customProperties');
+    expect(model.links[0].customProperties).to.deep.equal({});
     expect(model.links[0].label).to.equal('help');
   });
 
   it('gives a link property’s check the link, its ends’ kinds included', () => {
     const check = checkContextOf(
-      contextOf(
-        toyGraph as unknown as Parameters<typeof contextOf>[0],
-        view(),
-        [],
-      ),
+      notationContextOf(toyGraph, { tree: view(), variables: [] }),
       'l2',
     );
     expect(check.readLink?.('l2')?.ends?.target.kind).to.equal('istar.Goal');
@@ -103,6 +101,7 @@ describe('the workbench’s analysis (#107)', () => {
       'weights',
       toyAnalyses.weights,
       TOY_MODEL,
+      parsePistar(TOY_MODEL),
       toyAnalysisModel,
     );
     expect('result' in run).to.equal(true);
@@ -228,10 +227,16 @@ describe('the workbench’s analysis (#107)', () => {
   });
 
   it('says why an analysis didn’t run, with no values', () => {
+    // analyse no longer parses text itself (goal-controller#449, #451 review):
+    // the caller (WorkbenchContext's readText) parses, and only ever hands
+    // analyse an already-valid model. What analyse still catches is readModel
+    // failing on the model it's given — simulated here with one that doesn't
+    // have what toyAnalysisModel (GoalTree.goalModel) needs.
     const run = analyse(
       'weights',
       toyAnalyses.weights,
       '{ not json',
+      {} as AnyModel,
       toyAnalysisModel,
     );
     expect('error' in run).to.equal(true);

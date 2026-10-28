@@ -7,23 +7,51 @@
  * disagreed.
  */
 import { act, cleanup, render, waitFor } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   useWorkbench,
   WorkbenchProvider,
   type Workbench,
 } from '@/components/workbench/WorkbenchContext';
+import type { EngineWorkerResponse } from '@/lib/workbench/engineWorkerProtocol';
+import { createLocalModelWorker } from '@/lib/workbench/modelWorkerLocal';
+import { analysisKey } from '@/lib/workbench/signature';
 
-vi.mock('@/services', async (original) => ({
-  ...(await original<typeof import('@/services')>()),
-  analyze: () => {
-    throw new Error('(0 , import_dialect10.propertyOf) is not a function');
-  },
-}));
+// jsdom has no real Worker (engineWorker.test.tsx): fake the engine worker so
+// its analysis failure arrives the way the real worker's would, over
+// `postMessage`; the model worker still runs for real, in-process
+class FakeWorker {
+  onmessage: ((event: MessageEvent<EngineWorkerResponse>) => void) | null =
+    null;
+  terminate = vi.fn();
+  postMessage(): void {}
+  respond(message: EngineWorkerResponse): void {
+    this.onmessage?.({ data: message } as MessageEvent<EngineWorkerResponse>);
+  }
+}
+
+let engineWorkers: FakeWorker[] = [];
+
+beforeEach(() => {
+  engineWorkers = [];
+  vi.stubGlobal(
+    'Worker',
+    class {
+      constructor(url: URL) {
+        if (url.pathname.endsWith('/modelWorker.ts'))
+          return createLocalModelWorker();
+        const worker = new FakeWorker();
+        engineWorkers.push(worker);
+        return worker;
+      }
+    },
+  );
+});
 
 describe('problems after the model closes', () => {
   afterEach(() => {
     cleanup();
+    vi.unstubAllGlobals();
   });
 
   it('drops to zero once an analysis failure’s model is closed', async () => {
@@ -37,7 +65,15 @@ describe('problems after the model closes', () => {
         <Probe />
       </WorkbenchProvider>,
     );
-    act(() => workbench!.setText('{"actors":[]}', 'open'));
+    const text = '{"actors":[]}';
+    act(() => workbench!.setText(text, 'open'));
+    act(() =>
+      engineWorkers[0]!.respond({
+        type: 'analyzeFailed',
+        key: analysisKey(text, 'edgev2'),
+        message: '(0 , import_dialect10.propertyOf) is not a function',
+      }),
+    );
     await waitFor(() =>
       expect(workbench!.problems.some((p) => p.severity === 'error')).toBe(
         true,

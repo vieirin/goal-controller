@@ -8,7 +8,6 @@ import {
   type IstarExtension,
 } from '@istar-ts/react';
 import type { ReactElement } from 'react';
-import { oneActorOnly } from '../shared/extensions';
 import WorkbenchCanvas from '../shared/WorkbenchCanvas';
 
 const { mutrose } = ENGINE_DIALECTS;
@@ -104,15 +103,6 @@ const MUTROSE_EXTENSIONS: readonly IstarExtension[] = [mutrosePalette];
 /** What piStar mode's palette toggle adds for a file recorded for MutRoSe. */
 export const MUTROSE_PALETTE: readonly IstarExtension[] = [mutrosePalette];
 
-const mutroseOneActor = oneActorOnly(
-  'MutRoSe reads a single actor (its mission): add goals and tasks inside the existing one.',
-);
-
 export default function MutroseDiagram() {
-  return (
-    <WorkbenchCanvas
-      extensions={MUTROSE_EXTENSIONS}
-      rejectEdit={mutroseOneActor}
-    />
-  );
+  return <WorkbenchCanvas extensions={MUTROSE_EXTENSIONS} />;
 }

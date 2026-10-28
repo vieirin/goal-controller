@@ -3,12 +3,18 @@
 import { setDiagnostics, type Diagnostic } from '@codemirror/lint';
 import { EditorView } from '@codemirror/view';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import type { GoalDiagnostic, PistarFile } from '@istar-ts/core';
 import { setRangeMarks } from '@/lib/workbench/codemirror';
 import { sourcePosition } from '@/lib/workbench/localProblems';
 import { nodeRanges } from '@/lib/workbench/pistar';
+import { fileMetamodelForText } from '@/lib/workbench/dialects';
+import { dispatchOrFallback } from '@/lib/workbench/modelSession';
 import CodeEditor from './CodeEditor';
 import { useSelection, useWorkbench } from './WorkbenchContext';
 import { useShell } from './shell';
+
+/** source text settles (parses and diffs against the live model) this long after the last keystroke */
+const SETTLE_DELAY = 500;
 
 export default function SourceView() {
   const wb = useWorkbench();
@@ -31,6 +37,53 @@ export default function SourceView() {
   );
   const rangesRef = useRef(ranges);
   rangesRef.current = ranges;
+
+  // raw JSON edits: dispatched whole, as one istar.replaceModel, a settle
+  // delay after the last keystroke, so a dispatch isn't made per character.
+  // Text that doesn't parse as JSON falls back to the old host-side replace,
+  // kept as typed (goal-controller#411); a dispatch the vocabulary itself
+  // rejects (an unknown kind) falls back the same way. A guard's rejection
+  // (goal-controller#439 review) never falls back — that would apply through
+  // `setText`'s host-side write exactly what the guard just refused —
+  // so the model stays untouched; the typed text is still shown (`skipStore`),
+  // its diagnostics inline where JSON parse problems already are.
+  const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (settleTimer.current) clearTimeout(settleTimer.current);
+    },
+    [],
+  );
+  const [rejected, setRejected] = useState<readonly GoalDiagnostic[]>([]);
+  const onChange = (value: string) => {
+    if (settleTimer.current) clearTimeout(settleTimer.current);
+    settleTimer.current = setTimeout(() => {
+      settleTimer.current = null;
+      setRejected([]);
+      let model: PistarFile;
+      try {
+        model = JSON.parse(value);
+      } catch {
+        latest.current.setText(value, 'source');
+        return;
+      }
+      dispatchOrFallback(
+        latest.current.session,
+        'inspector',
+        {
+          kind: 'istar.replaceModel',
+          model,
+          fileMetamodel: fileMetamodelForText(value),
+        },
+        (diagnostics, canFallBack) => {
+          setRejected(diagnostics);
+          latest.current.setText(value, 'source', {
+            skipStore: !canFallBack,
+          });
+        },
+      );
+    }, SETTLE_DELAY);
+  };
 
   // cursor inside a node's object → select that node
   const extensions = useMemo(
@@ -81,7 +134,7 @@ export default function SourceView() {
     if (!view) return;
     const doc = view.state.doc;
     const diagnostics: Diagnostic[] = [];
-    for (const problem of problems) {
+    for (const problem of [...problems, ...rejected]) {
       const at = sourcePosition(problem);
       if (at && at.line <= doc.lines) {
         const line = doc.line(at.line);
@@ -115,7 +168,7 @@ export default function SourceView() {
       }
     }
     view.dispatch(setDiagnostics(view.state, diagnostics));
-  }, [view, problems, ranges, tree]);
+  }, [view, problems, rejected, ranges, tree]);
 
   // "go to line" requests (from Problems)
   useEffect(() => {
@@ -134,7 +187,7 @@ export default function SourceView() {
       value={text}
       language='json'
       ariaLabel='Goal model source (piStar JSON)'
-      onChange={(value) => wb.setText(value, 'source')}
+      onChange={onChange}
       readOnly={modelReadOnly}
       extensions={extensions}
       onReady={setView}

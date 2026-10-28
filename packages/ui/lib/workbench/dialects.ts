@@ -19,6 +19,7 @@ import {
   validateFileMetamodel,
   type AnyMetamodel,
 } from '@istar-ts/core';
+import type { ActionGuard } from '@istar-ts/actions';
 import {
   DEFAULT_FRAMEWORK,
   dialectDefinition,
@@ -31,6 +32,7 @@ import {
   type Framework,
   type ModelExtension,
 } from '@goal-controller/dialect';
+import { GUARD_REJECTION_CODE } from './guardDiagnostics';
 import { istar4RationalAgents, type AnyModel } from '@goal-controller/lib';
 // the mode a model records: read by the project module, the one place that knows where
 import { recordedMode } from '../project';
@@ -60,20 +62,39 @@ const HOSTS = Object.fromEntries(
 ) as Record<DialectMode, AnyMetamodel>;
 
 /**
+ * The metamodel a model is read with, in `mode` and `framework`: the
+ * dialect's host (iStar 2.0 with its kinds and links), else the framework's
+ * root. The file's own `"metamodel"` block is applied on top of it.
+ */
+const metamodelIn = (
+  mode: string | null,
+  framework: Framework,
+): AnyMetamodel =>
+  isDialectMode(mode) ? HOSTS[mode] : FRAMEWORK_ROOTS[framework];
+
+/**
+ * The metamodel a model's text or piStar file is read with: by the mode it
+ * records and the framework it is in (`frameworkOfModel`). The one place
+ * this choice is made: `parseModel` reads a text with it, and each mirror of
+ * the model worker's store (the main thread's, modelSession.ts; the engine
+ * worker's) reads every file it is sent with it (`createMirrorStore`'s
+ * `metamodelFor`), so a mirror follows a conversion to another
+ * framework or dialect, and an undo across one.
+ */
+export const metamodelFor = (
+  file: string | Record<string, unknown>,
+): AnyMetamodel => metamodelIn(recordedMode(file), frameworkOfModel(file));
+
+/**
  * What a model adds to its dialect is kept in its file, in istar-ts's
  * `"metamodel"` block (FILE_METAMODEL_KEY): its own kinds and links, which
  * istar-ts reads, checks, draws and writes, and beside them its own
  * groupers, stereotypes and tagged values (ours; istar-ts keeps them).
- * This is the block a model text has, read without parsing it (none: an empty one).
+ * None, for a model with no block.
  */
-export const modelExtensionOf = (text: string): ModelExtension => {
-  try {
-    const value = JSON.parse(text)?.[FILE_METAMODEL_KEY];
-    if (value && typeof value === 'object') return value;
-  } catch {
-    // none
-  }
-  return { name: MODEL_NAMESPACE };
+export const modelExtensionOf = (model: AnyModel): ModelExtension => {
+  const block = fileMetamodelOf(model);
+  return block ?? { name: MODEL_NAMESPACE };
 };
 
 /** A dialect as one model has it: with what the model adds. */
@@ -98,6 +119,31 @@ export const modelDialect = (
 ): ModelDialect => {
   const extension = withModelEntries(DIALECTS[mode], model);
   return { mode, model, extension, definition: dialectDefinition(extension) };
+};
+
+/**
+ * Rejects an `istar.setFileMetamodel` whose block piStar-ext's dialect refuses (a
+ * stereotype, tagged value or grouper name already taken; goal-controller#411):
+ * the check `writeModelExtension` used to run before rewriting the text, now the
+ * host rule for that operation.
+ */
+export const pistarExtMetamodelGuard: ActionGuard<string, string> = (
+  operation,
+) => {
+  if (operation.kind !== 'istar.setFileMetamodel' || !operation.block) return;
+  try {
+    withModelEntries(DIALECTS.pistarext, operation.block);
+  } catch (error) {
+    return [
+      {
+        elementId: '',
+        severity: 'error',
+        message: error instanceof Error ? error.message : String(error),
+        source: 'pistarext',
+        code: GUARD_REJECTION_CODE,
+      },
+    ];
+  }
 };
 
 /** Each dialect's own definition, without a model's additions. */
@@ -140,6 +186,14 @@ export const declaresKinds = (mode: string | null, framework: Framework) =>
   (mode !== null && mode in ENGINE_FILE_KINDS) ||
   framework !== DEFAULT_FRAMEWORK;
 
+/**
+ * Whether `istar.replaceModel` should apply `text`'s own `"metamodel"` block
+ * (its `fileMetamodel` argument): as `parseModel` would, by the text's own
+ * recorded mode and framework.
+ */
+export const fileMetamodelForText = (text: string): boolean =>
+  declaresKinds(recordedMode(text), frameworkOfModel(text));
+
 /*
  * A model read with a dialect is typed as an iStar 2.0 one: the workbench's
  * helpers switch on iStar's kinds and pass any other through, and the model
@@ -161,17 +215,17 @@ export const parseModel = (
 ): AnyModel => {
   if (!isDialectMode(mode))
     return parsePistar(text, {
-      metamodel: FRAMEWORK_ROOTS[framework],
+      metamodel: metamodelIn(mode, framework),
       // an engine whose models declare kinds of their own, or a framework's
       // model its dialect's (goal-controller#194): their block applied
       fileMetamodel: declaresKinds(mode, framework),
     });
   const model = parsePistar(text, {
-    metamodel: HOSTS[mode],
+    metamodel: metamodelIn(mode, framework),
     fileMetamodel: true,
   });
   const block = fileMetamodelOf(model);
-  if (block) withModelEntries(DIALECTS[mode], block as ModelExtension);
+  if (block) withModelEntries(DIALECTS[mode], block);
   return model;
 };
 
@@ -180,9 +234,7 @@ export const emptyModel = (
   mode: string | null = null,
   framework: Framework = DEFAULT_FRAMEWORK,
 ): AnyModel =>
-  createEmptyModel(undefined, {
-    metamodel: isDialectMode(mode) ? HOSTS[mode] : FRAMEWORK_ROOTS[framework],
-  });
+  createEmptyModel(undefined, { metamodel: metamodelIn(mode, framework) });
 
 /** The dialect that reads a model its recorded mode cannot (its kinds are the dialect's), if any. */
 export const dialectThatReads = (text: string): DialectMode | null => {

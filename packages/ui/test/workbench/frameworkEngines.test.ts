@@ -70,7 +70,7 @@ describe("the frameworks' engines (#171)", () => {
   });
 
   it("read the model in their framework: the view's trees on the paper", () => {
-    const view = treeView(KAOS_WELCOME, 'kaosdoc');
+    const view = treeView(parseModel(KAOS_WELCOME), 'kaosdoc');
     // every element no refinement reaches, the agent too (its lines' roots)
     expect(view.roots.map((key) => view.nodes.get(key)?.name)).toEqual([
       'Reliability',

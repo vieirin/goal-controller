@@ -7,9 +7,10 @@
  */
 import { act, cleanup, render, waitFor } from '@testing-library/react';
 import { readFileSync } from 'node:fs';
+import { useEffect } from 'react';
 import { join } from 'node:path';
 import { KAOS_FILL } from '@istar-ts/dsm3-kaos/metamodel';
-import { afterEach, beforeAll, describe, expect, it } from 'vitest';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import ModelDiagram from '@/components/workbench/engines/ModelDiagram';
 import FrameworkNotationView from '@/components/workbench/engines/framework/FrameworkNotationView';
 import {
@@ -25,8 +26,10 @@ import {
 } from '@/lib/workbench/frameworkOpen';
 import { frameworkOfModel } from '@/lib/workbench/frameworks';
 import { FRAMEWORK_DIALECTS } from '@/lib/workbench/frameworkModes';
+import * as dialects from '@/lib/workbench/dialects';
 import { parseModel } from '@/lib/workbench/dialects';
 import { dialectParts } from '@/components/workbench/engines/framework/FrameworkDiagram';
+import { mockReactFlowDom } from './reactFlowDom';
 
 const ROOT = join(__dirname, '../../../..');
 const KAOS_WELCOME = readFileSync(
@@ -42,34 +45,8 @@ const ISTAR = readFileSync(
   'utf8',
 );
 
-// what React Flow needs that jsdom lacks (istar-ts's react test setup)
 beforeAll(() => {
-  class ResizeObserverMock {
-    constructor(private callback: ResizeObserverCallback) {}
-    observe(target: Element) {
-      this.callback(
-        [
-          {
-            target,
-            contentRect: { width: 800, height: 600 },
-          } as unknown as ResizeObserverEntry,
-        ],
-        this as unknown as ResizeObserver,
-      );
-    }
-    unobserve() {}
-    disconnect() {}
-  }
-  class DOMMatrixReadOnlyMock {
-    m22 = 1;
-  }
-  Object.assign(globalThis, {
-    ResizeObserver: ResizeObserverMock,
-    DOMMatrixReadOnly: DOMMatrixReadOnlyMock,
-  });
-  (
-    globalThis.SVGElement.prototype as unknown as { getBBox: () => DOMRect }
-  ).getBBox = () => ({ x: 0, y: 0, width: 0, height: 0 }) as DOMRect;
+  mockReactFlowDom();
   // what CodeMirror measures text with (the Notation tab)
   Object.assign(Range.prototype, {
     getClientRects: () => [],
@@ -82,7 +59,10 @@ afterEach(() => cleanup());
 const workbench = (diagram = false) => {
   let wb: Workbench | null = null;
   const Probe = () => {
-    wb = useWorkbench();
+    const current = useWorkbench();
+    useEffect(() => {
+      wb = current;
+    });
     return null;
   };
   const view = render(
@@ -130,8 +110,10 @@ describe('a model file in its framework (#171)', () => {
     await waitFor(() =>
       expect(container.querySelectorAll('.istar-hub')).toHaveLength(4),
     );
-    // its nodes in KAOS's fill, DSM3's grey, as istar-ts draws it (none saves a colour)
-    expect(container.innerHTML).toContain(`fill: ${KAOS_FILL}`);
+    // its nodes in KAOS's fill, DSM3's grey, as istar-ts draws it (none saves
+    // a colour): istar-ts 0.15 draws it as the SVG attribute, not a CSS
+    // style property (vieirin/istar-ts#164/#165's GModel path)
+    expect(container.innerHTML).toContain(`fill="${KAOS_FILL}"`);
   });
 
   it('names a new element with its prefix’s next id, KAOS’s two goal kinds numbered together', () => {
@@ -213,7 +195,10 @@ describe('a framework model’s Notation tab (#171)', () => {
     const withIds = `${JSON.stringify(json, null, 2)}\n`;
     let wb: Workbench | null = null;
     const Probe = () => {
-      wb = useWorkbench();
+      const current = useWorkbench();
+      useEffect(() => {
+        wb = current;
+      });
       return null;
     };
     const { container } = render(
@@ -231,6 +216,59 @@ describe('a framework model’s Notation tab (#171)', () => {
     );
     expect(lines).toContain('  G3: Achieve [Problem Notified if Problem]');
     expect(lines).toContain('      DP1: Internet connection available');
+  });
+
+  it('reads the store’s model, not wb.text: a direct dispatch updates its lines with zero parses (#449, #451 review)', async () => {
+    const json = JSON.parse(KAOS_WELCOME);
+    const count = new Map<string, number>();
+    const prefix: Record<string, string> = {
+      'kaos.BehavioralGoal': 'G',
+      'kaos.Softgoal': 'G',
+      'kaos.Agent': 'A',
+      'kaos.EnvironmentAgent': 'A',
+      'kaos.DomainProperty': 'DP',
+    };
+    for (const element of json.orphans) {
+      const p = prefix[element.type]!;
+      count.set(p, (count.get(p) ?? 0) + 1);
+      element.text = `${p}${count.get(p)}: ${element.text}`;
+    }
+    const withIds = `${JSON.stringify(json, null, 2)}\n`;
+    let wb: Workbench | null = null;
+    const Probe = () => {
+      const current = useWorkbench();
+      useEffect(() => {
+        wb = current;
+      });
+      return null;
+    };
+    const { container } = render(
+      <WorkbenchProvider lockedEngine={null}>
+        <Probe />
+        <FrameworkNotationView mode='kaos' />
+      </WorkbenchProvider>,
+    );
+    await act(() => wb!.openModelFile('kaos-ids.txt', withIds));
+    await waitFor(() =>
+      expect(container.textContent).toContain('G5: Achieve [Manual Backup]'),
+    );
+    const parseModelSpy = vi.spyOn(dialects, 'parseModel');
+    parseModelSpy.mockClear();
+    const elementId = [...wb!.session.store.getModel().elements.values()].find(
+      (e) => e.name === 'G5: Achieve [Manual Backup]',
+    )!.id;
+    await act(async () => {
+      await wb!.dispatcherFor('inspector').dispatch({
+        kind: 'applyLabelEdit',
+        labelId: elementId,
+        text: 'G5: Renamed',
+      });
+    });
+    await waitFor(() => expect(container.textContent).toContain('G5: Renamed'));
+    // the model the lines are read from is the store's own, and the text is
+    // just its serialization: no browser-side JSON check reruns either
+    // (jsonError is set to null directly for a store-derived edit)
+    expect(parseModelSpy).not.toHaveBeenCalled();
   });
 });
 

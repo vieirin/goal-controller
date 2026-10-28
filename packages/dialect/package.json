@@ -8,15 +8,16 @@
     "build": "rm -rf out tsconfig.tsbuildinfo && tsc",
     "compile": "tsc",
     "watch": "tsc --watch",
-    "test": "TS_NODE_PROJECT='./tsconfig.test.json' mocha",
+    "typecheck": "tsc -p tsconfig.test.json",
+    "test": "pnpm run typecheck && TS_NODE_PROJECT='./tsconfig.test.json' mocha",
     "clean": "rm -rf out tsconfig.tsbuildinfo"
   },
   "dependencies": {
-    "@istar-ts/dsm3-kaos": "^0.14.2",
-    "@istar-ts/dsm3-nfr": "^0.14.2"
+    "@istar-ts/core": "^0.16.0",
+    "@istar-ts/dsm3-kaos": "^0.16.0",
+    "@istar-ts/dsm3-nfr": "^0.16.0"
   },
   "devDependencies": {
-    "@istar-ts/core": "^0.14.2",
     "@types/chai": "^4.3.11",
     "@types/mocha": "^10.0.6",
     "@types/node": "^22.6.0",

@@ -10,10 +10,8 @@ import {
 import { LINE_DASHES, shapeViewBox } from '@istar-ts/react';
 import { Plus, X } from 'lucide-react';
 import { useEffect, useState, type FormEvent } from 'react';
-import { writeModelExtension } from '@/lib/workbench/pistar';
-import { useWorkbench } from '../../WorkbenchContext';
 import { Button, IconButton, cx } from '../../ui';
-import { inputClass } from '../shared/inspector';
+import { inputClass, useEditModel } from '../shared/inspector';
 import { usePistarExt } from './usePistarExt';
 
 /**
@@ -46,10 +44,11 @@ const LINES = ['continuous', 'dashed', 'dotted'] as const;
 const NAME = /^[A-Za-z][A-Za-z0-9]*$/;
 
 function AddConstructDialog({ onClose }: { onClose: () => void }) {
-  const wb = useWorkbench();
+  const edit = useEditModel();
   const { extension, model } = usePistarExt();
   const [name, setName] = useState('');
   const [type, setType] = useState<'node' | 'link'>('node');
+  const [description, setDescription] = useState('');
   const [shape, setShape] = useState('');
   const [sources, setSources] = useState<string[]>([]);
   const [targets, setTargets] = useState<string[]>([]);
@@ -82,7 +81,7 @@ function AddConstructDialog({ onClose }: { onClose: () => void }) {
           ? 'A link needs its source and target kinds'
           : null));
 
-  const submit = (event: FormEvent) => {
+  const submit = async (event: FormEvent) => {
     event.preventDefault();
     if (problem) return setError(problem);
     const path = shape.trim();
@@ -91,6 +90,7 @@ function AddConstructDialog({ onClose }: { onClose: () => void }) {
       kind: `${MODEL_NAMESPACE}.${named}`,
       label: named,
       pistarType: `istar.${named}`,
+      ...(description.trim() && { description: description.trim() }),
     };
     const dash = LINE_DASHES[line];
     const next: ModelExtension =
@@ -120,13 +120,10 @@ function AddConstructDialog({ onClose }: { onClose: () => void }) {
               },
             ],
           };
-    try {
-      // istar-ts and the dialect must take it (they say why not)
-      wb.setText(writeModelExtension(wb.text, 'pistarext', next), 'inspector');
-      onClose();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    }
+    // istar-ts and the dialect must take it (the guard says why not)
+    const result = await edit({ kind: 'istar.setFileMetamodel', block: next });
+    if (result.ok) onClose();
+    else setError(result.diagnostics[0]?.message ?? 'Rejected');
   };
 
   return (
@@ -176,6 +173,17 @@ function AddConstructDialog({ onClose }: { onClose: () => void }) {
               <option value='node'>Node</option>
               <option value='link'>Link</option>
             </select>
+          </label>
+          <label className='block space-y-1'>
+            <span className='text-2xs font-semibold text-ink-soft'>
+              Description (optional)
+            </span>
+            <textarea
+              className={cx(inputClass, 'h-14')}
+              placeholder="What it means and when to use it: an agent's context reads this"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
           </label>
           <label className='block space-y-1'>
             <span className='text-2xs font-semibold text-ink-soft'>

@@ -1,10 +1,12 @@
 import {
   forgetRecent as forgetEntry,
   loadRecent as loadEntries,
+  recentId,
   rememberRecent as rememberEntry,
   type RecentEntry,
   type RecentStorage,
 } from '../project';
+import { pruneConversations } from './agent/conversationStorage';
 import type { ModelSettings } from './types';
 
 /**
@@ -69,10 +71,24 @@ export const savePreferences = (preferences: object): boolean =>
 export const loadRecent = (): RecentFile[] =>
   loadEntries<ModelSettings>(browserStorage);
 
+/**
+ * `next`'s own conversations kept, every other one dropped (goal-controller#501
+ * review): a model Recent no longer lists (its 8-entry cap, or a quota that
+ * made it drop an older entry) has no conversation to come back to either.
+ */
+const prune = (next: readonly RecentFile[]): void =>
+  pruneConversations(new Set(next.map((entry) => recentId(entry))));
+
 /** Remember a project (newest first, one entry per project: recentId). */
-export const rememberRecent = (file: Omit<RecentFile, 'at'>): RecentFile[] =>
-  rememberEntry<ModelSettings>(browserStorage, file);
+export const rememberRecent = (file: Omit<RecentFile, 'at'>): RecentFile[] => {
+  const next = rememberEntry<ModelSettings>(browserStorage, file);
+  prune(next);
+  return next;
+};
 
 /** `id`: the entry's recentId. */
-export const forgetRecent = (id: string): RecentFile[] =>
-  forgetEntry<ModelSettings>(browserStorage, id);
+export const forgetRecent = (id: string): RecentFile[] => {
+  const next = forgetEntry<ModelSettings>(browserStorage, id);
+  prune(next);
+  return next;
+};

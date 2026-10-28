@@ -5,6 +5,10 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 import { parsePistar } from '../../../goal-tree/node_modules/@istar-ts/core';
 import { goalView } from '@goal-controller/goal-tree';
+import {
+  notationContextOf,
+  savedLinesOf,
+} from '@goal-controller/goal-language';
 import { StringStream } from '../../../ui/node_modules/@codemirror/language';
 import { extensionCatalog, type AnyDialect } from '@goal-controller/dialect';
 import { edgeV2 } from '../../src';
@@ -12,11 +16,9 @@ import { documentParser } from '../../../ui/lib/workbench/definitionLanguage';
 import { ra } from './support/extensions';
 import {
   applyNotationEdits,
-  contextOf,
   elementOfLine,
   notationDocument,
   notationEdits,
-  savedLines,
 } from '../../../ui/lib/workbench/notationDocument';
 import { ENGINE_DIALECTS } from '../../../ui/lib/workbench/engineDialects';
 import {
@@ -89,16 +91,19 @@ describe('ui notationDocument', () => {
   });
 
   it('reads only the context variables', () => {
-    const context = contextOf(edgeV2, tree, [
-      { kind: 'context', name: 'night' },
-      { kind: 'achievability', name: 'T1_pass' },
-    ]);
+    const context = notationContextOf(edgeV2, {
+      tree,
+      variables: [
+        { kind: 'context', name: 'night' },
+        { kind: 'achievability', name: 'T1_pass' },
+      ],
+    });
     expect(context.variables).to.deep.equal(['night']);
     expect(Object.keys(context.elements)).to.include('G0');
   });
 
   it('keeps each saved line with its grammar error', () => {
-    const saved = savedLines(edgeV2, tree);
+    const saved = savedLinesOf(edgeV2, tree);
     const g0 = tree.nodes.get('G0')!;
     expect(saved.G0).to.deep.equal({
       line: `G0: ${g0.name} [${g0.notation}]`,
@@ -387,11 +392,11 @@ describe("ui: a model's own constructs (its extension, in its file)", () => {
       name: 'model',
       elements: [MISSION],
     });
-    expect(modelExtensionOf(withMission).elements?.[0]).to.include({
+    const model = parseModel(withMission);
+    expect(modelExtensionOf(model).elements?.[0]).to.include({
       kind: 'model.Mission',
       pistarType: 'istar.Mission',
     });
-    const model = parseModel(withMission);
     expect(model.elements.get('m1')?.kind).to.equal('model.Mission');
     expect(JSON.parse(withMission).actors[0].nodes[1].type).to.equal(
       'istar.Mission',
@@ -407,7 +412,7 @@ describe("ui: a model's own constructs (its extension, in its file)", () => {
       writeModelExtension(
         withMission,
         'pistarext',
-        modelExtensionOf(withMission),
+        modelExtensionOf(parseModel(withMission)),
       ),
     ).to.equal(withMission);
   });
@@ -472,7 +477,7 @@ describe("ui: a model's own constructs (its extension, in its file)", () => {
 
   it("lists the model's own entries with the dialect's", () => {
     const text = writeModelExtension(withMission, 'pistarext', {
-      ...modelExtensionOf(withMission),
+      ...modelExtensionOf(parseModel(withMission)),
       stereotypes: [{ name: 'urgent', appliesTo: ['model.Mission'] }],
     });
     // beside istar-ts's kinds, in the same block
@@ -480,7 +485,7 @@ describe("ui: a model's own constructs (its extension, in its file)", () => {
       { name: 'urgent', appliesTo: ['model.Mission'] },
     ]);
     expect(serializeModel(parseModel(text), text)).to.equal(text);
-    const read = modelDialect('pistarext', modelExtensionOf(text));
+    const read = modelDialect('pistarext', modelExtensionOf(parseModel(text)));
     expect(read.model.stereotypes).to.deep.equal([
       { name: 'urgent', appliesTo: ['model.Mission'] },
     ]);
@@ -491,7 +496,7 @@ describe("ui: a model's own constructs (its extension, in its file)", () => {
     // one the dialect has: the dialect says so, the text is not written
     expect(() =>
       writeModelExtension(withMission, 'pistarext', {
-        ...modelExtensionOf(withMission),
+        ...modelExtensionOf(parseModel(withMission)),
         stereotypes: [{ name: 'action', appliesTo: ['model.Mission'] }],
       }),
     ).to.throw(/action is already a stereotype/);

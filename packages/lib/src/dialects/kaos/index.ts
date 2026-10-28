@@ -62,6 +62,7 @@ import {
   type ElementDefinition,
   type EnumOptionInput,
 } from '@goal-controller/dialect';
+import { engineContextOf } from '../../engines/agentContext';
 
 /** DSM3's fill for every KAOS node (language_kaos_shapes.js), as istar-ts draws it. */
 const FILL = KAOS_FILL;
@@ -765,3 +766,6 @@ export const kaos = defineDialect({
     },
   },
 });
+
+/** Its part of an agent's context (goal-controller#415): no engine reads it, so it is its dialect's alone. */
+export const kaosAgentContext = engineContextOf(kaos);

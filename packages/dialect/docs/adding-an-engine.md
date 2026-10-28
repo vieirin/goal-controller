@@ -195,6 +195,7 @@ Three more options, for what a lab dialect's text may be like (GODA's, [goda.md]
 
 - `notation.leafBracket: 'cost'`: a leaf's bracket holds its cost (`T1.1: Pick [W = 0.5x]`), not a notation. The mapper reads it with `parseElementLine(text).value.cost` (the task entry's `mapProps` is given the task's `text`). The validator reports a cost on a refined element and a notation on a leaf.
 - `notation.whitespace: 'ignore'`: the spaces in a bracket aren't read (`[D M(T1.1 2)]` is `[DM(T1.12)]`). The editors read the line without them and point at what they report where it is written. Read a text in the dialect with `parseElementLineIn(definition, text)`.
+- `notation.grouping: false` (edge, edgeV2): a refinement list is flat, so a bracket group anywhere in it is an error, not read (`[[G2;G3]#G4]` is rejected, not `G4`'s construct over `G2;G3`'s sequence). A mix of two operators there needs an intermediate goal, not a group — the validator's message says so instead of suggesting one. Default: a group is allowed.
 - `idScope: 'ancestorGoal'` (on the definition, not its notation): a task's id is unique under its goal only, so two goals may each have a `T1.1`.
 
 ### 2.4 Properties on links
@@ -878,12 +879,74 @@ type KindModel = {
 | 4   | `services/goalModel.ts` | `parseForMission(json, options) { return this.parseWith(json, missionEngineMapper, options) }` |
 | 5   | `services/transform.ts` | its branch: `GoalModel.parseForMission(…)`, then `({ files } = missionOutput(tree, { modelName, … }))`: the pane shows a tab per file, "Download all" zips them, and "Save the output in the project" writes them under `out/` |
 | 6   | `services/analyze.ts` | its branch in `parsed`; the problems its template finds across elements (MutRoSe's variable scoping) go to `response.problems` |
-| 7   | `components/workbench/engines/mission/MissionDiagram.tsx` | `<WorkbenchCanvas extensions={[rtNumbering, missionPalette]} rejectEdit={…} />` (problem badges come from the diagnostics store; nothing to add): the palette offers the kinds your definition lists (copy `mutrose/MutroseDiagram.tsx`); `oneActorOnly(message)` if it reads one actor |
+| 7   | `components/workbench/engines/mission/MissionDiagram.tsx` | `<WorkbenchCanvas extensions={[rtNumbering, missionPalette]} />` (problem badges come from the diagnostics store; nothing to add): the palette offers the kinds your definition lists (copy `mutrose/MutroseDiagram.tsx`); its rules (`oneActorOnly(message)` if it reads one actor) go in the guard registry, below, not here |
 | 8   | `components/workbench/engines/mission/MissionInspector.tsx` | `return <DefinitionInspector engine='mission' />` (that's the whole file) |
 | 9   | `engines/ModelDiagram.tsx`, `engines/ModelInspector.tsx`, `engines/pistar/PistarDiagram.tsx` | its `case` (the last: its palette for piStar mode's toggle, or `null`) |
 | 10  | `lib/workbench/pistar.ts` | `ENGINE_READS.mission`: the iStar kinds a model converted to it may have (new elements get its definition's id prefixes) |
 | 11  | `components/workbench/engines/shared/inspector.tsx` | `ENGINE_KEYS.mission`: where its keys are declared and read (the inspector's "add it to …" hint for unread properties) |
 | 12  | `services/examples.ts` | `EXAMPLE_ENGINES`: `mission: 'mission'`, so `examples/mission/` opens for it (a project folder with a `project.json` opens with its `dialect`) |
+
+### Your engine's own editing rules
+
+A mode's rules (`oneActorOnly`, edgeV2's resource-bounds check) are not a
+canvas prop: they are entries in the guard registry,
+`lib/workbench/modeGuards.ts`, keyed by `wb.mode`. Add `mission` to
+`MODE_GUARDS` there:
+
+- **`guards`** (istar-ts `ActionGuard`s) run before an operation applies and
+  can reject it outright: nothing reaches the model.
+- **`postGuards`** (`ActionPostGuard`s) run after it applies, against the
+  model that results, and return diagnostics instead of rejecting — the
+  edit stands, but a problem is reported alongside it. Prefer a post-guard
+  whenever the Inspector can only reach a valid state one field at a time:
+  `edgeV2ResourceBoundsGuard` (also in `lib/workbench/modeGuards.ts`) reports a
+  `severity: 'warning'`, not an error, because an `int` resource's
+  `lowerBound`/`initialValue`/`upperBound` only ever land in a consistent
+  combination after several single-property edits — a guard would reject
+  every intermediate state and make a bool→int switch impossible through
+  that UI at all.
+- **`describe`**: one plain-language sentence per rule (not the guard's
+  rejection message), read by M6's agent so it knows the mode's constraints
+  before it edits.
+
+These guards are not a `MissionDiagram` concern: the dispatcher lives in
+the model worker (`lib/workbench/modelWorkerHost.ts`, goal-controller#434),
+and the workbench sends it the mode (`session.setMode`, `WorkbenchContext.tsx`),
+from which the worker builds `guardsForMode(mode)` itself (a function can't
+cross `postMessage`, so keep `modeGuards.ts` and what it imports free of
+React and the DOM). The same rules apply to every surface that can
+change the model under that mode — the canvas, the Inspector, the Source
+tab's JSON editing, the MCP tool calls in a live session
+(`lib/workbench/agent/glspSession.ts`), and the agent. A diagram-level
+`rejectEdit` prop existed before the istar-ts migration (goal-controller#412)
+and is gone; nothing in `MissionDiagram.tsx` itself needs to know its rules.
+
+**A raw write (an import, a conversion, ModelSettings) is not a dispatch**
+(goal-controller#471), so it reaches the model by another path — decide
+which of the two your caller is:
+
+- **An import or a file open** (`openModel`/`startSession`,
+  `WorkbenchContext.tsx`) applies the text as written, mode guards included:
+  that's arguably right for a file that says what it is, but the model can
+  now break the active mode's rules with no warning. So
+  `modelWorkerHost.ts` runs the mode's guards and post-guards again, in
+  **report mode** — the same two lists `guardsForMode` already built, over
+  the model as it stands, never rejecting — and sends their diagnostics to
+  the main thread as a `report` message on the session's port. One function
+  (`report` in `modelWorkerHost.ts`) does this, called after every `mode`
+  message, so it also re-runs when the mode changes under the model that's
+  already open. The main thread publishes it to `serviceDiagnostics`
+  (`GUARD_REPORT_SERVICE`, `WorkbenchContext.tsx`), so it shows as a Problem,
+  anchored to its element where the diagnostic has one.
+- **A conversion or a ModelSettings edit** is an edit, even though its
+  caller builds the next model as a whole piStar file rather than a single
+  operation: it dispatches `istar.replaceModel` like any other edit
+  (`applyConversion`, `WorkbenchContext.tsx`), so a guard rejects it before
+  anything applies — the model stays as it was, in the mode it was already
+  in, and the rejection shows where every other guard rejection does
+  (`wb.editRejected`, `notifyEditRejected`). Only a rejection the vocabulary
+  itself makes (not one of the mode's own guards) falls back to the raw,
+  unchecked write, as a parse failure already does.
 
 ### 4.1 An engine of another framework
 

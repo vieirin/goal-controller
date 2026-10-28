@@ -1,7 +1,14 @@
 'use client';
 
 import { ArrowUpRight, X } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import type { GoalViewNode } from '@goal-controller/goal-tree';
 import {
   constructDefinition,
@@ -10,6 +17,7 @@ import {
 } from '@goal-controller/dialect';
 import {
   checkContextOf,
+  notationContextOf,
   elementLine,
   isValidName,
 } from '@goal-controller/goal-language';
@@ -23,18 +31,12 @@ import {
   type PropertySpec,
 } from '@/lib/workbench/edgeProperties';
 import type { AnalyzeResponse } from '@/lib/workbench/types';
-import { contextOf } from '@/lib/workbench/notationDocument';
 import {
   ENGINE_LABEL,
   notationDefinitionOf,
 } from '@/lib/workbench/engineDialects';
-import {
-  nodeTone,
-  setNodeColor,
-  setNodeProperty,
-  setNodeText,
-  setRefinement,
-} from '@/lib/workbench/pistar';
+import { nodeTone } from '@/lib/workbench/pistar';
+import type { ActionResult, IstarOperation } from '@istar-ts/actions';
 import { useSelection, useWorkbench } from '../../WorkbenchContext';
 import { useShell } from '../../shell';
 import { CreatableSelect, Button, NodeChip, Segmented, cx } from '../../ui';
@@ -59,11 +61,14 @@ export const useDraft = (
   const [draft, setDraft] = useState(value);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const commitRef = useRef(commit);
-  commitRef.current = commit;
   const editing = useRef(false);
   const latest = useRef(value);
   const current = useRef(value);
-  current.current = value;
+  // the latest commit and value, for the timers below: set once rendered
+  useLayoutEffect(() => {
+    commitRef.current = commit;
+    current.current = value;
+  });
   useEffect(() => {
     if (!editing.current) setDraft(value);
     else if (value === latest.current) editing.current = false;
@@ -791,28 +796,49 @@ export function SelectedNode({
   );
 }
 
-/** Writes an edit of the model text, as the inspector's. */
+/**
+ * Edits the model as the inspector (#410): one action on the workbench's
+ * dispatcher, through its inspector surface, so one undo step; several
+ * operations for one edit go as a `compound` (all applied, or none). A
+ * rejection leaves the model as it was, its diagnostics in the result.
+ */
 export const useEditModel = () => {
-  const wb = useWorkbench();
-  return (update: (text: string) => string) =>
-    wb.setText(update(wb.text), 'inspector');
+  const { session, dispatcherFor, notifyEditRejected } = useWorkbench();
+  return (
+    ...operations: IstarOperation<string, string>[]
+  ): Promise<ActionResult> => {
+    const [first, ...rest] = operations;
+    if (!first) return Promise.resolve({ ok: true, createdIds: [] });
+    return dispatcherFor('inspector')
+      .dispatch(
+        rest.length === 0
+          ? first
+          : { kind: 'compound', operationList: operations },
+      )
+      .then((result) => {
+        // the inspector has no editor.notify of its own (the canvas's
+        // @istar-ts/react notifies there itself): shown next to the model
+        // instead, unless the session moved on while this was in flight
+        if (!result.ok && !session.disposed)
+          notifyEditRejected(result.diagnostics);
+        return result;
+      });
+  };
 };
 
 export function NameField({ node }: { node: GoalViewNode }) {
   const definition = notationDefinitionOf(useWorkbench().engine);
   const edit = useEditModel();
   const name = useDraft(node.name, (next) =>
-    edit((text) =>
-      setNodeText(
-        text,
-        node.iStarId,
-        elementLine(definition, {
-          id: node.id,
-          name: next,
-          notation: node.notation,
-        }),
-      ),
-    ),
+    edit({
+      kind: 'applyLabelEdit',
+      labelId: node.iStarId,
+      text: elementLine(definition, {
+        id: node.id,
+        name: next,
+        notation: node.notation,
+      }),
+    }),
   );
   const valid = isValidName(definition, node.kind, name.draft);
   return (
@@ -835,6 +861,7 @@ export function NameField({ node }: { node: GoalViewNode }) {
 }
 
 export function RefinementField({ node }: { node: GoalViewNode }) {
+  const { session } = useWorkbench();
   const edit = useEditModel();
   if (node.kind !== 'goal' || node.children.length === 0) return null;
   return (
@@ -847,9 +874,25 @@ export function RefinementField({ node }: { node: GoalViewNode }) {
           size='sm'
           label='Refinement'
           value={node.relation ?? 'and'}
-          onChange={(relation) =>
-            edit((text) => setRefinement(text, node.iStarId, relation))
-          }
+          onChange={(relation) => {
+            const model = session.store.getModel();
+            const linkIds = [...model.links]
+              .filter(
+                ([, link]) =>
+                  link.target === node.iStarId &&
+                  (link.kind === 'istar.AndRefinementLink' ||
+                    link.kind === 'istar.OrRefinementLink'),
+              )
+              .map(([id]) => id);
+            void edit({
+              kind: 'istar.changeLinkKind',
+              linkIds,
+              elementTypeId:
+                relation === 'or'
+                  ? 'istar.OrRefinementLink'
+                  : 'istar.AndRefinementLink',
+            });
+          }}
           options={[
             { id: 'and', label: 'AND', title: 'All children are needed' },
             { id: 'or', label: 'OR', title: 'One child is enough' },
@@ -886,7 +929,12 @@ export function NodeColorField({
       color={node.color}
       fallback={fallback}
       onChange={(color) =>
-        edit((text) => setNodeColor(text, node.iStarId, color))
+        edit({
+          kind: 'istar.updateDisplay',
+          elementId: node.iStarId,
+          // undefined removes the key
+          patch: { backgroundColor: color ?? undefined },
+        })
       }
     />
   );
@@ -944,12 +992,11 @@ export function PropertiesField({
     () =>
       checkContextOf(
         tree
-          ? contextOf(
-              notationDefinitionOf(engine),
+          ? notationContextOf(notationDefinitionOf(engine), {
               tree,
-              [],
-              wb.projectResources,
-            )
+              variables: [],
+              projectResources: wb.projectResources,
+            })
           : { elements: {}, variables: [] },
         node.key,
       ),
@@ -1007,7 +1054,12 @@ export function PropertiesField({
             }
             editor={editorFor?.(key)}
             onChange={(value) =>
-              edit((text) => setNodeProperty(text, node.iStarId, key, value))
+              edit({
+                kind: 'istar.updateProperties',
+                elementId: node.iStarId,
+                // null removes the key
+                properties: { [key]: value },
+              })
             }
           />
         ))}
@@ -1031,7 +1083,11 @@ export function PropertiesField({
         }
         onSelect={(key) => {
           if (!key || key in node.properties) return;
-          edit((text) => setNodeProperty(text, node.iStarId, key, ''));
+          void edit({
+            kind: 'istar.updateProperties',
+            elementId: node.iStarId,
+            properties: { [key]: '' },
+          });
         }}
       />
     </div>

@@ -130,4 +130,6 @@ export const edgeNotation = {
   modifiers: { retry: RETRY },
   constructs: RT_CONSTRUCTS,
   defaultConstruct: { and: 'interleaved', or: 'alternative' },
+  // RTRegex.g4's refinement list is flat: no nested `[...]` (goal-controller#502)
+  grouping: false,
 } as const;

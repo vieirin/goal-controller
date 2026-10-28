@@ -27,6 +27,7 @@ import {
   shownStep,
 } from '@/lib/workbench/analysis';
 import { nativeFileOf } from '@/lib/workbench/nativeFiles';
+import { mockReactFlowDom } from './reactFlowDom';
 
 const ROOT = join(__dirname, '../../../..');
 const read = (path: string) => readFileSync(join(ROOT, path), 'utf8');
@@ -35,35 +36,7 @@ const AMBULANCE = read('examples/kaos/ambulance/ambulance.kaos');
 const FLOOD = read('examples/kaos/flood/flood.kaos');
 const ISTAR = read('examples/edge/simpleChoice.txt');
 
-// what React Flow needs that jsdom lacks (istar-ts's react test setup)
-beforeAll(() => {
-  class ResizeObserverMock {
-    constructor(private callback: ResizeObserverCallback) {}
-    observe(target: Element) {
-      this.callback(
-        [
-          {
-            target,
-            contentRect: { width: 800, height: 600 },
-          } as unknown as ResizeObserverEntry,
-        ],
-        this as unknown as ResizeObserver,
-      );
-    }
-    unobserve() {}
-    disconnect() {}
-  }
-  class DOMMatrixReadOnlyMock {
-    m22 = 1;
-  }
-  Object.assign(globalThis, {
-    ResizeObserver: ResizeObserverMock,
-    DOMMatrixReadOnly: DOMMatrixReadOnlyMock,
-  });
-  (
-    globalThis.SVGElement.prototype as unknown as { getBBox: () => DOMRect }
-  ).getBBox = () => ({ x: 0, y: 0, width: 0, height: 0 }) as DOMRect;
-});
+beforeAll(mockReactFlowDom);
 
 afterEach(() => cleanup());
 
@@ -172,42 +145,52 @@ describe('a .kaos file in the workbench (#181)', () => {
         ).not.toBeNull(),
       );
     },
-    // a 117-element model opened, laid out and analysed: near 5 s in the full
-    // suite on a loaded machine, on main already
-    15_000,
+    // a 117-element model opened, laid out and 2000-sample analysed: that
+    // work is synchronous inside act(), not a DOM wait, so it is genuinely
+    // CPU-bound; under four concurrent full `pnpm test` runs on a 10-core
+    // machine it measured up to 27 s (#473), hence the headroom here
+    45_000,
   );
 
-  it('Analyse on ADS’s London Ambulance System badges Achieve [Incident Resolved] (PR G’s test, in kaosprop’s mode)', async () => {
-    const { wb, container } = workbench(true);
-    await act(() => openUpload(wb(), new File([AMBULANCE], 'ambulance.kaos')));
-    await waitFor(() => expect(wb().fileName).toBe('ambulance.txt'));
-    // kaosprop reads the same file: its estimates are per expert, which it doesn't combine
-    act(() => wb().setEngine('kaosprop'));
-    await waitFor(() => expect(wb().mode).toBe('kaosprop'));
-    expect(Object.keys(wb().analyses ?? {})).toContain('probabilities');
-    act(() => wb().runAnalysis('probabilities'));
-    await waitFor(() => expect(wb().analysisRun).not.toBeNull());
-    expect(
-      shownCase(wb().analysisRun)?.values['achieve_incident_resolved'],
-    ).toEqual({ value: 1, label: 'EPS 100.00% · SV -5.00%' });
-    // its step is the last (the root's): stepped to, its badge is the canvas's
-    act(() => wb().stepAnalysis(10_000));
-    const run = wb().analysisRun;
-    const badges = analysisDiagnostics(shownCase(run), shownStep(run)?.index);
-    expect(
-      badges.find((b) => b.elementId === 'achieve_incident_resolved'),
-    ).toMatchObject({
-      message: expect.stringContaining('EPS 100.00% · SV -5.00%'),
-    });
-    // drawn on its node
-    await waitFor(() =>
+  it(
+    'Analyse on ADS’s London Ambulance System badges Achieve [Incident Resolved] (PR G’s test, in kaosprop’s mode)',
+    async () => {
+      const { wb, container } = workbench(true);
+      await act(() =>
+        openUpload(wb(), new File([AMBULANCE], 'ambulance.kaos')),
+      );
+      await waitFor(() => expect(wb().fileName).toBe('ambulance.txt'));
+      // kaosprop reads the same file: its estimates are per expert, which it doesn't combine
+      act(() => wb().setEngine('kaosprop'));
+      await waitFor(() => expect(wb().mode).toBe('kaosprop'));
+      expect(Object.keys(wb().analyses ?? {})).toContain('probabilities');
+      act(() => wb().runAnalysis('probabilities'));
+      await waitFor(() => expect(wb().analysisRun).not.toBeNull());
       expect(
-        container.querySelector(
-          '[data-id="achieve_incident_resolved"] .istar-issues-badge',
-        ),
-      ).not.toBeNull(),
-    );
-  });
+        shownCase(wb().analysisRun)?.values['achieve_incident_resolved'],
+      ).toEqual({ value: 1, label: 'EPS 100.00% · SV -5.00%' });
+      // its step is the last (the root's): stepped to, its badge is the canvas's
+      act(() => wb().stepAnalysis(10_000));
+      const run = wb().analysisRun;
+      const badges = analysisDiagnostics(shownCase(run), shownStep(run)?.index);
+      expect(
+        badges.find((b) => b.elementId === 'achieve_incident_resolved'),
+      ).toMatchObject({
+        message: expect.stringContaining('EPS 100.00% · SV -5.00%'),
+      });
+      // drawn on its node
+      await waitFor(() =>
+        expect(
+          container.querySelector(
+            '[data-id="achieve_incident_resolved"] .istar-issues-badge',
+          ),
+        ).not.toBeNull(),
+      );
+    },
+    // the same 117-element ambulance model, opened and laid out again under
+    // a second engine: the same CPU-bound cost as the case above (#473)
+    45_000,
+  );
 
   it('opens the flood seed in kaosres’s mode; the countermeasure selection draws the chosen one, the rest dimmed (#191)', async () => {
     const { wb } = workbench();

@@ -1,7 +1,14 @@
 'use client';
 
 import type { AnyDialect } from '@goal-controller/dialect';
-import { createContext, useContext, useEffect, useMemo, useRef } from 'react';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+} from 'react';
 import {
   ENGINE_DIALECTS,
   type DialectEngine,
@@ -12,10 +19,14 @@ import {
   multiplexSupport,
   type ServiceMode,
 } from '@/lib/workbench/languageServices';
-import { contextOf, savedLines } from '@/lib/workbench/notationDocument';
-import { appliedPoolEdits } from '@/lib/workbench/poolDocuments';
+import {
+  notationContextOf,
+  savedLinesOf,
+} from '@goal-controller/goal-language';
+import { poolEditOperations } from '@/lib/workbench/poolDocuments';
 import type { PoolHost } from '@/lib/workbench/poolSupport';
 import { useWorkbench } from '../../WorkbenchContext';
+import { useEditModel } from '../shared/inspector';
 
 // one support per mode and definition when no provider is there (tests, other hosts)
 const fallback = new Map<ServiceMode, WeakMap<AnyDialect, LanguageSupport>>();
@@ -54,14 +65,20 @@ export const useOptionalLanguageSupport = (
   const { tree, variables, text, projectResources } = wb;
   useEffect(() => {
     if (!tree || !support || !definition) return;
-    support.setSaved(savedLines(definition, tree));
+    support.setSaved(savedLinesOf(definition, tree));
     // the project's resources, parsed, go with the model (goal/context)
     support.setContext(
-      contextOf(definition, tree, variables, projectResources),
+      notationContextOf(definition, { tree, variables, projectResources }),
     );
   }, [definition, support, tree, variables, projectResources]);
   // a service that reads the model file itself (an engine's server)
   useEffect(() => support?.setModelText?.(text), [support, text]);
+  // what a lint action (goal-controller#440) dispatches through, as the inspector
+  useEffect(() => {
+    support?.setDispatch?.(wb.dispatcherFor('inspector'), () =>
+      wb.session.store.getModel(),
+    );
+  }, [support, wb.dispatcherFor, wb.session]);
 
   return support;
 };
@@ -91,7 +108,13 @@ export const useProjectWorkspace = (engine: DialectEngine | null): void => {
     [resourceSlots, resourceTexts],
   );
   const latest = useRef(wb);
-  latest.current = wb;
+  const edit = useEditModel();
+  const latestEdit = useRef(edit);
+  // the host reads the latest workbench and edit when it is called: set once rendered
+  useLayoutEffect(() => {
+    latest.current = wb;
+    latestEdit.current = edit;
+  });
   const host = useMemo<PoolHost>(
     () => ({
       navigate: (location) => latest.current.revealLocation(location),
@@ -103,15 +126,13 @@ export const useProjectWorkspace = (engine: DialectEngine | null): void => {
           (now.project?.store.readOnly ?? true)
         )
           return 'The project’s files are read only: make a browser copy to rename across them';
-        const result = appliedPoolEdits(edits, {
+        const { resources: changed, operations } = poolEditOperations(edits, {
           resources: now.resourceTexts,
           tree: now.tree,
-          modelText: now.text,
         });
-        for (const [path, next] of Object.entries(result.resources))
+        for (const [path, next] of Object.entries(changed))
           now.setResourceText(path, next);
-        if (result.modelText !== null)
-          now.setText(result.modelText, 'inspector');
+        if (operations.length > 0) void latestEdit.current(...operations);
         return null;
       },
     }),

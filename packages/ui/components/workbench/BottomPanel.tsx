@@ -124,6 +124,11 @@ export function ProblemsView() {
   };
   return (
     <div className='h-full overflow-auto'>
+      {wb.analysisSlow && (
+        <p className='px-3 pt-2 text-[13px] text-ink-muted' role='status'>
+          The analysis is taking longer than expected; still waiting for it.
+        </p>
+      )}
       {shown.length === 0 && (
         <p className='p-3 text-[13px] text-ink-muted'>
           No problems{wb.analyzing ? ' so far — checking…' : '.'}
@@ -334,9 +339,11 @@ export function VariablesView() {
   if (wb.variables.length === 0) {
     return (
       <p className='p-3 text-[13px] text-ink-muted'>
-        {wb.analyzing
-          ? 'Reading the model…'
-          : 'This model has no tasks or context conditions, so there is nothing to set.'}
+        {wb.analysisSlow
+          ? 'Reading the model… (taking longer than expected)'
+          : wb.analyzing
+            ? 'Reading the model…'
+            : 'This model has no tasks or context conditions, so there is nothing to set.'}
       </p>
     );
   }

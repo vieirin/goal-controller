@@ -1,13 +1,16 @@
 'use client';
 
-import { useServiceDiagnostics } from '@/lib/workbench/diagnosticsStore';
+import {
+  publishDiagnostics,
+  useServiceDiagnostics,
+} from '@/lib/workbench/diagnosticsStore';
 import {
   ENGINE_ANALYSES,
   ENGINE_LABEL,
   generatesFiles,
   isDialectEngine,
 } from '@/lib/workbench/engineDialects';
-import type { Analysis, LoggerReport } from '@goal-controller/lib';
+import type { Analysis, AnyModel, LoggerReport } from '@goal-controller/lib';
 import {
   cairisEnvironmentSlug,
   dialectForModel,
@@ -21,6 +24,7 @@ import {
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
   type ReactNode,
 } from 'react';
 import { isPrismEngine, type TransformEngine } from '@/lib/types';
@@ -31,7 +35,40 @@ import {
   treeProblems,
 } from '@/lib/workbench/localProblems';
 import type { GoalView } from '@goal-controller/goal-tree';
-import { parseModel } from '@/lib/workbench/dialects';
+import type {
+  AnyIstarModel,
+  GoalDiagnostic,
+  ModelStore,
+  PistarFile,
+} from '@istar-ts/core';
+import { emptyModel, fileMetamodelForText } from '@/lib/workbench/dialects';
+import {
+  diffModel,
+  EMPTY_AGENT_CHANGES,
+  mergeAgentChanges,
+  snapshotModel,
+  type AgentChangeSnapshot,
+  type AgentChanges,
+} from '@/lib/workbench/agentChanges';
+import {
+  createModelSession,
+  dispatchOrFallback,
+  ModelWorkerCrashError,
+  type ModelChanged,
+  type ModelSession,
+} from '@/lib/workbench/modelSession';
+import {
+  onModelWorkerSlow,
+  restartModelWorker,
+} from '@/lib/workbench/modelWorkerClient';
+import { isGuardRejection } from '@/lib/workbench/guardDiagnostics';
+import {
+  openGlspSession,
+  type GlspSession,
+} from '@/lib/workbench/agent/glspSession';
+import type { AgentWorkspace } from '@/lib/workbench/agent/hostTools';
+import type { ActionDispatcher } from '@istar-ts/actions';
+import type { IstarSurface } from '@istar-ts/react';
 import { frameworkProblems } from '@/lib/workbench/frameworkProblems';
 import { frameworkOfModel } from '@/lib/workbench/frameworks';
 import {
@@ -51,19 +88,24 @@ import {
 } from '@/lib/workbench/frameworkModes';
 import {
   isEngineMode,
+  isMode,
   readModelMode,
+  readModelText,
   writeModelMode,
   type ModelMode,
+  type ReadModelText,
 } from '@/lib/workbench/pistar';
 import {
   archiveBaseName,
   copyProject,
+  EMBEDDED_KEY,
   exportArchive,
   fileStore,
   freeName,
   importArchive,
   importFiles,
   indexedDbHandles,
+  MANIFEST_VERSION,
   memoryStore,
   modelText,
   importedProjectFiles,
@@ -158,8 +200,12 @@ export type FrameworkSwitch = {
 
 /** What a model converts to: an engine, or a modelling dialect (piStar mode needs none). */
 export type ConversionTarget = TransformEngine | ModellingMode;
-import { modelSignature } from '@/lib/workbench/signature';
-import { analyze, transform, treeView } from '@/services';
+import { analysisKey, modelSignature } from '@/lib/workbench/signature';
+import { treeView } from '@/services';
+import {
+  useEngineWorker,
+  type EngineAnalysisOutcome,
+} from '@/lib/workbench/engineWorkerClient';
 import {
   loadPreferences,
   loadRecent,
@@ -329,15 +375,81 @@ export type Workbench = {
   openRecent: (entry: RecentFile) => Promise<void>;
   /** where the open model's project came from (a single file: an implicit project) */
   projectSource: ProjectSource | null;
+  /** the open model's Recent entry, moved aside (RecentEntry.aside); none for most */
+  aside: number | undefined;
   /** close the model and go back to the start screen; it stays in Recent with its edits */
   closeModel: () => void;
-  setText: (text: string, source: ChangeSource) => void;
+  /**
+   * the text as the model's, shown as given at once and read into the model
+   * worker's store as one undoable edit (#434: a host-side write there, not
+   * an action, so a model of another metamodel can go through it, and the
+   * mode's guards never reject it — #471, the import/open path); a text
+   * that doesn't parse is kept, the store left as it was. The raw-text paths
+   * (an import, SourceView's and `applyConversion`'s vocabulary-rejection
+   * fallback) write through it (#411). `skipStore` (#439): the text is
+   * shown as given (so it isn't reset under the caller), but never read
+   * into the store — for a dispatch a guard rejected, whose raw text the
+   * write would otherwise apply unchecked.
+   */
+  setText: (
+    text: string,
+    source: ChangeSource,
+    options?: { skipStore?: boolean },
+  ) => void;
   renameFile: (fileName: string) => void;
   markSaved: () => void;
+  /** `glspUndo` on the dispatcher: the one undo history (#410) */
   undo: () => void;
+  /** `glspRedo` on the dispatcher */
   redo: () => void;
   canUndo: boolean;
   canRedo: boolean;
+  /**
+   * the open model's store and dispatcher (#410): the model is the source of
+   * truth, and `text` is derived from it on every `sourceModelChanged`
+   */
+  session: ModelSession;
+  /** the dispatcher an editor sends its actions through, tagged with its surface */
+  dispatcherFor: (surface: IstarSurface) => ActionDispatcher<string, string>;
+  /**
+   * A headless GLSP server over the session's own store and dispatcher
+   * (goal-controller#414), for M6's agent: off until turned on, so the page
+   * pays nothing while it isn't needed.
+   */
+  glspEnabled: boolean;
+  setGlspEnabled: (enabled: boolean) => void;
+  /** backend A's session (goal-controller#450), once it has opened; none while it hasn't */
+  glspSession: GlspSession | null;
+  /** what M6's host tools read of the open project, as it is now (goal-controller#415) */
+  agentWorkspace: () => AgentWorkspace;
+  /**
+   * The inspector's last rejected edit (a guard's diagnostics), shown next to
+   * the model until dismissed or replaced by another rejection: the inspector
+   * surface has no `editor.notify` of its own (`useIstarEditor`'s, the canvas
+   * uses), unlike the canvas (@istar-ts/react notifies there itself) and
+   * SourceView (its own inline diagnostics, goal-controller#412).
+   */
+  editRejected: readonly GoalDiagnostic[];
+  notifyEditRejected: (diagnostics: readonly GoalDiagnostic[]) => void;
+  dismissEditRejected: () => void;
+  /**
+   * Set once a model-worker crash (goal-controller#469) has replaced the
+   * session with a fresh one on the same text and mode: the undo history is
+   * lost, so the user is told. Dismissed, or replaced by the next crash's.
+   */
+  modelWorkerNotice: string | null;
+  dismissModelWorkerNotice: () => void;
+  /** bumped on every crash recovery, for a consumer (the agent drawer) to react once per occurrence */
+  modelWorkerIncident: number;
+  /**
+   * Set while a dispatch has been pending a while (goal-controller#479):
+   * the worker's dispatcher is single-threaded, so a big `replaceModel`,
+   * import or Propose batch looks exactly like this while it applies — not
+   * a crash, so nothing recovers on its own. `restartModelWorker` is the
+   * notice's own "Restart editor" action, for when it really is stuck.
+   */
+  modelWorkerSlow: boolean;
+  restartModelWorker: () => void;
   recent: RecentFile[];
   /** `id`: the entry's recentId */
   forgetRecent: (id: string) => void;
@@ -425,6 +537,8 @@ export type Workbench = {
   // analysis & variables
   analysis: AnalyzeResponse | null;
   analyzing: boolean;
+  /** analysing for longer than expected: the worker hasn't answered yet, and isn't presumed dead */
+  analysisSlow: boolean;
   variables: VariableInfo[];
   values: VariableValues;
   setValue: (name: string, value: boolean | number) => void;
@@ -474,6 +588,22 @@ export type Workbench = {
 
   // problems
   problems: Problem[];
+  /**
+   * What the workbench would say of `model` itself (its dialect's checks,
+   * iStar's notations, the shared language; no file, resource or run), in
+   * the open model's mode: a change set previewed before it is applied
+   */
+  previewProblems: (model: AnyIstarModel) => Problem[];
+
+  // agent changes (goal-controller#415's drawer): what it added, edited or
+  // removed since the last clear, accumulated across its runs
+  agentChanges: AgentChanges;
+  /** snapshots the open model, for `endAgentChanges` to diff against (one run) */
+  beginAgentChanges: () => void;
+  /** diffs the model against the last `beginAgentChanges` snapshot, and folds it into `agentChanges` */
+  endAgentChanges: () => void;
+  /** drops every run's `agentChanges` so far (also done when another model opens) */
+  clearAgentChanges: () => void;
 
   // selection (what is selected: useSelection) & navigation
   select: (id: string | null, origin: SelectOrigin) => void;
@@ -605,9 +735,6 @@ function SelectionProvider({ children }: { children: ReactNode }) {
 const defaultValue = (variable: VariableInfo): boolean | number =>
   variable.kind === 'context' ? false : 0.8;
 
-const analysisKey = (text: string, engine: TransformEngine): string =>
-  `${engine}\n${text}`;
-
 const useDebounced = <T,>(value: T, ms: number): T => {
   const [debounced, setDebounced] = useState(value);
   useEffect(() => {
@@ -617,8 +744,28 @@ const useDebounced = <T,>(value: T, ms: number): T => {
   return debounced;
 };
 
-const UNDO_LIMIT = 100;
-const COALESCE_MS = 600;
+// an analysis still unanswered this long is shown as slow (goal-controller#432
+// review): well past the worker's own debounce (engineWorker.ts's
+// ANALYSIS_DEBOUNCE_MS). Only a worker that then doesn't answer a ping within
+// ANALYSIS_UNRESPONSIVE_MS (it's single-threaded: still busy is hung) is
+// restarted, and the analysis it was on fails
+export const ANALYSIS_SLOW_MS = 10_000;
+export const ANALYSIS_UNRESPONSIVE_MS = 50_000;
+// the diagnosticsStore "service" key the engine worker's problems publish
+// under (goal-controller#433): not a Problem.source (each one already
+// carries its own, set by `analyze`), just this store's replace-bookkeeping
+const ENGINE_DIAGNOSTICS_SERVICE = 'engine';
+// the diagnosticsStore "service" key the active mode's guard report
+// publishes under (goal-controller#471): same replace-bookkeeping role as
+// ENGINE_DIAGNOSTICS_SERVICE, each diagnostic's own `source` ('shield') is
+// what Problems groups by
+const GUARD_REPORT_SERVICE = 'guard-report';
+
+/** The store's current model, kept driftless by subscribing to it directly
+ * (#449, #451 review) instead of mirroring it into a `useState` that every
+ * store mutation would have to remember to update. */
+const useStoreModel = (store: ModelStore<string, string>): AnyModel =>
+  useSyncExternalStore(store.subscribe, store.getModel, store.getModel);
 
 // ---------------------------------------------------------------------------
 // Provider
@@ -723,6 +870,8 @@ function WorkbenchState({
   );
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
+  // what a model is for: an engine's rules, a dialect's, or free piStar (#412, #439)
+  const mode: ModelMode = pistar ? (dialect ?? 'pistar') : engine;
   // the workbench's own state; the model's options are in its text (applySettings)
   const adoptSettings = useCallback((next: ModelSettings) => {
     setEngineState(next.engine);
@@ -737,15 +886,24 @@ function WorkbenchState({
   const openSettings = useCallback(() => setSettingsDialog('edit'), []);
   const closeSettings = useCallback(() => setSettingsDialog(null), []);
 
-  const undoStack = useRef<string[]>([]);
-  const redoStack = useRef<string[]>([]);
-  const lastPush = useRef(0);
   const [, forceHistory] = useState(0);
   // read after loadPreferences, which may move an old autosave into Recent
   const [recent, setRecent] = useState<RecentFile[]>(() => loadRecent());
 
-  // latest text, updated synchronously so the undo bookkeeping stays outside
-  // state updaters (React may run updaters twice)
+  // the inspector's rejections (guards #412): no editor.notify of its own, so
+  // kept here and shown next to the model until dismissed, replaced, or the
+  // next successful dispatch, model switch or mode change clears it (#439)
+  const [editRejected, setEditRejected] = useState<readonly GoalDiagnostic[]>(
+    [],
+  );
+  const notifyEditRejected = useCallback(
+    (diagnostics: readonly GoalDiagnostic[]) => setEditRejected(diagnostics),
+    [],
+  );
+  const dismissEditRejected = useCallback(() => setEditRejected([]), []);
+
+  // latest text, updated synchronously so the text and the store stay in step
+  // outside state updaters (React may run updaters twice)
   const textRef = useRef(model.text);
   const commit = useCallback((text: string, source: ChangeSource) => {
     textRef.current = text;
@@ -758,24 +916,248 @@ function WorkbenchState({
     forceHistory((n) => n + 1);
   }, []);
 
-  const setText = useCallback(
-    (text: string, source: ChangeSource) => {
-      if (textRef.current === text) return;
-      const now = Date.now();
-      // coalesce bursts (typing, dragging) into one undo step
-      if (
-        now - lastPush.current > COALESCE_MS ||
-        undoStack.current.length === 0
-      ) {
-        undoStack.current = [...undoStack.current, textRef.current].slice(
-          -UNDO_LIMIT,
-        );
+  // whether the browser's own text parses: set at each raw write (setText's
+  // non-store-derived branches), not re-derived from a store-derived text,
+  // which is a serialization of a model already in the store and so cannot
+  // fail to parse (#451 review)
+  const [jsonError, setJsonError] = useState<Problem | null>(null);
+  // the last text read, and what it read (setText reads each text once)
+  const lastRead = useRef<{ text: string; read: ReadModelText } | null>(null);
+  const readText = useCallback((text: string): ReadModelText => {
+    if (lastRead.current?.text === text) return lastRead.current.read;
+    const read = readModelText(text);
+    lastRead.current = { text, read };
+    return read;
+  }, []);
+
+  // ---- the model: the store and dispatcher own it, the text is derived (#410) ----
+  // both live in the model worker (#434): the session here is a mirror of
+  // its store, and each change arrives with the text derived from it there
+  // (undo and redo bring a model's text back as it was, byte for byte)
+  // the dispatcher's sourceModelChanged: an edit (canvas, inspector), undo or redo
+  const onModelChanged = useCallback(
+    ({ action, surface, text }: ModelChanged) => {
+      // a guard rejection never reaches here (the dispatcher throws before any
+      // store change): every call is a successful dispatch, from any surface
+      setEditRejected([]);
+      // the store's own model, just serialized: it cannot fail to parse (#451 review)
+      setJsonError(null);
+      if (text === textRef.current) {
+        forceHistory((n) => n + 1);
+        return;
       }
-      lastPush.current = now;
-      redoStack.current = [];
-      commit(text, source);
+      commit(
+        text,
+        action.source === 'undo' || action.source === 'redo'
+          ? 'undo'
+          : (surface ?? 'canvas'),
+      );
     },
     [commit],
+  );
+  const onModelChangedRef = useRef(onModelChanged);
+  onModelChangedRef.current = onModelChanged;
+  // the active mode's guard diagnostics, in report mode (goal-controller#471):
+  // sent after this session's model opens, and again on every mode switch
+  const [guardReport, setGuardReport] = useState<readonly GoalDiagnostic[]>([]);
+  const newSession = useCallback(
+    (text: string, seed: AnyModel): ModelSession =>
+      createModelSession(
+        text,
+        (change) => onModelChangedRef.current(change),
+        (diagnostics) => setGuardReport(diagnostics),
+        {
+          seed,
+          // the server's prerender has no worker to open it in
+          connect: typeof window !== 'undefined',
+        },
+      ),
+    [],
+  );
+  const [session, setSession] = useState(() => newSession('', emptyModel()));
+  // the store's model, by identity (#449): a subscription to the session's
+  // own store, so the tree and its consumers below derive from it instead of
+  // re-parsing the serialized text on every edit, driftless by construction
+  // (#451 review) instead of by auditing every store-mutation call site
+  const storeModel = useStoreModel(session.store);
+  const sessionRef = useRef(session);
+  // the agent's changes (goal-controller#415's drawer): a run's snapshot,
+  // taken by beginAgentChanges, read back by endAgentChanges against the
+  // model sessionRef.current now has (the latest session, not a stale one
+  // a callback closed over)
+  const agentSnapshot = useRef<AgentChangeSnapshot | null>(null);
+  const [agentChanges, setAgentChanges] =
+    useState<AgentChanges>(EMPTY_AGENT_CHANGES);
+  const beginAgentChanges = useCallback(() => {
+    agentSnapshot.current = snapshotModel(sessionRef.current.store.getModel());
+  }, []);
+  const endAgentChanges = useCallback(() => {
+    const snapshot = agentSnapshot.current;
+    if (!snapshot) return;
+    agentSnapshot.current = null;
+    const diff = diffModel(snapshot, sessionRef.current.store.getModel());
+    setAgentChanges((prev) => mergeAgentChanges(prev, diff));
+  }, []);
+  const clearAgentChanges = useCallback(() => {
+    agentSnapshot.current = null;
+    setAgentChanges(EMPTY_AGENT_CHANGES);
+  }, []);
+  // disposes the session that's current when the provider unmounts for real.
+  // Strict Mode mounts, cleans up, and remounts the same session: the
+  // cleanup only *schedules* the dispose, so the second mount can cancel it
+  // before the session it's about to keep using is torn down.
+  const disposeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (disposeTimer.current !== null) {
+      clearTimeout(disposeTimer.current);
+      disposeTimer.current = null;
+    }
+    return () => {
+      const current = sessionRef.current;
+      disposeTimer.current = setTimeout(() => {
+        disposeTimer.current = null;
+        current.dispose();
+      }, 0);
+    };
+  }, []);
+  // a model-worker crash (goal-controller#469): the crashed session's own
+  // in-flight dispatches and `synced()` waits already reject (modelSession.ts);
+  // here, replace it with a fresh one opened on the last derived text and the
+  // current mode, so editing works again. The engine worker and the agent's
+  // session reconnect on their own: both are keyed on `session`'s identity
+  // (`useEngineWorker(session.serve, …)`, the GLSP effect below), so a new
+  // session is enough to re-point them at the respawned worker.
+  const [workerIncident, setWorkerIncident] = useState(0);
+  const [dismissedIncident, setDismissedIncident] = useState(0);
+  useEffect(
+    () =>
+      session.onCrash(() => {
+        // a crash heard by a session already replaced for another reason
+        // (startSession ran first) needs no recovery of its own
+        if (sessionRef.current !== session) return;
+        const text = textRef.current;
+        const read = readText(text);
+        const next = newSession(
+          text,
+          'model' in read ? read.model : emptyModel(),
+        );
+        session.dispose();
+        sessionRef.current = next;
+        setSession(next);
+        setEditRejected([]);
+        setGuardReport([]);
+        setWorkerIncident((n) => n + 1);
+      }),
+    [session, newSession, readText],
+  );
+  const dismissModelWorkerNotice = useCallback(
+    () => setDismissedIncident(workerIncident),
+    [workerIncident],
+  );
+  const modelWorkerNotice =
+    workerIncident !== dismissedIncident
+      ? 'The editor restarted; undo history was reset.'
+      : null;
+  // a dispatch pending a while (goal-controller#479): not a crash on its
+  // own, so `onModelWorkerSlow` is global, not keyed to `session` — a crash
+  // clears it itself (modelWorkerClient.ts's `crash`)
+  const [modelWorkerSlow, setModelWorkerSlow] = useState(false);
+  useEffect(() => onModelWorkerSlow(setModelWorkerSlow), []);
+  // the mode's own guards (oneActorOnly, the edgeV2 resource-bounds check,
+  // goal-controller#412): the session's, not whichever diagram happens to be
+  // mounted (the Source tab unmounts the diagram entirely, #439 review) —
+  // the worker's dispatcher runs them on every dispatch, whichever surface
+  // or tab made it. A function can't cross postMessage: the worker builds
+  // them from the mode (`guardsForMode`, #434), sent ahead of the next action.
+  useEffect(() => {
+    session.setMode(mode);
+  }, [session, mode]);
+  // a mode change (a pistar toggle, a conversion) starts over: an edit
+  // rejected under the previous mode's guards no longer applies (#439)
+  useEffect(() => {
+    setEditRejected([]);
+  }, [mode]);
+  // backend A's session over the session's own store and dispatcher (#414,
+  // #450), in the model worker, for M6's agent: off until turned on (its
+  // cost is then zero), rebuilt whenever the session or the mode changes,
+  // and disposed when turned off or the provider unmounts.
+  const [glspEnabled, setGlspEnabled] = useState(false);
+  const [glspSession, setGlspSession] = useState<GlspSession | null>(null);
+  // the model's view and the project's resources, for M6's host tools'
+  // pool-lookup and validate-notation (goal-controller#415), which run here
+  // for the worker's session: read fresh on each call, not captured by the
+  // effect below (declared, each render, after the tree, the resources and
+  // the variables are, further down).
+  const workspaceRef = useRef<() => AgentWorkspace>(() => ({
+    tree: null,
+    resources: [],
+    variables: [],
+  }));
+  const agentWorkspace = useCallback(() => workspaceRef.current(), []);
+  useEffect(() => {
+    if (!glspEnabled) return undefined;
+    let disposed = false;
+    let opened: GlspSession | null = null;
+    void openGlspSession(session, mode, () => workspaceRef.current())
+      .then((started) => {
+        if (disposed) {
+          started.close();
+          return;
+        }
+        opened = started;
+        setGlspSession(started);
+      })
+      .catch((error: unknown) => {
+        // a model-worker crash (goal-controller#469) while this was
+        // opening: the session this effect reruns for (a fresh one, once
+        // the workbench recovers) opens its own, so there's nothing to
+        // show for this one. Anything else is a real bug — surfaced
+        // (goal-controller#479 review), not silently dropped.
+        if (!(error instanceof ModelWorkerCrashError)) console.error(error);
+      });
+    return () => {
+      disposed = true;
+      setGlspSession(null);
+      opened?.close();
+    };
+  }, [glspEnabled, session, mode]);
+  /** a new session for an opened model (none: an empty one): its history starts empty */
+  const startSession = useCallback(
+    (text: string) => {
+      const read = readText(text);
+      sessionRef.current.dispose();
+      const next = newSession(
+        text,
+        'model' in read ? read.model : emptyModel(),
+      );
+      sessionRef.current = next;
+      setSession(next);
+      setJsonError('error' in read ? jsonProblem(text, read.error) : null);
+      setEditRejected([]);
+      setGuardReport([]);
+    },
+    [readText, newSession],
+  );
+
+  const setText = useCallback(
+    (text: string, source: ChangeSource, options?: { skipStore?: boolean }) => {
+      if (textRef.current === text) return;
+      if (options?.skipStore) {
+        // a guard rejection, or a dispatch the vocabulary itself rejects: the
+        // text is already-valid JSON (built, not typed, by every caller that
+        // passes skipStore), so there is nothing here for readText to catch
+        setJsonError(null);
+        sessionRef.current.write(text, false);
+      } else {
+        const read = readText(text);
+        // one undoable edit in the worker's store, the text kept as written
+        // (the worker reads it again: a model can't cross postMessage, #434)
+        sessionRef.current.write(text, 'model' in read);
+        setJsonError('model' in read ? null : jsonProblem(text, read.error));
+      }
+      commit(text, source);
+    },
+    [commit, readText],
   );
 
   // ---- the model's options: written to its manifest (lib/project) ---------
@@ -783,7 +1165,7 @@ function WorkbenchState({
   // no model, or text that isn't JSON or isn't recorded for the engine, they stay in
   // the workbench (and in Recent)
   const writeOptions = useCallback(
-    (next: GenerationOptions, ownStep: boolean) => {
+    (next: GenerationOptions) => {
       const { engine: current, pistar: viewOnly } = settingsRef.current;
       const target = lockedEngine ?? current;
       const text = textRef.current;
@@ -810,8 +1192,27 @@ function WorkbenchState({
             next,
             baseOptionsRef.current,
           );
-          if (ownStep) lastPush.current = 0;
-          setText(written, 'settings');
+          if (written === text) return;
+          // the engine options live in the model's top-level `project` key
+          // (EMBEDDED_KEY), `model.extra` to istar-ts: one `istar.updateModelExtra`
+          const kept = optionsToKeep(target, next, baseOptionsRef.current);
+          dispatchOrFallback(
+            sessionRef.current,
+            'inspector',
+            Object.keys(kept).length > 0
+              ? {
+                  kind: 'istar.updateModelExtra',
+                  set: {
+                    [EMBEDDED_KEY]: {
+                      version: MANIFEST_VERSION,
+                      options: kept,
+                    },
+                  },
+                }
+              : { kind: 'istar.updateModelExtra', remove: [EMBEDDED_KEY] },
+            (_, canFallBack) =>
+              setText(written, 'settings', { skipStore: !canFallBack }),
+          );
           return;
         } catch {
           // not JSON: kept in the workbench
@@ -823,7 +1224,7 @@ function WorkbenchState({
   );
   const setOptions = useCallback(
     (patch: Partial<GenerationOptions>) =>
-      writeOptions({ ...settingsRef.current.options, ...patch }, false),
+      writeOptions({ ...settingsRef.current.options, ...patch }),
     [writeOptions],
   );
   /** the settings dialog: live and the options (one undoable edit when they change) */
@@ -835,15 +1236,19 @@ function WorkbenchState({
       const changed = (
         Object.keys(options) as (keyof GenerationOptions)[]
       ).some((key) => options[key] !== before[key]);
-      if (changed) writeOptions(options, true);
+      if (changed) writeOptions(options);
     },
     [adoptSettings, writeOptions],
   );
 
   // ---- mode: engines and piStar, and conversion between them ---------------
+  // the open model's own text always parses (it's the store's own
+  // serialization, #449): no need for readModelMode's validity check
   const recordedEngine = useMemo<TransformEngine | null>(() => {
-    const recorded = readModelMode(model.text);
-    return recorded && isEngineMode(recorded) ? recorded : null;
+    const recorded = recordedMode(model.text);
+    return recorded && isMode(recorded) && isEngineMode(recorded)
+      ? recorded
+      : null;
   }, [model.text]);
   const [conversion, setConversion] = useState<{
     target: ConversionTarget;
@@ -879,7 +1284,19 @@ function WorkbenchState({
         // same engine: record it in a file that does not say yet
         if (target !== 'pistar' && text.trim() && recorded !== target) {
           try {
-            setText(writeModelMode(text, target), 'convert');
+            const written = writeModelMode(text, target);
+            const model: PistarFile = JSON.parse(written);
+            dispatchOrFallback(
+              sessionRef.current,
+              'inspector',
+              {
+                kind: 'istar.replaceModel',
+                model,
+                fileMetamodel: fileMetamodelForText(written),
+              },
+              (_, canFallBack) =>
+                setText(written, 'convert', { skipStore: !canFallBack }),
+            );
           } catch {
             // a model that does not parse keeps its text
           }
@@ -903,11 +1320,53 @@ function WorkbenchState({
   );
   const applyConversion = useCallback(
     (target: ConversionTarget, text: string) => {
-      setText(text, 'convert');
-      enterMode(target);
       setConversion(null);
+      let model: PistarFile;
+      try {
+        model = JSON.parse(text);
+      } catch {
+        // not JSON: there is nothing a guard could check (goal-controller#451 review)
+        setText(text, 'convert');
+        enterMode(target);
+        return;
+      }
+      const current = settingsRef.current;
+      const currentMode: ModelMode = current.pistar
+        ? (current.dialect ?? 'pistar')
+        : (lockedEngine ?? current.engine);
+      const session = sessionRef.current;
+      // the conversion is an edit (goal-controller#471): through the target
+      // mode's own guards, as a dispatch under that mode would be — ahead
+      // of the dispatch, so the worker checks the converted model with it
+      // (`session.setMode`, not yet `enterMode`, which only runs once the
+      // dispatch succeeds); a rejection sets the guards back to the mode the
+      // model is staying in
+      session.setMode(target);
+      void session
+        .dispatcherFor('inspector')
+        .dispatch({
+          kind: 'istar.replaceModel',
+          model,
+          fileMetamodel: fileMetamodelForText(text),
+        })
+        .then((result) => {
+          if (session.disposed) return;
+          if (result.ok) {
+            enterMode(target);
+          } else if (isGuardRejection(result.diagnostics)) {
+            // the model stays as it was, in the mode it was already in
+            session.setMode(currentMode);
+            notifyEditRejected(result.diagnostics);
+          } else {
+            // the vocabulary itself rejected it, not one of our guards
+            // (goal-controller#439 review): the same fallback SourceView and
+            // requestMode use, applied unchecked
+            setText(text, 'convert');
+            enterMode(target);
+          }
+        });
     },
-    [setText, enterMode],
+    [setText, enterMode, notifyEditRejected, lockedEngine],
   );
   const cancelConversion = useCallback(() => setConversion(null), []);
   const openConversion = useCallback(
@@ -916,20 +1375,11 @@ function WorkbenchState({
   );
 
   const undo = useCallback(() => {
-    const previous = undoStack.current.pop();
-    if (previous === undefined) return;
-    redoStack.current.push(textRef.current);
-    lastPush.current = 0;
-    commit(previous, 'undo');
-  }, [commit]);
-
+    void sessionRef.current.dispatcher.dispatch({ kind: 'glspUndo' });
+  }, []);
   const redo = useCallback(() => {
-    const next = redoStack.current.pop();
-    if (next === undefined) return;
-    undoStack.current.push(textRef.current);
-    lastPush.current = 0;
-    commit(next, 'undo');
-  }, [commit]);
+    void sessionRef.current.dispatcher.dispatch({ kind: 'glspRedo' });
+  }, []);
 
   // ---- navigation (the selection itself is in SelectionProvider) ----------
   const [modelTab, setModelTab] = useState<ModelTab>('diagram');
@@ -1019,15 +1469,16 @@ function WorkbenchState({
         projectSource: source,
         aside,
       }));
-      undoStack.current = [];
-      redoStack.current = [];
+      // the model in the store in the same update as the mode it opens in (#419)
+      startSession(text);
       setRuns([]);
       setAnalysisRun(null);
       clearSelection();
       setConversion(null);
+      clearAgentChanges();
       forceHistory((n) => n + 1);
     },
-    [leaving, adoptSettings, clearSelection],
+    [leaving, adoptSettings, clearSelection, startSession, clearAgentChanges],
   );
 
   // the saved text of each model of the open project left for another (#329)
@@ -1268,16 +1719,16 @@ function WorkbenchState({
       projectSource: null,
       aside: undefined,
     }));
-    undoStack.current = [];
-    redoStack.current = [];
+    startSession('');
     setRuns([]);
     setAnalysisRun(null);
     clearSelection();
     setConversion(null);
+    clearAgentChanges();
     setProject(null);
     setModelPath(null);
     forceHistory((n) => n + 1);
-  }, [leaving, adoptSettings, clearSelection]);
+  }, [leaving, adoptSettings, clearSelection, startSession, clearAgentChanges]);
 
   const renameFile = useCallback((fileName: string) => {
     // the entry under the old name is replaced by the next Recent sync; a renamed
@@ -1316,33 +1767,18 @@ function WorkbenchState({
   );
 
   // ---- structure -------------------------------------------------------------
-  // whether the file parses: immediate, in the browser
-  const parsed = useMemo((): {
-    error: Problem | null;
-    istar?: ReturnType<typeof parseModel>;
-  } => {
-    if (!model.text.trim()) return { error: null };
-    try {
-      return { error: null, istar: parseModel(model.text) };
-    } catch (error) {
-      return { error: jsonProblem(model.text, error as Error) };
-    }
-  }, [model.text]);
-  // the tree: goal-tree's view of the model, read with the engine's grammar; the last one
-  // of the same file stays while the JSON is being fixed
+  // the tree: goal-tree's view of the store's model (#449), read with the
+  // engine's grammar; the last one of the same file stays while the JSON is
+  // being fixed (the store keeps its last valid model, so this comes free)
   const [served, setServed] = useState<{
     fileName: string;
     tree: GoalView;
   } | null>(null);
   useEffect(() => {
-    if (!model.text.trim() || parsed.error) return;
+    if (!model.text.trim() || jsonError) return;
     const fileName = model.fileName;
-    try {
-      setServed({ fileName, tree: treeView(model.text, engine) });
-    } catch {
-      // kept: the previous view stays until the model parses again
-    }
-  }, [model.text, model.fileName, engine, parsed.error]);
+    setServed({ fileName, tree: treeView(storeModel, engine) });
+  }, [storeModel, model.text, model.fileName, engine, jsonError]);
   const tree =
     model.text.trim() && served?.fileName === model.fileName
       ? served.tree
@@ -1352,35 +1788,41 @@ function WorkbenchState({
     [tree],
   );
 
-  // ---- analysis (server, debounced) ------------------------------------------
-  const debouncedText = useDebounced(model.text, 400);
+  // ---- analysis (engine worker, #413) ----------------------------------------
+  // the worker holds a mirror of the model and reruns analysis on its own,
+  // debounced the way the inline call used to be; this thread only reads
+  // what it posts back
   const [analyzed, setAnalyzed] = useState<{
     key: string;
     data: AnalyzeResponse;
   } | null>(null);
   const analysis = analyzed?.data ?? null;
-  const setAnalysis = useCallback(
-    (data: AnalyzeResponse | null, key = '') =>
-      setAnalyzed(data ? { key, data } : null),
-    [],
+  const currentAnalysisKey = useMemo(
+    () => analysisKey(model.text, engine),
+    [model.text, engine],
   );
-  const [analyzing, setAnalyzing] = useState(false);
+  // a crash belongs to the analysis this thread is waiting for: read at the
+  // moment it lands, not when the callback was bound
+  const awaitedKey = useRef(currentAnalysisKey);
   useEffect(() => {
-    // piStar mode has no engine to analyse for; a model just opened waits for
-    // its text, not the last one's read with its engine
-    if (
-      pistar ||
-      debouncedText !== model.text ||
-      !debouncedText.trim() ||
-      modelSignature(debouncedText) === null
-    )
-      return;
-    setAnalyzing(true);
-    const key = analysisKey(debouncedText, engine);
-    try {
-      setAnalysis(analyze(debouncedText, engine), key);
-    } catch (error) {
-      // keep the last variables and known properties, but always surface the failure
+    awaitedKey.current = currentAnalysisKey;
+  }, [currentAnalysisKey]);
+  // the only writer of `analyzed` (goal-controller#432 review): a worker
+  // result, a worker failure, a worker crash, or no model to analyse. So
+  // `analyzing`/`variablesReady` only ever move on one of those, never on a
+  // timer. A failure keeps the last variables and known properties, but
+  // always surfaces itself
+  const applyAnalysisOutcome = useCallback(
+    (outcome: EngineAnalysisOutcome | { readonly kind: 'cleared' }) => {
+      if (outcome.kind === 'cleared') {
+        setAnalyzed(null);
+        return;
+      }
+      if (outcome.kind === 'analyzed') {
+        setAnalyzed({ key: outcome.key, data: outcome.data });
+        return;
+      }
+      const key = outcome.kind === 'failed' ? outcome.key : awaitedKey.current;
       setAnalyzed((prev) => ({
         key,
         data: {
@@ -1396,23 +1838,51 @@ function WorkbenchState({
             {
               severity: 'error',
               source: ENGINE_LABEL[engine],
-              message: error instanceof Error ? error.message : String(error),
+              message: outcome.message,
             },
           ],
         },
       }));
-    } finally {
-      setAnalyzing(false);
-    }
-  }, [debouncedText, model.text, engine, pistar, setAnalysis]);
+    },
+    [engine],
+  );
+  const engineWorker = useEngineWorker(
+    session.serve,
+    engine,
+    pistar,
+    applyAnalysisOutcome,
+  );
   useEffect(() => {
-    if (!model.text.trim() || pistar) setAnalysis(null);
-  }, [model.text, pistar, setAnalysis]);
+    if (!model.text.trim() || pistar) applyAnalysisOutcome({ kind: 'cleared' });
+  }, [model.text, pistar, applyAnalysisOutcome]);
+  // true from the moment the text changes until the worker catches up to it
+  // (its key, by content: the worker's own serialization never matches
+  // `model.text` byte for byte, see `analysisKey`)
+  const analyzing =
+    !pistar &&
+    !jsonError &&
+    !!model.text.trim() &&
+    analyzed?.key !== currentAnalysisKey;
+  // an analysis past ANALYSIS_SLOW_MS is only reported as slow: the worker is
+  // asked for a pong, and only one that never comes (a hung worker, not a
+  // busy one) goes down the crash path, which ends this analysis as a failure
+  const [slowKey, setSlowKey] = useState<string | null>(null);
+  const { probe } = engineWorker;
+  useEffect(() => {
+    if (!analyzing) return undefined;
+    const key = currentAnalysisKey;
+    const timer = setTimeout(() => {
+      setSlowKey(key);
+      probe(ANALYSIS_UNRESPONSIVE_MS);
+    }, ANALYSIS_SLOW_MS);
+    return () => clearTimeout(timer);
+  }, [analyzing, currentAnalysisKey, probe]);
+  const analysisSlow = analyzing && slowKey === currentAnalysisKey;
   // PRISM generation needs the model's variables: until they are known the
   // engine would fill in placeholders (0.5, MISSING_VARIABLE_DEFINITION)
   const variablesReady =
     !isPrismEngine(engine) ||
-    (analyzed?.key === analysisKey(model.text, engine) && !analyzing);
+    (analyzed?.key === currentAnalysisKey && !analyzing);
 
   // ---- the project's resources (goal-controller#25) ------------------------------
   // the slots the engine's definition declares, in the open project
@@ -1892,6 +2362,20 @@ function WorkbenchState({
     () => (isPrismEngine(engine) ? (analysis?.variables ?? []) : []),
     [analysis, engine],
   );
+  // what M6's host tools read, fresh on each call (goal-controller#415):
+  // the pool's documents, and what the Notation editor checks against
+  workspaceRef.current = () => ({
+    tree,
+    resources: resourceSlotsNow.flatMap((slot) =>
+      slot.paths.flatMap((path) =>
+        resourceTexts[path] === undefined
+          ? []
+          : [{ kind: slot.kind, path, text: resourceTexts[path] }],
+      ),
+    ),
+    variables,
+    projectResources,
+  });
   const [storedValues, setStoredValues] = useState<VariableValues>(
     initial.current?.variables ?? {},
   );
@@ -1964,6 +2448,7 @@ function WorkbenchState({
   }, [model.text, engine, options, values]);
 
   const [generating, setGenerating] = useState(false);
+  const transformsInFlight = useRef(0);
   const runId = useRef(0);
   const latest = useRef({
     text: model.text,
@@ -1988,6 +2473,9 @@ function WorkbenchState({
   // a generation asked for before the variables were known runs once they are
   const [pendingGenerate, setPendingGenerate] = useState(false);
 
+  // the actual transform() call runs in the engine worker (#413), against
+  // its mirror's current model; this thread only sends the options text
+  // can't carry (fileName, the engine's options, PRISM's variable values)
   const generate = useCallback(() => {
     const {
       text,
@@ -1995,10 +2483,10 @@ function WorkbenchState({
       engine: runEngine,
       options: runOptions,
       values: runValues,
-      inputsSignature: signature,
+      inputsSignature: requestedSignature,
       runs: priorRuns,
     } = latest.current;
-    if (!text.trim() || signature === null) return;
+    if (!text.trim() || requestedSignature === null) return;
     // an analysis engine generates nothing (its values are Analyse's)
     if (!generatesFiles(runEngine)) return;
     if (!latest.current.variablesReady) {
@@ -2007,49 +2495,66 @@ function WorkbenchState({
     }
     setPendingGenerate(false);
     const started = performance.now();
+    transformsInFlight.current += 1;
     setGenerating(true);
     // an Edge engine reads the previous run's primary file
     const previousOutput = runOptions.clean
       ? undefined
       : previousOutputOf(priorRuns, runEngine);
-    let run: Run;
-    try {
-      const result = transform({
-        modelJson: text,
+    void engineWorker
+      .transform({
         engine: runEngine,
         fileName: fileName.replace(/\.(txt|json)$/i, '') || 'model',
         previousOutput,
         ...optionsFor(runEngine, runOptions),
         ...(isPrismEngine(runEngine) &&
           Object.keys(runValues).length > 0 && { variables: runValues }),
+      })
+      .then((result) => {
+        // generating while any transform is in flight: a superseded one
+        // settles first, and the one that replaced it clears it
+        transformsInFlight.current -= 1;
+        if (transformsInFlight.current === 0) setGenerating(false);
+        // cancelled (superseded, or its model closed): no run, no error
+        if (result.status === 'cancelled') return;
+        const { outcome } = result;
+        runId.current += 1;
+        // labeled with what the worker actually ran against, not what this
+        // thread guessed when it asked (goal-controller#432 review): the
+        // worker's own model may have moved on by the time it answers
+        const signature =
+          outcome.modelSignature === null
+            ? requestedSignature
+            : JSON.stringify([
+                outcome.modelSignature,
+                runEngine,
+                optionsFor(runEngine, runOptions),
+                isPrismEngine(runEngine) ? runValues : null,
+              ]);
+        const run: Run = outcome.ok
+          ? {
+              id: runId.current,
+              at: Date.now(),
+              engine: runEngine,
+              durationMs: performance.now() - started,
+              signature,
+              files: outcome.files,
+              report: outcome.report,
+              error: null,
+            }
+          : {
+              id: runId.current,
+              at: Date.now(),
+              engine: runEngine,
+              durationMs: performance.now() - started,
+              signature,
+              files: null,
+              report: null,
+              error: outcome.error,
+            };
+        setRuns((prev) => [run, ...prev].slice(0, 20));
       });
-      runId.current += 1;
-      run = {
-        id: runId.current,
-        at: Date.now(),
-        engine: runEngine,
-        durationMs: performance.now() - started,
-        signature,
-        files: result.files,
-        report: result.report,
-        error: null,
-      };
-    } catch (error) {
-      runId.current += 1;
-      run = {
-        id: runId.current,
-        at: Date.now(),
-        engine: runEngine,
-        durationMs: performance.now() - started,
-        signature,
-        files: null,
-        report: null,
-        error: error instanceof Error ? error.message : String(error),
-      };
-    }
-    setRuns((prev) => [run, ...prev].slice(0, 20));
-    setGenerating(false);
-  }, []);
+  }, [engineWorker.transform]);
 
   useEffect(() => {
     if (pendingGenerate && variablesReady) generate();
@@ -2116,6 +2621,10 @@ function WorkbenchState({
           id,
           analysis,
           textRef.current,
+          // read fresh, not the hook's render-time storeModel: both are now
+          // synchronous reads, so they stay paired regardless of when this
+          // runs relative to the last render (#451 review)
+          sessionRef.current.store.getModel(),
           analysisEngine.model,
           analysisResource(
             analysis,
@@ -2216,45 +2725,101 @@ function WorkbenchState({
   }, [outputsOf, project?.store, pistar]);
 
   // ---- problems ----------------------------------------------------------------
-  // what the language services say of the open documents (editors, fields)
+  // what the language services say of the open documents (editors, fields),
+  // and the engine worker's own analysis (goal-controller#433): its
+  // per-element findings publish to the same store (which, like its
+  // comment says, holds diagnostics about elements only), under the
+  // current session's id so a session switch retracts the old one's
+  // rather than leaving it stuck. A run-wide finding (no element: a crash,
+  // a parse failure) has nowhere to anchor in that store, so it stays on
+  // the direct path below, as it always was.
   const serviceProblems = useServiceDiagnostics();
+  useEffect(() => {
+    const document = String(session.id);
+    publishDiagnostics(
+      ENGINE_DIAGNOSTICS_SERVICE,
+      document,
+      analysis && !jsonError
+        ? analysis.problems.filter((problem) => problem.elementId !== undefined)
+        : [],
+    );
+    return () => publishDiagnostics(ENGINE_DIAGNOSTICS_SERVICE, document, []);
+  }, [analysis, jsonError, session.id]);
+  // the active mode's guard report (goal-controller#471): an import or an
+  // open applies as written, the mode's own rules checked afterwards and
+  // shown as Problems instead of rejecting it; re-published under the
+  // current session's id, as the engine's own diagnostics are, so a session
+  // switch retracts the old one's
+  useEffect(() => {
+    const document = String(session.id);
+    publishDiagnostics(GUARD_REPORT_SERVICE, document, guardReport);
+    return () => publishDiagnostics(GUARD_REPORT_SERVICE, document, []);
+  }, [guardReport, session.id]);
+  /**
+   * What the workbench checks of a model itself, read through `checkedTree`
+   * (its goal-tree view; none: unread): a framework's dialect, or iStar's
+   * notations and the shared language. The model part of `problems`, and
+   * what the agent drawer previews a proposed change set with.
+   */
+  const modelProblemsOf = useCallback(
+    (checked: AnyIstarModel, checkedTree: GoalView | null): Problem[] => {
+      // a framework's model (goal-controller#171): what its dialect says of it,
+      // in its modelling mode or its engine's
+      const framework = pistar
+        ? isFrameworkMode(dialect)
+          ? FRAMEWORK_DIALECTS[dialect]
+          : null
+        : (frameworkEditorOf(engine)?.definition ?? null);
+      // with the vocabulary profile the model records (a CAIRIS model's, #192)
+      if (framework)
+        return frameworkProblems(
+          checked,
+          dialectForModel(framework, checked),
+          projectResources,
+        );
+      // piStar mode: only whether the file parses; the engine checks do not apply
+      if (pistar || !checkedTree) return [];
+      // the checks of iStar's notations, and the shared language on the
+      // model's own document, editors open or not
+      return [
+        ...treeProblems(checkedTree, engine),
+        ...(isDialectEngine(engine)
+          ? modelLanguageProblems(
+              engine,
+              checkedTree,
+              variables,
+              projectResources,
+            )
+          : []),
+      ];
+    },
+    [pistar, dialect, engine, projectResources, variables],
+  );
+  const previewProblems = useCallback(
+    (checked: AnyIstarModel): Problem[] =>
+      modelProblemsOf(checked, pistar ? null : treeView(checked, engine)),
+    [modelProblemsOf, pistar, engine],
+  );
   const problems = useMemo(() => {
     const list: Problem[] = [];
-    if (parsed.error) list.push(parsed.error);
+    if (jsonError) list.push(jsonError);
     // what the model's manifest holds that is not used (its options are the file's)
     else list.push(...modelOptions.problems);
     // what is wrong in the project's resources (Model group, by the resource's label)
     list.push(...resourceProblemsNow);
     // the model's native files: out of sync, unreadable, or not written (goal-controller#143)
     list.push(...nativeProblemsNow);
-    // a framework's model (goal-controller#171): what its dialect says of it,
-    // in its modelling mode or its engine's
-    const framework = pistar
-      ? isFrameworkMode(dialect)
-        ? FRAMEWORK_DIALECTS[dialect]
-        : null
-      : (frameworkEditorOf(engine)?.definition ?? null);
-    // with the vocabulary profile the model records (a CAIRIS model's, #192)
-    if (framework && parsed.istar)
-      list.push(
-        ...frameworkProblems(
-          parsed.istar,
-          dialectForModel(framework, parsed.istar),
-          projectResources,
-        ),
-      );
+    // the model's own (a framework's needs no tree; iStar's notations do)
+    if (model.text.trim() && !jsonError)
+      list.push(...modelProblemsOf(storeModel, tree));
     // piStar mode: only whether the file parses; the engine checks do not apply
     if (pistar) return list;
-    // the checks of iStar's notations: none in another framework
-    if (tree && !parsed.error && !framework) {
-      list.push(...treeProblems(tree, engine));
-      // the shared language on the model's own document, editors open or not
-      if (isDialectEngine(engine))
-        list.push(
-          ...modelLanguageProblems(engine, tree, variables, projectResources),
-        );
-    }
-    if (analysis && !parsed.error) list.push(...analysis.problems);
+    if (analysis && !jsonError)
+      list.push(
+        ...analysis.problems.filter(
+          (problem) => problem.elementId === undefined,
+        ),
+      );
     if (current && !stale) {
       const checked = new Set(
         list
@@ -2289,9 +2854,9 @@ function WorkbenchState({
       ? mergeProblems(list, serviceProblems)
       : mergeProblems(list, []);
   }, [
-    parsed.error,
-    parsed.istar,
+    jsonError,
     model.text,
+    storeModel,
     modelOptions,
     resourceProblemsNow,
     nativeProblemsNow,
@@ -2375,21 +2940,36 @@ function WorkbenchState({
     regenerateNative,
     reimportModel,
     projectSource: model.projectSource,
+    aside: model.aside,
     closeModel,
     setText,
     renameFile,
     markSaved,
     undo,
     redo,
-    canUndo: undoStack.current.length > 0,
-    canRedo: redoStack.current.length > 0,
+    canUndo: session.store.canUndo(),
+    canRedo: session.store.canRedo(),
+    session,
+    dispatcherFor: session.dispatcherFor,
+    glspEnabled,
+    setGlspEnabled,
+    glspSession,
+    agentWorkspace,
+    editRejected,
+    notifyEditRejected,
+    dismissEditRejected,
+    modelWorkerNotice,
+    dismissModelWorkerNotice,
+    modelWorkerIncident: workerIncident,
+    modelWorkerSlow,
+    restartModelWorker,
     recent,
     forgetRecent,
     tree,
-    jsonError: parsed.error,
+    jsonError,
     engine,
     engineLocked: lockedEngine !== null,
-    mode: pistar ? (dialect ?? 'pistar') : engine,
+    mode,
     recordedEngine,
     requestMode,
     conversion,
@@ -2413,6 +2993,7 @@ function WorkbenchState({
     closeSettings,
     analysis,
     analyzing,
+    analysisSlow,
     variables,
     values,
     setValue,
@@ -2439,6 +3020,11 @@ function WorkbenchState({
     clearAnalysis,
     exportProject,
     problems,
+    previewProblems,
+    agentChanges,
+    beginAgentChanges,
+    endAgentChanges,
+    clearAgentChanges,
     select,
     modelTab,
     setModelTab,

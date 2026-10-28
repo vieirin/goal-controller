@@ -1,22 +1,21 @@
 'use client';
 
-import { serializeModel } from '@/lib/workbench/pistar';
-import { emptyModel, parseModel } from '@/lib/workbench/dialects';
-import type { AnyModel } from '@goal-controller/lib';
-import type { ModelChangeEvent } from '@istar-ts/core';
 import {
   IstarCanvas,
   IstarPalette,
   IstarProvider,
+  paletteDescriptionFor,
+  registrySizes,
   useIstarEditor,
-  useIstarStore,
   type IstarCanvasHandle,
   type IstarExtension,
 } from '@istar-ts/react';
 import {
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
+  useState,
   type KeyboardEvent,
   type ReactNode,
   type RefObject,
@@ -34,29 +33,21 @@ import {
   shownCase,
   shownStep,
 } from '@/lib/workbench/analysis';
+import {
+  agentChangeStyle,
+  AGENT_CHANGE_ATTRIBUTE,
+} from '@/lib/workbench/agentChanges';
 import { useShell } from '../../shell';
+import type { ModelSession } from '@/lib/workbench/modelSession';
 
 /**
- * The goal model as an editable iStar diagram (@istar-ts/react), kept in sync
- * with the workbench: edits are written to the model text, text changes from
- * elsewhere reload the diagram, and the selection follows the workbench's.
+ * The goal model as an editable iStar diagram (@istar-ts/react), a client of
+ * the workbench's store and dispatcher (#410): its edits are actions on the
+ * model, the text follows from it, and the selection follows the workbench's.
+ * The store is a mirror of the model worker's and the dispatcher the
+ * worker's (#434): the mode's guards run there, by `wb.mode`, not per diagram.
  * Each mode's diagram (engines/<engine>/, engines/pistar/) declares what it adds.
  */
-
-/** Why an edit is taken back out (shown as an error notice), or null to keep it. */
-export type RejectEdit = (
-  event: ModelChangeEvent<string, string>,
-) => string | null;
-
-/** The model, read with the dialect it records (if any). */
-const tryParse = (text: string): AnyModel | null => {
-  if (!text.trim()) return emptyModel();
-  try {
-    return parseModel(text);
-  } catch {
-    return null;
-  }
-};
 
 /**
  * Keeps the diagram fitted to its container until the user pans or zooms it: the
@@ -70,6 +61,7 @@ function useAutoFit(
   container: RefObject<HTMLDivElement | null>,
   resetKey: string,
   shown: boolean,
+  onReady: () => void,
 ) {
   const userMoved = useRef(false);
   useEffect(() => {
@@ -83,7 +75,8 @@ function useAutoFit(
       if (userMoved.current) return;
       void canvas.current?.fitView().then((moved) => {
         // nodes not measured yet: try again shortly
-        if (!moved && tries < 20) {
+        if (moved) onReady();
+        else if (tries < 20) {
           tries += 1;
           timer = setTimeout(fit, 100);
         }
@@ -135,19 +128,35 @@ const isInView = (iStarId: string): boolean => {
   );
 };
 
-/** Hands the editor's notice function to the canvas, which sits outside the provider. */
-function NotifyBridge({
-  notify,
+/**
+ * Gives the workbench's dispatcher the palette this canvas draws (its registry,
+ * with the mode's extensions), before the editor asks for it: the dispatcher
+ * is the workbench's, not one the editor made over its own registry. Kept
+ * explicit (not `paletteFromMetamodel`'s default) so entries keep their short
+ * labels ("And"/"Or") instead of the default's full kind labels (#411).
+ *
+ * Also gives it the registry's sizes (`registrySizes`): a GLSP contribution
+ * hosted over this session (#414) needs them so its GModel's node sizes and
+ * actor boundaries match what this canvas draws (istar-ts#154), reused as is
+ * rather than re-derived.
+ */
+function PaletteBridge({
+  session,
+  extensions,
 }: {
-  notify: RefObject<((message: string) => void) | null>;
+  session: ModelSession;
+  extensions: readonly IstarExtension<string, string>[];
 }) {
-  const editor = useIstarEditor();
-  useEffect(() => {
-    notify.current = (message) => editor.notify(message, 'error');
+  const { registry } = useIstarEditor();
+  // layout: before the provider's effect requests it
+  useLayoutEffect(() => {
+    session.setPalette(paletteDescriptionFor(registry, extensions));
+    session.setSizes(registrySizes(registry));
     return () => {
-      notify.current = null;
+      session.setPalette(null);
+      session.setSizes(undefined);
     };
-  }, [editor, notify]);
+  }, [session, registry, extensions]);
   return null;
 }
 
@@ -222,7 +231,6 @@ function SelectionSync({
 export default function WorkbenchCanvas({
   extensions,
   aside,
-  rejectEdit,
   paletteOnTop = false,
   paletteEnd,
   fitKey = '',
@@ -231,8 +239,6 @@ export default function WorkbenchCanvas({
   extensions: readonly IstarExtension<string, string>[];
   /** beside the canvas (piStar mode: the editor's own inspector) */
   aside?: ReactNode;
-  /** edits the mode does not allow are undone right away, with this notice */
-  rejectEdit?: RejectEdit;
   /** the palette as a bar on top (piStar mode); otherwise on the left, on top in full screen */
   paletteOnTop?: boolean;
   /** fits the diagram again when it changes (a different palette) */
@@ -242,53 +248,25 @@ export default function WorkbenchCanvas({
 }) {
   const wb = useWorkbench();
   const { modelFullscreen, modelReadOnly } = useShell();
-  const parsed = useMemo(() => tryParse(wb.text), [wb.text]);
-  const reject = useRef(rejectEdit);
-  reject.current = rejectEdit;
-  const notify = useRef<((message: string) => void) | null>(null);
+  // the store keeps the last model that parsed: shown, read-only, while the text doesn't
+  const parsed = !wb.jsonError;
+  const { session } = wb;
   const canvas = useRef<IstarCanvasHandle>(null);
   const shown = !!wb.text.trim();
 
   const container = useRef<HTMLDivElement>(null);
+  // the e2e smoke's ready signal (#454): set once this canvas has laid out its
+  // nodes, so tests wait for it instead of racing `.react-flow__pane`
+  const [canvasReady, setCanvasReady] = useState(false);
+  useEffect(() => {
+    setCanvasReady(false);
+  }, [session.id]);
   useAutoFit(
     canvas,
     container,
     `${wb.fileName}|${modelReadOnly}|${fitKey}`,
     shown,
-  );
-  const { store } = useIstarStore(() => parsed ?? emptyModel());
-  // the text this diagram last wrote, so its own edits are not loaded back
-  const written = useRef<string | null>(null);
-  const latest = useRef(wb);
-  latest.current = wb;
-
-  // model text → diagram (a new file, the source view, the inspector, undo)
-  useEffect(() => {
-    if (!parsed || wb.text === written.current) return;
-    written.current = null;
-    store.load(parsed);
-  }, [parsed, wb.text, store]);
-
-  // diagram → model text
-  useEffect(
-    () =>
-      store.subscribe((event) => {
-        if (event.source === 'load') return;
-        const rejected =
-          event.source === 'edit' ? (reject.current?.(event) ?? null) : null;
-        if (rejected) {
-          queueMicrotask(() => {
-            store.undo();
-            notify.current?.(rejected);
-          });
-          return;
-        }
-        const current = latest.current;
-        const text = serializeModel(event.model, current.text);
-        written.current = text;
-        current.setText(text, 'canvas');
-      }),
-    [store],
+    () => setCanvasReady(true),
   );
 
   // what the canvas badges: the elements' errors and warnings, by the diagram's
@@ -318,8 +296,14 @@ export default function WorkbenchCanvas({
     () => (wb.analysisStale ? null : selectionStyle(shownCase(wb.analysisRun))),
     [wb.analysisRun, wb.analysisStale],
   );
+  // what the agent added or edited this session (goal-controller#415's drawer)
+  const agentChangeCss = useMemo(
+    () => agentChangeStyle(wb.agentChanges),
+    [wb.agentChanges],
+  );
 
-  // one undo history for the whole workbench: ⌘Z here undoes the model text, not just the diagram
+  // one undo history for the whole workbench, the dispatcher's: ⌘Z here is a
+  // glspUndo, whichever editor made the edit (not caught again by the workbench's)
   const onKeyDownCapture = (event: KeyboardEvent) => {
     if (modelReadOnly || !(event.metaKey || event.ctrlKey)) return;
     if ((event.target as HTMLElement).closest('input, textarea')) return;
@@ -327,8 +311,9 @@ export default function WorkbenchCanvas({
     if (key !== 'z' && key !== 'y') return;
     event.preventDefault();
     event.stopPropagation();
-    if (key === 'y' || event.shiftKey) wb.redo();
-    else wb.undo();
+    void session.dispatcherFor('canvas').dispatch({
+      kind: key === 'y' || event.shiftKey ? 'glspRedo' : 'glspUndo',
+    });
   };
 
   if (!wb.text.trim()) {
@@ -344,17 +329,24 @@ export default function WorkbenchCanvas({
       ref={container}
       className='relative h-full'
       onKeyDownCapture={onKeyDownCapture}
+      data-workbench-ready={canvasReady}
       {...(selection && { [SELECTION_ATTRIBUTE]: '' })}
+      {...(agentChangeCss && { [AGENT_CHANGE_ATTRIBUTE]: '' })}
     >
       {selection && <style>{selection}</style>}
+      {agentChangeCss && <style>{agentChangeCss}</style>}
       <IstarProvider
-        store={store}
+        // a new session is another model: the editor starts over
+        key={session.id}
+        store={session.store}
+        dispatcher={session.dispatcherFor('canvas')}
+        dispatcherFor={session.dispatcherFor}
         diagnostics={diagnostics}
         extensions={extensions}
         readOnly={!parsed || modelReadOnly}
       >
+        <PaletteBridge session={session} extensions={extensions} />
         <SelectionSync canvas={canvas} />
-        <NotifyBridge notify={notify} />
         {/* piStar mode and full screen: piStar's bar on top; read-only has none */}
         {paletteEnd &&
         !modelReadOnly &&

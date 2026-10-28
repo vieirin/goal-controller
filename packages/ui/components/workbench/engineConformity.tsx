@@ -83,7 +83,7 @@ const localProblems = (text: string, engine: TransformEngine): Problem[] => {
         dialectForModel(framework.definition, model),
       );
     }
-    const tree = treeView(text, engine);
+    const tree = treeView(parseModel(text), engine);
     return [
       ...treeProblems(tree, engine),
       ...(isDialectEngine(engine)

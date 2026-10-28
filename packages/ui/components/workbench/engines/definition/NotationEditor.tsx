@@ -2,19 +2,22 @@
 
 import { EditorView } from '@codemirror/view';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { setLineMarks } from '@/lib/workbench/codemirror';
+import { setLineMarks, type LineMark } from '@/lib/workbench/codemirror';
+import { agentLineMarks } from '@/lib/workbench/agentChanges';
 import type { LanguageSupport } from '@/lib/workbench/languageSupport';
 import { notationRange } from '@/lib/workbench/poolDocuments';
 import {
-  applyNotationEdits,
   lineKeys,
   notationDocument,
   notationEdits,
+  notationEditOperations,
 } from '@/lib/workbench/notationDocument';
 import { type AnyDialect, type DocumentTree } from '@goal-controller/dialect';
+import AgentChangeLegend from './AgentChangeLegend';
 import CodeEditor from '../../CodeEditor';
 import { useSelection, useWorkbench } from '../../WorkbenchContext';
 import { useShell } from '../../shell';
+import { useEditModel } from '../shared/inspector';
 
 const DOCUMENT_URI = 'file:///model.notation';
 const EDIT_DELAY_MS = 300;
@@ -48,6 +51,9 @@ export default function NotationEditor({
   const latestSelected = useRef(selected);
   latestSelected.current = selected;
   const [view, setView] = useState<EditorView | null>(null);
+  const edit = useEditModel();
+  const latestEdit = useRef(edit);
+  latestEdit.current = edit;
 
   const canonical = useMemo(
     () => (tree ? notationDocument(definition, tree) : { text: '', ids: [] }),
@@ -55,8 +61,15 @@ export default function NotationEditor({
   );
   // the view's own edits are not written back over what is being typed
   const [doc, setDoc] = useState(canonical.text);
+  // set right before dispatching this editor's own edit, so the sync below
+  // doesn't fight the user's typing; cleared once the model change it
+  // caused (or its rejection) is seen
+  const ownEdit = useRef(false);
   useEffect(() => {
-    if (wb.changeSource === 'notation') return;
+    if (ownEdit.current) {
+      ownEdit.current = false;
+      return;
+    }
     setDoc(canonical.text);
     // same text as before (e.g. undo after typing an unknown id): still reset the editor
     const shown = view?.state.doc.toString();
@@ -86,12 +99,16 @@ export default function NotationEditor({
     if (pending.current) clearTimeout(pending.current);
     pending.current = setTimeout(() => {
       pending.current = null;
-      const { text, setText } = latest.current;
       const current = latestTree.current;
       if (!current) return;
       const edits = notationEdits(definition, value, current);
       if (edits.length === 0) return;
-      setText(applyNotationEdits(text, edits), 'notation');
+      ownEdit.current = true;
+      void latestEdit
+        .current(...notationEditOperations(edits))
+        .then((result) => {
+          if (!result.ok) ownEdit.current = false;
+        });
     }, EDIT_DELAY_MS);
   };
 
@@ -156,15 +173,27 @@ export default function NotationEditor({
   );
 
   // the selected element's line: highlighted, and revealed unless chosen here
+  // (only in a selectable notation); the agent's changes: a NEW/EDITED mark
+  // and badge on every element line its id is in (every notation, selectable
+  // or not — a KAOS/NFR/piStar-ext model is marked the same way)
   useEffect(() => {
-    if (!view || !selectable) return;
+    if (!view) return;
     const document = view.state.doc;
-    const keys = selected ? keysOf(document.toString()) : [];
-    // 1-based; 0: the selected element has no line
-    const line = keys.indexOf(selected) + 1;
+    const text = document.toString();
+    const keys = keysOf(text);
+    const marks: LineMark[] = [];
+    const line = selectable && selected ? keys.indexOf(selected) + 1 : 0;
+    if (line) marks.push({ line, className: 'cm-trace-primary' });
+    marks.push(
+      ...agentLineMarks(
+        keys,
+        (key) => latestTree.current?.nodes.get(key)?.iStarId,
+        wb.agentChanges,
+      ),
+    );
     view.dispatch({
       effects: [
-        setLineMarks.of(line ? [{ line, className: 'cm-trace-primary' }] : []),
+        setLineMarks.of(marks),
         ...(line && selectOrigin !== 'notation'
           ? [
               EditorView.scrollIntoView(document.line(line).from, {
@@ -175,7 +204,7 @@ export default function NotationEditor({
       ],
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [view, selectSeq, doc]);
+  }, [view, selectSeq, doc, wb.agentChanges]);
 
   // a model field's range another tab asked to show (go-to-definition, a problem)
   useEffect(() => {
@@ -197,14 +226,19 @@ export default function NotationEditor({
   }, [view, wb.revealed]);
 
   return (
-    <CodeEditor
-      value={doc}
-      language='text'
-      ariaLabel={`Goal model notation (${definition.name})`}
-      onChange={onChange}
-      readOnly={modelReadOnly}
-      extensions={extensions}
-      onReady={setView}
-    />
+    <div className='flex h-full flex-col'>
+      <div className='min-h-0 flex-1'>
+        <CodeEditor
+          value={doc}
+          language='text'
+          ariaLabel={`Goal model notation (${definition.name})`}
+          onChange={onChange}
+          readOnly={modelReadOnly}
+          extensions={extensions}
+          onReady={setView}
+        />
+      </div>
+      <AgentChangeLegend />
+    </div>
   );
 }

@@ -23,6 +23,7 @@ import {
   property,
   type ElementDefinition,
 } from '@goal-controller/dialect';
+import { engineContextOf } from '../../engines/agentContext';
 
 /** DSM3 draws NFR's clouds on white (language_nfr_shapes.js), as istar-ts does. */
 const FILL = NFR_FILL;
@@ -75,3 +76,6 @@ export const nfr = defineDialect({
     },
   },
 });
+
+/** Its part of an agent's context (goal-controller#415): no engine reads it, so it is its dialect's alone. */
+export const nfrAgentContext = engineContextOf(nfr);

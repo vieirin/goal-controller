@@ -319,7 +319,16 @@ From `~/vieirin/istar-ts` @ `cb0ab99`. Nothing there was changed.
   is needed so a stereotype line can be shown without being edited as text.
 - **Groupers and validation hooks.** A kind-set concept in `metamodel.ts` used
   by the rules, plus an extension-level veto/validation hook. The workbench's
-  `rejectEdit` lives outside istar-ts today.
+  own rules live outside istar-ts today, as pre- and post-dispatch guards
+  per mode (`packages/ui/lib/workbench/modeGuards.ts`, run in the model
+  worker): a pre-guard
+  (`ActionGuard`) can reject an operation before it applies, a post-guard
+  (`ActionPostGuard`) runs after and reports a diagnostic — a warning rather
+  than an error when the Inspector can only reach a valid state one field
+  at a time, as `edgeV2ResourceBoundsGuard` does. The session installs a
+  mode's guards on itself, so they apply uniformly across the canvas, the
+  Inspector, the Source tab, MCP tool calls and the agent, not per
+  component.
 - **Extension files.** No metamodel or extension file concept exists
   (`METAMODEL_VERSION` is a constant). Loading piStar-ext's lists needs the
   registrable metamodel first.

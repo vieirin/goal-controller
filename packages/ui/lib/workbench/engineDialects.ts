@@ -28,6 +28,7 @@ import {
   type AnyModel,
   type Check,
   type Engine,
+  type EngineContext,
   type OutputLanguage,
   type PoolRegistration,
   type ProjectResourceParsers,
@@ -189,6 +190,14 @@ export const ENGINE_OPTIONS = Object.fromEntries(
     ? O
     : readonly [];
 };
+
+/**
+ * Each engine's part of an agent's context (goal-controller#415), as it
+ * declares it beside its options: one with a dialect has one (SLEEC none).
+ */
+export const ENGINE_AGENT_CONTEXTS: Readonly<
+  Partial<Record<TransformEngine, EngineContext>>
+> = byEngine((engine) => engine.agentContext);
 
 /** Each engine's name, as the UI shows it: its own label, or its definition's name. */
 export const ENGINE_LABEL: Record<TransformEngine, string> = byEngine(

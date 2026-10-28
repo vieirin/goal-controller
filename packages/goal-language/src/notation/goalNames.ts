@@ -12,6 +12,8 @@ import type {
 } from '@goal-controller/dialect';
 import {
   notationExecution,
+  notationHasGroup,
+  notationText,
   readNotation,
   type AssertionVariable,
 } from '../members.js';
@@ -118,6 +120,11 @@ export const goalNameParserFor =
           `1:${Math.max(goalText.indexOf(symbol, goalText.indexOf('[')), 0)} \`${symbol}\` is not an operator of ${dialect.name}`,
           onSyntaxError,
         );
+    if (notated?.notation.grouping === false && notationHasGroup(notation))
+      report(
+        `1:${Math.max(goalText.indexOf('['), 0)} ${dialect.name} refinements are flat: \`${notationText(notation)}\` has a nested group`,
+        onSyntaxError,
+      );
     return {
       id: read.value?.id ?? '',
       goalName: (read.value?.name ?? '').trim(),

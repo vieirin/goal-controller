@@ -9,9 +9,9 @@ name: Stress tests
 # since the jobs are required checks on main.
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, migration/istar-ts]
   pull_request:
-    branches: [main, develop]
+    branches: [main, develop, migration/istar-ts]
   workflow_dispatch:
 
 jobs:

@@ -29,6 +29,7 @@ import {
   type Analyses,
   type AnalysisModel,
 } from './analysis';
+import { engineContextOf, type EngineContext } from './agentContext';
 import type { Check } from './checks';
 import type { PoolRegistration } from './definitionPool';
 import type { ProjectResourceParsers } from './projectResources';
@@ -72,6 +73,13 @@ export type EngineDefinition = {
   outputs?: readonly EngineOutputDeclaration[];
   /** its generation options (`defineOptions`, goal-controller#118): none, no options menu */
   options?: readonly OptionDefinition[];
+  /**
+   * its part of an agent's context (goal-controller#415): by default
+   * `engineContextOf(dialect)`, which `defineEngine` gives every engine with
+   * a dialect; one that needs lines of its own passes
+   * `engineContextOf(dialect, { constraints })`
+   */
+  agentContext?: EngineContext;
   /** the parsers of the project resources its dialect declares */
   projectResources?: Readonly<Record<string, unknown>>;
   /** its project's files share one definition pool (goal-controller#59) */
@@ -176,14 +184,21 @@ const declaredProperties = (dialect: AnyDialect): Set<string> => {
  * Type-checks and freezes an engine, and checks what the types cannot: every
  * check its dialect's properties name is in its checks, it parses exactly
  * the project resources its dialect declares, its analyses read only those,
- * and it declares each output id once.
+ * and it declares each output id once. An engine with a dialect gets its
+ * agent context (`engineContextOf`), unless it gives its own.
  */
 export const defineEngine = <const E extends EngineDefinition>(
   engine: E & Requirements<E>,
-): Readonly<E> => {
+): Readonly<E & { agentContext?: EngineContext }> => {
   const [problem] = engineProblems(engine);
   if (problem) throw new Error(`${engine.id}: ${problem}`);
-  return Object.freeze(engine);
+  const agentContext =
+    engine.agentContext ??
+    (engine.dialect ? engineContextOf(engine.dialect) : undefined);
+  return Object.freeze({
+    ...engine,
+    ...(agentContext && { agentContext }),
+  });
 };
 
 /** An engine `defineEngine` made. */

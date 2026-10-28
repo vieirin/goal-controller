@@ -9,7 +9,6 @@ import {
   type IstarExtension,
 } from '@istar-ts/react';
 import type { ReactElement } from 'react';
-import { oneActorOnly } from '../shared/extensions';
 
 /**
  * What Edge and EdgeV2 share in the diagram: they read the same elements and keys (see
@@ -126,8 +125,3 @@ export const edgePalette: IstarExtension = {
     'istar.QualificationLink': { palette: false },
   },
 };
-
-/** The Edge engines build one goal tree from one actor: a second actor is taken back out. */
-export const edgeOneActor = oneActorOnly(
-  'The Edge engines read a single actor: add goals, tasks and resources inside the existing one.',
-);

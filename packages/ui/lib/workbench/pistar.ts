@@ -4,7 +4,6 @@
  * diagram layout, so an edited model can be exported and opened again in piStar.
  */
 import {
-  inheritSourceLayout,
   isActor,
   isNode,
   toPistar,
@@ -12,8 +11,6 @@ import {
   updateLink,
   withFileMetamodel,
   type IstarElement,
-  type IstarLink,
-  type LinkKind,
   type ToPistarOptions,
 } from '@istar-ts/core';
 // types only: the view is computed in services/tree.ts
@@ -45,6 +42,7 @@ import {
   DIALECT_LABEL,
   DIALECTS,
   isDialectMode,
+  emptyModel,
   metamodelOfMode,
   parseModel,
   type DialectMode,
@@ -60,9 +58,6 @@ import {
   isFrameworkMode,
   type FrameworkMode,
 } from './frameworkModes';
-
-/** How a node refines its children: AND/OR refinement (Needed-By is not one) */
-export type Relation = 'and' | 'or';
 
 /** A new, empty piStar model. */
 export const EMPTY_PISTAR_MODEL = emptyModelText('istar-2.0');
@@ -97,6 +92,22 @@ const detectIndent = (text: string): number | string => {
     return 0;
   }
   return match[1].includes('\t') ? '\t' : match[1].length;
+};
+
+/** A model text read (blank: an empty model), or why it can't be. */
+export type ReadModelText = { model: AnyModel } | { error: Error };
+
+/**
+ * How the workbench reads a raw text (an opened file, `wb.setText`): the
+ * main thread, for its JSON check, and the model worker, for the model it
+ * keeps (goal-controller#434), read it the same way.
+ */
+export const readModelText = (text: string): ReadModelText => {
+  try {
+    return { model: text.trim() ? parseModel(text) : emptyModel() };
+  } catch (error) {
+    return { error: error instanceof Error ? error : new Error(String(error)) };
+  }
 };
 
 /**
@@ -170,19 +181,6 @@ export const setNodeText = (
   );
 
 /** Set (value) or remove (null) a custom property. */
-/** Set (colour) or clear (null) an element's fill, kept in the diagram like piStar does. */
-export const setNodeColor = (
-  text: string,
-  iStarId: string,
-  color: string | null,
-): string =>
-  rewrite(text, (model) =>
-    updateElement(model, findNode(model, iStarId).id, {
-      // undefined removes the key
-      display: { backgroundColor: color ?? undefined },
-    }),
-  );
-
 export const setNodeProperty = (
   text: string,
   iStarId: string,
@@ -213,31 +211,7 @@ export const setLinkProperty = (
     const properties = { ...link.customProperties };
     if (value === null) delete properties[key];
     else properties[key] = value;
-    return updateLink(model, linkId, {
-      customProperties: Object.keys(properties).length ? properties : null,
-    });
-  });
-
-/** Change how a node refines its children: rewrites the type of its child links. */
-export const setRefinement = (
-  text: string,
-  iStarId: string,
-  relation: Relation,
-): string =>
-  rewrite(text, (model) => {
-    const kind: LinkKind =
-      relation === 'or' ? 'istar.OrRefinementLink' : 'istar.AndRefinementLink';
-    // a link's kind can't be patched, so the links are rebuilt in place (same ids and order)
-    const links = new Map<string, IstarLink<string>>(
-      [...model.links].map(([id, link]): [string, IstarLink<string>] =>
-        link.target === iStarId &&
-        (link.kind === 'istar.AndRefinementLink' ||
-          link.kind === 'istar.OrRefinementLink')
-          ? [id, { ...link, kind }]
-          : [id, link],
-      ),
-    );
-    return inheritSourceLayout(model, { ...model, links });
+    return updateLink(model, linkId, { customProperties: properties });
   });
 
 // ---------------------------------------------------------------------------
@@ -356,7 +330,7 @@ const MODES: readonly ModelMode[] = [
 export const isEngineMode = (mode: ModelMode): mode is TransformEngine =>
   mode !== 'pistar' && !isDialectMode(mode) && !isFrameworkMode(mode);
 
-const isMode = (value: unknown): value is ModelMode =>
+export const isMode = (value: unknown): value is ModelMode =>
   MODES.includes(value as ModelMode);
 
 /**

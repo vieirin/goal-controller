@@ -6,7 +6,16 @@ packages/*/node_modules/
 out/
 packages/lib/out/
 packages/ui/.next/
+packages/ui/.next-e2e/
 packages/ui/out/
+# Next rewrites this to the active distDir's routes.d.ts (.next for dev, .next-e2e
+# for e2e, goal-controller#424): no single committed content can match both, and
+# tsc doesn't need the file to exist (next dev/build regenerate it when missing).
+packages/ui/next-env.d.ts
+
+# Playwright e2e
+packages/ui/test-results/
+packages/ui/playwright-report/
 
 # Output directory
 output/

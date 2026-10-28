@@ -1,6 +1,8 @@
 'use client';
 
 import {
+  fileLineOf,
+  fileShapeOf,
   ISTAR_ACTOR_KINDS,
   ISTAR_LINK_KINDS,
   ISTAR_NODE_KINDS,
@@ -9,7 +11,7 @@ import {
 } from '@goal-controller/dialect';
 import { writeAnnotations } from '@goal-controller/goal-language/light';
 import type { IstarElement, IstarLink } from '@istar-ts/core';
-import { LINE_DASHES, TEXT_BOXES, type IstarExtension } from '@istar-ts/react';
+import { TEXT_BOXES, type IstarExtension } from '@istar-ts/react';
 
 /**
  * piStar-ext in the diagram: iStar4RationalAgents' kinds and the model's own,
@@ -76,7 +78,7 @@ export const pistarExtExtension = (
           // an actor's circle is narrow for a stereotype line: let it shrink further
           ...(ACTORS.includes(kind) ? { labelFit: ACTOR_FIT } : {}),
           ...(textBox ? { textBox } : {}),
-          ...(own?.shape ? { shape: { path: own.shape } } : {}),
+          ...(own?.shape ? { shape: fileShapeOf(own.shape) } : {}),
         },
       ];
     }),
@@ -89,15 +91,7 @@ export const pistarExtExtension = (
       kind,
       {
         labelHeader,
-        ...(line
-          ? {
-              line: {
-                dash: LINE_DASHES[line.dash],
-                marker: line.marker,
-                markerFilled: line.markerFilled,
-              },
-            }
-          : {}),
+        ...(line ? { line: fileLineOf(line) } : {}),
       },
     ]),
   ),

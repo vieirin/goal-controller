@@ -375,6 +375,7 @@ export { istar4RationalAgents } from './dialects/pistarExt';
 // the frameworks' dialects (goal-controller#171)
 export {
   kaos,
+  kaosAgentContext,
   kaosOperations,
   KAOS_OPERATION_KINDS,
   KAOS_OPERATION_LINKS,
@@ -390,7 +391,9 @@ export {
   VOCABULARY_PROFILES,
   type VocabularyProfile,
 } from './dialects/kaos/profiles';
-export { nfr } from './dialects/nfr';
+export { nfr, nfrAgentContext } from './dialects/nfr';
+// an engine's part of an agent's context (goal-controller#415)
+export * from './engines/agentContext';
 // One object per engine (goal-controller#124): what the workbench registers
 export * from './engines/engine';
 export { edgeEngine } from './engines/edge/engine';

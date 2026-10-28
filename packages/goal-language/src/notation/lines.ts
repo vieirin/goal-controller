@@ -18,7 +18,12 @@ import type {
   PlainDocument,
   RtExpr,
 } from '../generated/ast.js';
-import { idPrefixesOf, propertyKeysOf } from '../catalog.js';
+import {
+  idPrefixesOf,
+  INFIX_SYMBOLS,
+  propertyKeysOf,
+  STANDALONE_SYMBOLS,
+} from '../catalog.js';
 import { parseWith } from '../module.js';
 import {
   goalServices,
@@ -48,6 +53,13 @@ export type WrittenOperator = {
   operands?: number;
 };
 
+/**
+ * Two binary operators written at the same nesting level, with no bracket
+ * of its own between them (`G13#G14;G12`): `first` and `second` as written,
+ * left to right; `span` is `second`'s, where the model mentions it.
+ */
+export type MixedOperators = { span: Span; first: string; second: string };
+
 export type ElementReading = {
   kind: 'element';
   /** null on a line without an id */
@@ -69,6 +81,9 @@ export type ElementReading = {
     /** where `skip` is written */
     skips: Span[];
     operators: WrittenOperator[];
+    mixed: MixedOperators[];
+    /** every `[...]`/`(...)` group's span, wherever it is (`notation.grouping: false`'s check) */
+    groups: Span[];
   } | null;
   /** its bracket when it holds a cost (`[W = 0.1x]`), not a notation */
   cost: {
@@ -157,6 +172,154 @@ const operatorOf = (expr: RtExpr): WrittenOperator | null => {
     }
     default:
       return null;
+  }
+};
+
+// a precedence-climbed infix node's $cstNode is the whole activation it was
+// climbed in (Langium reuses it while building), so only the node a fresh
+// climb starts from (the notation, a group's or a call argument's) has its
+// own true span; `scanOperators` reads the rest from its text, not its tree.
+const INFIX_BY_LENGTH = [...INFIX_SYMBOLS].sort((a, b) => b.length - a.length);
+// written the same as a standalone symbol (`[+]`'s `+`): only an operator
+// where an operand ends just before it, else it is one on its own
+const AMBIGUOUS = new Set(STANDALONE_SYMBOLS as readonly string[]);
+const OPERAND_END = /[A-Za-z0-9\])]/;
+
+/** Every binary operator `scanOperators` reads in one text, left to right, skipping `[...]` and `(...)`. */
+const scanOperators = (
+  text: string,
+  offset: number,
+): { span: Span; symbol: string }[] => {
+  const found: { span: Span; symbol: string }[] = [];
+  let depth = 0;
+  for (let i = 0; i < text.length;) {
+    const ch = text[i];
+    if (ch === '[' || ch === '(') {
+      depth++;
+      i++;
+      continue;
+    }
+    if (ch === ']' || ch === ')') {
+      depth = Math.max(depth - 1, 0);
+      i++;
+      continue;
+    }
+    const symbol =
+      depth === 0
+        ? INFIX_BY_LENGTH.find((s) => text.startsWith(s, i))
+        : undefined;
+    if (
+      symbol &&
+      (!AMBIGUOUS.has(symbol) || OPERAND_END.test(text[i - 1] ?? ''))
+    ) {
+      found.push({
+        span: { from: offset + i, to: offset + i + symbol.length },
+        symbol,
+      });
+      i += symbol.length;
+      continue;
+    }
+    i++;
+  }
+  return found;
+};
+
+/**
+ * Where a notation mixes two different binary operators (the catalog's `,`
+ * included) at one nesting level without a bracket of its own
+ * (`G13#G14;G12`, not `[G13#G14];G12`): adjacent operators of one level,
+ * left to right, that are not the same. A group, a call's parentheses, `!`
+ * and `@n` each start a fresh level, so a mix inside one of those is found
+ * on its own.
+ */
+const mixedOperators = (expr: RtExpr): MixedOperators[] => {
+  const found: MixedOperators[] = [];
+  // where a fresh level starts: the notation itself, under a group or a
+  // call's parentheses (its own `$cstNode` is this level's, not shared)
+  const enter = (node: RtExpr | undefined): void => {
+    if (!node) return;
+    switch (node.$type) {
+      case 'RtComma':
+      case 'RtBinary': {
+        const cst = node.$cstNode;
+        if (cst) {
+          const ops = scanOperators(cst.text, cst.offset);
+          for (let i = 1; i < ops.length; i++) {
+            if (ops[i]!.symbol !== ops[i - 1]!.symbol)
+              found.push({
+                span: ops[i]!.span,
+                first: ops[i - 1]!.symbol,
+                second: ops[i]!.symbol,
+              });
+          }
+        }
+        nested(node.left);
+        nested(node.right);
+        return;
+      }
+      case 'RtGroup':
+        enter(node.expr);
+        return;
+      case 'RtNot':
+      case 'RtArgument':
+        enter(node.expr);
+        return;
+      case 'RtCall':
+        node.args.forEach(enter);
+        return;
+      default:
+        return;
+    }
+  };
+  // within one level, where a nested level starts: a group or a call
+  // (an operator or a modifier is this level's still, read through)
+  const nested = (node: RtExpr | undefined): void => {
+    if (!node) return;
+    switch (node.$type) {
+      case 'RtComma':
+      case 'RtBinary':
+        nested(node.left);
+        nested(node.right);
+        return;
+      case 'RtNot':
+      case 'RtArgument':
+        nested(node.expr);
+        return;
+      case 'RtGroup':
+      case 'RtCall':
+        enter(node);
+        return;
+      default:
+        return;
+    }
+  };
+  enter(expr);
+  return found;
+};
+
+/**
+ * Every `[...]`/`(...)` group's span in a notation, wherever it is
+ * (`RtGroup`'s own span is never the shared, climbed one): the outermost
+ * one only where one is nested right inside another (`[[[G2]]]`'s one, not
+ * also its own and its own again).
+ */
+const groupSpans = (expr: RtExpr | undefined): Span[] => {
+  if (!expr) return [];
+  switch (expr.$type) {
+    case 'RtGroup': {
+      const span = spanOf(expr.$cstNode);
+      return span ? [span] : [];
+    }
+    case 'RtComma':
+    case 'RtBinary':
+      return [...groupSpans(expr.left), ...groupSpans(expr.right)];
+    case 'RtNot':
+    case 'RtArgument':
+      return groupSpans(expr.expr);
+    case 'RtCall':
+      return expr.args.flatMap(groupSpans);
+    default:
+      return [];
   }
 };
 
@@ -261,6 +424,8 @@ const readElement = (
               const op = operatorOf(expr as RtExpr);
               return op ? [op] : [];
             }),
+            mixed: mixedOperators(line.notation),
+            groups: groupSpans(line.notation),
           }
         : null,
     cost:
@@ -327,6 +492,8 @@ const writtenAs = (
           ...op,
           span: span(op.span),
         })),
+        mixed: read.notation.mixed.map((m) => ({ ...m, span: span(m.span) })),
+        groups: read.notation.groups.map(span),
       },
     cost: read.cost && { ...read.cost, span: span(read.cost.span) },
     declaration: read.declaration && {

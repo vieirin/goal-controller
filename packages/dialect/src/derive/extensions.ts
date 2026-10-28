@@ -5,6 +5,7 @@
  * engine definition whose element lines carry them as annotations. Nothing
  * here knows a dialect.
  */
+import { LINE_DASHES, type LineDashKind } from '@istar-ts/core';
 import {
   ISTAR_ACTOR_KINDS,
   ISTAR_KIND_OF,
@@ -15,6 +16,7 @@ import {
   type ConditionalValue,
   type ElementDefinition,
   type ExtensionDefinition,
+  type ExtensionLinkDefinition,
   type LinkRulesDefinition,
   type NodeInfo,
   type PropertyDefinition,
@@ -24,6 +26,10 @@ import {
 /**
  * `@istar-ts/core`'s `MetamodelExtension`, structurally (this package has no
  * dependencies), its kinds `EK` and `LK` (an extension's own, as literals).
+ * Presentation (`shape`, `textBox`, `line`) is left out: istar-ts draws a
+ * dialect's own kinds from its `ExtensionDefinition` directly
+ * (`pistarExtExtension`), not from this — see `extensionElementOf`/
+ * `extensionLinkOf` for where `shape`/`line` do survive, for that caller.
  */
 export type MetamodelExtensionData<
   EK extends string = string,
@@ -38,6 +44,7 @@ export type MetamodelExtensionData<
     pistarType?: string;
     size?: { width: number; height: number };
     info?: NodeInfo;
+    description?: string;
   }[];
   links: {
     kind: LK;
@@ -46,6 +53,7 @@ export type MetamodelExtensionData<
     rules?: LinkRulesDefinition;
     pistarType?: string;
     arity?: 'n';
+    description?: string;
   }[];
 };
 
@@ -54,6 +62,133 @@ export const defined = <T extends object>(value: T): T =>
   Object.fromEntries(
     Object.entries(value).filter(([, v]) => v !== undefined),
   ) as T;
+
+/**
+ * A dialect's own shape (SVG path data) as a model's own file-format shape
+ * (istar-ts's `KindShape`, as `ModelElementKind.shape` has it).
+ */
+export const fileShapeOf = (shape: string): FileShape => ({ path: shape });
+
+/**
+ * A model's own file-format shape (istar-ts's `KindShape`, as
+ * `ModelElementKind.shape` has it) as a dialect's own shape (SVG path data):
+ * its `path` (a model's own addition never sets a `viewBox`,
+ * AddConstruct.tsx — there is none to carry across).
+ */
+export const shapeOfFile = ({ path }: FileShape): string => path;
+
+/** istar-ts's own file-format shape of a kind (`KindShape`), as far as it is read here. */
+export type FileShape = { path: string; viewBox?: string };
+
+/** A dialect's own line (its dash/marker enum) as a model's own file-format line (istar-ts's `KindLine`). */
+export const fileLineOf = (line: DialectLine): FileLine =>
+  defined({
+    dash: LINE_DASHES[line.dash],
+    marker: line.marker,
+    markerFilled: line.markerFilled,
+  });
+
+/**
+ * A model's own file-format line (istar-ts's `KindLine`) as a dialect's own
+ * line (its dash/marker enum): its raw dash array back to the enum it names
+ * (no dash is `continuous`; a dash that isn't one of `@istar-ts/core`'s own
+ * `LINE_DASHES` — written by hand in the file — reads as `dashed`, the closest
+ * meaning); its marker (`false`, explicitly none) reads as none.
+ */
+export const lineOfFile = (line: FileLine): DialectLine => ({
+  dash:
+    (Object.keys(LINE_DASHES) as LineDashKind[]).find(
+      (dash) => LINE_DASHES[dash] === line.dash,
+    ) ?? (line.dash ? 'dashed' : 'continuous'),
+  ...(line.marker ? { marker: line.marker } : {}),
+  ...(line.markerFilled !== undefined
+    ? { markerFilled: line.markerFilled }
+    : {}),
+});
+
+/** istar-ts's own file-format line of a link kind (`KindLine`), as far as it is read here. */
+export type FileLine = {
+  dash?: string;
+  marker?: string | false;
+  markerFilled?: boolean;
+};
+
+/** A dialect's own line (its dash/marker enum), `ExtensionLinkDefinition.line`'s. */
+type DialectLine = NonNullable<ExtensionLinkDefinition['line']>;
+
+/**
+ * An element kind's fields resolved the same way whichever kind declares it
+ * (a dialect's own or a model's own addition, modelExtension.ts), undefined
+ * ones dropped: its `shape` is a dialect's own SVG path string throughout
+ * (`ExtensionElementDefinition`'s), a model's own addition's `fileShapeOf`'d
+ * before it gets here (modelExtension.ts).
+ */
+export const extensionElementOf = <
+  T extends {
+    kind: string;
+    label?: string;
+    category?: 'node' | 'actor';
+    behavesLike?: string;
+    pistarType?: string;
+    size?: { width: number; height: number };
+    info?: NodeInfo;
+    shape?: string;
+    textBox?: { top: number; right: number; bottom: number; left: number };
+    description?: string;
+  },
+>({
+  kind,
+  label,
+  category,
+  behavesLike,
+  pistarType,
+  size,
+  info,
+  shape,
+  textBox,
+  description,
+}: T) =>
+  defined({
+    kind,
+    label,
+    category,
+    behavesLike,
+    pistarType,
+    size,
+    info,
+    shape,
+    textBox,
+    description,
+  });
+
+/**
+ * A link kind's fields resolved the same way whichever kind declares it (a
+ * dialect's own or a model's own addition, modelExtension.ts), undefined
+ * ones dropped: its `line` is a dialect's own dash/marker enum throughout
+ * (`ExtensionLinkDefinition`'s), a model's own addition's `lineOfFile`'d
+ * before it gets here; an n-ary kind's generated `arity` is each caller's
+ * own to add.
+ */
+export const extensionLinkOf = <
+  T extends {
+    kind: string;
+    label?: string;
+    behavesLike?: string;
+    rules?: LinkRulesDefinition;
+    pistarType?: string;
+    line?: DialectLine;
+    description?: string;
+  },
+>({
+  kind,
+  label,
+  behavesLike,
+  rules,
+  pistarType,
+  line,
+  description,
+}: T) =>
+  defined({ kind, label, behavesLike, rules, pistarType, line, description });
 
 /** The metamodel extension a dialect's models are read with (presentation left out), its kinds' literal types kept. */
 export const metamodelExtensionOf = <
@@ -65,14 +200,18 @@ export const metamodelExtensionOf = <
   E['links'][number]['kind']
 > => ({
   name: extension.name,
-  elements: extension.elements.map(
-    ({ kind, label, category, behavesLike, pistarType, size, info }) =>
-      defined({ kind, label, category, behavesLike, pistarType, size, info }),
-  ),
-  links: extension.links.map(
-    ({ kind, label, behavesLike, rules, pistarType, arity }) =>
-      defined({ kind, label, behavesLike, rules, pistarType, arity }),
-  ),
+  elements: extension.elements.map((element) => {
+    const {
+      textBox: _textBox,
+      shape: _shape,
+      ...rest
+    } = extensionElementOf(element);
+    return rest;
+  }),
+  links: extension.links.map((link) => {
+    const { line: _line, ...rest } = extensionLinkOf(link);
+    return defined({ ...rest, arity: link.arity });
+  }),
 });
 
 /** Whether a stereotype or tagged value applies to a kind (named, or in a named grouper). */

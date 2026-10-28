@@ -1,15 +1,19 @@
 'use client';
 
 import {
+  Bot,
   Lock,
   Maximize2,
   Minimize2,
   PanelBottomClose,
   PanelBottomOpen,
+  PanelLeftClose,
+  PanelLeftOpen,
   PanelRightClose,
   PanelRightOpen,
   Unlock,
   Upload,
+  X,
 } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -32,6 +36,8 @@ import FrameworkSwitchDialog from './FrameworkSwitchDialog';
 import OutputPane from './OutputPane';
 import { ModelTabView, modelTabsFor } from './modelTabs';
 import TopBar, { addUpload, openUpload } from './TopBar';
+import AgentDrawer from './agent/AgentDrawer';
+import { AgentChatHost } from './agent/AgentChatHost';
 import {
   WorkbenchProvider,
   useSelection,
@@ -39,7 +45,7 @@ import {
 } from './WorkbenchContext';
 import { LanguageServices } from './engines/definition/LanguageServices';
 import { ShellContext, useShell } from './shell';
-import { IconButton, Tabs } from './ui';
+import { Button, IconButton, Tabs } from './ui';
 
 const EXPLORER_KEY = 'goal-workbench:explorer-open';
 const READ_ONLY_KEY = 'goal-workbench:model-read-only';
@@ -431,7 +437,7 @@ function ShellLayout() {
 }
 
 /** Goal Model (diagram) / Source with the Inspector underneath (beside it in full screen). */
-function ModelColumn() {
+export function ModelColumn() {
   const wb = useWorkbench();
   const {
     modelFullscreen,
@@ -444,6 +450,12 @@ function ModelColumn() {
   const showInspector = hasModelInspector(wb.mode);
   // hidden by default; selecting a node shows it; the button toggles it
   const [inspectorOpen, setInspectorOpen] = useState(false);
+  // closed by default; opening it starts the GLSP session it runs over
+  const [agentOpen, setAgentOpen] = useState(false);
+  const toggleAgent = () => {
+    if (!agentOpen && !wb.glspEnabled) wb.setGlspEnabled(true);
+    setAgentOpen(!agentOpen);
+  };
   const tabs = modelTabsFor(
     wb.mode,
     wb.engine,
@@ -458,6 +470,45 @@ function ModelColumn() {
       aria-label='Goal model'
     >
       <OpenInspectorOnSelect open={() => setInspectorOpen(true)} />
+      {wb.modelWorkerNotice && (
+        <p
+          role='status'
+          className='flex items-start gap-2 border-b border-line bg-danger-soft px-3 py-1.5 text-2xs text-danger'
+        >
+          <span className='flex-1'>{wb.modelWorkerNotice}</span>
+          <IconButton
+            icon={X}
+            label='Dismiss'
+            onClick={wb.dismissModelWorkerNotice}
+          />
+        </p>
+      )}
+      {wb.modelWorkerSlow && (
+        <p
+          role='status'
+          className='flex items-center gap-2 border-b border-line bg-panel-deep px-3 py-1.5 text-2xs text-ink-soft'
+        >
+          <span className='flex-1'>
+            The editor is taking longer than expected.
+          </span>
+          <Button variant='outline' onClick={wb.restartModelWorker}>
+            Restart editor
+          </Button>
+        </p>
+      )}
+      {wb.editRejected.length > 0 && (
+        <p
+          role='alert'
+          className='flex items-start gap-2 border-b border-line bg-danger-soft px-3 py-1.5 text-2xs text-danger'
+        >
+          <span className='flex-1'>{wb.editRejected[0]?.message}</span>
+          <IconButton
+            icon={X}
+            label='Dismiss'
+            onClick={wb.dismissEditRejected}
+          />
+        </p>
+      )}
       <Tabs
         label='Model views'
         tabs={tabs}
@@ -478,13 +529,17 @@ function ModelColumn() {
             {showInspector && (
               <IconButton
                 icon={
-                  modelFullscreen
+                  agentOpen
                     ? inspectorOpen
-                      ? PanelRightClose
-                      : PanelRightOpen
-                    : inspectorOpen
-                      ? PanelBottomClose
-                      : PanelBottomOpen
+                      ? PanelLeftClose
+                      : PanelLeftOpen
+                    : modelFullscreen
+                      ? inspectorOpen
+                        ? PanelRightClose
+                        : PanelRightOpen
+                      : inspectorOpen
+                        ? PanelBottomClose
+                        : PanelBottomOpen
                 }
                 label={
                   inspectorOpen ? 'Hide the Inspector' : 'Show the Inspector'
@@ -493,6 +548,12 @@ function ModelColumn() {
                 onClick={() => setInspectorOpen((open) => !open)}
               />
             )}
+            <IconButton
+              icon={Bot}
+              label={agentOpen ? 'Hide the agent' : 'Show the agent'}
+              aria-pressed={agentOpen}
+              onClick={toggleAgent}
+            />
             <IconButton
               icon={modelFullscreen ? Minimize2 : Maximize2}
               label={
@@ -507,37 +568,74 @@ function ModelColumn() {
           </>
         }
       />
-      {/* keyed by orientation so each layout starts from its own default sizes */}
-      <Group
-        key={modelFullscreen ? 'side' : 'below'}
-        orientation={modelFullscreen ? 'horizontal' : 'vertical'}
-        className='min-h-0 flex-1'
-      >
-        <Panel
-          id='model-view'
-          defaultSize={modelFullscreen ? undefined : '58%'}
-          minSize='25%'
-        >
-          <ModelTabView />
-        </Panel>
-        {showInspector && inspectorOpen && (
-          <>
-            <Separator />
-            <Panel
-              id='inspector'
-              defaultSize={modelFullscreen ? '380px' : '42%'}
-              minSize={modelFullscreen ? '280px' : '120px'}
+      {/* the agent beside the views and the Inspector, in either layout */}
+      <AgentChatHost>
+        <Group orientation='horizontal' className='min-h-0 flex-1'>
+          <Panel id='model-views' minSize='30%'>
+            {/* keyed by placement so each layout starts from its own default sizes;
+                the agent drawer takes the right, so an open drawer pushes the
+                Inspector to the left instead of below/right of the views */}
+            <Group
+              key={agentOpen ? 'left' : modelFullscreen ? 'side' : 'below'}
+              orientation={
+                agentOpen || modelFullscreen ? 'horizontal' : 'vertical'
+              }
+              className='h-full'
             >
-              <aside
-                className='h-full overflow-auto bg-white'
-                aria-label='Inspector'
+              {showInspector && inspectorOpen && agentOpen && (
+                <>
+                  <Panel id='inspector' defaultSize='380px' minSize='280px'>
+                    <aside
+                      className='h-full overflow-auto bg-white'
+                      aria-label='Inspector'
+                    >
+                      <ModelInspector />
+                    </aside>
+                  </Panel>
+                  <Separator />
+                </>
+              )}
+              <Panel
+                id='model-view'
+                defaultSize={modelFullscreen || agentOpen ? undefined : '58%'}
+                minSize='25%'
               >
-                <ModelInspector />
-              </aside>
-            </Panel>
-          </>
-        )}
-      </Group>
+                <ModelTabView />
+              </Panel>
+              {showInspector && inspectorOpen && !agentOpen && (
+                <>
+                  <Separator />
+                  <Panel
+                    id='inspector'
+                    defaultSize={modelFullscreen ? '380px' : '42%'}
+                    minSize={modelFullscreen ? '280px' : '120px'}
+                  >
+                    <aside
+                      className='h-full overflow-auto bg-white'
+                      aria-label='Inspector'
+                    >
+                      <ModelInspector />
+                    </aside>
+                  </Panel>
+                </>
+              )}
+            </Group>
+          </Panel>
+          {agentOpen && (
+            <>
+              <Separator />
+              <Panel
+                id='agent'
+                defaultSize='380px'
+                minSize='300px'
+                maxSize='70%'
+              >
+                <AgentDrawer onClose={() => setAgentOpen(false)} />
+              </Panel>
+            </>
+          )}
+        </Group>
+      </AgentChatHost>
     </section>
   );
 }

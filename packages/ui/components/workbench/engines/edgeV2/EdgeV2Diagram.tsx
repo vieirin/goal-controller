@@ -1,7 +1,7 @@
 'use client';
 
 import type { IstarExtension } from '@istar-ts/react';
-import { edgeOneActor, edgePalette } from '../edgeFamily/extensions';
+import { edgePalette } from '../edgeFamily/extensions';
 import { rtNumbering } from '../shared/extensions';
 import WorkbenchCanvas from '../shared/WorkbenchCanvas';
 
@@ -15,7 +15,5 @@ export const EDGEV2_PALETTE: readonly IstarExtension[] = [
 ];
 
 export default function EdgeV2Diagram() {
-  return (
-    <WorkbenchCanvas extensions={EDGEV2_EXTENSIONS} rejectEdit={edgeOneActor} />
-  );
+  return <WorkbenchCanvas extensions={EDGEV2_EXTENSIONS} />;
 }

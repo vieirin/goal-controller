@@ -8,6 +8,7 @@
  */
 import { act, cleanup, render, waitFor } from '@testing-library/react';
 import { readFileSync } from 'node:fs';
+import { useEffect } from 'react';
 import { join } from 'node:path';
 import {
   afterEach,
@@ -46,6 +47,7 @@ import {
   frameworkOfEntry,
   inItsFramework,
 } from '@/lib/workbench/frameworkOpen';
+import { mockReactFlowDom } from './reactFlowDom';
 
 const ROOT = join(__dirname, '../../../..');
 const KAOS_WELCOME = readFileSync(
@@ -61,42 +63,17 @@ const ISTAR = readFileSync(
   'utf8',
 );
 
-// what React Flow needs that jsdom lacks (istar-ts's react test setup)
-beforeAll(() => {
-  class ResizeObserverMock {
-    constructor(private callback: ResizeObserverCallback) {}
-    observe(target: Element) {
-      this.callback(
-        [
-          {
-            target,
-            contentRect: { width: 800, height: 600 },
-          } as unknown as ResizeObserverEntry,
-        ],
-        this as unknown as ResizeObserver,
-      );
-    }
-    unobserve() {}
-    disconnect() {}
-  }
-  class DOMMatrixReadOnlyMock {
-    m22 = 1;
-  }
-  Object.assign(globalThis, {
-    ResizeObserver: ResizeObserverMock,
-    DOMMatrixReadOnly: DOMMatrixReadOnlyMock,
-  });
-  (
-    globalThis.SVGElement.prototype as unknown as { getBBox: () => DOMRect }
-  ).getBBox = () => ({ x: 0, y: 0, width: 0, height: 0 }) as DOMRect;
-});
+beforeAll(mockReactFlowDom);
 
 afterEach(() => cleanup());
 
 const workbench = () => {
   let wb: Workbench | null = null;
   const Probe = () => {
-    wb = useWorkbench();
+    const current = useWorkbench();
+    useEffect(() => {
+      wb = current;
+    });
     return null;
   };
   const view = render(
@@ -136,7 +113,7 @@ describe('a model added to a project (#329, lib/project)', () => {
       { mode: 'nfr', framework: 'nfr', options: {} },
       { mode: 'kaos', framework: 'kaos', options: {} },
     ]);
-    expect(Object.keys(changes).sort()).toEqual([
+    expect(Object.keys(changes).toSorted()).toEqual([
       'kaos-welcome.txt',
       PROJECT_FILE,
     ]);
@@ -240,14 +217,21 @@ describe('Add to project in the workbench (#329)', () => {
   });
   afterEach(() => vi.unstubAllGlobals());
 
+  // #419: the model the canvas draws and the mode whose palette it draws it
+  // with change in one update (a session per opened model, #410)
   it('adds a KAOS file to an open NFR project: both models open, each with its own palette', async () => {
     const { wb, container } = workbench();
     await act(() => wb().openModelFile('nfr-welcome.txt', NFR_WELCOME));
     await waitFor(() => expect(wb().mode).toBe('nfr'));
+    // the palette is the dispatcher's answer: async (istar-ts 0.15)
+    await waitFor(() =>
+      expect(
+        paletteOf(container).some((t) =>
+          t.startsWith('Adding Operationalization'),
+        ),
+      ).toBe(true),
+    );
     const nfrPalette = paletteOf(container);
-    expect(
-      nfrPalette.some((t) => t.startsWith('Adding Operationalization')),
-    ).toBe(true);
     await act(() => wb().addModelFile('kaos-welcome.txt', KAOS_WELCOME));
     // no switch asked: it is added, and opened in KAOS
     expect(wb().frameworkSwitch).toBeNull();
