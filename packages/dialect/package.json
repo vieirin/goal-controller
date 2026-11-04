@@ -13,9 +13,9 @@
     "clean": "rm -rf out tsconfig.tsbuildinfo"
   },
   "dependencies": {
-    "@istar-ts/core": "^0.16.2",
-    "@istar-ts/dsm3-kaos": "^0.16.2",
-    "@istar-ts/dsm3-nfr": "^0.16.2"
+    "@istar-ts/core": "^0.16.3",
+    "@istar-ts/dsm3-kaos": "^0.16.3",
+    "@istar-ts/dsm3-nfr": "^0.16.3"
   },
   "devDependencies": {
     "@types/chai": "^4.3.11",
