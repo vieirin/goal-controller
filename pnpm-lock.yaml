@@ -32,14 +32,14 @@ importers:
   packages/dialect:
     dependencies:
       '@istar-ts/core':
-        specifier: ^0.17.1
-        version: 0.17.1
+        specifier: ^0.17.2
+        version: 0.17.2
       '@istar-ts/dsm3-kaos':
-        specifier: ^0.17.1
-        version: 0.17.1(@istar-ts/react@0.17.1)(react-dom@19.2.3)(react@19.2.3)
+        specifier: ^0.17.2
+        version: 0.17.2(@istar-ts/react@0.17.2)(react-dom@19.2.3)(react@19.2.3)
       '@istar-ts/dsm3-nfr':
-        specifier: ^0.17.1
-        version: 0.17.1(@istar-ts/react@0.17.1)(react-dom@19.2.3)(react@19.2.3)
+        specifier: ^0.17.2
+        version: 0.17.2(@istar-ts/react@0.17.2)(react-dom@19.2.3)(react@19.2.3)
     devDependencies:
       '@types/chai':
         specifier: ^4.3.11
@@ -124,8 +124,8 @@ importers:
         specifier: workspace:*
         version: link:../goal-language
       '@istar-ts/core':
-        specifier: ^0.17.1
-        version: 0.17.1
+        specifier: ^0.17.2
+        version: 0.17.2
       lodash:
         specifier: ^4.17.21
         version: 4.17.23
@@ -167,11 +167,11 @@ importers:
         specifier: workspace:*
         version: link:../goal-tree
       '@istar-ts/dsm3-kaos':
-        specifier: ^0.17.1
-        version: 0.17.1(@istar-ts/react@0.17.1)(react-dom@19.2.3)(react@19.2.3)
+        specifier: ^0.17.2
+        version: 0.17.2(@istar-ts/react@0.17.2)(react-dom@19.2.3)(react@19.2.3)
       '@istar-ts/dsm3-nfr':
-        specifier: ^0.17.1
-        version: 0.17.1(@istar-ts/react@0.17.1)(react-dom@19.2.3)(react@19.2.3)
+        specifier: ^0.17.2
+        version: 0.17.2(@istar-ts/react@0.17.2)(react-dom@19.2.3)(react@19.2.3)
       '@rgrove/parse-xml':
         specifier: 4.2.3
         version: 4.2.3
@@ -201,11 +201,11 @@ importers:
         version: 4.6.7
     devDependencies:
       '@istar-ts/actions':
-        specifier: ^0.17.1
-        version: 0.17.1
+        specifier: ^0.17.2
+        version: 0.17.2
       '@istar-ts/core':
-        specifier: ^0.17.1
-        version: 0.17.1
+        specifier: ^0.17.2
+        version: 0.17.2
       '@types/chai':
         specifier: ^4.3.11
         version: 4.3.20
@@ -333,29 +333,29 @@ importers:
         specifier: workspace:*
         version: link:../lib
       '@istar-ts/actions':
-        specifier: ^0.17.1
-        version: 0.17.1
+        specifier: ^0.17.2
+        version: 0.17.2
       '@istar-ts/agent':
-        specifier: ^0.17.1
-        version: 0.17.1(@istar-ts/glsp@0.17.1)(@modelcontextprotocol/sdk@1.32.2)
+        specifier: ^0.17.2
+        version: 0.17.2(@istar-ts/glsp@0.17.2)(@modelcontextprotocol/sdk@1.32.2)
       '@istar-ts/core':
-        specifier: ^0.17.1
-        version: 0.17.1
+        specifier: ^0.17.2
+        version: 0.17.2
       '@istar-ts/dsm3-kaos':
-        specifier: ^0.17.1
-        version: 0.17.1(@istar-ts/react@0.17.1)(react-dom@19.2.3)(react@19.2.3)
+        specifier: ^0.17.2
+        version: 0.17.2(@istar-ts/react@0.17.2)(react-dom@19.2.3)(react@19.2.3)
       '@istar-ts/dsm3-nfr':
-        specifier: ^0.17.1
-        version: 0.17.1(@istar-ts/react@0.17.1)(react-dom@19.2.3)(react@19.2.3)
+        specifier: ^0.17.2
+        version: 0.17.2(@istar-ts/react@0.17.2)(react-dom@19.2.3)(react@19.2.3)
       '@istar-ts/glsp':
-        specifier: ^0.17.1
-        version: 0.17.1(@eclipse-glsp/server-mcp@2.8.0)(@istar-ts/dsm3-kaos@0.17.1)(@istar-ts/dsm3-nfr@0.17.1)(zod@4.6.7)
+        specifier: ^0.17.2
+        version: 0.17.2(@eclipse-glsp/server-mcp@2.8.0)(@istar-ts/dsm3-kaos@0.17.2)(@istar-ts/dsm3-nfr@0.17.2)(zod@4.6.7)
       '@istar-ts/gmodel':
-        specifier: ^0.17.1
-        version: 0.17.1
+        specifier: ^0.17.2
+        version: 0.17.2
       '@istar-ts/react':
-        specifier: ^0.17.1
-        version: 0.17.1(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
+        specifier: ^0.17.2
+        version: 0.17.2(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
       '@lezer/highlight':
         specifier: ^1.2.4
         version: 1.2.4
@@ -1900,15 +1900,15 @@ packages:
       minipass: 7.1.2
     dev: true
 
-  /@istar-ts/actions@0.17.1:
-    resolution: {integrity: sha512-Hm4WRH7umpy5unZyXHeoDFVYuo8e1dhOJwjZcMMCHWzmZZPk4MAk4V3J+vD4fquvW8fgPi9+ajtlc1F8mp5svg==}
+  /@istar-ts/actions@0.17.2:
+    resolution: {integrity: sha512-DWpYBrnl5qT9RkLq63ZozFx20l6dFU2oyn4cIBlbVa9b0hhahXaQODyD2p98tjI2chfge5bZLSb+vvrON2L73Q==}
     dependencies:
-      '@istar-ts/core': 0.17.1
+      '@istar-ts/core': 0.17.2
 
-  /@istar-ts/agent@0.17.1(@istar-ts/glsp@0.17.1)(@modelcontextprotocol/sdk@1.32.2):
-    resolution: {integrity: sha512-IbKiFw0cBswtlQ2EzMhJrI60qwY67s9l80Ht5bzW5H0MqnEyRHK2MA5OtNt9lmkOhe6nHFKjG1eIZsRLbUWh+Q==}
+  /@istar-ts/agent@0.17.2(@istar-ts/glsp@0.17.2)(@modelcontextprotocol/sdk@1.32.2):
+    resolution: {integrity: sha512-cnVxqZ92B1QSQ99idl/NbZ5MHnG97bXC73WICxoaP9nDMPTWweDl9TV504uw/Gl+hPE6Rx75rsR9kcyn5rjCDg==}
     peerDependencies:
-      '@istar-ts/glsp': ^0.17.1
+      '@istar-ts/glsp': ^0.17.2
       '@modelcontextprotocol/sdk': ^1.32.2
     peerDependenciesMeta:
       '@istar-ts/glsp':
@@ -1916,19 +1916,19 @@ packages:
       '@modelcontextprotocol/sdk':
         optional: true
     dependencies:
-      '@istar-ts/actions': 0.17.1
-      '@istar-ts/core': 0.17.1
-      '@istar-ts/glsp': 0.17.1(@eclipse-glsp/server-mcp@2.8.0)(@istar-ts/dsm3-kaos@0.17.1)(@istar-ts/dsm3-nfr@0.17.1)(zod@4.6.7)
+      '@istar-ts/actions': 0.17.2
+      '@istar-ts/core': 0.17.2
+      '@istar-ts/glsp': 0.17.2(@eclipse-glsp/server-mcp@2.8.0)(@istar-ts/dsm3-kaos@0.17.2)(@istar-ts/dsm3-nfr@0.17.2)(zod@4.6.7)
       '@modelcontextprotocol/sdk': 1.32.2(zod@4.6.7)
     dev: false
 
-  /@istar-ts/core@0.17.1:
-    resolution: {integrity: sha512-GehCzNrNyLaUHRYQ2Kbji/xjfgy3cKI38U19oNFOi0ch7PDZBWZjxkjlTL2vpuTLgMd8VR9/+wo1UHX7PN+M/g==}
+  /@istar-ts/core@0.17.2:
+    resolution: {integrity: sha512-7UywtRUw8PXXuSOHmeWpGN80ITDGZ3ajqNjKeEng8X6gIUKxipkJPcf06nyCbvUCTOcr7adamJkd198eVxFTuA==}
 
-  /@istar-ts/dsm3-kaos@0.17.1(@istar-ts/react@0.17.1)(react-dom@19.2.3)(react@19.2.3):
-    resolution: {integrity: sha512-4psRRI5iBqMmYTIYHGnf8OuBjWdQUZku/HKbMhn5MsV3DMpkFdsCdYzxeg0DYEQwoFzdtiXn7c+XHIgTkRBweA==}
+  /@istar-ts/dsm3-kaos@0.17.2(@istar-ts/react@0.17.2)(react-dom@19.2.3)(react@19.2.3):
+    resolution: {integrity: sha512-5zYy3XEpHcE1FTYicat3PH0u3m8wuVf17N1hK0flo3xxJr6iCUNTXs3qHZVD3nD6QioJNm8CTFSb4bUrdEL+GA==}
     peerDependencies:
-      '@istar-ts/react': ^0.17.1
+      '@istar-ts/react': ^0.17.2
       react: ^18.2.0 || ^19.0.0
       react-dom: ^18.2.0 || ^19.0.0
     peerDependenciesMeta:
@@ -1939,16 +1939,16 @@ packages:
       react-dom:
         optional: true
     dependencies:
-      '@istar-ts/core': 0.17.1
-      '@istar-ts/react': 0.17.1(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
+      '@istar-ts/core': 0.17.2
+      '@istar-ts/react': 0.17.2(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
     dev: false
 
-  /@istar-ts/dsm3-nfr@0.17.1(@istar-ts/react@0.17.1)(react-dom@19.2.3)(react@19.2.3):
-    resolution: {integrity: sha512-ncZAN5Cw1IDSe10ViA/FKfVQRqmxMbu6h7ZEaFa2dc/SlzWAfHIOvaudIy1eAZ4WiOee7woJuJZDzIyJO1bvZw==}
+  /@istar-ts/dsm3-nfr@0.17.2(@istar-ts/react@0.17.2)(react-dom@19.2.3)(react@19.2.3):
+    resolution: {integrity: sha512-IePMO6Y3OUavXvmnm9UThiaAxfSjeZKeyIbanPagper2YOG9c5C4DSaJy45wfGbnejHzyMEgbkKnOqq5CZ7mwg==}
     peerDependencies:
-      '@istar-ts/react': ^0.17.1
+      '@istar-ts/react': ^0.17.2
       react: ^18.2.0 || ^19.0.0
       react-dom: ^18.2.0 || ^19.0.0
     peerDependenciesMeta:
@@ -1959,18 +1959,18 @@ packages:
       react-dom:
         optional: true
     dependencies:
-      '@istar-ts/core': 0.17.1
-      '@istar-ts/react': 0.17.1(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
+      '@istar-ts/core': 0.17.2
+      '@istar-ts/react': 0.17.2(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
     dev: false
 
-  /@istar-ts/glsp@0.17.1(@eclipse-glsp/server-mcp@2.8.0)(@istar-ts/dsm3-kaos@0.17.1)(@istar-ts/dsm3-nfr@0.17.1)(zod@4.6.7):
-    resolution: {integrity: sha512-TIKspQlAXLIW+ggJBkUzJ9LQEfEHeWuDNslaxZzXUyLqihxca2o0xhhd1UXiS2/QAh/D43TxdvfwhnHIgwjHuA==}
+  /@istar-ts/glsp@0.17.2(@eclipse-glsp/server-mcp@2.8.0)(@istar-ts/dsm3-kaos@0.17.2)(@istar-ts/dsm3-nfr@0.17.2)(zod@4.6.7):
+    resolution: {integrity: sha512-+EdL300PBzP9gZ5D3c6TAN3FtbiQQwBFPOxQBVTGisirguyolDJps3q8c4H+C6luPqjaeNxqAFW/HamQfk6NxQ==}
     peerDependencies:
       '@eclipse-glsp/server-mcp': 2.8.0
-      '@istar-ts/dsm3-kaos': ^0.17.1
-      '@istar-ts/dsm3-nfr': ^0.17.1
+      '@istar-ts/dsm3-kaos': ^0.17.2
+      '@istar-ts/dsm3-nfr': ^0.17.2
       zod: ^4.2.0
     peerDependenciesMeta:
       '@eclipse-glsp/server-mcp':
@@ -1984,11 +1984,11 @@ packages:
     dependencies:
       '@eclipse-glsp/server': 2.8.0(inversify@6.2.2)(reflect-metadata@0.2.2)
       '@eclipse-glsp/server-mcp': 2.8.0(hono@4.13.14)(inversify@6.2.2)(reflect-metadata@0.2.2)
-      '@istar-ts/actions': 0.17.1
-      '@istar-ts/core': 0.17.1
-      '@istar-ts/dsm3-kaos': 0.17.1(@istar-ts/react@0.17.1)(react-dom@19.2.3)(react@19.2.3)
-      '@istar-ts/dsm3-nfr': 0.17.1(@istar-ts/react@0.17.1)(react-dom@19.2.3)(react@19.2.3)
-      '@istar-ts/gmodel': 0.17.1
+      '@istar-ts/actions': 0.17.2
+      '@istar-ts/core': 0.17.2
+      '@istar-ts/dsm3-kaos': 0.17.2(@istar-ts/react@0.17.2)(react-dom@19.2.3)(react@19.2.3)
+      '@istar-ts/dsm3-nfr': 0.17.2(@istar-ts/react@0.17.2)(react-dom@19.2.3)(react@19.2.3)
+      '@istar-ts/gmodel': 0.17.2
       inversify: 6.2.2(reflect-metadata@0.2.2)
       reflect-metadata: 0.2.2
       vscode-jsonrpc: 8.2.0
@@ -1998,22 +1998,22 @@ packages:
       - utf-8-validate
     dev: false
 
-  /@istar-ts/gmodel@0.17.1:
-    resolution: {integrity: sha512-vxNIdSUio3f73xjcEEn4nThLA4yne1JisvjVCQHPEu1PbB4SNdSF2zxYlPJEGpzcfycrsWqygeZez/DiFlAQDQ==}
+  /@istar-ts/gmodel@0.17.2:
+    resolution: {integrity: sha512-juzTcm5VNb2x3kwWoHNZOXsd16C3F6D5UmhVg98nDDpDCL2LVqvYh4jRkmEMhpnSiGm10eix5y9skmp+V8O6KQ==}
     dependencies:
-      '@istar-ts/actions': 0.17.1
-      '@istar-ts/core': 0.17.1
+      '@istar-ts/actions': 0.17.2
+      '@istar-ts/core': 0.17.2
     dev: false
 
-  /@istar-ts/react@0.17.1(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3):
-    resolution: {integrity: sha512-ki8+4a1U9GaEsX/Z7wWtfwdIvGFH9gQFpjzjiaWWZI96kcfTA22tLhrP36WlJalI/NAWtZKcTRTLQ1mOoqrmRQ==}
+  /@istar-ts/react@0.17.2(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3):
+    resolution: {integrity: sha512-3LQM+GzF6Mvs9OTsbWTj8shWYR25qLmvCySWR2wtBqLiratywxm5kheROf8/ioaLOCPmu/MmAhGm2uV1ijqrRQ==}
     peerDependencies:
       react: ^18.2.0 || ^19.0.0
       react-dom: ^18.2.0 || ^19.0.0
     dependencies:
-      '@istar-ts/actions': 0.17.1
-      '@istar-ts/core': 0.17.1
-      '@istar-ts/gmodel': 0.17.1
+      '@istar-ts/actions': 0.17.2
+      '@istar-ts/core': 0.17.2
+      '@istar-ts/gmodel': 0.17.2
       '@xyflow/react': 12.12.0(@types/react-dom@19.2.3)(@types/react@19.2.9)(react-dom@19.2.3)(react@19.2.3)
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
