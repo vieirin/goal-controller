@@ -175,6 +175,15 @@ const inputOf = (
   };
 };
 
+/** An element's alias: its extra under the dialect's `alias` key (goal-controller#518), if a word. */
+const aliasOf = (
+  element: { extra?: Readonly<Record<string, unknown>> },
+  dialect: MapperDialect,
+): string | undefined => {
+  const alias = dialect.alias ? element.extra?.[dialect.alias] : undefined;
+  return typeof alias === 'string' && alias !== '' ? alias : undefined;
+};
+
 /**
  * Per call: each node's input, for its entry's afterCreation, and what the
  * properties' references resolve against (goal-controller#243).
@@ -207,11 +216,8 @@ const readingOf = (model: AnyModel, mapper: RunMapper): ReadingContext => {
           if (written && !kinds.has(written)) kinds.set(written, kind);
           // its alias (an imported KAOS element's KAOSTools identifier,
           // goal-controller#518), as the Notation view resolves it
-          const alias = mapper.dialect.alias
-            ? element.extra?.[mapper.dialect.alias]
-            : undefined;
-          if (typeof alias === 'string' && alias && !kinds.has(alias))
-            kinds.set(alias, kind);
+          const alias = aliasOf(element, mapper.dialect);
+          if (alias && !kinds.has(alias)) kinds.set(alias, kind);
         }
       }
       return kinds.get(id);
@@ -603,6 +609,9 @@ function build(
         name: element.name,
         ...(element.parent !== undefined && { actor: element.parent }),
         properties: { ...element.customProperties },
+        ...(aliasOf(element, mapper.dialect) !== undefined && {
+          alias: aliasOf(element, mapper.dialect),
+        }),
       };
       const entry = mapper.entries.get(element.kind);
       if (!entry) return written;

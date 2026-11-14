@@ -374,7 +374,7 @@ export const ltsModel = (model: OperationModel): LtsModel => {
       name: process,
       object: fluent.variable.object,
       events: ordered,
-      owners: [fluent.variable.object],
+      owners: [fluent.variable.objectId],
       lines: [
         `${process} = (tick -> Ticked),`,
         `  Ticked = (tick -> Ticked | {${ordered.join(', ')}} -> tick -> Ticked).`,

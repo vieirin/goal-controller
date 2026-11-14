@@ -9,11 +9,14 @@ import { readFileSync } from 'fs';
 import { describe, it } from 'mocha';
 import {
   actionName,
+  kaosltsGoalModel,
   kaosltsOutput,
   ltsModel,
   processName,
 } from '../../../src/engines/kaoslts';
 import { engineOutputProblems } from '../../../src/engines/output';
+import { readKaosModel } from '../../../src/engines/kaosdoc';
+import { kaosNativeFile } from '../../../src/importers/kaos';
 import { edited, goalModelOf, minePumpText, operationsOf } from './support';
 
 const FIXTURES = 'test/engines/kaoslts/fixtures';
@@ -21,6 +24,22 @@ const outputOf = (kaos: string) =>
   kaosltsOutput(goalModelOf(kaos), { modelName: 'mine-pump.txt' });
 
 describe('kaoslts: KAOS operations as FSP for LTSA (KAOS2LTSA)', () => {
+  it('writes the same files from the model as imported, its piStar ids UUIDs (#518)', () => {
+    // formulas name objects by their KAOSTools identifiers, the elements'
+    // aliases: the fluents are found all the same
+    const read = kaosNativeFile.read(minePumpText(), {
+      modelName: 'mine-pump',
+    });
+    const output = kaosltsOutput(
+      kaosltsGoalModel(readKaosModel(JSON.stringify(read.model))),
+      { modelName: 'mine-pump.txt' },
+    );
+    assert.deepStrictEqual(
+      output.files.map((f) => [f.fileName, f.text]),
+      outputOf(minePumpText()).files.map((f) => [f.fileName, f.text]),
+    );
+  });
+
   it('writes the system, one file per agent and the completeness report', () => {
     const output = outputOf(minePumpText());
     assert.deepStrictEqual(engineOutputProblems(output), []);
