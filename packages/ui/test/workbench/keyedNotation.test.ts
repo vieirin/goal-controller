@@ -14,7 +14,6 @@ import { kaosexpert } from '@goal-controller/lib';
 import { describe, expect, it } from 'vitest';
 import { parseModel } from '@/lib/workbench/dialects';
 import { frameworkProblems } from '@/lib/workbench/frameworkProblems';
-import { withFrameworkIds } from '@/lib/workbench/frameworkOpen';
 import {
   applyNotationEdits,
   contextFromView,
@@ -27,8 +26,10 @@ import { resourcesContext } from '@/lib/workbench/projectResources';
 const SEED = join(__dirname, '../../../../examples/kaos/ambulance');
 const read = (name: string) => readFileSync(join(SEED, name), 'utf8');
 
-// its elements named by id (`O2: Paper Jam`), as the view offers to
-const TEXT = withFrameworkIds(read('ambulance.txt'), kaosexpert)!;
+// its elements without ids of their own: each line shows its piStar id's
+// first characters (`obstacle e6e1c038: Paper Jam`, goal-controller#518)
+const TEXT = read('ambulance.txt');
+const PAPER_JAM = 'e6e1c038-d45e-5b84-8f23-1afc9a83fac3';
 const treeOf = (text: string) =>
   goalView(parseModel(text) as never, kaosexpert);
 const RESOURCES = resourcesContext({
@@ -43,9 +44,9 @@ describe('keyed property lines on the ambulance seed (#345)', () => {
 
   it('writes each expert’s estimate as a line under its obstacle', () => {
     const lines = doc.split('\n').map((line) => line.trim());
-    const at = lines.indexOf('O2: Paper Jam');
+    const at = lines.indexOf('obstacle e6e1c038: Paper Jam');
     expect(lines.slice(at, at + 9)).toEqual([
-      'O2: Paper Jam',
+      'obstacle e6e1c038: Paper Jam',
       'Category',
       'FormalSpec',
       'Description',
@@ -59,23 +60,28 @@ describe('keyed property lines on the ambulance seed (#345)', () => {
 
   it('reads the document back unchanged, and an edited estimate into the model', () => {
     expect(notationEdits(kaosexpert, doc, tree)).toEqual([]);
-    const edited = doc
-      .replace(
-        'Probability[e1] (13.33%, 20.00%, 33.33%)',
-        'Probability[e1] (10%, 20%, 30%)',
-      )
-      .replace('    Probability[e5] (0.00%, 0.00%, 0.00%)\n  O3:', '  O3:');
+    // Paper Jam's first estimate changed, its last removed
+    const at = doc.indexOf('obstacle e6e1c038: Paper Jam');
+    const edited =
+      doc.slice(0, at) +
+      doc
+        .slice(at)
+        .replace(
+          'Probability[e1] (13.33%, 20.00%, 33.33%)',
+          'Probability[e1] (10%, 20%, 30%)',
+        )
+        .replace(/\n\s*Probability\[e5\] \(0\.00%, 0\.00%, 0\.00%\)/, '');
     const edits = notationEdits(kaosexpert, edited, tree);
     expect(edits).toEqual([
       {
-        iStarId: 'paper_jam',
+        iStarId: PAPER_JAM,
         key: 'Probability[e1]',
         value: '(10%, 20%, 30%)',
       },
-      { iStarId: 'paper_jam', key: 'Probability[e5]', value: null },
+      { iStarId: PAPER_JAM, key: 'Probability[e5]', value: null },
     ]);
     const model = parseModel(applyNotationEdits(TEXT, edits));
-    const properties = model.elements.get('paper_jam')!.customProperties!;
+    const properties = model.elements.get(PAPER_JAM)!.customProperties!;
     expect(properties['Probability[e1]']).toBe('(10%, 20%, 30%)');
     expect(properties).not.toHaveProperty('Probability[e5]');
     // and the model read again writes the same document
@@ -119,7 +125,7 @@ describe('a dangling keyed name in the model’s Problems (#354)', () => {
     );
     expect(problems).toEqual([
       expect.objectContaining({
-        elementId: 'paper_jam',
+        elementId: PAPER_JAM,
         key: 'Probability[e9]',
         message: "Probability[e9]: e9 is not one of the project's experts",
       }),

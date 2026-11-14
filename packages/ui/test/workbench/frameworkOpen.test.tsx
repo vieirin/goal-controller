@@ -19,11 +19,9 @@ import {
   type Workbench,
 } from '@/components/workbench/WorkbenchContext';
 import { modelSettingsOf } from '@/lib/project';
-import {
-  inItsFramework,
-  openingMismatch,
-  withFrameworkIds,
-} from '@/lib/workbench/frameworkOpen';
+import { goalView } from '@goal-controller/goal-tree';
+import { inItsFramework, openingMismatch } from '@/lib/workbench/frameworkOpen';
+import { notationDocument } from '@/lib/workbench/notationDocument';
 import { frameworkOfModel } from '@/lib/workbench/frameworks';
 import { FRAMEWORK_DIALECTS } from '@/lib/workbench/frameworkModes';
 import * as dialects from '@/lib/workbench/dialects';
@@ -116,25 +114,19 @@ describe('a model file in its framework (#171)', () => {
     expect(container.innerHTML).toContain(`fill="${KAOS_FILL}"`);
   });
 
-  it('names a new element with its prefix’s next id, KAOS’s two goal kinds numbered together', () => {
+  it('names a new element by its kind alone: KAOS’s kinds have no id prefix (#518)', () => {
     const parts = dialectParts(FRAMEWORK_DIALECTS.kaos);
-    const nameOf = (kind: string, text: string) => {
-      const elements = parts.elements as Record<
-        string,
-        { defaultName?: string | ((ctx: { model: never }) => string) }
-      >;
-      const defaultName = elements[kind]?.defaultName;
-      return typeof defaultName === 'function'
-        ? defaultName({ model: parseModel(text) as never })
-        : defaultName;
-    };
-    expect(nameOf('kaos.Softgoal', KAOS_WELCOME)).toBe('G1: Softgoal');
-    const json = JSON.parse(KAOS_WELCOME);
-    json.orphans[0].text = 'G4: Reliability';
-    json.orphans[1].text = 'G7: Maintain it';
-    const withIds = JSON.stringify(json);
-    expect(nameOf('kaos.BehavioralGoal', withIds)).toBe('G8: Behavioral Goal');
-    expect(nameOf('kaos.DomainProperty', withIds)).toBe('DP1: Domain Property');
+    const elements = parts.elements as Record<
+      string,
+      { defaultName?: unknown } | undefined
+    >;
+    // its line shows its piStar id's first characters instead
+    for (const kind of [
+      'kaos.Softgoal',
+      'kaos.BehavioralGoal',
+      'kaos.DomainProperty',
+    ])
+      expect(elements[kind]?.defaultName).toBeUndefined();
   });
 
   it('refuses an iStar file in a KAOS project with conformity’s message, until the switch is confirmed', async () => {
@@ -214,8 +206,12 @@ describe('a framework model’s Notation tab (#171)', () => {
     const lines = [...container.querySelectorAll('.cm-line')].map(
       (line) => line.textContent,
     );
-    expect(lines).toContain('  G3: Achieve [Problem Notified if Problem]');
-    expect(lines).toContain('      DP1: Internet connection available');
+    expect(lines).toContain(
+      '  behavioral_goal G3: Achieve [Problem Notified if Problem]',
+    );
+    expect(lines).toContain(
+      '      domain_property DP1: Internet connection available',
+    );
   });
 
   it('reads the store’s model, not wb.text: a direct dispatch updates its lines with zero parses (#449, #451 review)', async () => {
@@ -272,29 +268,21 @@ describe('a framework model’s Notation tab (#171)', () => {
   });
 });
 
-describe('giving a framework model’s elements ids (#171)', () => {
-  it('names DSM3’s id-less elements by their kind’s prefix, numbered on, once', () => {
-    const named = withFrameworkIds(KAOS_WELCOME, FRAMEWORK_DIALECTS.kaos)!;
-    const names = JSON.parse(named).orphans.map(
-      (o: { text: string }) => o.text,
+describe('a framework model without ids (#171, #518)', () => {
+  it('shows DSM3’s id-less elements by their kind’s word and their piStar id’s first characters', () => {
+    const model = parseModel(KAOS_WELCOME);
+    const tree = goalView(model as never, FRAMEWORK_DIALECTS.kaos);
+    const lines = notationDocument(FRAMEWORK_DIALECTS.kaos, tree)
+      .text.split('\n')
+      .map((line) => line.trim());
+    const reliability = [...model.elements.values()].find(
+      (e) => e.name === 'Reliability',
+    )!;
+    expect(lines).toContain(
+      `softgoal ${reliability.id.slice(0, 8)}: Reliability`,
     );
-    expect(names).toEqual([
-      'G1: Reliability',
-      'G2: Maintain [Minimal Interval Between Automatic Backups]',
-      'DP1: Internet connection available',
-      'G3: Achieve [Problem Notified if Problem]',
-      'G4: Save Bandwidth',
-      'G5: Achieve [Manual Backup]',
-      'A1: User',
-      'G6: Backup',
-    ]);
-    // nothing else changes: the names only
-    const before = JSON.parse(KAOS_WELCOME);
-    const after = JSON.parse(named);
-    for (const element of after.orphans) delete element.text;
-    for (const element of before.orphans) delete element.text;
-    expect(after).toEqual(before);
-    expect(withFrameworkIds(named, FRAMEWORK_DIALECTS.kaos)).toBeNull();
-    expect(withFrameworkIds('not json', FRAMEWORK_DIALECTS.kaos)).toBeNull();
+    // every element line (no property's, no link's): its kind's word, an id, its name
+    for (const line of lines.filter((l) => !/^([A-Z]|link )/.test(l)))
+      expect(line).toMatch(/^[a-z_]+ [A-Za-z0-9_.-]+: /);
   });
 });
