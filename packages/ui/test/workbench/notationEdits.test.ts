@@ -3,13 +3,17 @@
  * without the editor: an element a line adds is created in the actor of
  * the line above it, one whose line is gone is removed with its links kept
  * (orphans), a line names its element by its id (a written one, or the
- * first characters of its piStar id); piStar-ext's lines too.
+ * first characters of its piStar id); piStar-ext's lines too; the editor
+ * completes kinds' words.
  */
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { AnyDialect } from '@goal-controller/dialect';
 import { goalView } from '@goal-controller/goal-tree';
-import { describe, expect, it } from 'vitest';
+import { currentCompletions, startCompletion } from '@codemirror/autocomplete';
+import { EditorState } from '@codemirror/state';
+import { EditorView } from '@codemirror/view';
+import { describe, expect, it, vi } from 'vitest';
 import {
   DIALECT_DEFINITIONS,
   dialectTree,
@@ -17,6 +21,7 @@ import {
 } from '@/lib/workbench/dialects';
 import { ENGINE_DIALECTS } from '@/lib/workbench/engineDialects';
 import { FRAMEWORK_DIALECTS } from '@/lib/workbench/frameworkModes';
+import { localLanguageSupport } from '@/lib/workbench/languageSupport';
 import {
   applyNotationEdits,
   elementOfLine,
@@ -236,5 +241,31 @@ describe('piStar-ext’s lines (#518)', () => {
     expect(touching).toBeGreaterThan(0);
     expect(orphans).toHaveLength(touching);
     expect(orphans.every((o) => o.missing.includes(gone.id))).toBe(true);
+  });
+});
+
+describe('the Notation editor completes kinds’ words (#518)', () => {
+  it('offers the kinds’ words at a line’s head, through the local language support', async () => {
+    Object.assign(Range.prototype, {
+      getClientRects: () => [],
+      getBoundingClientRect: () => ({ x: 0, y: 0, width: 0, height: 0 }),
+    });
+    const support = localLanguageSupport(kaos, {});
+    const doc = 'softgoal 7857cb00: Reliability\n  beh';
+    const view = new EditorView({
+      state: EditorState.create({
+        doc,
+        selection: { anchor: doc.length },
+        extensions: support.documentExtension('file:///completion.notation'),
+      }),
+      parent: document.body,
+    });
+    startCompletion(view);
+    await vi.waitFor(() =>
+      expect(currentCompletions(view.state).map((c) => c.label)).toContain(
+        'behavioral_goal',
+      ),
+    );
+    view.destroy();
   });
 });
