@@ -94,6 +94,28 @@ describe('goalView: written ids (#518)', () => {
     assert.strictEqual(view.byIStarId.get('g3')!.id, 'G1');
   });
 
+  it('reads a name whole where its id is an earlier element’s, merging nothing', () => {
+    const repeated = modelOf(
+      [
+        node('e1', 'istar.Goal', 'ERROR: no dinner'),
+        node('e2', 'istar.Goal', 'ERROR: no medicine'),
+      ],
+      [],
+    );
+    const view = goalView(repeated, plain);
+    const first = view.byIStarId.get('e1')!;
+    const second = view.byIStarId.get('e2')!;
+    assert.deepStrictEqual(
+      [first.id, first.hasId, first.name],
+      ['ERROR', true, 'no dinner'],
+    );
+    assert.deepStrictEqual(
+      [second.id, second.hasId, second.name, second.key],
+      ['e2', false, 'ERROR: no medicine', 'e2'],
+    );
+    assert.strictEqual(view.nodes.size, 2);
+  });
+
   it("leaves an engine dialect's ids to its runtime notation", () => {
     const view = goalView(model, prefixed);
     assert.strictEqual(view.byIStarId.get('7857cb00-aaaa')!.hasId, false);

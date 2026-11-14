@@ -310,6 +310,29 @@ export function goalView(
     if (!parents.has(childId)) parents.set(childId, parentId);
   }
 
+  // where any id may be written (KAOS, NFR, a dialect without prefixes), a
+  // name that starts as an earlier element's does (`ERROR: no dinner`,
+  // `ERROR: no medicine`) is read whole: its element keeps its own line
+  // (shown by its piStar id's start) instead of being merged into the other
+  if (nameReading(dialect) === 'line' || withoutPrefixes) {
+    const taken = new Set<string>();
+    for (const node of byIStarId.values()) {
+      if (!node.hasId) continue;
+      if (!taken.has(node.id)) {
+        taken.add(node.id);
+        continue;
+      }
+      Object.assign(node, {
+        id: node.iStarId,
+        hasId: false,
+        name: node.text.trim(),
+        notation: null,
+        construct: null,
+        order: [],
+      });
+    }
+  }
+
   // an id another element repeats, in a dialect that scopes ids by their
   // goal: keyed by its nearest goal (GODA's G3_T1_1, G4_T1_1)
   const uses = new Map<string, number>();
