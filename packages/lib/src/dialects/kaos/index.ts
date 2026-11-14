@@ -537,23 +537,22 @@ export const KAOS_OPERATION_LINKS = [
 ] as const;
 
 /**
- * Every KAOS node kind, with its prefix: goals G, agents A, domain
- * properties DP, obstacles O; operations OP, entities EN, associations AS,
- * events EV, predicates PR and types TY.
+ * Every KAOS node kind: no id prefix (goal-controller#518), a line starts
+ * with its kind's word (`behavioral_goal`, `agent`, `domain_property`, …).
  */
 const ELEMENTS = {
-  'kaos.BehavioralGoal': element('G', { fill: FILL }),
-  'kaos.Softgoal': element('G', { fill: FILL }),
-  'kaos.Agent': element('A', { fill: FILL }),
-  'kaos.EnvironmentAgent': element('A', { fill: FILL }),
-  'kaos.DomainProperty': element('DP', { fill: FILL }),
-  'kaosObstacles.Obstacle': element('O', { fill: FILL }),
-  [OPERATION]: element('OP', { fill: FILL }),
-  [ENTITY]: element('EN', { fill: FILL }),
-  [ASSOCIATION]: element('AS', { fill: FILL }),
-  [EVENT]: element('EV', { fill: FILL }),
-  [PREDICATE]: element('PR', { fill: FILL }),
-  'kaosOperations.Type': element('TY', { fill: FILL }),
+  'kaos.BehavioralGoal': element({ fill: FILL }),
+  'kaos.Softgoal': element({ fill: FILL }),
+  'kaos.Agent': element({ fill: FILL }),
+  'kaos.EnvironmentAgent': element({ fill: FILL }),
+  'kaos.DomainProperty': element({ fill: FILL }),
+  'kaosObstacles.Obstacle': element({ fill: FILL }),
+  [OPERATION]: element({ fill: FILL }),
+  [ENTITY]: element({ fill: FILL }),
+  [ASSOCIATION]: element({ fill: FILL }),
+  [EVENT]: element({ fill: FILL }),
+  [PREDICATE]: element({ fill: FILL }),
+  'kaosOperations.Type': element({ fill: FILL }),
 } as const satisfies Record<
   | KaosDeclaredElementKind
   | KaosObstacleDeclaredElementKind
