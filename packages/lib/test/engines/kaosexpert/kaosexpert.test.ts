@@ -19,6 +19,11 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 import { describe, it } from 'mocha';
 import { kaosNativeFile } from '../../../src/importers/kaos/native';
+import { withKaosIdentifiers } from '../../../src/importers/kaos';
+
+/** A seed's model text, its elements by their KAOSTools identifiers (#518). */
+const named = (text: string) =>
+  JSON.stringify(withKaosIdentifiers(JSON.parse(text)));
 import {
   expertAnalysis,
   kaosexpertAnalysisModel,
@@ -49,7 +54,7 @@ const read = (text: string, options: AnalysisContext['options'] = {}) => {
   assert.ok(result.model, JSON.stringify(result.diagnostics));
   return {
     model: kaosexpertAnalysisModel(
-      readKaosObstacleModel(JSON.stringify(result.model)),
+      readKaosObstacleModel(JSON.stringify(withKaosIdentifiers(result.model))),
     ),
     context: {
       resources: result.dialectRecord.projectResources,
@@ -271,7 +276,7 @@ describe('kaosexpert: the fire-alarm seed (RE’15’s running example, #197)', 
   const file = (name: string) => readFileSync(join(dir, name), 'utf8');
   const seed = (samples: number) => ({
     model: kaosexpertAnalysisModel(
-      readKaosObstacleModel(file('fire-alarm.txt')),
+      readKaosObstacleModel(named(file('fire-alarm.txt'))),
     ),
     context: {
       resources: {
@@ -320,7 +325,7 @@ describe('kaosexpert: the ambulance seed (ADS, RE’15’s field validation, #19
   const file = (name: string) => readFileSync(join(dir, name), 'utf8');
   const seed = (samples: number) => ({
     model: kaosexpertAnalysisModel(
-      readKaosObstacleModel(file('ambulance.txt')),
+      readKaosObstacleModel(named(file('ambulance.txt'))),
     ),
     context: {
       resources: {

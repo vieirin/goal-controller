@@ -8,7 +8,11 @@ import * as assert from 'assert';
 import { describe, it } from 'mocha';
 import { parsePistar } from '@istar-ts/core';
 import { KAOS_OBSTACLES } from '@istar-ts/dsm3-kaos/metamodel';
-import { readKaos, writeKaos } from '../../../src/importers/kaos';
+import {
+  readKaos,
+  withKaosIdentifiers,
+  writeKaos,
+} from '../../../src/importers/kaos';
 import {
   kaossimAnalyses,
   kaossimAnalysisModel,
@@ -62,6 +66,8 @@ type Model = { orphans: Node[]; links: Link[] };
 
 describe('kaossim: .kaos (#193 D1)', () => {
   const read = readKaos(TEXT, { modelName: 'm' });
+  // its elements by their KAOSTools identifiers (#518)
+  const named = withKaosIdentifiers(read.model);
 
   it('reads the quantities into kaossim’s keys, and opens in its mode', () => {
     assert.ok(read.model, JSON.stringify(read.diagnostics));
@@ -70,7 +76,7 @@ describe('kaossim: .kaos (#193 D1)', () => {
       [],
     );
     assert.strictEqual(read.dialectRecord!.engine, 'kaossim');
-    const model = read.model as Model;
+    const model = named as Model;
     const goal = model.orphans.find((n) => n.id === 'intervention')!;
     assert.strictEqual(
       goal.customProperties['QualityVariable[ResponseTime]'],
@@ -105,7 +111,7 @@ describe('kaossim: .kaos (#193 D1)', () => {
 
   it('runs: one case per design, through the engine’s view', () => {
     const view = kaossimAnalysisModel(
-      parsePistar(read.model!, { metamodel: KAOS_OBSTACLES }) as never,
+      parsePistar(named!, { metamodel: KAOS_OBSTACLES }) as never,
     );
     assert.deepStrictEqual(quantitativeModel(view).problems, []);
     const run = runAnalysis(kaossimAnalyses.simulation, view, undefined, {

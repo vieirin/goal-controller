@@ -85,6 +85,7 @@ import {
   type EvidenceEntry,
   type ExpertEntry,
 } from '../../engines/kaosexpert/resources';
+import { importedIds } from '../ids';
 import { LAYOUT_GRID, layOut, type LayoutExtent } from '../layout';
 import {
   kaosFormulaText as formulaText,
@@ -117,6 +118,44 @@ import {
   type KaosDeclarationKind,
 } from './vocabulary';
 import { KAOS_OPERATIONS_BLOCK } from '../../dialects/kaos/metamodel';
+
+/**
+ * An element's key (an `extra` of istar-ts's, beside its `customProperties`)
+ * that keeps its KAOSTools identifier, the one `.kaos` declares it by
+ * (`declare goal [ achieve_x ]`), or its name's when it was anonymous: its
+ * piStar id is a UUID (goal-controller#518), the writer writes it by this.
+ */
+export const KAOS_ID_KEY = 'kaosId';
+
+/**
+ * A KAOS model (piStar JSON) with each element that keeps its KAOSTools
+ * identifier (`KAOS_ID_KEY`) under that identifier as its piStar id, every
+ * reference to it too (links' ends, a resolution's `Anchor`, `display`'s
+ * keys), and the key dropped: the model as KAOSTools names it, for what
+ * names elements by their identifiers (an oracle's rows, a test).
+ */
+export const withKaosIdentifiers = <T>(model: T): T => {
+  const json = model as { orphans?: Record<string, unknown>[] };
+  const identifiers = new Map<string, string>();
+  for (const node of json?.orphans ?? []) {
+    const kept = node[KAOS_ID_KEY];
+    if (typeof kept === 'string' && typeof node.id === 'string')
+      identifiers.set(node.id, kept);
+  }
+  const rename = (value: unknown): unknown =>
+    typeof value === 'string'
+      ? (identifiers.get(value) ?? value)
+      : Array.isArray(value)
+        ? value.map(rename)
+        : value !== null && typeof value === 'object'
+          ? Object.fromEntries(
+              Object.entries(value)
+                .filter(([key]) => key !== KAOS_ID_KEY)
+                .map(([key, v]) => [identifiers.get(key) ?? key, rename(v)]),
+            )
+          : value;
+  return rename(model) as T;
+};
 
 /** The diagram's key that keeps what the model has no place for, as written. */
 export const KAOS_UNSUPPORTED_KEY = 'kaosUnsupported';
@@ -1941,7 +1980,11 @@ export const readKaos = (
       element.id = id;
     }
 
-  // the model
+  // the model: each element's piStar id a UUID, as any model's
+  // (goal-controller#518, #390), its identifier kept beside it
+  // (`KAOS_ID_KEY`), the writer's
+  const ids = importedIds('kaostools');
+  const iStarId = (element: Element) => ids('element', element.id!);
   const typeOf = (element: Element) =>
     element.word === 'agent' && element.environment
       ? KAOS_TYPES.environmentAgent
@@ -1956,15 +1999,19 @@ export const readKaos = (
       );
     for (const [key, value] of element.props) props.set(key, value);
     return {
-      id: element.id!,
+      id: iStarId(element),
       text: element.name ?? element.id!,
       type,
       customProperties: Object.fromEntries(props),
+      [KAOS_ID_KEY]: element.id!,
     } as Record<string, unknown> & { id: string; x?: number; y?: number };
   });
   const nodeOf = new Map(nodes.map((node) => [node.id, node]));
 
   const linkIds = new Set<string>();
+  // a link's id: by the identifiers of what it links, as before #518
+  // (`.kaos` has none; no notation line shows it; kaosres names a
+  // countermeasure by its resolution's)
   const linkId = (base: string) => {
     let id = base;
     for (let n = 2; linkIds.has(id); n++) id = `${base}-${n}`;
@@ -2025,8 +2072,8 @@ export const readKaos = (
     };
     hubs.push({
       hub,
-      parent: parent.id!,
-      children: refinees.map((r) => r.element.id!),
+      parent: iStarId(parent),
+      children: refinees.map((r) => iStarId(r.element)),
     });
     pistarLinks.push({
       hub,
@@ -2035,7 +2082,7 @@ export const readKaos = (
         type: obstacle
           ? KAOS_TYPES.obstacleRefinementLeg
           : KAOS_TYPES.refinementLeg,
-        source: element.id,
+        source: iStarId(element),
         target: hubId,
         ...(probability && { customProperties: { Probability: probability } }),
       })),
@@ -2045,7 +2092,7 @@ export const readKaos = (
           ? KAOS_TYPES.obstacleRefinementEnd
           : KAOS_TYPES.refinementEnd,
         source: hubId,
-        target: parent.id,
+        target: iStarId(parent),
       },
     });
     if (obstacle && (sysRef !== undefined || equations.length))
@@ -2063,13 +2110,18 @@ export const readKaos = (
     pistarLinks.push({
       id: linkId(`${obstacle.id}-obstructs-${target.id}`),
       type: KAOS_TYPES.obstruction,
-      source: obstacle.id,
-      target: target.id,
+      source: iStarId(obstacle),
+      target: iStarId(target),
       ...(probability && { customProperties: { Probability: probability } }),
     });
-  // an annotation's goals by their element (the anonymous have ids now)
-  const idOf = (key: string) =>
-    key.startsWith('\u0000') ? elements.get(key.slice(1))!.id! : key;
+  // an annotation's goals by their element's piStar id; an anchor no
+  // element declares as written
+  const idOf = (key: string) => {
+    const element = key.startsWith('\u0000')
+      ? elements.get(key.slice(1))!
+      : byId.get(key);
+    return element ? iStarId(element) : key;
+  };
   for (const {
     goal,
     obstacle,
@@ -2080,8 +2132,8 @@ export const readKaos = (
     pistarLinks.push({
       id: linkId(`${goal.id}-resolves-${obstacle.id}`),
       type: KAOS_TYPES.resolution,
-      source: goal.id,
-      target: obstacle.id,
+      source: iStarId(goal),
+      target: iStarId(obstacle),
       customProperties: {
         ResolutionType: type,
         Anchor: idOf(anchor),
@@ -2095,23 +2147,23 @@ export const readKaos = (
     pistarLinks.push({
       id: linkId(`${agent.id}-assigned-${goal.id}`),
       type: KAOS_TYPES.assignment,
-      source: agent.id,
-      target: goal.id,
+      source: iStarId(agent),
+      target: iStarId(goal),
       ...(props.length && { customProperties: Object.fromEntries(props) }),
     });
   for (const { a, b } of links.conflicts)
     pistarLinks.push({
       id: linkId(`${a.id}-conflicts-${b.id}`),
       type: KAOS_TYPES.conflict,
-      source: a.id,
-      target: b.id,
+      source: iStarId(a),
+      target: iStarId(b),
     });
   for (const { type, name, source, target, props } of links.objects)
     pistarLinks.push({
       id: linkId(`${source.id}-${name}-${target.id}`),
       type,
-      source: source.id,
-      target: target.id,
+      source: iStarId(source),
+      target: iStarId(target),
       ...(props.length && { customProperties: Object.fromEntries(props) }),
     });
 
@@ -2121,15 +2173,16 @@ export const readKaos = (
   // a predicate or a type nothing links (KAOSTools' are declared apart):
   // in rows below the model, not a root of its own (goal-controller#194)
   const linked = new Set(
-    links.objects.flatMap((o) => [o.source.id!, o.target.id!]),
+    links.objects.flatMap((o) => [iStarId(o.source), iStarId(o.target)]),
   );
   const loose = new Set(
     [...elements.values()]
       .filter(
         (e) =>
-          (e.word === 'predicate' || e.word === 'type') && !linked.has(e.id!),
+          (e.word === 'predicate' || e.word === 'type') &&
+          !linked.has(iStarId(e)),
       )
-      .map((e) => e.id!),
+      .map((e) => iStarId(e)),
   );
   const laidOut = layOut(
     {
@@ -2144,25 +2197,33 @@ export const readKaos = (
         ),
         ...links.obstructions.map((o) => ({
           type: BELOW,
-          source: o.obstacle.id,
-          target: o.target.id,
+          source: iStarId(o.obstacle),
+          target: iStarId(o.target),
         })),
         ...links.resolutions.map((r) => ({
           type: BELOW,
-          source: r.goal.id,
-          target: r.obstacle.id,
+          source: iStarId(r.goal),
+          target: iStarId(r.obstacle),
         })),
         ...links.assignments.map((a) => ({
           type: 'beside',
-          source: a.agent.id,
-          target: a.goal.id,
+          source: iStarId(a.agent),
+          target: iStarId(a.goal),
         })),
         // an operation below the requirement it operationalises, an object
         // beside what links it (goal-controller#194)
         ...links.objects.map((o) =>
           o.type === KAOS_TYPES.operationalisation
-            ? { type: BELOW, source: o.source.id, target: o.target.id }
-            : { type: 'beside', source: o.target.id, target: o.source.id },
+            ? {
+                type: BELOW,
+                source: iStarId(o.source),
+                target: iStarId(o.target),
+              }
+            : {
+                type: 'beside',
+                source: iStarId(o.target),
+                target: iStarId(o.source),
+              },
         ),
       ],
     },

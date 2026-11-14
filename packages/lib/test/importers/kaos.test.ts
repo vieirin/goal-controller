@@ -13,11 +13,14 @@ import { describe, it } from 'mocha';
 import { parsePistar, validateModel } from '@istar-ts/core';
 import { KAOS_OBSTACLES } from '@istar-ts/dsm3-kaos/metamodel';
 import {
+  KAOS_ID_KEY,
   KAOS_UNSUPPORTED_KEY,
   kaosNativeFile,
   readKaos,
+  withKaosIdentifiers,
   writeKaos,
 } from '../../src/importers/kaos';
+import { isUuid } from '../../src/importers/ids';
 import { modelRoundTrip } from '../../src/importers/native';
 import {
   kaospropAnalysisModel,
@@ -41,15 +44,27 @@ const ADS = [
 const CORPUS = [...ADS, 'kaostools/las.kaos'];
 
 type Json = Record<string, any>;
+/**
+ * A fixture read, its elements by their KAOSTools identifiers (their piStar
+ * ids are UUIDs, goal-controller#518: the ids test below).
+ */
 const read = (path: string, files?: Record<string, string>) => {
   const result = readKaos(fixture(path), { modelName: 'm', files });
   assert.ok(result.model, JSON.stringify(result.diagnostics.slice(0, 3)));
-  return result as typeof result & { model: Json };
+  return {
+    ...result,
+    model: withKaosIdentifiers(result.model) as Json,
+    raw: result.model as Json,
+  };
 };
-/** A text read, its model as JSON (null when it doesn't read). */
+/** A text read, its model as JSON by identifiers (null when it doesn't read). */
 const readText = (text: string) => {
   const { model, diagnostics } = readKaos(text);
-  return { model: model as Json, diagnostics };
+  return {
+    model: withKaosIdentifiers(model) as Json,
+    raw: model as Json,
+    diagnostics,
+  };
 };
 /** How many of each kind: elements by type, links by type (a refinement by its hub's). */
 const census = (model: Json) => {
@@ -694,8 +709,8 @@ describe('readKaos: the layout (#118’s)', () => {
 describe('writeKaos: back to .kaos', () => {
   for (const path of CORPUS)
     it(`round-trips ${path}: .kaos → model → .kaos reads to the same model (structurally; the text’s order is the writer’s)`, () => {
-      const { model } = read(path);
-      const trip = modelRoundTrip(kaosNativeFile, model, { modelName: 'm' });
+      const { raw } = read(path);
+      const trip = modelRoundTrip(kaosNativeFile, raw, { modelName: 'm' });
       assert.ok(trip.ok, trip.problem ?? '');
       // written again, the text is the same: the writer's form is a fixed point
       const again = kaosNativeFile.read(trip.written!, { modelName: 'm' });
@@ -778,7 +793,7 @@ declare goal [ test4 ] cost [budget] 4 end
 declare obstacle [ obst ] resolvedby [mitigation:test] goal2 end
 declare obstacle [ obst2 ] end
 declare obstacle [ obst3 ] end`;
-    const { model, diagnostics } = readText(text);
+    const { model, raw, diagnostics } = readText(text);
     const resolutions = model.links
       .filter((l: Json) => l.type === 'kaos.ResolutionLink')
       .map((l: Json) => [l.source, l.target, l.customProperties]);
@@ -863,7 +878,7 @@ declare obstacle [ obst3 ] end`;
     ])
       assert.ok(written.text!.includes(line), `${line}\n---\n${written.text}`);
     assert.deepStrictEqual(written.diagnostics, []);
-    const trip = modelRoundTrip(kaosNativeFile, model, { modelName: 'm' });
+    const trip = modelRoundTrip(kaosNativeFile, raw, { modelName: 'm' });
     assert.ok(trip.ok, trip.problem ?? '');
   });
 
@@ -917,7 +932,7 @@ declare obstacle [ o ] resolvedby [prevention] g end`);
   });
 
   it('writes a malicious agent’s `type malicious`, and an obstacle `assignedto` it (ICSE’04, #212)', () => {
-    const { model } = readText(`declare agent [ thief ]
+    const { model, raw } = readText(`declare agent [ thief ]
   type malicious
 end
 declare obstacle [ pin_known ]
@@ -932,7 +947,7 @@ end`);
       ),
     );
     assert.deepStrictEqual(diagnostics, []);
-    assert.ok(modelRoundTrip(kaosNativeFile, model, { modelName: 'm' }).ok);
+    assert.ok(modelRoundTrip(kaosNativeFile, raw, { modelName: 'm' }).ok);
   });
 
   it('writes the `kaos` dialect’s keys .kaos lacks as custom attributes, and says what it can’t write', () => {
@@ -990,12 +1005,118 @@ declare agent [ e ] type environment end`);
   });
 });
 
+describe('readKaos: piStar ids as any model’s, KAOSTools’ identifiers kept (#518, #390)', () => {
+  /** The identifiers a `.kaos` text declares (`declare goal [ g ]`), in order. */
+  const declared = (text: string) =>
+    [...text.matchAll(/declare \w+ \[ ([^\]\s]+) \]/g)].map((m) => m[1]!);
+
+  for (const path of CORPUS)
+    it(`gives ${path}’s elements UUIDs, their first 8 characters distinct, the same on every read`, () => {
+      const { raw } = read(path);
+      const ids = raw.orphans.map((n: Json) => n.id);
+      for (const id of ids) assert.ok(isUuid(id), id);
+      assert.strictEqual(
+        new Set(ids.map((id: string) => id.slice(0, 8))).size,
+        ids.length,
+      );
+      // every element keeps its identifier; the model is the same read
+      // again, under any model name
+      for (const node of raw.orphans)
+        assert.match(node[KAOS_ID_KEY], /^[A-Za-z][A-Za-z0-9_-]*$/, node.id);
+      assert.deepStrictEqual(
+        (readKaos(fixture(path), { modelName: 'other' }).model as Json).orphans,
+        raw.orphans,
+      );
+    });
+
+  it('writes the identifiers it read back to .kaos, and reads them to the same ids', () => {
+    const text = fixture('kaostools/las.kaos');
+    const { raw } = read('kaostools/las.kaos');
+    const written = writeKaos(raw, { modelName: 'm' }).text!;
+    assert.deepStrictEqual(
+      new Set(declared(written)),
+      new Set(raw.orphans.map((n: Json) => n[KAOS_ID_KEY])),
+    );
+    for (const identifier of declared(text))
+      assert.ok(declared(written).includes(identifier), identifier);
+    assert.deepStrictEqual(
+      (readKaos(written, { modelName: 'm' }).model as Json).orphans.map(
+        (n: Json) => n.id,
+      ),
+      raw.orphans.map((n: Json) => n.id),
+    );
+  });
+
+  it('writes an element by its identifier when renamed, one made in the workbench (no identifier) by its name’s', () => {
+    const { raw } = readText(`declare goal [ g ] name "Old" refinedby a end
+declare goal [ a ] end`);
+    const goal = raw.orphans.find((n: Json) => n[KAOS_ID_KEY] === 'g');
+    goal.text = 'New';
+    raw.orphans.push({
+      id: 'a1b2c3d4-0000-4000-8000-000000000000',
+      text: 'Achieve [Made Here]',
+      type: 'kaos.BehavioralGoal',
+      x: 0,
+      y: 0,
+      customProperties: {},
+    });
+    const { text, diagnostics } = writeKaos(raw, { modelName: 'm' });
+    assert.deepStrictEqual(declared(text!), ['g', 'a', 'achieve_made_here']);
+    assert.ok(text!.includes('declare goal [ g ]\n  name "New"\n'));
+    assert.deepStrictEqual(
+      diagnostics.map((d) => d.message),
+      [
+        'Achieve [Made Here]: its id a1b2c3d4-0000-4000-8000-000000000000 is no KAOSTools identifier, written as achieve_made_here',
+      ],
+    );
+  });
+
+  it('gives two elements whose ids would show the same 8 characters other ones, the same on every read', () => {
+    // g67150's and g101993's UUIDs both start ef3c9d77
+    const text = 'declare goal [ g67150 ] end\ndeclare goal [ g101993 ] end';
+    const ids = readText(text).raw.orphans.map((n: Json) => n.id);
+    assert.strictEqual(ids[0].slice(0, 8), 'ef3c9d77');
+    assert.notStrictEqual(ids[1].slice(0, 8), 'ef3c9d77');
+    assert.ok(isUuid(ids[1]));
+    assert.deepStrictEqual(
+      readText(text).raw.orphans.map((n: Json) => n.id),
+      ids,
+    );
+  });
+
+  it('references follow the ids: links’ ends, a resolution’s Anchor and Replaces', () => {
+    const { raw } = readText(`declare goal [ test2 ] replaces [ obst ] test end
+declare goal [ test ] end
+declare goal [ goal2 ] end
+declare obstacle [ obst ] resolvedby [mitigation:test] goal2 end`);
+    const idOf = (identifier: string) =>
+      raw.orphans.find((n: Json) => n[KAOS_ID_KEY] === identifier).id;
+    const resolutions = raw.links
+      .filter((l: Json) => l.type === 'kaos.ResolutionLink')
+      .map((l: Json) => [
+        l.source,
+        l.target,
+        l.customProperties.Anchor,
+        l.customProperties.Replaces,
+      ]);
+    assert.deepStrictEqual(resolutions, [
+      [idOf('goal2'), idOf('obst'), idOf('test'), undefined],
+      [idOf('test2'), idOf('obst'), '', idOf('test')],
+    ]);
+  });
+});
+
 describe('the KAOS seeds (examples/kaos): each model is its .kaos read', () => {
   const EXAMPLES = join(__dirname, '../../../../examples/kaos');
-  const seed = (name: string) => ({
-    kaos: readFileSync(join(EXAMPLES, name, `${name}.kaos`), 'utf8'),
-    model: readFileSync(join(EXAMPLES, name, `${name}.txt`), 'utf8'),
-  });
+  const seed = (name: string) => {
+    const model = readFileSync(join(EXAMPLES, name, `${name}.txt`), 'utf8');
+    return {
+      kaos: readFileSync(join(EXAMPLES, name, `${name}.kaos`), 'utf8'),
+      model,
+      /** the model, its elements by their KAOSTools identifiers */
+      named: JSON.stringify(withKaosIdentifiers(JSON.parse(model))),
+    };
+  };
   for (const name of ['las', 'ambulance', 'carpooling', 'fire-alarm'])
     it(`${name}: ${name}.txt is ${name}.kaos read, byte for byte; it validates; the native file is in sync`, () => {
       const { kaos, model } = seed(name);
@@ -1023,7 +1144,7 @@ describe('the KAOS seeds (examples/kaos): each model is its .kaos read', () => {
     });
     // its obstacles' estimates are per expert: kaosprop reads none, every goal holds
     const analysis = kaospropAnalysisModel(
-      readKaosObstacleModel(seed('ambulance').model),
+      readKaosObstacleModel(seed('ambulance').named),
     );
     assert.strictEqual(
       propagateProbabilities(analysis).probabilities.get(
@@ -1080,7 +1201,7 @@ describe('the KAOS seeds (examples/kaos): each model is its .kaos read', () => {
 
   it('carpooling: kaosprop reproduces REJ’13’s chain, 0.015 → … → 0.28 against an RSR of 95%', () => {
     const analysis = kaospropAnalysisModel(
-      readKaosObstacleModel(seed('carpooling').model),
+      readKaosObstacleModel(seed('carpooling').named),
     );
     const { probabilities } = propagateProbabilities(analysis);
     const chain: [string, number][] = [

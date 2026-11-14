@@ -31,6 +31,8 @@ import {
   readKaosObstacleModel,
 } from '../../src/engines/kaosprop';
 import { vocabularyProfileOf } from '../../src/dialects/kaos/profiles';
+import { isUuid } from '../../src/importers/ids';
+import { KAOS_ID_KEY, withKaosIdentifiers } from '../../src/importers/kaos';
 
 const ROOT = join(__dirname, '..', '..', '..', '..');
 const fixture = (name: string) =>
@@ -65,7 +67,8 @@ type Model = {
   links: Link[];
   diagram: { name: string; customProperties: Record<string, string> };
 };
-const asModel = (model: unknown): Model => model as Model;
+/** An imported model by its elements' identifiers (their piStar ids are UUIDs, #518). */
+const asModel = (model: unknown): Model => withKaosIdentifiers(model) as Model;
 const json = (value: unknown) => `${JSON.stringify(value, null, 2)}\n`;
 
 const documentOf = (file: string): CairisDocument => {
@@ -283,6 +286,30 @@ describe('CAIRIS importer (#192, #203)', () => {
     )!;
     assert.strictEqual(accessible.customProperties.Probability, '0.8');
     assert.match(accessible.customProperties.Rationale!, /./);
+  });
+
+  it('gives elements UUIDs (#518), an element the same in every environment, its identifier kept', () => {
+    for (const { file, modelName } of EXEMPLARS) {
+      const idOf = new Map<string, string>();
+      for (const { result } of readCairis(fixture(file), { modelName })
+        .models) {
+        const model = result.model as unknown as {
+          orphans: (Node & { [KAOS_ID_KEY]: string })[];
+        };
+        const ids = model.orphans.map((n) => n.id);
+        for (const id of ids) assert.ok(isUuid(id), id);
+        assert.strictEqual(
+          new Set(ids.map((id) => id.slice(0, 8))).size,
+          ids.length,
+        );
+        for (const node of model.orphans) {
+          assert.match(node[KAOS_ID_KEY], /^[a-z][a-z0-9_]*$/);
+          const key = `${node.type}\u0000${node.text}`;
+          assert.strictEqual(idOf.get(key) ?? node.id, node.id, key);
+          idOf.set(key, node.id);
+        }
+      }
+    }
   });
 
   it('assigns a requirement to the role a manual association names (D3)', () => {
@@ -706,7 +733,9 @@ describe('CAIRIS’s propagation and kaosprop’s RE’12 rules: the cross-check
   const crossCheck = (file: string, environment: string, expected: string) => {
     const result = importCairis(fixture(file), { modelName: 'm', environment });
     const { probabilities } = propagateProbabilities(
-      kaospropAnalysisModel(readKaosObstacleModel(json(result.model))),
+      kaospropAnalysisModel(
+        readKaosObstacleModel(json(withKaosIdentifiers(result.model))),
+      ),
     );
     const document = documentOf(file);
     const restated = cairisObstacleProbabilities(document, environment);

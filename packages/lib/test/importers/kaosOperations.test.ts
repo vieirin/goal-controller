@@ -16,6 +16,7 @@ import {
   KAOS_UNSUPPORTED_KEY,
   kaosNativeFile,
   readKaos,
+  withKaosIdentifiers,
   writeKaos,
 } from '../../src/importers/kaos';
 import { modelRoundTrip } from '../../src/importers/native';
@@ -40,10 +41,15 @@ const FIXTURE = readFileSync(
 );
 
 type Json = Record<string, any>;
+/** A text read: its model by KAOSTools identifiers (`raw`: as read, its ids UUIDs, #518). */
 const readText = (text: string) => {
   const { model, diagnostics } = readKaos(text, { modelName: 'm' });
   assert.ok(model, JSON.stringify(diagnostics));
-  return { model: model as Json, diagnostics };
+  return {
+    model: withKaosIdentifiers(model) as Json,
+    raw: model as Json,
+    diagnostics,
+  };
 };
 const nodeOf = (model: Json, id: string) =>
   model.orphans.find((n: Json) => n.id === id);
@@ -152,8 +158,8 @@ describe('readKaos: the operation and object models (#194)', () => {
   });
 
   it('round-trips the fixture: its text, but its comments, byte for byte; the written text is a fixed point', () => {
-    const { model } = readText(FIXTURE);
-    const trip = modelRoundTrip(kaosNativeFile, model, { modelName: 'm' });
+    const { model, raw } = readText(FIXTURE);
+    const trip = modelRoundTrip(kaosNativeFile, raw, { modelName: 'm' });
     assert.ok(trip.ok, trip.problem ?? '');
     const uncommented = FIXTURE.replace(/^#.*\n/gm, '');
     assert.strictEqual(trip.written, uncommented);

@@ -15,7 +15,7 @@ import { join } from 'path';
 import { inheritMetamodel, parsePistar } from '@istar-ts/core';
 import { kaos } from '../../src';
 import { KAOS_MODEL } from '../../src/dialects/kaos/metamodel';
-import { readKaos } from '../../src/importers/kaos';
+import { readKaos, withKaosIdentifiers } from '../../src/importers/kaos';
 import { propagateProbabilities } from '../../src/engines/kaosprop';
 import { kaosdocDocument, kaosdocGoalModel } from '../../src/engines/kaosdoc';
 import {
@@ -43,7 +43,8 @@ const corpus = (path: string) =>
 const read = (text: string, files?: Readonly<Record<string, string>>) => {
   const { model, diagnostics } = readKaos(text, { modelName: 'm', files });
   expect(model, JSON.stringify(diagnostics.slice(0, 3))).to.not.equal(null);
-  return parsePistar(model!, { metamodel: KAOS_MODEL });
+  // its elements by their KAOSTools identifiers (their ids are UUIDs, #518)
+  return parsePistar(withKaosIdentifiers(model!), { metamodel: KAOS_MODEL });
 };
 
 /** ADS's London Ambulance with its obstacles and its resolutions (las.kaos imports both). */

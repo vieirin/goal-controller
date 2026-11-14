@@ -11,7 +11,7 @@ import { join } from 'path';
 import { describe, it } from 'mocha';
 import { parsePistar } from '@istar-ts/core';
 import { KAOS_OBSTACLES } from '@istar-ts/dsm3-kaos/metamodel';
-import { readKaos } from '../../../src/importers/kaos';
+import { readKaos, withKaosIdentifiers } from '../../../src/importers/kaos';
 import type { AnalysisModel } from '../../../src/engines/analysis';
 import {
   DEFAULT_SIM_OPTIONS,
@@ -32,7 +32,9 @@ const SEED = join(
 const synthetic = (): AnalysisModel => {
   const read = readKaos(readFileSync(SEED, 'utf8'), { modelName: 'm' });
   const view = kaossimAnalysisModel(
-    parsePistar(read.model!, { metamodel: KAOS_OBSTACLES }) as never,
+    parsePistar(withKaosIdentifiers(read.model!), {
+      metamodel: KAOS_OBSTACLES,
+    }) as never,
   );
   const hubOf = (goal: string) =>
     view.links.find(

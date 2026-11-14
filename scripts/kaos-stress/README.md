@@ -30,7 +30,11 @@ documented, not fixed, in
   kaosexpert's two run without error, and kaoslts writes its files. All five
   engines read every `.kaos`, and kaosexpert and kaossim run 2000 and 200
   samples here.
-- **oracle**: each row of the seed's `*.expected.csv`, by its header:
+- **oracle**: each row of the seed's `*.expected.csv`, by its header. A
+  row names an element by its KAOSTools identifier, which the model keeps
+  as the element's `kaosId` (its piStar id is a UUID, goal-controller#518):
+  each oracle reads the model under those identifiers
+  (`withKaosIdentifiers`).
   - `id,element,probability,paper,derivation` (kaosprop's):
     - kaosprop's probability within 5e-7;
     - the paper's printed value within one unit of its last digit, unless

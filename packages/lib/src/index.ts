@@ -228,6 +228,8 @@ export {
 export { importIstardt } from './importers/istardt';
 // KAOSTools' textual KAOS (goal-controller#181): kaosprop's native file
 export {
+  KAOS_ID_KEY,
+  withKaosIdentifiers,
   KAOS_LOSSY,
   KAOS_UNSUPPORTED_KEY,
   kaosLanguage,

@@ -16,7 +16,7 @@ import {
 } from '@goal-controller/goal-language';
 import { type AnyDialect } from '@goal-controller/dialect';
 import { kaos, kaosOperations, OBJECT_MODEL_SYMBOLS } from '../../src';
-import { kaosNativeFile } from '../../src/importers/kaos';
+import { KAOS_ID_KEY, kaosNativeFile } from '../../src/importers/kaos';
 import { parseModel } from '../../../ui/lib/workbench/dialects';
 import { frameworkProblems } from '../../../ui/lib/workbench/frameworkProblems';
 
@@ -283,9 +283,13 @@ end`);
         '  performedby controller\n',
         '  performedby controller, operator\n',
       );
-      const open = openClosures(modelOf(jsonOf(shared)), kaos);
+      // the elements by their KAOSTools identifiers (their ids are UUIDs, #518)
+      const json = jsonOf(shared);
+      const identifierOf = (id: string) =>
+        json.orphans.find((n: Json) => n.id === id)?.[KAOS_ID_KEY];
+      const open = openClosures(modelOf(json), kaos);
       expect(
-        open.map(({ start, via, end }) => [start, via, end]),
+        open.map(({ start, via, end }) => [start, via, end].map(identifierOf)),
       ).to.deep.equal([
         ['controller', 'switch_pump_on', 'pump_on_when_high_water'],
       ]);
