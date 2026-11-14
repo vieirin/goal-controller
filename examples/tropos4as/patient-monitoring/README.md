@@ -45,6 +45,16 @@ links rise from below the edge), the plans under the two ERRORs on the right
 (their means-end arrows rise from below), and whatever the dashed line from
 ERROR: patient did not eat leads to below the legend.
 
+Five elements' texts start with their piStar id (goal-controller#518): a
+Notation line shows an element without an id of its own by its piStar id's
+first 8 characters, and `takeMedicine`/`takeMedicineNoDinner` and
+`medicineSensor`/`medicineNotTaken` would show the same; and a text
+`ERROR: …` would read `ERROR` as the three errors' id. So
+`takeMedicineNoDinner: take medicine without dinner`, `medicineNotTaken:
+medicine not taken`, and `errorNotEat: ERROR: patient did not eat
+autonomously` (`errorMedicine`, `errorNoDinner` likewise): each line writes
+its id, the name after it is the figure's.
+
 ## Scenario and reference
 
 `scenarios/a-day.json`, **ours**: 6 AM, two meals by noon, at 8 PM the

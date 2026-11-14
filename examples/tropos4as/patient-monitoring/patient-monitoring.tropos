@@ -32,7 +32,7 @@
     <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FHardGoal" name="follow medical instructins" xmi:id="followInstructions" invariantProperty="instructionsFollowed" mode="MAINTAIN" wanter="PMA"/>
     <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FHardGoal" name="eat meals" xmi:id="eatMeals" fulfillmentProperty="mealSensor.meals &gt;= 2" mode="ACHIEVE" wanter="PMA"/>
     <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FHardGoal" name="take medicine before 8PM" xmi:id="takeMedicine" creationProperty="hour &gt;= 6" fulfillmentProperty="medicineSensor.taken" mode="ACHIEVE" wanter="PMA"/>
-    <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FHardGoal" name="take medicine without dinner" xmi:id="takeMedicineNoDinner" wanter="PMA"/>
+    <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FHardGoal" name="takeMedicineNoDinner: take medicine without dinner" xmi:id="takeMedicineNoDinner" wanter="PMA"/>
     <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FPlan" name="call assistant" xmi:id="callAssistant" capableOf="PMA"/>
     <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FPlan" name="remember through speakers" xmi:id="rememberSpeakers" capableOf="PMA"/>
     <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FHardGoal" name="follow medical instructins" xmi:id="followInstructionsDependum"/>
@@ -53,14 +53,14 @@
     <dependency of="reduceNeed-dependency" depender="CareAssistant-DependencyLink-reduceNeed" dependee="reduceNeed-DependencyLink-PMA"/>
     <dependency of="noAnnoyances-dependency" depender="Patient-DependencyLink-noAnnoyances" dependee="noAnnoyances-DependencyLink-PMA"/>
     <node id="mealsNotEaten" type="tropos4as.Failure" text="meals not eaten" where="actor" actor="PMA" x="249" y="150"/>
-    <node id="medicineNotTaken" type="tropos4as.Failure" text="medicine not taken" where="actor" actor="PMA" x="765" y="195"/>
-    <node id="errorNotEat" type="tropos4as.Error" text="ERROR: patient did not eat autonomously" where="actor" actor="PMA" x="165" y="301">
+    <node id="medicineNotTaken" type="tropos4as.Failure" text="medicineNotTaken: medicine not taken" where="actor" actor="PMA" x="765" y="195"/>
+    <node id="errorNotEat" type="tropos4as.Error" text="errorNotEat: ERROR: patient did not eat autonomously" where="actor" actor="PMA" x="165" y="301">
       <property key="condition" value="!ateAutonomously"/>
     </node>
-    <node id="errorMedicine" type="tropos4as.Error" text="ERROR: medicine not taken autonomously" where="actor" actor="PMA" x="879" y="308">
+    <node id="errorMedicine" type="tropos4as.Error" text="errorMedicine: ERROR: medicine not taken autonomously" where="actor" actor="PMA" x="879" y="308">
       <property key="condition" value="!medicineTakenAutonomously"/>
     </node>
-    <node id="errorNoDinner" type="tropos4as.Error" text="ERROR: no dinner until 8PM" where="actor" actor="PMA" x="778" y="361">
+    <node id="errorNoDinner" type="tropos4as.Error" text="errorNoDinner: ERROR: no dinner until 8PM" where="actor" actor="PMA" x="778" y="361">
       <property key="condition" value="hour &gt;= 20 &amp; mealSensor.meals &lt; 2"/>
     </node>
     <node id="medicineSensor" type="tropos4as.Artifact" text="medicine sensor" where="actor" actor="PMA" x="828" y="68">

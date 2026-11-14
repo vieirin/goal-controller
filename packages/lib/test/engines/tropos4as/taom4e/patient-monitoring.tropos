@@ -45,7 +45,7 @@
     <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FHardGoal" xmi:id="followInstructions" name="follow medical instructins" wanter="PMA" mode="MAINTAIN" invariantProperty="instructionsFollowed"/>
     <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FHardGoal" xmi:id="eatMeals" name="eat meals" wanter="PMA" mode="ACHIEVE" fulfillmentProperty="mealSensor.meals &gt;= 2"/>
     <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FHardGoal" xmi:id="takeMedicine" name="take medicine before 8PM" wanter="PMA" mode="ACHIEVE" creationProperty="hour &gt;= 6" fulfillmentProperty="medicineSensor.taken"/>
-    <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FHardGoal" xmi:id="takeMedicineNoDinner" name="take medicine without dinner" wanter="PMA"/>
+    <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FHardGoal" xmi:id="takeMedicineNoDinner" name="takeMedicineNoDinner: take medicine without dinner" wanter="PMA"/>
     <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FPlan" xmi:id="callAssistant" name="call assistant" capableOf="PMA"/>
     <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FPlan" xmi:id="rememberSpeakers" name="remember through speakers" capableOf="PMA"/>
     <TroposClasses xsi:type="it.itc.sra.taom4e.model.core.informalcore.formalcore:FHardGoal" xmi:id="followInstructionsDependum" name="follow medical instructins"/>
