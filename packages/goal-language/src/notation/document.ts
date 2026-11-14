@@ -299,9 +299,10 @@ export type NotationEditsOptions = {
  * element line naming no element (by its id: never its position) creates
  * one, an element no line names any more is removed (goal-controller#518).
  * While any element line can't be read, starts with no word or with no
- * kind's, the text creates and removes nothing (being typed); while a line
- * under an element cannot be read, that element's properties are not
- * cleared. A line whose word is another kind than its element's changes
+ * kind's, or a line is none of the element above's property or link lines
+ * (or has no element above), the text creates and removes nothing (being
+ * typed); while a line under an element cannot be read, that element's
+ * properties are not cleared. A line whose word is another kind than its element's changes
  * nothing.
  */
 export const notationEdits = (
@@ -464,7 +465,22 @@ export const notationEdits = (
       else actorsUnreadable = true;
       continue;
     }
-    if (!current || !written.trim()) continue;
+    if (!written.trim()) continue;
+    // a line under no element (`ZZ: Nothing` heading a document): being typed
+    if (!current) {
+      typing = true;
+      continue;
+    }
+    // a line that is none of its element's property or link lines: being typed
+    const ownLine =
+      read.kind === 'property' &&
+      ((linkLinesOf(definition) && read.key === LINK_LINE_KEY) ||
+        isLineKey(
+          definition,
+          'lineProperties' in current ? current.kind : current.node.kind,
+          read,
+        ));
+    if (!ownLine) typing = true;
     if ('lineProperties' in current) {
       // a new element's property lines (its links are the diagram's to draw)
       if (

@@ -414,6 +414,48 @@ describe('element lines `kind id: name` (#518)', () => {
         ]);
     });
 
+    it('creates and removes nothing while a line is none of its element’s, or under none', () => {
+      const tree: DocumentTree = {
+        roots: ['G1'],
+        nodes: new Map([
+          [
+            'G1',
+            node({ id: 'G1', kind: 'goal', name: 'Go', children: ['T1'] }),
+          ],
+          ['T1', node({ id: 'T1', kind: 'task', name: 'Drive' })],
+        ]),
+      };
+      // the whole document replaced by a line that reads as a property
+      // line under no element: being typed, nothing is removed
+      expect(notationEdits(toy, 'ZZ: Nothing', tree)).to.deep.equal([]);
+      expect(notationEdits(toy, '  priority high', tree)).to.deep.equal([]);
+      // under an element, a line none of its property lines
+      const { text } = notationDocument(toy, tree);
+      expect(
+        notationEdits(
+          toy,
+          text.replace('\n  task T1: Drive', '\n  nonsense here'),
+          tree,
+        ),
+      ).to.deep.equal([]);
+      expect(
+        notationEdits(toy, `${text}\n  nonsense here\ngoal G9: New`, tree, {
+          newId: ids(),
+        }),
+      ).to.deep.equal([]);
+      // its own property line is no hindrance
+      expect(
+        notationEdits(
+          toy,
+          text.replace('\n  task T1: Drive', '\n  priority high'),
+          tree,
+        ),
+      ).to.deep.equal([
+        { iStarId: 'i-G1', key: 'priority', value: 'high' },
+        { remove: 'i-T1' },
+      ]);
+    });
+
     it('changes nothing of an element whose line says another kind', () => {
       const tree: DocumentTree = {
         roots: ['G1'],
