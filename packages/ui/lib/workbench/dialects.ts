@@ -250,9 +250,18 @@ export const dialectThatReads = (text: string): DialectMode | null => {
 };
 
 /**
- * A model as a dialect's document reads it: every actor and element by its piStar
- * id (a dialect's names carry no ids), each actor's elements under it, then the
- * elements outside any actor.
+ * An element's id written before its name (`net_up: Internet connection
+ * available`, goal-controller#518), as goal-tree reads a framework's: a
+ * name with a space before its colon has none.
+ */
+const WRITTEN_ID = /^\s*([A-Za-z0-9_][A-Za-z0-9_.-]*)\s*:\s*(.*?)\s*$/s;
+
+/**
+ * A model as a dialect's document reads it: every actor and element by its
+ * piStar id, the id its name starts with its own (its line shows its piStar
+ * id's first characters otherwise), each actor's elements under it, then
+ * the elements outside any actor; the links one of whose ends the model
+ * lacks, its orphans (goal-controller#518).
  */
 export const dialectTree = (model: AnyModel): DocumentTree => {
   const isActor = isActorIn(metamodelOf(model));
@@ -260,11 +269,13 @@ export const dialectTree = (model: AnyModel): DocumentTree => {
   const roots: string[] = [];
   for (const element of model.elements.values()) {
     const actor = isActor(element);
+    const written = WRITTEN_ID.exec(element.name);
     nodes.set(element.id, {
       iStarId: element.id,
-      id: element.id,
+      id: written ? written[1]! : element.id,
+      hasId: !!written,
       kind: element.kind,
-      name: element.name,
+      name: written ? written[2]! : element.name,
       notation: null,
       properties: { ...element.customProperties },
       children: actor ? childrenOf(model, element.id).map((e) => e.id) : [],
@@ -272,5 +283,21 @@ export const dialectTree = (model: AnyModel): DocumentTree => {
     if (actor || !('parent' in element) || !element.parent)
       roots.push(element.id);
   }
-  return { nodes, roots };
+  // an end is an element or a link (a link may target a link)
+  const has = (id: string) => model.elements.has(id) || model.links.has(id);
+  const orphans = [...model.links.values()].flatMap((link) => {
+    const missing = [link.source, link.target].filter((end) => !has(end));
+    return missing.length
+      ? [
+          {
+            iStarId: link.id,
+            kind: link.kind,
+            source: nodes.has(link.source) ? link.source : null,
+            target: nodes.has(link.target) ? link.target : null,
+            missing,
+          },
+        ]
+      : [];
+  });
+  return { nodes, roots, orphans };
 };

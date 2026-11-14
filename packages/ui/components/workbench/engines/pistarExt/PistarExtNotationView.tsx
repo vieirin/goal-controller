@@ -10,9 +10,10 @@ import { usePistarExt } from './usePistarExt';
 
 /**
  * The model as piStar-ext's lines: each element's stereotype and tagged value before its
- * name, an actor's elements under it. A line is its element's by position (names carry no
- * ids, or an id its element's name starts with), so lines are edited here, and elements
- * added or removed in the diagram.
+ * kind's word, its id (the one its name starts with, else its piStar id's first
+ * characters) and name, an actor's elements under it. A line is its element's by its id
+ * (goal-controller#518): elements are added, removed and edited here, links drawn in the
+ * diagram.
  */
 export default function PistarExtNotationView() {
   const { session } = useWorkbench();
