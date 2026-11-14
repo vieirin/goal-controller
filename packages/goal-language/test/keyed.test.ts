@@ -200,6 +200,46 @@ describe('keyed lines in the Notation view (#345)', () => {
   });
 });
 
+describe('keyed lines in a dialect without id prefixes (#345, #518)', () => {
+  // KAOS's case: no prefixes, its declared keys start property lines
+  const plain = defineDialect({
+    ...rated,
+    elements: { goal: { fill: 'white' } },
+    propertyLineOrder: rated.properties.goal.map((p) => p.key),
+  });
+  const tree = {
+    roots: ['g1'],
+    nodes: new Map([
+      [
+        'g1',
+        {
+          ...node({ id: 'g1', kind: 'goal', name: 'Go' }),
+          iStarId: 'g1',
+          properties: { Rate: '10%', 'Rate[e1]': '20%' },
+        },
+      ],
+    ]),
+  };
+
+  it('reads a keyed key after a declared one', () => {
+    expect(readLine(plain, '  Rate[e1] 20%')).to.deep.include({
+      kind: 'property',
+      key: 'Rate[e1]',
+      value: '20%',
+      keyed: { key: 'Rate', name: 'e1', nameSpan: { from: 7, to: 9 } },
+    });
+  });
+
+  it('writes them under their element, and reads them back', () => {
+    const { text } = notationDocument(plain, tree);
+    expect(text).to.equal('goal g1: Go\n  Rate 10%\n  Rate[e1] 20%');
+    expect(notationEdits(plain, text, tree)).to.deep.equal([]);
+    expect(
+      notationEdits(plain, text.replace('Rate[e1] 20%', 'Rate[e1] 25%'), tree),
+    ).to.deep.equal([{ iStarId: 'g1', key: 'Rate[e1]', value: '25%' }]);
+  });
+});
+
 describe('a keyed property read, typed by its target (#354)', () => {
   it('reads each name’s value by its brand, in the order written', () => {
     const record = readProperties(

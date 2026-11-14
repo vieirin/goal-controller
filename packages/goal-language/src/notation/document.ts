@@ -91,8 +91,8 @@ export const isListed = (
 /**
  * A node's keys a property line is written with: the keys `propertyLineOrder`
  * lists, each followed by its keyed keys the node has (`Probability[e1]`,
- * goal-controller#354), in the order stored. Keyed lines are a document's
- * with ids only (one without reads a line's first word as its key).
+ * goal-controller#354), in the order stored, in any document (one without
+ * ids reads a keyed key after a declared key, goal-controller#518).
  */
 const lineKeysOf = (
   definition: Document,
@@ -107,9 +107,8 @@ const lineKeysOf = (
       : []),
   ]);
 
-/** Whether a kind's property `key` is keyed, and so has keyed lines (in a document with ids). */
+/** Whether a kind's property `key` is keyed, and so has keyed lines. */
 const isKeyedLineKey = (definition: Document, kind: string, key: string) =>
-  hasIds(definition) &&
   !!definition.properties?.[kind]?.some(
     (p) => p.key === key && p.keyed !== undefined,
   );
