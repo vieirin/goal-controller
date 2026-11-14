@@ -19,6 +19,7 @@ import {
   DECLARATION_KEYS,
   inputOf,
   istarKindOf,
+  type AnyDialect,
   propertyKeys,
   relationMismatch,
   specsFromDefinition,
@@ -32,6 +33,7 @@ import {
   notationDocument,
   notationEdits,
   operatorsFor,
+  readHead,
 } from '@goal-controller/goal-language';
 import { edge, edgeV2 } from '../../src';
 // the UI's own edit writer (React-free), as the Notation view applies edits
@@ -366,7 +368,7 @@ const MODIFICATIONS: Array<{
   {
     name: 'rename an element',
     edit: (lines) => {
-      const i = lines.findIndex((l) => /^\s*G\d+: /.test(l));
+      const i = lines.findIndex((l) => /^\s*goal G\d+: /.test(l));
       if (i < 0) return null;
       const next = [...lines];
       next[i] = next[i]!.replace(/: ([^[{]+?)(\s*[[{]|$)/, ': Renamed goal$2');
@@ -386,7 +388,7 @@ const MODIFICATIONS: Array<{
   {
     name: 'add a property line',
     edit: (lines) => {
-      const i = lines.findIndex((l) => /^\s*G\d+: /.test(l));
+      const i = lines.findIndex((l) => /^\s*goal G\d+: /.test(l));
       if (i < 0) return null;
       const indent = /^\s*/.exec(lines[i]!)![0];
       return [
@@ -429,7 +431,10 @@ const MODIFICATIONS: Array<{
     name: 'an unreadable line',
     changes: false,
     edit: (lines) => {
-      const i = lines.findIndex((l) => /^\s+\w+ /.test(l));
+      // a property line (an element line starts with a word too, #518)
+      const i = lines.findIndex(
+        (l) => /^\s+\w+ /.test(l) && !readHead(edgeV2, l)?.kind,
+      );
       if (i < 0) return null;
       const next = [...lines];
       next[i] = `${next[i]!.replace(/\S.*/, '')}not a property`;
@@ -449,21 +454,50 @@ const MODIFICATIONS: Array<{
   },
 ];
 
+/**
+ * A document as the pinned reference reads and writes it, from before
+ * goal-controller#518: its element lines without their kinds' words
+ * (`goal G1: …` is `G1: …`), every other line as it is.
+ */
+const withoutWords = (definition: AnyDialect, doc: string): string =>
+  doc
+    .split('\n')
+    .map((line) => {
+      const head = readHead(definition, line);
+      return head?.kind
+        ? line.slice(0, head.wordSpan.from) +
+            line.slice(head.wordSpan.to).replace(/^[ \t]+/, '')
+        : line;
+    })
+    .join('\n');
+
 describe('harness 5: the notation document', () => {
-  it('equals the reference document on every edgeV2 example', () => {
+  /** Our document, its element lines without their words (`withoutWords`). */
+  const documentOf = (definition: AnyDialect, tree: GoalView) => {
+    const document = notationDocument(definition, tree);
+    return { ...document, text: withoutWords(definition, document.text) };
+  };
+
+  it('equals the reference document on every edgeV2 example, but for the kind words', () => {
     for (const { file, model } of EDGE_V2_MODELS) {
       const tree = view(model, 'edgeV2');
-      for (const definition of EDGE_V2_FAMILY)
-        expect(notationDocument(definition, tree), file).to.deep.equal(
+      for (const definition of EDGE_V2_FAMILY) {
+        // every element line starts with its kind's word
+        const { text } = notationDocument(definition, tree);
+        for (const line of text.split('\n'))
+          if (/^\s*[A-Z][A-Za-z0-9_.]*:/.test(line))
+            expect.fail(`${file}: a line without its word: ${line}`);
+        expect(documentOf(definition, tree), file).to.deep.equal(
           referenceNotation.notationDocument(ref(tree)),
         );
+      }
     }
   });
 
-  it('equals the reference document on every edge example (the same lines)', () => {
+  it('equals the reference document on every edge example (the same lines), but for the kind words', () => {
     for (const { file, model } of EDGE_MODELS) {
       const tree = view(model, 'edge');
-      expect(notationDocument(edge, tree), file).to.deep.equal(
+      expect(documentOf(edge, tree), file).to.deep.equal(
         referenceNotation.notationDocument(ref(tree)),
       );
     }
@@ -484,7 +518,10 @@ describe('harness 5: the notation document', () => {
         const modified = lines.join('\n');
         const ours = notationEdits(edgeV2, modified, tree);
         expect(ours, `${file}: ${name}`).to.deep.equal(
-          referenceNotation.notationEdits(modified, ref(tree)),
+          referenceNotation.notationEdits(
+            withoutWords(edgeV2, modified),
+            ref(tree),
+          ),
         );
         if (changes === false)
           expect(ours, `${file}: ${name} changes nothing`).to.deep.equal([]);
@@ -524,8 +561,9 @@ describe('harness 5: the notation document', () => {
 describe('harness 6: context', () => {
   /**
    * A context without the elements' diagram positions and names (a field's
-   * hover shows them), which the pinned reference predates; they are the
-   * view's (checked on their own).
+   * hover shows them), and their piStar ids and whether they have ids of
+   * their own (a line's shown id, goal-controller#518), which the pinned
+   * reference predates; they are the view's (checked on their own).
    */
   const withoutPositions = (
     context: ReturnType<typeof contextFromView>,
@@ -533,11 +571,17 @@ describe('harness 6: context', () => {
   ) => ({
     ...context,
     elements: Object.fromEntries(
-      Object.entries(context.elements).map(([id, { x, name, ...element }]) => {
-        expect(x, id).to.equal(tree.nodes.get(id)?.x);
-        expect(name, id).to.equal(tree.nodes.get(id)?.name || undefined);
-        return [id, element];
-      }),
+      Object.entries(context.elements).map(
+        ([id, { x, name, iStarId, hasId, ...element }]) => {
+          const node = tree.nodes.get(id);
+          expect(x, id).to.equal(node?.x);
+          expect(name, id).to.equal(node?.name || undefined);
+          // what a line's shown id is read by (goal-controller#518)
+          expect(iStarId, id).to.equal(node?.iStarId);
+          expect(hasId, id).to.equal(node?.hasId);
+          return [id, element];
+        },
+      ),
     ),
   });
 

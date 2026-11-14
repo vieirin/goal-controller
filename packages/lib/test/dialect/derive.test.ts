@@ -293,7 +293,7 @@ describe('document', () => {
 
   it('writes the model, indented by depth', () => {
     expect(notationDocument(edgeV2, tree)).to.deep.equal({
-      text: 'G1: Keep [T1;R1]\n  maintain x\n  type maintain\n  T1: Do\n  R1: Alarm {bool = true}',
+      text: 'goal G1: Keep [T1;R1]\n  maintain x\n  type maintain\n  task T1: Do\n  resource R1: Alarm {bool = true}',
       ids: ['G1', 'G1', 'G1', 'T1', 'R1'],
     });
   });

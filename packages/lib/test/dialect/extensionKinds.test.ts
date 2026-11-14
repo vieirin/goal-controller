@@ -107,7 +107,7 @@ describe('an extension’s kinds in the view (#132)', () => {
 
   it('writes a listed kind’s line and property lines from the model', () => {
     expect(notationDocument(sensed, goalView(model, sensed)).text).to.equal(
-      'G1: Go\n  when S1 > 3\nS1: Probe\n  rate 0.5\n  feeds V1',
+      'goal G1: Go\n  when S1 > 3\nsensor S1: Probe\n  rate 0.5\n  feeds V1',
     );
   });
 });

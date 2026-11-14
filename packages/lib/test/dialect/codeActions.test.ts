@@ -1,59 +1,54 @@
 /**
- * The goal language server's `notInDiagram` quick fix (goal-controller#416),
- * mapped through a dialect's own kinds (`istarKindOf`, goal-controller#440):
- * KAOS and NFR get one too, not just iStar's goal/task/resource/quality.
+ * A dialect's own kinds created from the text (goal-controller#518; before,
+ * the language server's `notInDiagram` quick fix, mapped through
+ * `istarKindOf`, goal-controller#440): a KAOS or NFR kind word on a new line
+ * creates an element of that kind, not just iStar's goal/task/resource/quality.
  */
 import { expect } from 'chai';
-import {
-  createGoalLspServices,
-  serverCodeActions,
-} from '@goal-controller/goal-language/lsp';
+import type { AnyDialect } from '@goal-controller/dialect';
+import { notationEdits } from '@goal-controller/goal-language';
 import { kaos, nfr } from '../../src';
 
-describe('the notInDiagram quick fix, through a dialect (goal-controller#440)', () => {
-  it('offers one for a KAOS kind', async () => {
-    const { shared, store } = createGoalLspServices();
-    store.set({ dialect: kaos, context: { elements: {}, variables: [] } });
-    const doc = 'G1: Reach the lab';
-    const from = doc.indexOf('G1');
-    const to = from + 'G1'.length;
-    const actions = await serverCodeActions(
-      shared,
-      'file:///notation.goal',
-      doc,
-      {
-        from,
-        to,
-      },
-    );
-    expect(actions).to.have.length(1);
-    expect(actions[0]!.data).to.deep.equal({
-      kind: 'createNode',
-      elementTypeId: 'kaos.BehavioralGoal',
-      args: { name: 'G1: BehavioralGoal' },
-    });
+const EMPTY = { nodes: new Map(), roots: [] };
+const created = (dialect: AnyDialect, doc: string) =>
+  notationEdits(dialect, doc, EMPTY, {
+    newId: () => '7857cb00-0000-4000-8000-000000000000',
   });
 
-  it('offers one for an NFR kind', async () => {
-    const { shared, store } = createGoalLspServices();
-    store.set({ dialect: nfr, context: { elements: {}, variables: [] } });
-    const doc = 'S1: Fast enough';
-    const from = doc.indexOf('S1');
-    const to = from + 'S1'.length;
-    const actions = await serverCodeActions(
-      shared,
-      'file:///notation.goal',
-      doc,
+describe("a dialect's own kinds, created from the text (goal-controller#440, #518)", () => {
+  it('creates a KAOS kind from its word', () => {
+    expect(
+      created(kaos as unknown as AnyDialect, 'behavioral_goal Reach the lab'),
+    ).to.deep.equal([
       {
-        from,
-        to,
+        create: {
+          iStarId: '7857cb00-0000-4000-8000-000000000000',
+          kind: 'kaos.BehavioralGoal',
+          text: 'Reach the lab',
+          properties: {},
+          after: null,
+          line: 0,
+          writeId: '7857cb00',
+        },
       },
-    );
-    expect(actions).to.have.length(1);
-    expect(actions[0]!.data).to.deep.equal({
-      kind: 'createNode',
-      elementTypeId: 'nfr.NFR',
-      args: { name: 'S1: NFR' },
-    });
+    ]);
+  });
+
+  it('creates an NFR kind from its word, its written id kept in its name', () => {
+    expect(
+      created(nfr as unknown as AnyDialect, 'nfr S1: Fast enough'),
+    ).to.deep.equal([
+      {
+        create: {
+          iStarId: '7857cb00-0000-4000-8000-000000000000',
+          kind: 'nfr.NFR',
+          text: 'S1: Fast enough',
+          properties: {},
+          after: null,
+          line: 0,
+          writeId: null,
+        },
+      },
+    ]);
   });
 });

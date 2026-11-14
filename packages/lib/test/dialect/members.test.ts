@@ -79,7 +79,7 @@ const errors = (when: string) => {
 describe('members: a condition reads an artifact’s attributes (#135)', () => {
   it('writes and reads the toy’s lines', () => {
     expect(model('E1.clean').doc).to.equal(
-      'G1: Keep clean\n  when E1.clean\nE1: Room\n  attributes clean:bool, level:number, mode:wet|dry',
+      'goal G1: Keep clean\n  when E1.clean\nartifact E1: Room\n  attributes clean:bool, level:number, mode:wet|dry',
     );
     for (const when of [
       'E1.clean',

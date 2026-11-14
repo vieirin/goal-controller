@@ -14,6 +14,8 @@ import {
 } from '@goal-controller/goal-language';
 import {
   defineDialect,
+  hasIds,
+  kindWordsOf,
   property,
   type AnyDialect,
   type ValueConfig,
@@ -47,18 +49,36 @@ const seed = (mode: Mode) => SEEDS[mode][0]!.model;
 const viewOf = (mode: Mode, text: string): GoalView =>
   goalView(read(mode)(text) as never, DIALECTS[mode] as unknown as AnyDialect);
 
-/** A seed whose elements' names start with an id of their kind's prefix (G1, A1, DP1, O1). */
+/**
+ * The ids the seeds' elements are given, by kind: the letter prefixes KAOS
+ * and NFR had before goal-controller#518 (their lines may write any id now).
+ */
+const ID_PREFIXES: Record<string, string> = {
+  'kaos.BehavioralGoal': 'G',
+  'kaos.Softgoal': 'G',
+  'kaos.Agent': 'A',
+  'kaos.EnvironmentAgent': 'A',
+  'kaos.DomainProperty': 'DP',
+  'kaosObstacles.Obstacle': 'O',
+  'kaosOperations.Operation': 'OP',
+  'kaosOperations.Entity': 'EN',
+  'kaosOperations.Association': 'AS',
+  'kaosOperations.Event': 'EV',
+  'kaosOperations.Predicate': 'PR',
+  'kaosOperations.Type': 'TY',
+  'nfr.NFR': 'S',
+  'nfr.Operationalization': 'O',
+  'nfr.Claim': 'C',
+};
+
+/** A seed whose elements' names start with an id (G1, A1, DP1, O1: `ID_PREFIXES`). */
 const withIds = (mode: Mode, text: string): string => {
   const json = JSON.parse(text);
-  const elements = DIALECTS[mode].elements as Record<
-    string,
-    { prefix: string }
-  >;
   // by kind, not file type (an obstacle's file type is kaos.Obstacle)
   const model = read(mode)(text);
   const count = new Map<string, number>();
   for (const element of json.orphans) {
-    const prefix = elements[model.elements.get(element.id)!.kind]!.prefix;
+    const prefix = ID_PREFIXES[model.elements.get(element.id)!.kind]!;
     count.set(prefix, (count.get(prefix) ?? 0) + 1);
     element.text = `${prefix}${count.get(prefix)}: ${element.text}`;
   }
@@ -71,36 +91,35 @@ const namesOf = (view: GoalView, keys: readonly string[]) =>
   keys.map((key) => view.nodes.get(key)!.name);
 
 describe('frameworks: the kaos and nfr dialects (#171)', () => {
-  it('are their frameworks’, with the issue’s prefixes and no notation', () => {
+  it('are their frameworks’, without id prefixes, a word for each kind and no notation', () => {
     expect(kaos.framework).to.equal('kaos');
     expect(nfr.framework).to.equal('nfr');
-    expect(
-      Object.fromEntries(
-        Object.entries(kaos.elements).map(([kind, e]) => [kind, e.prefix]),
-      ),
-    ).to.deep.equal({
-      'kaos.BehavioralGoal': 'G',
-      'kaos.Softgoal': 'G',
-      'kaos.Agent': 'A',
-      'kaos.EnvironmentAgent': 'A',
-      'kaos.DomainProperty': 'DP',
-      'kaosObstacles.Obstacle': 'O',
+    // their lines write any id, or none (goal-controller#518)
+    for (const dialect of [kaos, nfr] as unknown as AnyDialect[]) {
+      expect(hasIds(dialect)).to.equal(false);
+      expect(
+        Object.values(dialect.elements).filter((e) => e?.prefix !== undefined),
+      ).to.deep.equal([]);
+    }
+    expect(kindWordsOf(kaos as unknown as AnyDialect)).to.deep.equal({
+      behavioral_goal: 'kaos.BehavioralGoal',
+      softgoal: 'kaos.Softgoal',
+      agent: 'kaos.Agent',
+      environment_agent: 'kaos.EnvironmentAgent',
+      domain_property: 'kaos.DomainProperty',
+      obstacle: 'kaosObstacles.Obstacle',
       // the operation and object models (goal-controller#194)
-      'kaosOperations.Operation': 'OP',
-      'kaosOperations.Entity': 'EN',
-      'kaosOperations.Association': 'AS',
-      'kaosOperations.Event': 'EV',
-      'kaosOperations.Predicate': 'PR',
-      'kaosOperations.Type': 'TY',
+      operation: 'kaosOperations.Operation',
+      entity: 'kaosOperations.Entity',
+      association: 'kaosOperations.Association',
+      event: 'kaosOperations.Event',
+      predicate: 'kaosOperations.Predicate',
+      type: 'kaosOperations.Type',
     });
-    expect(
-      Object.fromEntries(
-        Object.entries(nfr.elements).map(([kind, e]) => [kind, e.prefix]),
-      ),
-    ).to.deep.equal({
-      'nfr.NFR': 'S',
-      'nfr.Operationalization': 'O',
-      'nfr.Claim': 'C',
+    expect(kindWordsOf(nfr as unknown as AnyDialect)).to.deep.equal({
+      nfr: 'nfr.NFR',
+      operationalization: 'nfr.Operationalization',
+      claim: 'nfr.Claim',
     });
     expect('notation' in kaos || 'notation' in nfr).to.equal(false);
   });
@@ -338,26 +357,29 @@ describe('frameworks: the Notation view of a KAOS or NFR model (#171)', () => {
     const doc = notationDocument(kaos as unknown as AnyDialect, view).text;
     const elementLines = doc
       .split('\n')
-      .filter((line) => /^\s*(G|A|DP)\d+:/.test(line));
+      .filter((line) => /^\s*[a-z_]+ (G|A|DP)\d+:/.test(line));
     expect(elementLines).to.deep.equal([
-      'G1: Reliability',
-      '  G3: Achieve [Problem Notified if Problem]',
-      '  G6: Backup',
-      '    G2: Maintain [Minimal Interval Between Automatic Backups]',
-      '      DP1: Internet connection available',
-      '    G5: Achieve [Manual Backup]',
-      'G4: Save Bandwidth',
-      'A1: User',
+      'softgoal G1: Reliability',
+      '  behavioral_goal G3: Achieve [Problem Notified if Problem]',
+      '  softgoal G6: Backup',
+      '    behavioral_goal G2: Maintain [Minimal Interval Between Automatic Backups]',
+      '      domain_property DP1: Internet connection available',
+      '    behavioral_goal G5: Achieve [Manual Backup]',
+      'softgoal G4: Save Bandwidth',
+      'environment_agent A1: User',
     ]);
-    // the conflict's boundary condition, a link line under its source
-    expect(doc).to.include('  link G4 {BoundaryCondition = }');
+    // the conflict's boundary condition, a link line under its source,
+    // naming its target by its text (KAOS has no runtime ids, #518)
+    expect(doc).to.include(
+      '      domain_property DP1: Internet connection available\n        Description\n        link "G4: Save Bandwidth" {BoundaryCondition = }',
+    );
   });
 
   it('nfr: digits and commas are the name’s', () => {
     const view = viewOf('nfr', withIds('nfr', seed('nfr')));
     const doc = notationDocument(nfr as unknown as AnyDialect, view).text;
-    expect(doc).to.include('O1: Encrypt with RSA 128 bits');
-    expect(doc).to.include('S5: Example of a big, colored NFR');
+    expect(doc).to.include('operationalization O1: Encrypt with RSA 128 bits');
+    expect(doc).to.include('nfr S5: Example of a big, colored NFR');
   });
 
   it('maps a renamed line back to its element, brackets and all', () => {
@@ -376,7 +398,7 @@ describe('frameworks: the Notation view of a KAOS or NFR model (#171)', () => {
     ]);
   });
 
-  it('reports a line whose prefix is none of its kinds’', () => {
+  it('reports a line whose word is none of its kinds’, and creates one whose word is', () => {
     const view = viewOf('kaos', withIds('kaos', seed('kaos')));
     const definition = kaos as unknown as AnyDialect;
     const doc = notationDocument(definition, view).text;
@@ -388,18 +410,37 @@ describe('frameworks: the Notation view of a KAOS or NFR model (#171)', () => {
       )
         .filter((d) => d.from > doc.length)
         .map((d) => d.message);
-    // an iStar prefix: read as an id, of no KAOS kind
+    // an iStar kind's word: no KAOS kind
+    expect(added('task T1: A task')).to.deep.equal([
+      "task is no kind of KAOS's: behavioral_goal, softgoal, agent, environment_agent, domain_property, obstacle, operation, entity, association, event, predicate, type",
+    ]);
+    // no word at all: no element line
     expect(added('T1: A task')).to.deep.equal([
-      "T is no prefix of KAOS's: its elements are G…, A…, DP…, O…, OP…, EN…, AS…, EV…, PR…, TY…",
+      'An element line starts with its kind: behavioral_goal, softgoal, agent, environment_agent, domain_property, obstacle, operation, entity, association, event, predicate, type',
     ]);
-    // another framework's: no id at all in KAOS (a property line, here
-    // under the agent above it)
-    expect(added('S1: A softgoal')).to.deep.equal([
-      'Not read for a kaos.EnvironmentAgent',
-    ]);
-    // one of its own, of an element the diagram doesn't have
-    expect(added('DP9: Power is on')).to.deep.equal([
-      'Add this element in the diagram',
+    // one of its own, of an element the diagram doesn't have: it creates it
+    expect(added('domain_property DP9: Power is on')).to.deep.equal([]);
+    expect(
+      notationEdits(
+        definition,
+        `${doc}\ndomain_property DP9: Power is on`,
+        view,
+        {
+          newId: () => 'new-element',
+        },
+      ),
+    ).to.deep.equal([
+      {
+        create: {
+          iStarId: 'new-element',
+          kind: 'kaos.DomainProperty',
+          text: 'DP9: Power is on',
+          properties: {},
+          after: byName(view, 'User').key,
+          line: doc.split('\n').length,
+          writeId: null,
+        },
+      },
     ]);
   });
 });
@@ -456,7 +497,7 @@ describe('frameworks: KAOS vocabularies and leg properties in the Notation view 
     // under G3, after its property lines
     const g3 = doc.slice(doc.indexOf('G3: '), doc.indexOf('G6: '));
     expect(g3).to.match(
-      /\n {4}Description\n {4}link G1 \{Probability = \.6\}\n/,
+      /\n {4}Description\n {4}link "G1: Reliability" \{Probability = \.6\}\n/,
     );
     expect(lines(doc, view, legs)).to.deep.equal([]);
     expect(notationEdits(legs, doc, view)).to.deep.equal([]);
@@ -528,11 +569,13 @@ describe('frameworks: the KAOS obstacle analysis (#181)', () => {
     const text = withIds('kaos', LAS);
     const view = viewOf('kaos', text);
     const doc = notationDocument(definition, view).text;
-    expect(doc).to.include('O1: Mobilized Ambulance Not On Scene in Time\n');
-    expect(doc).to.include('  O3: Ambulance Lost\n');
+    expect(doc).to.include(
+      'obstacle O1: Mobilized Ambulance Not On Scene in Time\n',
+    );
+    expect(doc).to.include('  obstacle O3: Ambulance Lost\n');
     // the anchor is a piStar id, as imported: it resolves
     expect(doc).to.match(
-      /G10: Avoid \[Ambulance Not In Familiar Area\][^]*?\n {2}link O5 \{ResolutionType = mitigation\} \{Anchor = achieve_ambulance_on_scene_when_ambulance_mobilized\}\n/,
+      /behavioral_goal G10: Avoid \[Ambulance Not In Familiar Area\][^]*?\n {2}link "O5: Ambulance Not In Familiar Area" \{ResolutionType = mitigation\} \{Anchor = achieve_ambulance_on_scene_when_ambulance_mobilized\}\n/,
     );
     expect(
       documentDiagnostics(
@@ -663,12 +706,12 @@ describe('frameworks: the KAOS obstacle analysis (#181)', () => {
     const view = viewOf('kaos', withIds('kaos', LAS));
     const doc = notationDocument(definition, view)
       .text.replace(
-        'O1: Mobilized Ambulance Not On Scene in Time\n',
-        'O1: Mobilized Ambulance Not On Scene in Time\n  Category Hazard\n',
+        'obstacle O1: Mobilized Ambulance Not On Scene in Time\n',
+        'obstacle O1: Mobilized Ambulance Not On Scene in Time\n  Category Hazard\n',
       )
       .replace(
-        '  DP1: Ambulance On Scene Not In Traffic Jam\n',
-        '  DP1: Ambulance On Scene Not In Traffic Jam\n    Kind axiom\n',
+        '  domain_property DP1: Ambulance On Scene Not In Traffic Jam\n',
+        '  domain_property DP1: Ambulance On Scene Not In Traffic Jam\n    Kind axiom\n',
       )
       .replace('{ResolutionType = mitigation}', '{ResolutionType = repair}');
     const messages = documentDiagnostics(
