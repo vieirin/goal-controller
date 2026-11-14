@@ -677,6 +677,21 @@ const withHead = (
       written.slice(0, from) + by + written.slice(to);
   let read = blank(head.wordSpan.from, head.wordSpan.to)(text);
   let placeholder: Span | null = null;
+  // a line without an id in a dialect whose names are free text (KAOS's
+  // `behavioral_goal Achieve [Manual Backup]`): its word and the blank after
+  // it are a placeholder id, so the name is read as one after an id is
+  const wordAsId =
+    head.id === null &&
+    !wordNames &&
+    nameReading(definition) !== null &&
+    head.word.length >= 2 &&
+    /^[ \t]/.test(text.slice(head.wordSpan.to));
+  if (wordAsId)
+    read = blank(
+      head.wordSpan.from,
+      head.wordSpan.to + 1,
+      `${'G'.padEnd(head.word.length - 1, '1')}: `,
+    )(text);
   if (head.id !== null && head.idSpan && !isElementId(definition, head.id)) {
     const from = head.idSpan.from - (head.id.length < 2 ? 1 : 0);
     placeholder = { from, to: head.idSpan.to };
@@ -718,6 +733,22 @@ const withHead = (
             } as GoalSyntaxError,
           ],
     };
+  if (head.id === null && wordAsId) {
+    // the name after the word, as written
+    const from = Math.min(
+      text.length - text.slice(head.wordSpan.to).trimStart().length,
+      reading.textSpan.to,
+    );
+    const to = Math.max(from, reading.textSpan.to);
+    return {
+      ...reading,
+      word,
+      id: null,
+      idSpan: null,
+      text: text.slice(from, to),
+      textSpan: { from, to },
+    };
+  }
   if (head.id === null) return { ...reading, word, id: null, idSpan: null };
   const textFrom = head.idSpan!.from;
   const replaced = placeholder ? placeholder.to - placeholder.from : 0;
