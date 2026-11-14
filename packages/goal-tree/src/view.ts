@@ -15,6 +15,7 @@ import {
   DEFAULT_FRAMEWORK,
   extensionKindsRead,
   type AnyDialect,
+  type DocumentOrphan,
 } from '@goal-controller/dialect';
 import {
   nameReading,
@@ -139,13 +140,22 @@ export type GoalView = {
   links: ViewLink[];
   /** every actor, in the model's order */
   actors: ViewActor[];
+  /**
+   * the links one of whose ends the model lacks (goal-controller#518:
+   * removing an element keeps its links), in the model's order
+   */
+  orphans: DocumentOrphan[];
 };
 
 /** `ID: name [notation]` as written (the fallback when the grammar cannot read it); `TX` is an id too. */
 const TEXT =
   /^\s*([A-Za-z]+(?:\d+[A-Za-z0-9.]*|X))\s*:\s*(.*?)\s*(?:\[(.*)\])?\s*$/s;
-/** `ID: name` in a framework's dialect: its brackets are its name's (`nameReading`). */
-const FRAMEWORK_TEXT = /^\s*([A-Za-z]+(?:\d+[A-Za-z0-9.]*|X))\s*:\s*(.*?)\s*$/s;
+/**
+ * `id: name` in a framework's dialect: its brackets are its name's
+ * (`nameReading`); its id any (goal-controller#518: `net_up`, `G1`), a name
+ * with a space before its first colon none.
+ */
+const FRAMEWORK_TEXT = /^\s*([A-Za-z0-9_][A-Za-z0-9_.-]*)\s*:\s*(.*?)\s*$/s;
 
 const KIND: Record<string, ViewKind | undefined> = {
   'istar.Goal': 'goal',
@@ -401,6 +411,26 @@ export function goalView(
         .filter((key): key is string => !!key),
     }));
 
+  // an end is an element or a link (an NFR argument targets a link)
+  const has = (iStarId: string) =>
+    model.elements.has(iStarId) || model.links.has(iStarId);
+  const orphans = links.flatMap((link): DocumentOrphan[] => {
+    const missing = [link.ends.source.iStarId, link.ends.target.iStarId].filter(
+      (end) => !has(end),
+    );
+    return missing.length
+      ? [
+          {
+            iStarId: link.iStarId,
+            kind: link.kind,
+            source: link.source,
+            target: link.target,
+            missing,
+          },
+        ]
+      : [];
+  });
+
   return {
     nodes: byId,
     byIStarId,
@@ -408,5 +438,6 @@ export function goalView(
     dependums,
     links,
     actors,
+    orphans,
   };
 }
