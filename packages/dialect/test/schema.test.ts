@@ -1232,38 +1232,13 @@ describe('kindWord (#518)', () => {
     expect(
       kindWordProblem({
         elements: { goal: { prefix: 'G', fill: '' }, 'x.Goal': { fill: '' } },
-        propertyLineOrder: [],
       }),
     ).to.equal('goal and x.Goal are both written goal');
   });
 
-  it("rejects a word that is a property line's key, or link's or actor's", () => {
+  it("accepts a word that is a property line's key, or link's or actor's", () => {
     expect(
-      kindWordProblem({
-        elements: { 'x.Weight': { fill: '' } },
-        propertyLineOrder: ['weight'],
-      }),
-    ).to.match(/x\.Weight is written weight, a property line's key/);
-    expect(
-      kindWordProblem({
-        elements: { 'x.Link': { fill: '' } },
-        propertyLineOrder: [],
-        links: { 'istar.AndRefinementLink': [] },
-        linkLines: true,
-      }),
-    ).to.match(/a link line's key/);
-    expect(
-      kindWordProblem({
-        elements: { 'istar.Actor': { fill: '' } },
-        propertyLineOrder: [],
-        actors: [],
-      }),
-    ).to.match(/an actor line's key/);
-    expect(
-      kindWordProblem({
-        elements: { 'istar.Actor': { fill: '' } },
-        propertyLineOrder: [],
-      }),
+      kindWordProblem({ elements: { 'x.Weight': { fill: '' } } }),
     ).to.equal(null);
   });
 });

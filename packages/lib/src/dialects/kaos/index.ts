@@ -709,6 +709,9 @@ export const kaos = defineDialect({
         '{start} performs {via}, which operationalises {end}, but is not responsible for it: assign {end} to {start}',
     },
   ],
+  // its links' properties stay written in the text now that it has no id
+  // prefixes (goal-controller#518: `linkLines` defaults to having them)
+  linkLines: true,
   links: links({
     'kaos.Conflict': CONFLICT,
     'kaosObstacles.ResolutionLink': RESOLUTION,

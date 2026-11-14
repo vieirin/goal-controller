@@ -1097,13 +1097,12 @@ export const shortId = (iStarId: string): string =>
 
 /**
  * What makes a dialect's element lines unreadable (goal-controller#518): two
- * kinds with one word, or a word that is a key a line starts with otherwise
- * (a property line's, `link` where it writes link lines, `actor` where it
- * has actors). Null: none.
+ * kinds written with one word. Null: none. (A word that is also a key a
+ * line starts with, a property's, `link`, `actor`, starts an element line
+ * only when an id and a colon follow it: the goal language's `readHead`.)
  */
 export const kindWordProblem = (
-  definition: Pick<AnyDialect, 'elements' | 'propertyLineOrder'> &
-    Partial<Pick<AnyDialect, 'links' | 'linkLines' | 'actors'>>,
+  definition: Pick<AnyDialect, 'elements'>,
 ): string | null => {
   const kinds = new Map<string, string>();
   for (const kind of Object.keys(definition.elements)) {
@@ -1112,22 +1111,6 @@ export const kindWordProblem = (
     if (other !== undefined)
       return `${other} and ${kind} are both written ${word}`;
     kinds.set(word, kind);
-  }
-  const reserved: [string, string][] = [
-    ...definition.propertyLineOrder.map((key): [string, string] => [
-      key,
-      `a property line's key`,
-    ]),
-    ...(linkLinesOf(definition)
-      ? [[LINK_LINE_KEY, `a link line's key`] as [string, string]]
-      : []),
-    ...(definition.actors
-      ? [[ACTOR_LINE_KEY, `an actor line's key`] as [string, string]]
-      : []),
-  ];
-  for (const [key, what] of reserved) {
-    const kind = kinds.get(key);
-    if (kind !== undefined) return `${kind} is written ${key}, ${what}`;
   }
   return null;
 };
