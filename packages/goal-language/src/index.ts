@@ -34,6 +34,8 @@ export { GoalLexer, type LexerStart } from './lexer.js';
 export { createGoalCoreServices, parseWith, START_RULE } from './module.js';
 export * from './print.js';
 export * from './notation/lines.js';
+export * from './notation/head.js';
+export * from './notation/identity.js';
 export * from './notation/document.js';
 export * from './notation/diagnostics.js';
 export * from './notation/completion.js';

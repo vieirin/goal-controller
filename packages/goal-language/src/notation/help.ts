@@ -10,6 +10,7 @@
  */
 import {
   ISTAR_ACTOR_KINDS,
+  kindWord,
   linkLinesOf,
   type AnyDialect,
   type PropertyDefinition,
@@ -152,13 +153,18 @@ export const notationHelpOf = (dialect: AnyDialect): NotationHelp => {
   return {
     dialect: dialect.name,
     elementLine: {
-      example: elementLine(dialect, {
-        id: `${first}1`,
-        name: 'Name',
-        notation: joining
-          ? [element(2), element(3)].join(joining.symbol)
-          : null,
-      }),
+      // a line starts with its kind's word (goal-controller#518): the first kind's
+      example: `${kindWord(prefixes[0]?.kind ?? Object.keys(dialect.elements)[0] ?? 'goal')} ${elementLine(
+        dialect,
+        {
+          hasId: true,
+          id: `${first || 'e'}1`,
+          name: 'Name',
+          notation: joining
+            ? [element(2), element(3)].join(joining.symbol)
+            : null,
+        },
+      )}`,
       prefixes,
     },
     refinement: dialect.notation

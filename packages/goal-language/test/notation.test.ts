@@ -159,7 +159,7 @@ describe('document', () => {
 
   it('writes the model in property-line order, indented by depth', () => {
     expect(notationDocument(toy, tree)).to.deep.equal({
-      text: 'G1: Go [T1;G2]\n  priority high\n  deadline 9\n  T1: Do\n    robot r2\n  G2: Wait\n  R1: Fuel {bool = yes}',
+      text: 'goal G1: Go [T1;G2]\n  priority high\n  deadline 9\n  task T1: Do\n    robot r2\n  goal G2: Wait\n  resource R1: Fuel {bool = yes}',
       ids: ['G1', 'G1', 'G1', 'T1', 'T1', 'G2', 'R1'],
     });
   });

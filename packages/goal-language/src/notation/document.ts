@@ -6,7 +6,6 @@
  * and properties. The syntax is the goal language's; what a line has (an id,
  * annotations, a declaration) is the definition's.
  */
-import { lineScope } from './scope.js';
 import {
   ANNOTATION_KEYS,
   DECLARATION_KEYS,
@@ -18,17 +17,23 @@ import {
   type PropertyDefinition,
   linkLinesOf,
   actorPropertiesOf,
+  istarKindOf,
+  shortId,
   extensionKindsRead,
   linkPropertiesOf,
 } from '@goal-controller/dialect';
 import {
+  documentLine,
   elementLine,
+  hasWrittenId,
   propertyLine,
   writeAnnotations,
   writeDeclaration,
   writtenName,
 } from '../print.js';
-import { keyedKeyOf, parseValue } from '../parse.js';
+import { keyedKeyOf } from '../parse.js';
+import { lineIdentities, type Identified } from './identity.js';
+import { kindOfId } from './scope.js';
 import { annotatedProperties, readLine } from './lines.js';
 import {
   ACTOR_LINE_KEY,
@@ -45,7 +50,6 @@ import {
   linkLine,
   linkOfLine,
   readLinkLine,
-  takesPosition,
   targetKey,
   writtenTarget,
   type LinkLineReading,
@@ -121,11 +125,19 @@ const isLineKey = (
       isKeyedLineKey(definition, kind, read.keyed.key)
     : definition.propertyLineOrder.includes(read.key);
 
-/** An element's line without its declaration. */
+/** An element's text, as its name stores it (`elementLine`): its written id's, its name and notation. */
 export const nodeLine = (
   definition: Pick<AnyDialect, 'elements'>,
-  node: Pick<DocumentNode, 'id' | 'name' | 'notation'>,
-): string => elementLine(definition, node);
+  node: Pick<DocumentNode, 'id' | 'name' | 'notation'> &
+    Partial<Pick<DocumentNode, 'iStarId' | 'hasId'>>,
+): string =>
+  elementLine(definition, {
+    ...node,
+    hasId:
+      node.iStarId === undefined
+        ? node.hasId
+        : hasWrittenId({ ...node, iStarId: node.iStarId }),
+  });
 
 /** The elements with lines (their keys), depth-first from the roots, each once (at its first parent), with their depth. */
 const lineOrder = (
@@ -171,9 +183,9 @@ export const lineNames = (
 };
 
 /**
- * Depth-first from the roots, each element once (at its first parent). `ids`:
- * the element each line is, but, without ids, a link, an actor or a property
- * line (`takesPosition`).
+ * Depth-first from the roots, each element once (at its first parent), each
+ * its kind's word, the id it shows and its text (`documentLine`). `ids`: the
+ * element each line is or is under (an actor line, at the top, is none's).
  */
 export const notationDocument = (
   definition: Document,
@@ -201,7 +213,7 @@ export const notationDocument = (
     if (element?.declares) {
       lines.push(
         definition.indent.repeat(depth) +
-          elementLine(
+          documentLine(
             definition,
             node,
             writeDeclaration(node.properties),
@@ -213,7 +225,7 @@ export const notationDocument = (
     }
     lines.push(
       definition.indent.repeat(depth) +
-        elementLine(definition, node, null, annotations),
+        documentLine(definition, node, null, annotations),
     );
     ids.push(id);
     for (const key of lineKeysOf(definition, node)) {
@@ -222,8 +234,7 @@ export const notationDocument = (
         lines.push(
           definition.indent.repeat(depth + 1) + propertyLine(key, value),
         );
-        // without ids, a property line takes no position
-        if (hasIds(definition)) ids.push(id);
+        ids.push(id);
       }
     }
     // its links with properties (goal-controller#107), each a `link` line
@@ -233,10 +244,37 @@ export const notationDocument = (
           definition.indent.repeat(depth + 1) +
             linkLine(definition, link, writtenTarget(names, link.target)),
         );
-        if (hasIds(definition)) ids.push(id);
+        ids.push(id);
       }
   }
   return { text: lines.join('\n'), ids };
+};
+
+/** The elements of a tree a document's lines name (`lineIdentities`): its nodes, by key. */
+const identifiedOf = (tree: DocumentTree): Identified[] =>
+  [...tree.nodes].map(([key, node]) => ({
+    key,
+    id: node.id,
+    iStarId: node.iStarId,
+    ...(node.hasId !== undefined && { hasId: node.hasId }),
+  }));
+
+/** An element a line creates (goal-controller#518). */
+export type CreatedElement = {
+  /** its new piStar id */
+  iStarId: string;
+  /** its iStar kind (`istarKindOf`: an engine's `task` is `istar.Task`) */
+  kind: string;
+  /** its text, as its name stores it (`G1: Deliver [G2;G3]`, `net_up: …`, `Achieve [Manual Backup]`) */
+  text: string;
+  /** its custom properties: its line's annotations or declaration, and the property lines under it */
+  properties: Readonly<Record<string, string>>;
+  /** the key of the element whose line is the nearest above it (null: none): it goes in that one's container */
+  after: string | null;
+  /** its line's index in the document (from 0) */
+  line: number;
+  /** the id the editor writes on its line, which had none (`shortId` of `iStarId`); null: the line has one */
+  writeId: string | null;
 };
 
 export type NotationEdit =
@@ -245,19 +283,33 @@ export type NotationEdit =
   /** a link's property (goal-controller#107), by the link's piStar id */
   | { link: string; key: string; value: string | null }
   /** an actor's property (goal-controller#109), by the actor's piStar id */
-  | { actor: string; key: string; value: string | null };
+  | { actor: string; key: string; value: string | null }
+  /** an element a line adds (goal-controller#518) */
+  | { create: CreatedElement }
+  /** an element whose line is gone, by piStar id (its links stay: orphans) */
+  | { remove: string };
+
+export type NotationEditsOptions = {
+  /** a new element's piStar id (default: a random UUID) */
+  newId?: () => string;
+};
 
 /**
  * What a notation document changes in the model: element texts that differ,
- * and properties added, changed or removed under an element's line. Lines with
- * other ids change nothing (the editor asks to add them in the diagram); while
- * a line under an element cannot be read (being typed), that element's
- * properties are not cleared.
+ * and properties added, changed or removed under an element's line; an
+ * element line naming no element (by its id: never its position) creates
+ * one, an element no line names any more is removed (goal-controller#518).
+ * While any element line can't be read, starts with no word or with no
+ * kind's, the text creates and removes nothing (being typed); while a line
+ * under an element cannot be read, that element's properties are not
+ * cleared. A line whose word is another kind than its element's changes
+ * nothing.
  */
 export const notationEdits = (
   definition: Document,
   doc: string,
   tree: DocumentTree,
+  { newId = () => globalThis.crypto.randomUUID() }: NotationEditsOptions = {},
 ): NotationEdit[] => {
   const edits: NotationEdit[] = [];
   // what an element line sets: each key changed, added, or removed (unset)
@@ -281,47 +333,92 @@ export const notationEdits = (
     links: LinkLineReading[];
     linksUnreadable: boolean;
   };
+  /** an element a line creates, with the property lines under it */
+  type Created = {
+    kind: string;
+    text: string;
+    properties: Record<string, string>;
+    lineProperties: Map<string, string>;
+    after: string | null;
+    line: number;
+    writeId: boolean;
+  };
   const blocks: Block[] = [];
-  let current: Block | null = null;
+  const created: Created[] = [];
+  let current: Block | Created | null = null;
   // the actor lines, wherever they are (goal-controller#109)
   const actorLines: ActorLineReading[] = [];
   let actorsUnreadable = false;
-  // lines that name no element are their elements' in order: while lines are
-  // added or removed (elements are, in the diagram), nothing changes; link
-  // lines take no position (adding or removing one sets its link's properties)
-  const order = hasIds(definition)
-    ? null
-    : notationDocument(definition, tree).ids;
+  // an element line being typed: nothing is created or removed
+  let typing = false;
+  const named = new Set<string>();
+  const createdIds = new Set<string>();
+  let above: string | null = null;
+  const identities = lineIdentities(definition, identifiedOf(tree));
   const lines = doc.split('\n');
-  if (
-    order &&
-    lines.filter((line) => takesPosition(definition, line)).length !==
-      order.length
-  )
-    return [];
-  // a line with an id names its element (the id its name starts with)
-  const named = order ? writtenIds(tree) : {};
-  let index = 0;
-  // a repeated scoped id names the element under the goal above it
-  const scope = lineScope(definition);
-  for (const written of lines) {
+  for (const [index, written] of lines.entries()) {
     const read = readLine(definition, written);
-    const writtenId = read.kind === 'element' ? read.id : null;
-    const position =
-      order && takesPosition(definition, written) ? order[index++]! : null;
     const indent = written.length - written.trimStart().length;
-    const id = order
-      ? writtenId
-        ? (named[writtenId] ?? null)
-        : position
-      : writtenId &&
-        scope.keyOf(scope.enter(indent, writtenId), writtenId, (key) =>
-          tree.nodes.has(key),
-        );
-    if (id && read.kind === 'element') {
-      const node = tree.nodes.get(id);
+    if (
+      read.kind === 'element' &&
+      (read.word || read.id !== null || !hasIds(definition))
+    ) {
       current = null;
+      const word = read.word;
+      if (!word || word.kind === null || read.errors.length) typing = true;
+      const identity = identities.resolve(indent, read.id);
+      if (identity && 'ambiguous' in identity) {
+        identity.ambiguous.forEach((key) => named.add(key));
+        continue;
+      }
+      if (!identity) {
+        if (!word?.kind) continue;
+        // a runtime id says its kind (`T1` a task's): another than the word's is no element yet
+        if (
+          hasIds(definition) &&
+          (read.id === null || kindOfId(definition, read.id) !== word.kind)
+        ) {
+          typing = true;
+          continue;
+        }
+        if (read.id !== null) {
+          if (createdIds.has(read.id)) typing = true;
+          createdIds.add(read.id);
+        }
+        const element = definition.elements[word.kind];
+        const properties: Record<string, string> = {};
+        const set = (from: Readonly<Record<string, string | undefined>>) => {
+          for (const [key, value] of Object.entries(from))
+            if (value !== undefined) properties[key] = value;
+        };
+        if (element?.annotated) set(annotatedProperties(read));
+        if (element?.declares && read.declaration)
+          set(read.declaration.properties);
+        const create: Created = {
+          kind: word.kind,
+          text: read.text,
+          properties,
+          lineProperties: new Map(),
+          after: above,
+          line: index,
+          writeId: read.id === null,
+        };
+        created.push(create);
+        if (!element?.declares) current = create;
+        continue;
+      }
+      const id = identity.key;
+      named.add(id);
+      const node = tree.nodes.get(id);
       if (!node) continue;
+      above = id;
+      // its word says another kind: the line is no edit of it
+      if (word?.kind && word.kind !== node.kind) continue;
+      // its short id is shown, never stored
+      const text =
+        !hasWrittenId(node) && read.id === shortId(node.iStarId)
+          ? read.text.slice(read.id.length).replace(/^\s*:\s*/, '')
+          : read.text;
       const element = definition.elements[node.kind];
       const errorBefore = (to: number) =>
         read.errors.some((error) => error.offset < to);
@@ -329,8 +426,8 @@ export const notationEdits = (
       if (element?.annotated && !errorBefore(read.textSpan.from))
         setKeys(node, ANNOTATION_KEYS, annotatedProperties(read));
       if (element?.declares) {
-        if (read.text !== nodeLine(definition, node))
-          edits.push({ iStarId: node.iStarId, text: read.text });
+        if (text !== nodeLine(definition, node))
+          edits.push({ iStarId: node.iStarId, text });
         // an unreadable declaration (being typed) changes nothing yet
         const declaration = read.declaration;
         if (
@@ -342,9 +439,8 @@ export const notationEdits = (
         continue;
       }
       if (!isListed(definition, node)) continue;
-      if (read.text !== nodeLine(definition, node)) {
-        edits.push({ iStarId: node.iStarId, text: read.text });
-      }
+      if (text !== nodeLine(definition, node))
+        edits.push({ iStarId: node.iStarId, text });
       current = {
         key: id,
         node,
@@ -356,6 +452,8 @@ export const notationEdits = (
       blocks.push(current);
       continue;
     }
+    // a line with neither a word nor an id (`[G2]`): being typed
+    if (read.kind === 'element') typing = true;
     if (
       definition.actors &&
       read.kind === 'property' &&
@@ -368,6 +466,17 @@ export const notationEdits = (
       continue;
     }
     if (!current || !written.trim()) continue;
+    if ('lineProperties' in current) {
+      // a new element's property lines (its links are the diagram's to draw)
+      if (
+        read.kind === 'property' &&
+        !read.errors.length &&
+        read.key !== LINK_LINE_KEY &&
+        isLineKey(definition, current.kind, read)
+      )
+        current.lineProperties.set(read.key, read.value);
+      continue;
+    }
     if (
       linkLinesOf(definition) &&
       read.kind === 'property' &&
@@ -418,6 +527,26 @@ export const notationEdits = (
       }
     }
   }
+  if (typing) return edits;
+  for (const create of created) {
+    const iStarId = newId();
+    edits.push({
+      create: {
+        iStarId,
+        kind: istarKindOf(create.kind),
+        text: create.text,
+        properties: {
+          ...create.properties,
+          ...Object.fromEntries(create.lineProperties),
+        },
+        after: create.after,
+        line: create.line,
+        writeId: create.writeId ? shortId(iStarId) : null,
+      },
+    });
+  }
+  for (const { id, node } of lineOrder(definition, tree))
+    if (!named.has(id)) edits.push({ remove: node.iStarId });
   return edits;
 };
 
@@ -509,22 +638,10 @@ const actorEdits = (
 
 /**
  * What the text is checked against: the elements the definition has (kind,
- * operand children, links, construct, custom properties) and the workbench's
- * variables. The shape a language server's context notification takes.
+ * operand children, links, construct, custom properties, the id each line
+ * shows) and the workbench's variables, and the links missing an end
+ * (`orphans`). The shape a language server's context notification takes.
  */
-/**
- * The elements of a tree whose names start with an id (`G1: Deliver`), by
- * that id: what a line without ids' definition names with one.
- */
-export const writtenIds = (tree: DocumentTree): Record<string, string> => {
-  const named: Record<string, string> = {};
-  for (const [key, node] of tree.nodes) {
-    const id = parseValue('annotatedName', node.name).value?.id;
-    if (id && !(id in named)) named[id] = key;
-  }
-  return named;
-};
-
 export const contextFromView = (
   definition: Document,
   tree: DocumentTree,
@@ -575,6 +692,8 @@ export const contextFromView = (
             relation: node.relation,
             construct: node.construct,
             ...(node.x !== undefined && { x: node.x }),
+            iStarId: node.iStarId,
+            hasId: hasWrittenId(node),
             properties: Object.fromEntries(
               Object.entries(node.properties).filter(
                 (entry): entry is [string, string] =>
@@ -615,13 +734,13 @@ export const contextFromView = (
         ]),
       ),
     }),
-    ...(hasIds(definition)
-      ? {}
-      : {
-          order: notationDocument(definition, tree).ids,
-          named: writtenIds(tree),
-        }),
     ...(names && { names }),
+    ...(tree.orphans?.length && {
+      orphans: tree.orphans.map((orphan) => ({
+        ...orphan,
+        missing: [...orphan.missing],
+      })),
+    }),
     // a dialect whose values reference elements (goal-controller#181): a
     // reference may name one by its piStar id, as an imported model does
     ...(hasReferences(definition) && {

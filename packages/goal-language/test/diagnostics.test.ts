@@ -51,15 +51,17 @@ const messages = (doc: string, options = {}) =>
 describe('documentDiagnostics', () => {
   it('is quiet on a matching document', () => {
     expect(
-      messages('G1: Go [G2;T1]\n  G2: A\n  T1: B\n  R1: R {int 0..9 = 5}'),
+      messages(
+        'goal G1: Go [G2;T1]\n  goal G2: A\n  task T1: B\n  resource R1: R {int 0..9 = 5}',
+      ),
     ).to.deep.equal([]);
   });
 
   it('flags non-children, missing children and unknown elements', () => {
-    expect(messages('G1: Go [G2;T9]\nG7: New')).to.deep.equal([
+    // G7 is no element yet: its line creates it (goal-controller#518)
+    expect(messages('goal G1: Go [G2;T9]\ngoal G7: New')).to.deep.equal([
       ['T9', 'error', 'Not a child'],
       ['G2;T9', 'warning', 'Missing: T1'],
-      ['G7', 'error', 'Not in the diagram'],
     ]);
   });
 
@@ -71,7 +73,7 @@ describe('documentDiagnostics', () => {
         G1: { ...context.elements.G1!, relation: 'or' as const },
       },
     };
-    const [d] = documentDiagnostics(toy, 'G1: Go [G2;T1]', ctx);
+    const [d] = documentDiagnostics(toy, 'goal G1: Go [G2;T1]', ctx);
     expect(d!.severity).to.equal('error');
     expect(d!.message).to.equal('Sequence needs AND, has OR');
   });
@@ -85,7 +87,7 @@ describe('documentDiagnostics', () => {
         : null;
     };
     const doc =
-      'G1: Go [G2;T1]\n  priority high\n  deadline 3\nR1: R {int 7..9 = 8}';
+      'goal G1: Go [G2;T1]\n  priority high\n  deadline 3\nresource R1: R {int 7..9 = 8}';
     expect(messages(doc, { runCheck })).to.deep.equal([
       ['{int 7..9 = 8}', 'error', 'out of bounds'],
     ]);
@@ -108,7 +110,7 @@ describe('documentDiagnostics', () => {
       seen.push(input);
       return null;
     };
-    documentDiagnostics(bounded, 'R1: R {int 7..9 = 8}', context, {
+    documentDiagnostics(bounded, 'resource R1: R {int 7..9 = 8}', context, {
       runCheck,
     });
     expect(seen).to.have.length(2);
@@ -127,7 +129,7 @@ describe('documentDiagnostics', () => {
       return 'the engine says no';
     };
     const doc = (deadline: string) =>
-      `G1: Go [G2;T1]\n  priority high\n  deadline ${deadline}`;
+      `goal G1: Go [G2;T1]\n  priority high\n  deadline ${deadline}`;
     // an int, and one below its min (#249): neither is one
     for (const deadline of ['soon', '0']) {
       const found = messages(doc(deadline), { runCheck });
@@ -145,13 +147,13 @@ describe('documentDiagnostics', () => {
   it('flags properties that do not apply, and lines it cannot read', () => {
     expect(
       messages(
-        '  robot r2\nG1: Go [G2;T1]\n  deadline 3\n  robot r2\n  nonsense here\n  [G2]',
+        '  robot r2\ngoal G1: Go [G2;T1]\n  deadline 3\n  robot r2\n  nonsense here\n  ;;',
       ),
     ).to.deep.equal([
       ['robot r2', 'error', 'A property belongs under an element line'],
       ['robot', 'warning', 'Not read for a goal'],
       ['nonsense', 'warning', 'Not read for a goal'],
-      ['[G2]', 'error', 'Not a property line'],
+      [';;', 'error', 'Not a property line'],
       // what does not apply is checked once the element's lines are read
       [
         'deadline 3',
@@ -162,27 +164,27 @@ describe('documentDiagnostics', () => {
   });
 
   it('owns a line that reads as nothing only when it is under the element line', () => {
-    // an element whose text writes no id, as a piStar id (TAS's Resources)
-    const doc = 'G1: Go [G2;T1]\n  [G2]\n9eba9454-0f53: battery msg';
+    const doc = 'goal G1: Go [G2;T1]\n  ;;\n;;';
     const found = documentDiagnostics(toy, doc, context);
     expect(
       found.map((d) => [doc.slice(d.from, d.to), d.message, d.elementId]),
     ).to.deep.equal([
       // under G1: G1's
-      ['[G2]', 'Not a property line', 'G1'],
+      [';;', 'Not a property line', 'G1'],
       // where an element line would be: no element's
-      ['9eba9454-0f53: battery msg', 'Not an element line', undefined],
+      [';;', 'Not an element line', undefined],
     ]);
   });
 
   it('shows the grammar error while the line is as saved', () => {
+    // the line as its element's text stores it: no kind word
     const saved = { G1: { line: 'G1: Go [G2;;]', error: 'bad' } };
-    expect(messages('G1: Go [G2;;]', { saved })[0]).to.deep.equal([
+    expect(messages('goal G1: Go [G2;;]', { saved })[0]).to.deep.equal([
       'G1: Go [G2;;]',
       'error',
       'Not valid for this engine: bad',
     ]);
-    expect(messages('G1: Go [G2;T1]', { saved })).to.deep.equal([]);
+    expect(messages('goal G1: Go [G2;T1]', { saved })).to.deep.equal([]);
   });
 });
 
@@ -292,7 +294,7 @@ describe('a property an engine-owned server serves', () => {
     expect(fieldCompletions(toy, context, 'T1', 'guard', 'R', 1)).to.not.equal(
       null,
     );
-    const doc = 'G1: Go [G2;T1]\nT1: B\n  guard ctx';
+    const doc = 'goal G1: Go [G2;T1]\ntask T1: B\n  guard ctx';
     expect(hoverAt(served, doc, doc.length - 1, context)).to.equal(null);
     expect(hoverAt(toy, doc, doc.length - 1, context)).to.not.equal(null);
   });
@@ -301,7 +303,7 @@ describe('a property an engine-owned server serves', () => {
     expect(
       documentDiagnostics(
         served,
-        'G1: Go [G2;T1]\nT1: B\n  guard ctx',
+        'goal G1: Go [G2;T1]\ntask T1: B\n  guard ctx',
         context,
       ),
     ).to.deep.equal([]);
@@ -310,7 +312,7 @@ describe('a property an engine-owned server serves', () => {
 
 describe('completions', () => {
   it('offers children and keywords inside a notation', () => {
-    const doc = 'G1: Go [G2;';
+    const doc = 'goal G1: Go [G2;';
     const result = completionsAt(toy, doc, doc.length, context)!;
     expect(result.from).to.equal(doc.length);
     expect(result.options.map((o) => o.label)).to.deep.equal([
@@ -324,23 +326,29 @@ describe('completions', () => {
       '*',
     ]);
     // a partial id: no operators
-    const typing = 'G1: Go [G';
+    const typing = 'goal G1: Go [G';
     expect(
       completionsAt(toy, typing, typing.length, context)!.options.map(
         (o) => o.label,
       ),
     ).to.deep.equal(['G2', 'T1', 'skip']);
-    expect(completionsAt(toy, 'G1: Go', 3, context)).to.equal(null);
+    // on an element's text, outside its brackets: nothing
+    expect(completionsAt(toy, 'goal G1: Go', 8, context)).to.equal(null);
   });
 
   it('offers the keys a kind reads, not yet set', () => {
-    const doc = 'G1: Go\n  priority high\n  ';
-    const labels = completionsAt(toy, doc, doc.length, context)!.options.map(
-      (o) => o.label,
-    );
-    expect(labels).to.include('deadline');
-    expect(labels).to.not.include('priority');
-    expect(labels).to.not.include('robot');
+    // a key's first letters (a blank line's head offers the kinds' words too)
+    const labels = (typed: string) => {
+      const doc = `goal G1: Go\n  priority high\n  ${typed}`;
+      return (
+        completionsAt(toy, doc, doc.length, context)?.options.map(
+          (o) => o.label,
+        ) ?? []
+      );
+    };
+    expect(labels('d')).to.include('deadline');
+    expect(labels('d')).to.not.include('priority');
+    expect(labels('d')).to.not.include('robot');
   });
 
   it('offers ids in reference lists, and names in expressions', () => {
@@ -371,18 +379,18 @@ describe('completions', () => {
 
 describe('what the dialect allows', () => {
   it('flags operators and standalone symbols the dialect does not enable', () => {
-    expect(messages('G1: Go [G2+T1]')).to.deep.equal([
+    expect(messages('goal G1: Go [G2+T1]')).to.deep.equal([
       ['+', 'error', '`+` is not an operator of Toy'],
     ]);
-    expect(messages('G1: Go [G2;T1]\nG2: A [+]')).to.deep.equal([
+    expect(messages('goal G1: Go [G2;T1]\ngoal G2: A [+]')).to.deep.equal([
       ['+', 'error', 'A standalone `+` is not a construct of Toy'],
     ]);
     // enabled: ; | @ and a standalone *
-    expect(messages('G1: Go [G2@2|T1]')).to.deep.equal([]);
+    expect(messages('goal G1: Go [G2@2|T1]')).to.deep.equal([]);
   });
 
   it('flags a call the dialect does not enable, and one with another number of operands', () => {
-    expect(messages('G1: Go [FALLBACK(G2,T1)]')).to.deep.equal([
+    expect(messages('goal G1: Go [FALLBACK(G2,T1)]')).to.deep.equal([
       ['FALLBACK', 'error', '`FALLBACK` is not an operator of Toy'],
     ]);
     const calling = {
@@ -397,18 +405,18 @@ describe('what the dialect allows', () => {
         doc.slice(d.from, d.to),
         d.message,
       ]);
-    expect(found('G1: Go [FALLBACK(G2,T1)]')).to.deep.equal([]);
-    const typing = 'G1: Go [G2;';
+    expect(found('goal G1: Go [FALLBACK(G2,T1)]')).to.deep.equal([]);
+    const typing = 'goal G1: Go [G2;';
     expect(
       completionsAt(calling, typing, typing.length, context)!.options.map(
         (o) => o.label,
       ),
     ).to.include('FALLBACK(');
-    expect(found('G1: Go [FALLBACK(G2;T1)]')).to.deep.equal([
+    expect(found('goal G1: Go [FALLBACK(G2;T1)]')).to.deep.equal([
       ['FALLBACK', '`FALLBACK` takes 2 operands, not 1'],
     ]);
     // a call is an operand of its own, as a group is; every id it names is named
-    const tree = parseElementLine('G1: Go [T1;FALLBACK(G2,T1)]').value!
+    const tree = parseElementLine('goal G1: Go [T1;FALLBACK(G2,T1)]').value!
       .notation;
     expect(notationRefs(tree)).to.deep.equal(['T1', 'G2', 'T1']);
     const read = readNotation(calling, tree);
@@ -417,7 +425,7 @@ describe('what the dialect allows', () => {
   });
 
   it('flags two binary operators mixed without a bracket of their own', () => {
-    expect(messages('G1: Go [G2;T1|G2]')).to.deep.equal([
+    expect(messages('goal G1: Go [G2;T1|G2]')).to.deep.equal([
       [
         '|',
         'error',
@@ -425,9 +433,9 @@ describe('what the dialect allows', () => {
       ],
     ]);
     // a chain of one operator: fine
-    expect(messages('G1: Go [G2;T1;G2]')).to.deep.equal([]);
+    expect(messages('goal G1: Go [G2;T1;G2]')).to.deep.equal([]);
     // grouped: the mix is in its own bracket, so it is fine
-    expect(messages('G1: Go [G2;[T1|G2]]')).to.deep.equal([]);
+    expect(messages('goal G1: Go [G2;[T1|G2]]')).to.deep.equal([]);
   });
 
   it('flags a bracket group everywhere, and says a mix needs an intermediate goal, in a dialect whose refinements are flat (`notation.grouping: false`)', () => {
@@ -440,21 +448,21 @@ describe('what the dialect allows', () => {
         doc.slice(d.from, d.to),
         d.message,
       ]);
-    expect(found('G1: Go [[G2;T1]|G2]')).to.deep.equal([
+    expect(found('goal G1: Go [[G2;T1]|G2]')).to.deep.equal([
       ['[G2;T1]', 'Toy refinements are flat: `[G2;T1]|G2` has a nested group'],
     ]);
     // a group right inside another: the outermost one only, once
-    expect(found('G1: Go [[[G2;T1]]]')).to.deep.equal([
+    expect(found('goal G1: Go [[[G2;T1]]]')).to.deep.equal([
       ['[[G2;T1]]', 'Toy refinements are flat: `[[G2;T1]]` has a nested group'],
     ]);
-    expect(found('G1: Go [G2;T1|G2]')).to.deep.equal([
+    expect(found('goal G1: Go [G2;T1|G2]')).to.deep.equal([
       [
         '|',
         '`;` and `|` mixed in one refinement: Toy refinements are flat, so one needs an intermediate goal',
       ],
     ]);
     // still a group: a dialect that allows it (the default) keeps accepting it
-    expect(messages('G1: Go [[G2;T1]|G2]')).to.deep.equal([]);
+    expect(messages('goal G1: Go [[G2;T1]|G2]')).to.deep.equal([]);
   });
 
   it('flags skip where the dialect has no skip', () => {
@@ -466,7 +474,7 @@ describe('what the dialect allows', () => {
       },
     };
     expect(
-      documentDiagnostics(strict, 'G1: Go [G2;T1;skip]', context).map(
+      documentDiagnostics(strict, 'goal G1: Go [G2;T1;skip]', context).map(
         (d) => d.message,
       ),
     ).to.deep.equal(['`skip` is not an operand of Toy']);
@@ -475,7 +483,7 @@ describe('what the dialect allows', () => {
   it('flags values not of their property’s type, options or bounds', () => {
     expect(
       messages(
-        'G1: Go [G2;T1]\n  priority urgent\nT1: B\n  after G9, T1\n  guard x >\nR1: R {int 0..9 = yes}',
+        'goal G1: Go [G2;T1]\n  priority urgent\ntask T1: B\n  after G9, T1\n  guard x >\nresource R1: R {int 0..9 = yes}',
       ),
     ).to.deep.equal([
       ['priority urgent', 'error', 'One of high, not urgent'],
@@ -487,11 +495,11 @@ describe('what the dialect allows', () => {
       ],
       ['{int 0..9 = yes}', 'error', 'Not an integer: yes'],
     ]);
-    expect(messages('G1: Go [G2;T1]\nT1: B\n  after T1')).to.deep.equal([
-      ['after T1', 'error', 'T1 is a task, not a goal'],
-    ]);
     expect(
-      messages('G1: Go [G2;T1]\n  priority high\n  deadline 0'),
+      messages('goal G1: Go [G2;T1]\ntask T1: B\n  after T1'),
+    ).to.deep.equal([['after T1', 'error', 'T1 is a task, not a goal']]);
+    expect(
+      messages('goal G1: Go [G2;T1]\n  priority high\n  deadline 0'),
     ).to.deep.equal([['deadline 0', 'error', 'At least 1']]);
   });
 
@@ -511,20 +519,22 @@ describe('what the dialect allows', () => {
   });
 
   it('flags annotations and declarations on kinds that carry none', () => {
-    expect(messages('<<urgent>> G1: Go [G2;T1]\nT1: B {int}')).to.deep.equal([
+    expect(
+      messages('<<urgent>> goal G1: Go [G2;T1]\ntask T1: B {int}'),
+    ).to.deep.equal([
       ['<<urgent>>', 'error', 'A goal carries no annotations in Toy'],
       ['{int}', 'error', 'A task declares nothing on its line in Toy'],
     ]);
   });
 
   it('flags what a line cannot read, once, where it starts', () => {
-    expect(messages('G1: Go [G2;;T1]')).to.deep.equal([
+    expect(messages('goal G1: Go [G2;;T1]')).to.deep.equal([
       [';', 'error', 'Unexpected ;'],
     ]);
-    expect(messages('G1: Go [G2;T1$]')).to.deep.equal([
+    expect(messages('goal G1: Go [G2;T1$]')).to.deep.equal([
       ['$', 'error', "Not part of the goal language: '$'"],
     ]);
-    expect(messages('G1: Go [G2;T1')).to.deep.equal([
+    expect(messages('goal G1: Go [G2;T1')).to.deep.equal([
       ['1', 'error', 'The line ends before it is complete'],
     ]);
   });

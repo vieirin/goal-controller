@@ -139,7 +139,7 @@ describe('keyed lines in the Notation view (#345)', () => {
 
   it('writes a keyed property’s lines under its own, in the order stored', () => {
     expect(notationDocument(rated, tree).text).to.equal(
-      'G1: Go\n  Rate 10%\n  Rate[e1] 20%\n  Rate[e2] 30%\n  Owner T1',
+      'goal G1: Go\n  Rate 10%\n  Rate[e1] 20%\n  Rate[e2] 30%\n  Owner T1',
     );
   });
 
@@ -158,7 +158,7 @@ describe('keyed lines in the Notation view (#345)', () => {
   });
 
   it('reports a name its target doesn’t have as a reference’s dangling name', () => {
-    const doc = 'G1: Go [T1]\n  Rate[e9] 20%\n  Owner T9\n  Note[any] ok';
+    const doc = 'goal G1: Go [T1]\n  Rate[e9] 20%\n  Owner T9\n  Note[any] ok';
     expect(
       documentDiagnostics(rated, doc, context).map((d) => [d.key, d.message]),
     ).to.deep.equal([
@@ -187,14 +187,16 @@ describe('keyed lines in the Notation view (#345)', () => {
         o.label,
         o.detail,
       ]);
-    expect(labels('G1: Go [T1]\n  Rate[')).to.deep.equal([
+    expect(labels('goal G1: Go [T1]\n  Rate[')).to.deep.equal([
       ['e1', 'Expert 1'],
       ['e2', 'Expert 2'],
     ]);
-    expect(labels('G1: Go [T1]\n  Note[w')).to.deep.equal([
+    expect(labels('goal G1: Go [T1]\n  Note[w')).to.deep.equal([
       ['why', 'written under Note'],
     ]);
-    expect(labels('G1: Go [T1]\n  Owner ')).to.deep.equal([['T1', 'task']]);
+    expect(labels('goal G1: Go [T1]\n  Owner ')).to.deep.equal([
+      ['T1', 'task'],
+    ]);
   });
 });
 

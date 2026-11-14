@@ -1,7 +1,7 @@
 /**
  * Property lines in a document without ids (goal-controller#138): a line
  * that starts with one of the dialect's declared keys is a property line of
- * the element line above it; any other line is an element's, by position.
+ * the element line above it; any other line is an element's, by its id.
  * A name that would read as a property line is written quoted.
  */
 import {
@@ -23,7 +23,6 @@ import {
   propertyKeyOf,
   propertyKeysOf,
   readLine,
-  takesPosition,
   unquotedName,
   writtenName,
 } from '../src/index.js';
@@ -98,6 +97,7 @@ const TREE: DocumentTree = {
         name: 'RoomClean',
         properties: { type: 'achieve', achievement: 'roomClean' },
         children: ['ta', 'q'],
+        hasId: false,
       }),
     ],
     [
@@ -107,21 +107,22 @@ const TREE: DocumentTree = {
         kind: 'goal',
         name: 'type achieve',
         properties: { type: 'maintain' },
+        hasId: false,
       }),
     ],
-    ['q', node({ id: 'q', kind: 'task', name: '"sweep"' })],
+    ['q', node({ id: 'q', kind: 'task', name: '"sweep"', hasId: false })],
   ]),
   roots: ['rc'],
   links: [link('l1', 'q', 'ta', { weight: '2' })],
 };
 
 const TEXT = [
-  'RoomClean',
+  'goal i-rc: RoomClean',
   '  type achieve',
   '  achievement roomClean',
-  '  "type achieve"',
+  '  goal i-ta: "type achieve"',
   '    type maintain',
-  '  "\\"sweep\\""',
+  '  task i-q: "\\"sweep\\""',
   '    link "type achieve" {weight = 2}',
 ].join('\n');
 
@@ -193,15 +194,11 @@ describe('property lines without ids (goal-controller#138)', () => {
     expect(propertyKeyOf(['type'], 'type-x')).to.equal(null);
   });
 
-  it('writes an element’s properties under its line, in propertyLineOrder, indented; they take no position', () => {
+  it('writes an element’s properties under its line, in propertyLineOrder, indented: its lines', () => {
     expect(notationDocument(plain, TREE)).to.deep.equal({
       text: TEXT,
-      ids: ['rc', 'ta', 'q'],
+      ids: ['rc', 'rc', 'rc', 'ta', 'ta', 'q', 'q'],
     });
-    for (const line of TEXT.split('\n'))
-      expect(takesPosition(plain, line), line).to.equal(
-        !/^\s*(type|achievement|link) /.test(line),
-      );
   });
 
   it('round-trips the document: nothing changes, and a property line sets its property', () => {
@@ -215,7 +212,7 @@ describe('property lines without ids (goal-controller#138)', () => {
     ).to.deep.equal([
       { iStarId: 'i-rc', key: 'achievement', value: 'roomClean & dry' },
     ]);
-    // removed, added: the elements keep their positions
+    // removed, added: the elements keep their lines (by their ids)
     expect(
       notationEdits(plain, TEXT.replace('\n    type maintain', ''), TREE),
     ).to.deep.equal([{ iStarId: 'i-ta', key: 'type', value: null }]);
@@ -237,7 +234,7 @@ describe('property lines without ids (goal-controller#138)', () => {
         TREE,
       ),
     ).to.deep.equal([{ iStarId: 'i-ta', text: 'type achieved' }]);
-    // unquoted, it is a property line: a line short of the elements
+    // unquoted after its kind's word and id, it is its name all the same
     expect(
       notationEdits(
         plain,
@@ -308,8 +305,9 @@ describe('property lines without ids (goal-controller#138)', () => {
     const labels = (doc: string, pos = doc.length) =>
       completionsAt(plain, doc, pos, context)?.options.map((o) => o.label) ??
       null;
-    const under = TEXT.replace('    type maintain', '    type maintain\n    ');
-    const at = under.indexOf('maintain\n') + 'maintain\n    '.length;
+    // (a key's first letter: a blank line's head offers the kinds' words)
+    const under = TEXT.replace('    type maintain', '    type maintain\n    a');
+    const at = under.indexOf('maintain\n') + 'maintain\n    a'.length;
     expect(labels(under, at)).to.deep.equal(['achievement']);
     // a key being typed: the line is past the elements'
     const typing = TEXT.replace(
@@ -319,8 +317,8 @@ describe('property lines without ids (goal-controller#138)', () => {
     expect(labels(typing, typing.lastIndexOf('    ach') + 7)).to.deep.equal([
       'achievement',
     ]);
-    // on an element's own line, no keys
-    expect(labels(TEXT, 'Room'.length)).to.equal(null);
+    // on an element's own line, past its kind's word, no keys
+    expect(labels(TEXT, 'goal i-rc: Room'.length)).to.equal(null);
     // the value of an enum: its options
     const value = TEXT.replace('type achieve\n', 'type \n');
     expect(labels(value, value.indexOf('type ') + 5)).to.include.members([
@@ -356,13 +354,17 @@ describe('property lines without ids (goal-controller#138)', () => {
             kind: 'sensing.Sensor',
             name: 'room',
             properties: { attributes: 'clean:bool' },
+            hasId: false,
           }),
         ],
       ]),
       roots: ['s'],
     };
-    const text = 'room\n  attributes clean:bool';
-    expect(notationDocument(sensed, tree)).to.deep.equal({ text, ids: ['s'] });
+    const text = 'sensor i-s: room\n  attributes clean:bool';
+    expect(notationDocument(sensed, tree)).to.deep.equal({
+      text,
+      ids: ['s', 's'],
+    });
     expect(
       notationEdits(sensed, text.replace('bool', 'number'), tree),
     ).to.deep.equal([
@@ -370,7 +372,7 @@ describe('property lines without ids (goal-controller#138)', () => {
     ]);
   });
 
-  it('explains a key by the element at its position, and leads a name in a value to its line', () => {
+  it('explains a key by the element above it, and leads a name in a value to its line', () => {
     // a task's type is another property than a goal's
     const typed = {
       ...plain,
@@ -396,16 +398,20 @@ describe('property lines without ids (goal-controller#138)', () => {
     );
     const named = TEXT.replace('roomClean', 'RoomClean');
     expect(
-      definitionAt(plain, named, named.indexOf('RoomClean', 9)),
-    ).to.deep.equal({ from: 0, to: 'RoomClean'.length });
+      definitionAt(
+        plain,
+        named,
+        named.indexOf('RoomClean', 'goal i-rc: RoomClean'.length),
+      ),
+    ).to.deep.equal({ from: 'goal '.length, to: 'goal i-rc'.length });
   });
 
   it('highlights a property line’s key and its value as its type reads', () => {
     const [key, value] = highlightLine(plain, '  type achieve');
     expect(key).to.include({ from: 2, to: 6, style: 'propertyName' });
     expect(value).to.include({ from: 7, to: 14, style: 'atom' });
-    expect(highlightLine(plain, 'RoomClean')[0]?.style).to.not.equal(
-      'propertyName',
+    expect(highlightLine(plain, 'goal i-rc: RoomClean')[0]?.style).to.equal(
+      'keyword',
     );
   });
 });

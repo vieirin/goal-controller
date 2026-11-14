@@ -4,6 +4,7 @@
  * property's value type into the goal language's data for it, typed by the
  * dialect. What an engine maps from: it never parses a value's text itself.
  */
+import { contextKeyOf } from './identity.js';
 import {
   refListKinds,
   valueParts,
@@ -87,13 +88,15 @@ export const referenceParts = (
     : { ref: written, member: null };
 };
 
-/** The element a name names in a context: by key, by piStar id, or by the id its name starts with. */
+/** The element a name names in a context: by key, by piStar id, or by the id its line shows. */
 export const contextElementOf = (
   context: DefinitionContext,
   id: string,
 ): DefinitionContextElement | undefined => {
   const key = context.iStarIds?.[id] ?? id;
-  return context.elements[key] ?? context.elements[context.named?.[key] ?? ''];
+  return (
+    context.elements[key] ?? context.elements[contextKeyOf(context, key) ?? '']
+  );
 };
 
 /** A `reference` that reads members, read (goal-controller#194): the element it names, and its member. */

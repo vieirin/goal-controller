@@ -18,11 +18,18 @@ import {
 
 const context: DefinitionContext = {
   elements: {
-    G1: { kind: 'kaos.BehavioralGoal', children: [], properties: {} },
+    // its text gives it the id G9 (goal-controller#518)
+    G1: {
+      kind: 'kaos.BehavioralGoal',
+      id: 'G9',
+      iStarId: 'G1',
+      hasId: true,
+      children: [],
+      properties: {},
+    },
     A1: { kind: 'kaos.Agent', children: [], properties: {} },
   },
   variables: [],
-  named: { G9: 'G1' },
 };
 
 describe('value types: reference, formula, probability (#181)', () => {

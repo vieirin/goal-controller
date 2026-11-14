@@ -5,6 +5,7 @@
  * An annotation's stereotype and tag values carry their text, so an editor can
  * give the same text the same colour.
  */
+import { readHead } from './head.js';
 import {
   valueParts,
   hasIds,
@@ -257,6 +258,16 @@ export const highlightLine = (
     Partial<Pick<AnyDialect, 'propertyLineOrder'>>,
   text: string,
 ): Highlight[] => {
+  // an element line's word (goal-controller#518): a keyword; the rest read without it
+  const head = readHead(definition, text);
+  if (head) {
+    const { from, to } = head.wordSpan;
+    const rest = text.slice(0, from) + ' '.repeat(to - from) + text.slice(to);
+    return [
+      { from, to, style: 'keyword' as const },
+      ...highlightLine(definition, rest),
+    ].sort((a, b) => a.from - b.from);
+  }
   const tokens = tokensOf(
     hasIds(definition) ? 'document' : 'plainDocument',
     text,
