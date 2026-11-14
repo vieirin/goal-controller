@@ -753,6 +753,15 @@ export type DialectDefinition<K extends string = ElementKind> = {
    */
   idlessElements?: 'unlisted';
   /**
+   * The key of an element's `extra` (a top-level key of its piStar entry)
+   * that keeps another name a `reference` or a formula may call it by: an
+   * imported KAOS element's KAOSTools identifier (`kaosId`,
+   * goal-controller#518), as the tool's formulas and Monitors name it
+   * (`sump.highWater`). It names the element as its piStar id does; it is
+   * never the id its line shows.
+   */
+  alias?: string;
+  /**
    * Properties on links, by link kind: iStar's (`istar.ContributionLink`) or
    * one a dialect extension adds (`<namespace>.<Kind>`). Stored in the link's
    * `customProperties` in the piStar file, as an element's are; iStar's own
@@ -1155,9 +1164,10 @@ export type DefinitionContext = {
   /** the model's actors, by piStar id, as checks read them (`readActor`, goal-controller#107) */
   actors?: Readonly<Record<string, DefinitionContextActor>>;
   /**
-   * the elements' keys by their piStar ids, where the dialect has
-   * `reference` values (goal-controller#181): a reference may name an
-   * element by either
+   * the elements' keys by their piStar ids, and by their aliases (the
+   * dialect's `alias`, goal-controller#518), where the dialect has
+   * `reference` or `formula` values (goal-controller#181): a reference may
+   * name an element by any of them
    */
   iStarIds?: Readonly<Record<string, string>>;
   /** the links one of whose ends the model lacks (goal-controller#518): an error */
@@ -1222,6 +1232,8 @@ export type DocumentNode = {
   children: readonly string[];
   relation?: Relation | null;
   construct?: string | null;
+  /** the other name a reference may call it by (its dialect's `alias`, goal-controller#518) */
+  alias?: string;
 };
 
 /** What the document reads of a view (goal-tree's `GoalView` is one). */

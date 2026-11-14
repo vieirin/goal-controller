@@ -297,23 +297,16 @@ end`);
   });
 
   it('the Notation view: a Monitors naming an attribute its object doesn’t declare is a diagnostic on its link line', () => {
-    // the elements named with their kinds' ids, as the Notation view writes them
-    const json = jsonOf(FIXTURE);
-    const prefixes = kaos.elements as Readonly<
-      Record<string, { prefix: string }>
-    >;
-    const model = modelOf(json);
-    const count = new Map<string, number>();
-    for (const node of json.orphans) {
-      const prefix = prefixes[model.elements.get(node.id)!.kind]!.prefix;
-      count.set(prefix, (count.get(prefix) ?? 0) + 1);
-      node.text = `${prefix}${count.get(prefix)}: ${node.text}`;
-    }
+    // the model as imported: UUID piStar ids, the Monitors naming its object
+    // by its KAOSTools identifier (its alias, goal-controller#518)
     const definition = kaos as unknown as AnyDialect;
-    const view = goalView(modelOf(json) as never, definition);
+    const view = goalView(modelOf(jsonOf(FIXTURE)) as never, definition);
     const context = contextFromView(definition, view, []);
     const doc = notationDocument(definition, view).text;
-    expect(doc).to.include('  link EN1 {Monitors = sump.highWater}');
+    expect(doc).to.include('  link "Sump" {Monitors = sump.highWater}');
+    expect(doc).to.include(
+      'FormalSpec when sump.highWater == true then sooner-or-later pump.motor == "On"',
+    );
     expect(documentDiagnostics(definition, doc, context)).to.deep.equal([]);
     const bad = doc.replace(
       '{Monitors = sump.highWater}',

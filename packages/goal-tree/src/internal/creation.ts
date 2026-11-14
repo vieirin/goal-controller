@@ -197,6 +197,13 @@ const readingOf = (model: AnyModel, mapper: RunMapper): ReadingContext => {
             lenient: true,
           });
           if (written && !kinds.has(written)) kinds.set(written, kind);
+          // its alias (an imported KAOS element's KAOSTools identifier,
+          // goal-controller#518), as the Notation view resolves it
+          const alias = mapper.dialect.alias
+            ? element.extra?.[mapper.dialect.alias]
+            : undefined;
+          if (typeof alias === 'string' && alias && !kinds.has(alias))
+            kinds.set(alias, kind);
         }
       }
       return kinds.get(id);

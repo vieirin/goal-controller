@@ -742,11 +742,17 @@ export const contextFromView = (
       })),
     }),
     // a dialect whose values reference elements (goal-controller#181): a
-    // reference may name one by its piStar id, as an imported model does
-    ...(hasReferences(definition) && {
-      iStarIds: Object.fromEntries(
-        [...tree.nodes].map(([key, node]) => [node.iStarId, key]),
-      ),
+    // reference may name one by its piStar id, as an imported model does, or
+    // by its alias (an imported KAOS element's KAOSTools identifier,
+    // goal-controller#518); a piStar id wins over another's alias
+    ...((hasReferences(definition) ||
+      [...tree.nodes.values()].some((node) => node.alias)) && {
+      iStarIds: Object.fromEntries([
+        ...[...tree.nodes].flatMap(([key, node]) =>
+          node.alias ? [[node.alias, key] as const] : [],
+        ),
+        ...[...tree.nodes].map(([key, node]) => [node.iStarId, key] as const),
+      ]),
     }),
   };
 };

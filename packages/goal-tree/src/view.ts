@@ -89,6 +89,12 @@ export type GoalViewNode = {
   properties: Record<string, string>;
   /** fill colour saved in the diagram, if any */
   color: string | null;
+  /**
+   * the other name a reference may call it by: its `extra`'s string under
+   * the dialect's `alias` key (an imported KAOS element's KAOSTools
+   * identifier, goal-controller#518)
+   */
+  alias?: string;
 };
 
 /** A link, with its ends as the view knows them (goal-controller#107). */
@@ -155,7 +161,8 @@ const TEXT =
  * (`nameReading`); its id any (goal-controller#518: `net_up`, `G1`), a name
  * with a space before its first colon none.
  */
-const FRAMEWORK_TEXT = /^\s*([A-Za-z0-9_][A-Za-z0-9_.-]*)\s*:\s*(.*?)\s*$/s;
+export const FRAMEWORK_TEXT =
+  /^\s*([A-Za-z0-9_][A-Za-z0-9_.-]*)\s*:\s*(.*?)\s*$/s;
 /**
  * `id: name [notation]` in an iStar dialect without id prefixes (tropos4as,
  * piStar-ext's): its id any too (goal-controller#518).
@@ -189,10 +196,17 @@ const listed = (dialect: ReadingDialect, text: string): string[] => [
 export function goalView(
   model: IstarModel<string, string>,
   dialect: ReadingDialect &
-    Partial<Pick<AnyDialect, 'framework' | 'refinements'>>,
+    Partial<Pick<AnyDialect, 'framework' | 'refinements' | 'alias'>>,
 ): GoalView {
   // a framework's refinements and hubs, by kind (not through core's registry)
   const refined = refinementsOf(model, dialect);
+  // the other name an element keeps in its extra (goal-controller#518)
+  const aliasOf = (element: {
+    extra?: Readonly<Record<string, unknown>>;
+  }): { alias?: string } => {
+    const alias = dialect.alias ? element.extra?.[dialect.alias] : undefined;
+    return typeof alias === 'string' && alias !== '' ? { alias } : {};
+  };
   const framework = (dialect.framework ?? DEFAULT_FRAMEWORK) !== 'istar-2.0';
   // a dialect without id prefixes writes any id (goal-controller#518)
   const withoutPrefixes =
@@ -270,6 +284,7 @@ export function goalView(
         typeof element.display?.backgroundColor === 'string'
           ? element.display.backgroundColor
           : null,
+      ...aliasOf(element),
     });
   }
 

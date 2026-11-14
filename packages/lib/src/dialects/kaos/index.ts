@@ -712,6 +712,9 @@ export const kaos = defineDialect({
   // its links' properties stay written in the text now that it has no id
   // prefixes (goal-controller#518: `linkLines` defaults to having them)
   linkLines: true,
+  // an imported element's KAOSTools identifier (the importers' KAOS_ID_KEY):
+  // its formulas and Monitors/Controls name objects by it (`sump.highWater`)
+  alias: 'kaosId',
   links: links({
     'kaos.Conflict': CONFLICT,
     'kaosObstacles.ResolutionLink': RESOLUTION,

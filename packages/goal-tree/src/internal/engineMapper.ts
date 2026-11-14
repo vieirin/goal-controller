@@ -44,7 +44,9 @@ export type MapperDialect = ReadingDialect & {
   links?: Readonly<Record<string, PropertyList>>;
 } & Partial<
     /** its framework and the link kinds that refine in it (goal-controller#171) */
-    Pick<AnyDialect, 'framework' | 'refinements'>
+    Pick<AnyDialect, 'framework' | 'refinements'> &
+      /** the extra an element's other name is kept in (goal-controller#518) */
+      Pick<AnyDialect, 'alias'>
   >;
 
 /**

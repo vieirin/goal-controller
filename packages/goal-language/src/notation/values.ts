@@ -128,7 +128,8 @@ export const membersOf = (
   source: MemberSource | undefined,
 ): Map<string, MemberType> | null => {
   if (!source || source === 'any') return null;
-  const text = context?.elements[ref]?.properties[source.from];
+  const text =
+    context && contextElementOf(context, ref)?.properties[source.from];
   if (text === undefined) return null;
   return new Map(
     parseValue('pairList', text).value.map(
@@ -153,18 +154,24 @@ const symbolTableOf = (
   const predicateArity = new Map<string, number>();
   const attributesOf = new Map<string, ReadonlySet<string>>();
   const relations = new Set<string>();
-  if (symbols && context)
+  if (symbols && context) {
+    // every name an element goes by: its key, its piStar id and its alias
+    // (`context.iStarIds`: an imported KAOS model's formulas name objects by
+    // their KAOSTools identifiers, goal-controller#518)
+    const namesOf = new Map<string, string[]>();
+    for (const [name, key] of Object.entries(context.iStarIds ?? {}))
+      if (name !== key) namesOf.set(key, [...(namesOf.get(key) ?? []), name]);
     for (const [ref, element] of Object.entries(context.elements)) {
-      if (symbols.predicates && element.kind === symbols.predicates.kind)
-        predicateArity.set(
-          ref,
-          parseValue(
-            'pairList',
-            element.properties[symbols.predicates.arguments] ?? '',
-          ).value.length,
-        );
+      const names = [ref, ...(namesOf.get(ref) ?? [])];
+      if (symbols.predicates && element.kind === symbols.predicates.kind) {
+        const arity = parseValue(
+          'pairList',
+          element.properties[symbols.predicates.arguments] ?? '',
+        ).value.length;
+        for (const name of names) predicateArity.set(name, arity);
+      }
       if (symbols.relations && element.kind === symbols.relations.kind)
-        relations.add(ref);
+        for (const name of names) relations.add(name);
       if (
         symbols.entities &&
         symbols.entities.kinds.some((kind) => kind === element.kind)
@@ -172,9 +179,12 @@ const symbolTableOf = (
         const members = membersOf(context, ref, {
           from: symbols.entities.attributes,
         });
-        if (members) attributesOf.set(ref, new Set(members.keys()));
+        if (members)
+          for (const name of names)
+            attributesOf.set(name, new Set(members.keys()));
       }
     }
+  }
   return { predicateArity, attributesOf, relations };
 };
 
@@ -201,7 +211,7 @@ const memberProblem = (
   const source = value.members;
   if (!source) return `${ref}.${member}: this value reads no members`;
   if (source === 'any' || !context) return null;
-  const element = context.elements[ref];
+  const element = contextElementOf(context, ref);
   if (!element) return null;
   if (
     definition &&
