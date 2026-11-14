@@ -35,7 +35,7 @@ import { arityText, CALLS, takesOperands, type CallName } from '../catalog.js';
 import { isEnabled } from './reading.js';
 import { checkInputOf, parses, type AnyCheckInput } from './checks.js';
 import type { PropertyOwner } from './properties.js';
-import { kindOfId } from './scope.js';
+import { kindOfId, scopedKey } from './scope.js';
 import { identifiedOfContext, lineIdentities } from './identity.js';
 import {
   fieldPropertyOf,
@@ -666,8 +666,9 @@ export const documentDiagnostics = (
         continue;
       }
       // a goal is unique in the model; under `ancestorGoal`, another element under its goal
-      if (seen.has(id)) {
-        const goal = id.includes('/') ? id.slice(0, id.indexOf('/')) : null;
+      const goal = read.id !== null ? identities.goal() : null;
+      const unique = goal !== null ? scopedKey(goal, read.id!) : id;
+      if (seen.has(unique)) {
         push({
           ...idSpan,
           severity: 'error',
@@ -678,7 +679,7 @@ export const documentDiagnostics = (
         });
         continue;
       }
-      seen.add(id);
+      seen.add(unique);
       elementLines.set(id, lineSpan);
       const element = context.elements[id]!;
       if (word?.kind && word.kind !== element.kind) {

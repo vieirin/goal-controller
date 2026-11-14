@@ -47,11 +47,18 @@ export const lineIdentities = (
     shown.set(id, [...(shown.get(id) ?? []), element.key]);
   }
   const scope = lineScope(definition);
+  let lastGoal: string | null = null;
   return {
+    /** the goal the line last resolved is under, in a dialect that scopes ids by it (else null) */
+    goal(): string | null {
+      return lastGoal;
+    },
     /** the element a line's id names, the line at `indent` (called for every element line, in order) */
     resolve(indent: number, id: string | null): LineIdentity {
+      lastGoal = null;
       if (id === null) return null;
       const goal = scope.enter(indent, id);
+      lastGoal = goal;
       const candidates = [...(shown.get(id) ?? [])];
       if (ids) {
         const key = scope.keyOf(goal, id, (k) => keys.has(k));
