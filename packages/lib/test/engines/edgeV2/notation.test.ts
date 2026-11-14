@@ -34,7 +34,7 @@ describe('EdgeV2 in the Notation view: the mixed-operator rule', () => {
   it('fails a refinement that mixes `#` and `;`, saying it needs an intermediate goal (never a group)', () => {
     const messages = documentDiagnostics(
       edgeV2,
-      'G1: Top [G13#G14;G12]\n  G13: A\n  G14: B\n  G12: C',
+      'goal G1: Top [G13#G14;G12]\n  goal G13: A\n  goal G14: B\n  goal G12: C',
       context,
     ).map((d) => d.message);
     assert.deepStrictEqual(messages, [
@@ -45,7 +45,7 @@ describe('EdgeV2 in the Notation view: the mixed-operator rule', () => {
   it('fails a group anywhere: EdgeV2 refinements are flat, not even to resolve the mix above', () => {
     const messages = documentDiagnostics(
       edgeV2,
-      'G1: Top [[G13#G14];G12]\n  G13: A\n  G14: B\n  G12: C',
+      'goal G1: Top [[G13#G14];G12]\n  goal G13: A\n  goal G14: B\n  goal G12: C',
       context,
     ).map((d) => d.message);
     assert.deepStrictEqual(messages, [
