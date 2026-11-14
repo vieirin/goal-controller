@@ -31,8 +31,7 @@ import {
   type SavedLines,
 } from '@goal-controller/goal-language';
 import { fieldUri } from '@goal-controller/goal-language/light';
-import type { ActionDispatcher } from '@istar-ts/actions';
-import type { AnyModel, Check } from '@goal-controller/lib';
+import type { Check } from '@goal-controller/lib';
 import { documentLanguage, valueLanguage } from './definitionLanguage';
 import { languageProblems } from './diagnostics';
 import { forgetDocument, publishDiagnostics } from './diagnosticsStore';
@@ -61,15 +60,6 @@ export type LanguageSupport = {
    * location and applies a rename
    */
   setWorkspace?(workspace: PoolWorkspace, host: PoolHost): void;
-  /**
-   * The dispatcher and model a quick fix applies through (goal-controller#440):
-   * a server's lint actions dispatch through it, as the inspector. `model`
-   * is read fresh on each use, not snapshotted here.
-   */
-  setDispatch?(
-    dispatcher: ActionDispatcher<string, string>,
-    model: () => AnyModel,
-  ): void;
 };
 
 export type { SavedLines };
