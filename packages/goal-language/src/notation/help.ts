@@ -11,6 +11,7 @@
 import {
   ISTAR_ACTOR_KINDS,
   kindWord,
+  kindWordsOf,
   linkLinesOf,
   type AnyDialect,
   type PropertyDefinition,
@@ -42,9 +43,13 @@ export type NotationOperatorHelp = {
 
 export type NotationHelp = {
   dialect: string;
-  /** an element line, written (`G1: Name [G2;G3]`), and the id prefix of each kind it lists */
+  /**
+   * an element line, written (`goal G1: Name [G2;G3]`), the word each kind
+   * it lists starts with (goal-controller#518), and each kind's id prefix
+   */
   elementLine: {
     example: string;
+    words: readonly { kind: string; word: string }[];
     prefixes: readonly { kind: string; prefix: string }[];
   };
   /** what a bracket after an element's name holds: null, the dialect has no notation */
@@ -165,6 +170,10 @@ export const notationHelpOf = (dialect: AnyDialect): NotationHelp => {
             : null,
         },
       )}`,
+      words: Object.entries(kindWordsOf(dialect)).map(([word, kind]) => ({
+        kind,
+        word,
+      })),
       prefixes,
     },
     refinement: dialect.notation
@@ -232,6 +241,7 @@ export const notationHelpOf = (dialect: AnyDialect): NotationHelp => {
 export const notationHelpText = (help: NotationHelp): string =>
   [
     `element line: ${help.elementLine.example}`,
+    `  starts with its kind: ${help.elementLine.words.map((w) => `${w.word} (${w.kind})`).join(', ')}`,
     help.elementLine.prefixes.length > 0 &&
       `  id prefixes: ${help.elementLine.prefixes.map((p) => `${p.prefix} (${p.kind})`).join(', ')}`,
     help.refinement &&

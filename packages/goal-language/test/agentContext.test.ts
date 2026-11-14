@@ -54,6 +54,13 @@ describe("the notation's part of an agent's context (goal-controller#415)", () =
     expect(help.propertyLine?.example).to.equal('priority <value>');
     expect(help.assertion?.comparators).to.include('>=');
     expect(notationHelpText(help)).to.contain(help.elementLine.example);
+    // a line starts with its kind's word (goal-controller#518)
+    expect(help.elementLine.words.map((w) => w.word)).to.include.members([
+      'goal',
+      'task',
+      'resource',
+    ]);
+    expect(help.elementLine.example).to.match(/^goal G1: /);
   });
 });
 
