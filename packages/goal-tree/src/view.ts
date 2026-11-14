@@ -156,6 +156,12 @@ const TEXT =
  * with a space before its first colon none.
  */
 const FRAMEWORK_TEXT = /^\s*([A-Za-z0-9_][A-Za-z0-9_.-]*)\s*:\s*(.*?)\s*$/s;
+/**
+ * `id: name [notation]` in an iStar dialect without id prefixes (tropos4as,
+ * piStar-ext's): its id any too (goal-controller#518).
+ */
+const PLAIN_TEXT =
+  /^\s*([A-Za-z0-9_][A-Za-z0-9_.-]*)\s*:\s*(.*?)\s*(?:\[(.*)\])?\s*$/s;
 
 const KIND: Record<string, ViewKind | undefined> = {
   'istar.Goal': 'goal',
@@ -188,6 +194,12 @@ export function goalView(
   // a framework's refinements and hubs, by kind (not through core's registry)
   const refined = refinementsOf(model, dialect);
   const framework = (dialect.framework ?? DEFAULT_FRAMEWORK) !== 'istar-2.0';
+  // a dialect without id prefixes writes any id (goal-controller#518)
+  const withoutPrefixes =
+    dialect.elements !== undefined &&
+    !Object.values(dialect.elements).some(
+      (element) => element?.prefix !== undefined,
+    );
   // a node by the model's own root, not iStar's (goal-controller#185)
   const isNode = isNodeIn(metamodelOf(model));
   const byIStarId = new Map<string, GoalViewNode>();
@@ -207,7 +219,11 @@ export function goalView(
     if (!kind || !isNode(element) || refined.hubs.has(element.id)) continue;
     const text = element.name;
     const written = (
-      nameReading(dialect) === 'line' ? FRAMEWORK_TEXT : TEXT
+      nameReading(dialect) === 'line'
+        ? FRAMEWORK_TEXT
+        : withoutPrefixes
+          ? PLAIN_TEXT
+          : TEXT
     ).exec(text);
     const notation = written?.[3] !== undefined ? written[3].trim() : null;
     const errors: string[] = [];

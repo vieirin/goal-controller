@@ -42,6 +42,12 @@ const plain = {
   elements: { goal: { fill: '' }, task: { fill: '' } },
 } as unknown as AnyDialect;
 const framework = { ...plain, framework: 'nfr' } as unknown as AnyDialect;
+const prefixed = {
+  elements: {
+    goal: { prefix: 'G', fill: '' },
+    task: { prefix: 'T', fill: '' },
+  },
+} as unknown as AnyDialect;
 
 describe('goalView: written ids (#518)', () => {
   const model = modelOf(
@@ -81,8 +87,15 @@ describe('goalView: written ids (#518)', () => {
     assert.deepStrictEqual(read('g4'), ['g4', 'g4', false, 'Keep it: simple']);
   });
 
-  it("leaves an iStar dialect's ids to its runtime notation", () => {
+  it("reads any id an iStar dialect without prefixes' name starts with", () => {
     const view = goalView(model, plain);
+    assert.strictEqual(view.byIStarId.get('7857cb00-aaaa')!.id, 'net_up');
+    assert.strictEqual(view.byIStarId.get('g2')!.hasId, false);
+    assert.strictEqual(view.byIStarId.get('g3')!.id, 'G1');
+  });
+
+  it("leaves an engine dialect's ids to its runtime notation", () => {
+    const view = goalView(model, prefixed);
     assert.strictEqual(view.byIStarId.get('7857cb00-aaaa')!.hasId, false);
     assert.strictEqual(view.byIStarId.get('g3')!.id, 'G1');
   });
