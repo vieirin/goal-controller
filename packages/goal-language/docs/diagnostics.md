@@ -2,9 +2,8 @@
 
 This page catalogues every message `documentDiagnostics` and
 `fieldDiagnostics` report. A notation's problems (`notAChild`,
-`missingFromNotation`, `relationMismatch`, `notInDiagram`) take their text
-and severity from the dialect's `problems`. Edge's and edgeV2's are shown
-here.
+`missingFromNotation`, `relationMismatch`) take their text and severity
+from the dialect's `problems`. Edge's and edgeV2's are shown here.
 
 Each example is a `goal-check <dialect>` block, and
 `packages/lib/test/dialect/docs.test.ts` validates it. Its model is its
@@ -13,71 +12,98 @@ lines' elements:
 - each element's kind comes from its id's prefix;
 - an element's children are the ids its notation names;
 - `%% only`, `%% children`, `%% relation`, `%% construct` and `%% variables`
-  lines change that.
+  lines change that. A line whose element `%% only` leaves out is a new
+  element's: it creates it (goal-controller#518).
 
 `%% severity [span] message` lines list **every** diagnostic the block must
 give, where `span` is the text the diagnostic covers.
 
 ## Lines
 
+An element line starts with its kind's word (`kindWord`: `goal`, `task`,
+`behavioral_goal`), after its annotations, and names its element by the id
+after it: the element's written id, or, for an element without one, the
+first 8 characters of its piStar id (`shortId`), never by its position. A
+line whose id names no element of the model creates one, and an element no
+line names is removed (`notationEdits`): neither is a diagnostic.
+
 | Message | Severity | Trigger |
 | --- | --- | --- |
 | `A property belongs under an element line` | error | a property line before any element line |
 | `Not a property line` | error | a line under an element that is neither an element line nor a property line |
 | `Not an element line` | error | a line at or left of the open element's indentation, where an element line would be, that reads as none (an element's text without an id, as TAS's Resources write it); it is no element's |
-| `Duplicate id G1` | error | a second line with the same id (with or without ids in the definition) |
+| `An element line starts with its kind: goal, task, resource` | error | an element line without a word: the dialect's kinds' words, in order |
+| `colour is no kind of EdgeV2's: goal, task, resource` | error | a word that is no kind's word, followed by an id and `:`, at a line's head (a property key, `link` or `actor` there is its line's) |
+| `G1 is a goal, not a task` | error | a word that isn't the kind of the element the id names: the line changes nothing |
+| `A goal needs an id G… in EdgeV2` | error | an engine dialect (its kinds have prefixes): a line whose id is no runtime id (an element without one shows its piStar id's first characters) |
+| `A task needs an id T… in EdgeV2: G7 is not one` | error | an engine dialect: a new line whose id is another kind's (its prefix says its kind) |
+| `2 elements show the id 7857cb00: give each its own` | error | elements without a written id whose piStar ids start with the same 8 characters: the line names none of them |
+| `Duplicate id G1` | error | a second line with the same id (with or without ids in the definition), a new line's included |
 | `Duplicate id T1.1 under G4` | error | with `idScope: 'ancestorGoal'` (GODA): a second line with the same id under the same goal (the nearest goal line above, by indentation) |
-| `Add this element in the diagram` (`notInDiagram`) | error | a line whose id isn't an element of the model (without ids: no element's name starts with it) |
-| `N lines for M elements: each line is an element's, in order (add or remove elements in the diagram)` | error | a plain document whose line count isn't its element count |
+| `AndRefinementLink 3f2a91c0 has lost its end 7857cb00: write it back, or remove the link in the diagram` (code `orphan`) | error | a link or refinement one of whose ends the model has lost (its element line was removed); on the line of its other end, else on the document's first line |
 
 ```goal-check edgeV2
   maintain x
-G1: Deliver [G2]
-  [G2]
+goal G1: Deliver [G2]
+  9 lives
 9eba9454-0f53: battery msg
-G2: Reach lab
-G2: Reach it
-G7: New one
+goal G2: Reach lab
+goal G2: Reach it
+G3: No word
+colour G4: Paint
+task G7: New one
+goal G8: Fly back
 %% only G1 G2
 %% error [maintain x] A property belongs under an element line
-%% error [[G2]] Not a property line
-%% error [G2] Duplicate id G2
-%% error [G7] Add this element in the diagram
+%% error [9 lives] Not a property line
 %% error [9eba9454-0f53: battery msg] Not an element line
+%% error [G2] Duplicate id G2
+%% error [G3: No word] An element line starts with its kind: goal, task, resource
+%% error [colour] colour is no kind of EdgeV2's: goal, task, resource
+%% error [G7] A task needs an id T… in EdgeV2: G7 is not one
 ```
 
-In a dialect without ids, a line's optional id names the element whose name
-starts with it, and a line without one is the element at its position
-(`%% model` lists the elements, in order):
+`G8` is a new goal: its line creates it. In an engine dialect the id is the
+runtime id the engine reads. An element without one (imported, or drawn in
+the diagram) shows its piStar id's first characters, which no engine reads:
 
-```goal-check rationalAgents
-<<goal-based>> Robot
-  G1: Deliver sample
-  G1: Deliver it again
-  G7: Unknown
-%% model <<goal-based>> Robot | G1: Deliver sample | Plan it | Other
-%% error [G1] Duplicate id G1
-%% error [G7] Add this element in the diagram
+```goal-check edgeV2
+goal G1: Deliver [G2]
+task G2: Pick
+goal 7857cb00: Bring back
+%% error [task] G2 is a goal, not a task
+%% error [7857cb00] A goal needs an id G… in EdgeV2
 ```
+
+In a dialect without runtime ids (KAOS, NFR, piStar-ext), an element shows
+the id its text gives it (`net_up: Internet connection available`), else
+its short id, and a line names it by that id. Two elements whose short ids
+are the same are named by neither line, until one is given an id:
+
+```
+behavioral_goal 7857cb00: Achieve [Manual Backup]
+behavioral_goal 7857cb00: Maintain [Backup Copied]
+```
+
+reports `2 elements show the id 7857cb00: give each its own` on both ids.
+
+Removing an element line removes its element, not its links: a refinement
+or a dependency that loses an end stays in the model, an orphan (the
+context's `orphans`, from goal-tree's view). Each is an error on the line
+of its remaining end, with code `orphan` and the end as its `elementId`;
+it blocks generation (lib's `refuseOnPropertyErrors`) until the line is
+written back or the link removed in the diagram.
 
 With `idScope: 'ancestorGoal'`, a task's id is scoped by its goal (GODA's
 `G3_T1_1` and `G4_T1_1`):
 
 ```goal-check goda
-G3: Collect data
-  T1.1: Read sensor
-G4: Report
-  T1.1: Read sensor
-  T1.1: Read again
+goal G3: Collect data
+  task T1.1: Read sensor
+goal G4: Report
+  task T1.1: Read sensor
+  task T1.1: Read again
 %% error [T1.1] Duplicate id T1.1 under G4
-```
-
-```goal-check rationalAgents
-Robot
-  T1: Plan it
-  G1: Deliver sample
-Other
-%% model Robot | G1: Deliver sample | T1: Plan it | Other
 ```
 
 ## What a line can't read
@@ -92,27 +118,27 @@ Other
 | `Not valid for this engine: …` | error | the engine's saved error, while the line is as saved (`saved`) |
 
 ```goal-check edgeV2
-G1: Deliver [G2;;G3]
+goal G1: Deliver [G2;;G3]
 %% error [;] Unexpected ;
 ```
 
 ```goal-check edgeV2
-G1: Deliver [G2;G3$]
+goal G1: Deliver [G2;G3$]
 %% error [$] Not part of the goal language: '$'
 ```
 
 ```goal-check edgeV2
-G1: Deliver [G2;G3
+goal G1: Deliver [G2;G3
 %% error [3] The line ends before it is complete
 ```
 
 ```goal-check edgeV2+rationalAgents
-{} G1: Deliver
+{} goal G1: Deliver
 %% error [{}] This annotation cannot be read
 ```
 
 ```goal-check edgeV2
-R1: Battery {int 0..}
+resource R1: Battery {int 0..}
 %% error [{int 0..}] This declaration cannot be read
 ```
 
@@ -133,24 +159,24 @@ R1: Battery {int 0..}
 | `A leaf's bracket holds its cost: W = 0.1, W = 0.1x or W = x` | error | a notation on a leaf, where leaves hold costs |
 
 ```goal-check edge
-G1: Deliver [G2?G3]
+goal G1: Deliver [G2?G3]
 %% error [?] `?` is not an operator of Edge
 ```
 
 ```goal-check edgeV2
-G1: Deliver [+]
+goal G1: Deliver [+]
 %% error [+] A standalone `+` is not a construct of EdgeV2
 ```
 
 ```goal-check edgeV2
-<<action>> G1: Deliver
-T1: Pick {int}
+<<action>> goal G1: Deliver
+task T1: Pick {int}
 %% error [<<action>>] A goal carries no annotations in EdgeV2
 %% error [{int}] A task declares nothing on its line in EdgeV2
 ```
 
 ```goal-check edgeV2+rationalAgents
-<<action>> <<other>> T1: Pick
+<<action>> <<other>> task T1: Pick
 %% error [<<other>>] An element has one stereotype: this one is not read
 ```
 
@@ -158,12 +184,12 @@ A call is an operator like any other: off until a dialect enables it
 (MutRoSe does), and then read with its number of operands:
 
 ```goal-check edgeV2
-G1: Deliver [FALLBACK(G2,G3)]
+goal G1: Deliver [FALLBACK(G2,G3)]
 %% error [FALLBACK] `FALLBACK` is not an operator of EdgeV2
 ```
 
 ```goal-check mutrose
-G1: Deliver [AT1;FALLBACK(G2)]
+goal G1: Deliver [AT1;FALLBACK(G2)]
 %% error [FALLBACK] `FALLBACK` takes 2 operands, not 1
 ```
 
@@ -172,22 +198,22 @@ the spaces in a bracket aren't read (`notation.whitespace: 'ignore'`):
 `T1.1 1` is `T1.11`, and a diagnostic points at it as written.
 
 ```goal-check goda
-T1: Process sample [DM(T1.1)]
-T1.1: Pick sample [W = 0.5x]
-T2: Store sample [W = 2]
+task T1: Process sample [DM(T1.1)]
+task T1.1: Pick sample [W = 0.5x]
+task T2: Store sample [W = 2]
 %% children T2: T2.1
 %% error [DM] `DM` takes at least 2 operands, not 1
 %% error [W = 2] Only a leaf's bracket holds a cost: a refined element's holds its notation
 ```
 
 ```goal-check goda
-T1: Process [D M(T1.1 1,T1.2)]
+task T1: Process [D M(T1.1 1,T1.2)]
 %% children T1: T1.11
 %% error [T1.2] Not a child of this element
 ```
 
 ```goal-check edgeV2
-T1: Pick sample [W = 1]
+task T1: Pick sample [W = 1]
 %% error [W = 1] A cost is not part of EdgeV2
 ```
 
@@ -200,14 +226,14 @@ T1: Pick sample [W = 1]
 | `Sequence needs AND refinement links, but this goal is refined with OR links (the engine ignores the notation)` (`relationMismatch`) | error | a construct whose `relation` contradicts the goal's links |
 
 ```goal-check edgeV2
-G1: Deliver [G2;T9]
+goal G1: Deliver [G2;T9]
 %% children G1: G2 G3
 %% error [T9] Not a child of this goal
 %% warning [G2;T9] Missing from the notation: G3
 ```
 
 ```goal-check edgeV2
-G1: Deliver [G2;G3]
+goal G1: Deliver [G2;G3]
 %% relation G1: or
 %% construct G1: sequence
 %% error [G2;G3] Sequence needs AND refinement links, but this goal is refined with OR links (the engine ignores the notation)
@@ -216,7 +242,7 @@ G1: Deliver [G2;G3]
 MutRoSe rejects a sequential or fallback annotation on an OR-refined goal:
 
 ```goal-check mutrose
-G1: Deliver [G2;AT1]
+goal G1: Deliver [G2;AT1]
 %% relation G1: or
 %% construct G1: sequential
 %% error [G2;AT1] Sequential needs AND refinement links, but this goal is refined with OR links (MutRoSe rejects it)
@@ -231,7 +257,7 @@ G1: Deliver [G2;AT1]
 | the engine check's message | error | the named `check` rejects the value (`runCheck`); it is run only on a value that reads as its type, and its message comes before the value check's |
 
 ```goal-check edgeV2
-G1: Deliver
+goal G1: Deliver
   maintain battery > 20
   colour red
 %% warning [colour] Not read for a goal
@@ -276,14 +302,14 @@ first.
 | `Quantiles don't decrease: 0.1 after 0.3`, `pert[min, mode, max]: min ≤ mode ≤ max, not …`, `No distribution gamma: …`, `uniform[…] takes 2 parameters, not 1` | error | `distribution` that isn't one of its forms, or whose parameters aren't its form's |
 
 ```goal-check edgeV2
-G1: Deliver
+goal G1: Deliver
   type achieve
   maxRetries -1
   utility lots
   assertion battery >
   dependsOn G9, T1
   variables t:x
-T1: Pick
+task T1: Pick
 %% error [type achieve] One of maintain, not achieve
 %% error [maxRetries -1] At least 0
 %% error [utility lots] Not a number: lots
@@ -293,16 +319,16 @@ T1: Pick
 ```
 
 ```goal-check edgeV2
-G1: Deliver
+goal G1: Deliver
   dependsOn T1
   variables t
-T1: Pick
+task T1: Pick
 %% error [dependsOn T1] T1 is a task, not a goal
 %% error [variables t] name:value pairs, comma-separated (x:3, y:2)
 ```
 
 ```goal-check edgeV2
-R1: Alarm {bool = 1}
+resource R1: Alarm {bool = 1}
 %% error [{bool = 1}] true or false, not 1
 ```
 
@@ -310,9 +336,9 @@ The workbench's variables are those the model's conditions name, so a name
 is reported until the model is analysed with it (`%% variables` lists them):
 
 ```goal-check edgeV2
-T1: Pick
+task T1: Pick
   assertion R1=true & charged & chargd
-R1: Battery {bool = true}
+resource R1: Battery {bool = true}
 %% variables charged
 %% info [assertion R1=true & charged & chargd] chargd is not a resource of this model or a known variable
 ```
@@ -323,24 +349,24 @@ names are the context's meta-variables, declared by their use
 (`declaresVariables`), so they need no workbench variable:
 
 ```goal-check goda
-T1: Pick
+task T1: Pick
   creationProperty assertion trigger battery > 0.5 & ready = true
-T2: Drop
+task T2: Drop
   creationProperty battery > 1
-T3: Hold
+task T3: Hold
   creationProperty assertion trigger
-T4: Wait
+task T4: Wait
   creationProperty assertion condition docked != false
 %% error [creationProperty battery > 1] Starts with assertion condition or assertion trigger
 %% error [creationProperty assertion trigger] A condition after assertion trigger
 ```
 
 ```goal-check edgeV2
-T1: Pick
+task T1: Pick
   assertion x > 0.5
-T2: Drop
+task T2: Drop
   assertion assertion trigger x > 1
-T3: Hold
+task T3: Hold
   assertion x != false
 %% variables x
 %% error [assertion x > 0.5] Not an integer: 0.5

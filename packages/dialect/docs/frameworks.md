@@ -69,7 +69,8 @@ applies iStar's rules only when the framework is iStar 2.0:
 | Rule | iStar 2.0 | KAOS, NFR |
 | --- | --- | --- |
 | kinds named in `elements`, `properties` and references | `goal`, `task`, `resource`, `quality` and the extension's node kinds | the root's element kinds (`FRAMEWORK_KINDS[f].elements`), with the hub that an n-ary link generates (`kaos.RefinementLinkHub`), and the extension's node kinds and hubs |
-| id prefixes | `G`, `T`, `R`, `AT` for iStar's kinds; one or two capitals, unique, for an extension's | one or two capitals other than `X` and `W`; kinds may share a prefix (KAOS's two goal kinds both use `G`) |
+| id prefixes | `G`, `T`, `R`, `AT` for iStar's kinds; one or two capitals, unique, for an extension's | one or two capitals other than `X` and `W`; kinds may share a prefix. KAOS and NFR take none since goal-controller#518 (below) |
+| kind words (goal-controller#518) | each kind's local name in snake_case (`goal`, `task`); unique in the dialect, and no line key's | the same: KAOS's `behavioral_goal`, `softgoal`, `domain_property`, `obstacle`, …; NFR's `nfr`, `operationalization`, `claim` |
 | `links` keys | iStar's link kinds or namespaced kinds | the root's link kinds (`FRAMEWORK_KINDS[f].links`), legs and ends included, and the extension's |
 | `extension` | allowed | allowed, extending the root (#181) |
 | `actors`, `notation` | allowed | none |
@@ -146,7 +147,9 @@ Each PR of #171 appends its decisions here.
   their types without any `paths` mapping.
 - **Kinds may share prefixes outside iStar.** The issue asks for KAOS `G`
   (both goal kinds), `A` (both agent kinds) and `DP`. Which kind a new `G`
-  line creates is the goal language's decision (PR C).
+  line creates is the goal language's decision (PR C). Superseded by
+  goal-controller#518: KAOS and NFR have no prefixes, and a line's kind is
+  its word's.
 - **Opening a file is detected by content in the workbench, not in the
   project module.** `lib/project` (`open.ts`'s settings) knows no istar-ts,
   so a project's model settings take the framework from the manifest or the
@@ -196,7 +199,8 @@ Each PR of #171 appends its decisions here.
   reports a line whose prefix none of its kinds take ("T is no prefix of
   KAOS's: its elements are G…, A…, DP…"). iStar dialects keep their messages.
   `prefixIn` needed no change: only engine targets get ids, and conversion
-  between frameworks is refused (PR A).
+  between frameworks is refused (PR A). Superseded by goal-controller#518
+  (below): no prefixes, so no foreign-prefix message.
 - **No bracket notation: a name is the rest of the line.** A framework's
   dialect has no notation (PR A's rule), so `nameReading` reads the text
   after the id as the name, brackets, digits and commas included. KAOS's
@@ -206,7 +210,9 @@ Each PR of #171 appends its decisions here.
 - **The seeds have no ids.** DSM3's welcome models are committed byte for
   byte, so their Notation lines are `<piStar id>: name`, which the goal
   language asks to give an id, as for any id-less model in a dialect with
-  ids. The Notation view tests run on a copy with ids added.
+  ids. The Notation view tests run on a copy with ids added. Since
+  goal-controller#518 such a line shows its piStar id's first 8 characters
+  (`behavioral_goal 7857cb00: Achieve [Manual Backup]`), and needs no id.
 - **Problems.** `ui/lib/workbench/frameworkProblems.ts` publishes, through
   the diagnostics protocol, every issue istar-ts's `validateModel` finds, by
   its constraint code: `incomplete-hub` on the hub, `hub-target`, and DSM3's
@@ -284,7 +290,8 @@ Each PR of #171 appends its decisions here.
   one undoable edit that renames each listed element with its kind's next
   id, in model order, changing nothing else. This supersedes PR C's "the
   seeds' lines ask for ids": the files stay byte-identical, and the user
-  chooses.
+  chooses. goal-controller#518 removes the need: KAOS and NFR have no
+  prefixes, and an element without an id shows its short id.
 - **goalView doesn't ask core which elements are hubs.** Core keeps
   model→metamodel in a module-level `WeakMap`. goal-tree's CommonJS build
   loads core's `index.cjs`, while the workbench parses with core's ESM
@@ -319,7 +326,8 @@ Each PR of #171 appends its decisions here.
   themselves to tell the alternatives apart.
 - **Ids.** A framework text without an id (DSM3's files) keeps its piStar id
   in the IR, its whole text as its name, and reports no syntax error. The
-  Notation view still offers it an id.
+  Notation view still offers it an id (since goal-controller#518, it shows
+  its piStar id's first 8 characters instead).
 - **Keys by kind.** A mapper is given the properties its element's kind has
   in the dialect (`properties[kind]`, goal-controller#187), and the
   element's `kind`. iStar's engines read their kinds' (`goal`, `task`,
@@ -534,7 +542,8 @@ than fixed or reported upstream.
   line's diagnostics say so as they do for two kinds.
 - **Obstacles in the `kaos` dialect.**
   - `kaosObstacles.Obstacle` has prefix `O` (NFR's operationalizations take
-    `O` too, in another framework).
+    `O` too, in another framework). Since goal-controller#518 it has none:
+    its word is `obstacle`.
   - Its keys are istar-ts's: `Description`, `FormalSpec` (an `ltl`
     formula) and `Category`.
   - An obstacle refinement is an AND, as a goal refinement is, so
@@ -2612,3 +2621,36 @@ Out of scope, parked per #196 D1: #213 (RELAX) and #214 (SysML/KAOS). The
 formula type check against the object model (goal-controller#385, "Step 7
 part B" above) and #194's operations/objects are separate work this step
 doesn't touch.
+
+### Element lines: kind words, ids, elements made in the text (goal-controller#518)
+
+- **Every dialect's element line is `kind id: name`.** The kind word is
+  the kind's local name in snake_case (`kindWord`: `kaos.BehavioralGoal`
+  is `behavioral_goal`, `nfr.NFR` is `nfr`), derived from the dialect's
+  kinds (`kindWordsOf`); two kinds with one word, or a word that is a line
+  key (a property key, `link`, `actor`), fail `defineDialect`. Annotations
+  stay first: `<<action>> {type = duty} task T1: Name`.
+- **KAOS and NFR lose their prefixes** (`G`, `A`, `DP`, `O`, …; `S`, `O`,
+  `C`): `hasIds` is false for them, as for piStar-ext. An element's id is
+  the one its text gives it (`net_up: Internet connection available`), any
+  `[A-Za-z0-9_][A-Za-z0-9_.-]*`, or, without one, the first 8 characters of
+  its piStar id, shown and never stored:
+
+  ```
+  behavioral_goal 7857cb00: Achieve [Manual Backup]
+  operationalization 0c4e91aa: Encrypt with RSA 128 bits
+  ```
+
+  Two elements whose short ids are the same are an error until one gets an
+  id. Engine dialects keep their prefixes: the written id is the runtime
+  id, and a line without one of its kind's is an error.
+- **Identity is the id, never the position.** A line whose id names no
+  element creates one (its word's kind, name, annotations or declaration,
+  and the property lines under it), in the container of the element line
+  above; removing a line removes its element, its links staying as orphans
+  (an `orphan` error that blocks generation). Changing a line's id is
+  removing that element and creating another. While an element line can't
+  be read or has no known word, the text creates and removes nothing.
+- **Imported models conform** (goal-controller#390): KAOSTools' and
+  CAIRIS' elements get piStar ids as any model's, and the tool's own
+  identifier survives a write back to `.kaos`.

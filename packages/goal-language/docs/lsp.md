@@ -69,7 +69,8 @@ badges by, so it doesn't have to read the document again
 (goal-controller#24, decision D). `serverDiagnostics` reads it back into
 the local support's `Diagnostic` (`elementId`, `key`, `check`), so both
 give the same thing. A diagnostic about no element (a syntax error before
-the first id) has no `data`.
+the first id, an orphan link neither of whose ends has a line) has no
+`data`.
 
 A property marked `servedBy: 'engine'` in the definition is read for its
 key but not for its value: no value diagnostics, completion or hover. An
@@ -79,10 +80,11 @@ engine's own server speaks it (see "Several services" below).
 
 | Feature                | What it gives                                                                                                                                                                                                                                                                                                           |
 | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Diagnostics            | everything in [diagnostics.md](diagnostics.md): syntax, what the dialect allows, the notation against the model, properties and values, the engine's named checks, the saved lines' errors                                                                                                                              |
-| Completion             | inside a notation: the goal's children, `skip` and the enabled operators; on a property line: the keys the kind reads, then a value's options (enums, ids of the kind a `refList` names, resources and variables in an assertion; in an `ocl` value, the types and members its definition's `candidates`/`memberCandidates` take from a project resource's symbols); `<<` stereotypes, `{` tags and `{tag =` values. Triggers: `[ ; \| ? + # > < { = , ( . :` |
+| Diagnostics            | everything in [diagnostics.md](diagnostics.md): syntax, kind words and ids, what the dialect allows, the notation against the model, properties and values, the engine's named checks, the saved lines' errors, orphan links (code `orphan`)                                                                            |
+| Completion             | at a line's head: the kinds' words (goal-controller#518); inside a notation: the goal's children, `skip` and the enabled operators; on a property line: the keys the kind reads, then a value's options (enums, ids of the kind a `refList` names, resources and variables in an assertion; in an `ocl` value, the types and members its definition's `candidates`/`memberCandidates` take from a project resource's symbols); `<<` stereotypes, `{` tags and `{tag =` values. Triggers: `[ ; \| ? + # > < { = , ( . :` |
 | Hover                  | an operator's construct or modifier (or that it isn't enabled), an element id with its name and construct, a property key's help, a name in a value (an element's line, a variable)                                                                                                                                     |
 | Go to definition (F12) | from an id in a notation or a list, or a name in a value, to its element's line                                                                                                                                                                                                                                         |
+| Code actions           | none. A line whose id names no element creates it (goal-controller#518), so the quick fix that added it in the diagram (`notInDiagram`, goal-controller#416) is gone; `serverCodeActions` stays, and returns none                                                                                                       |
 
 Highlighting is not a server feature: there are no semantic tokens. The
 client keeps the goal language's CodeMirror highlighter
