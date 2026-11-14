@@ -1,5 +1,6 @@
 'use client';
 
+import { Transaction } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { setLineMarks, type LineMark } from '@/lib/workbench/codemirror';
@@ -8,9 +9,11 @@ import type { LanguageSupport } from '@/lib/workbench/languageSupport';
 import { notationRange } from '@/lib/workbench/poolDocuments';
 import {
   lineKeys,
+  lineOwners,
   notationDocument,
   notationEdits,
   notationEditOperations,
+  writtenIdChanges,
 } from '@/lib/workbench/notationDocument';
 import { type AnyDialect, type DocumentTree } from '@goal-controller/dialect';
 import AgentChangeLegend from './AgentChangeLegend';
@@ -21,13 +24,19 @@ import { useEditModel } from '../shared/inspector';
 
 const DOCUMENT_URI = 'file:///model.notation';
 const EDIT_DELAY_MS = 300;
+/** How long a done edit waits for the tree it makes before the text is read again regardless. */
+const STALE_TREE_MS = 2000;
 
 /**
  * The whole model as a definition's text (an engine's notation, or a dialect's
- * lines). Names, notations and properties are edited here, structure in the
- * diagram: a line's text is written to its element like the inspector writes it.
- * Every syntax decision comes from the definition; its language support (local,
- * or a language server) checks the text against the diagram's structure.
+ * lines). Elements are created, removed and edited here (goal-controller#518):
+ * each line starts with its kind's word and names its element by its id
+ * (`goal G1: …`, or the first characters of its piStar id); a new line
+ * creates its element (in the actor of the line above, its short id then
+ * written on the line), a line removed removes it (its links stay, as
+ * orphans), each edit one undo step. Links and refinements are drawn in the
+ * diagram. Every syntax decision comes from the definition; its language
+ * support (local, or a language server) checks the text against the model.
  * `selectable`: the tree's ids are the workbench's selection (an engine's view).
  */
 export default function NotationEditor({
@@ -95,33 +104,102 @@ export default function NotationEditor({
     },
     [],
   );
+  const latestView = useRef(view);
+  latestView.current = view;
+  // an edit in flight, or done but not yet in the tree: the text is read
+  // again after (a line it created an element for names it only then, and
+  // would create another)
+  const inFlight = useRef(false);
+  const staleTree = useRef<DocumentTree | null>(null);
+  const again = useRef(false);
+  // what was last typed (the editor's text, when it has one)
+  const typed = useRef<string | null>(null);
+  const flush = () => {
+    const current = latestTree.current;
+    const editor = latestView.current;
+    const value = editor?.state.doc.toString() ?? typed.current;
+    if (!current || value === null) return;
+    if (inFlight.current || current === staleTree.current) {
+      again.current = true;
+      return;
+    }
+    staleTree.current = null;
+    const edits = notationEdits(definition, value, current, {
+      newId: () => crypto.randomUUID(),
+    });
+    if (edits.length === 0) return;
+    const operations = notationEditOperations(edits, {
+      model: latest.current.session.store.getModel(),
+      tree: current,
+    });
+    ownEdit.current = true;
+    inFlight.current = true;
+    void latestEdit
+      .current(...operations)
+      .then((result) => {
+        if (!result.ok) {
+          ownEdit.current = false;
+          return;
+        }
+        staleTree.current = current;
+        // a model change no tree follows (none should): read on anyway
+        setTimeout(() => {
+          if (staleTree.current !== current) return;
+          staleTree.current = null;
+          if (again.current && !inFlight.current) {
+            again.current = false;
+            flush();
+          }
+        }, STALE_TREE_MS);
+        // a line that created its element without an id gets the one it
+        // shows, so typing on renames it rather than creating another
+        const now = latestView.current;
+        const changes = now
+          ? writtenIdChanges(definition, value, now.state.doc.toString(), edits)
+          : [];
+        if (now && changes.length)
+          now.dispatch({
+            changes,
+            annotations: Transaction.addToHistory.of(false),
+          });
+      })
+      .finally(() => {
+        inFlight.current = false;
+        if (again.current && latestTree.current !== staleTree.current) {
+          again.current = false;
+          flush();
+        }
+      });
+  };
+  // the tree the last edit made: what was typed meanwhile is read now
+  useEffect(() => {
+    if (!again.current || inFlight.current || tree === staleTree.current)
+      return;
+    again.current = false;
+    flush();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tree]);
   const onChange = (value: string) => {
+    typed.current = value;
     if (pending.current) clearTimeout(pending.current);
     pending.current = setTimeout(() => {
       pending.current = null;
-      const current = latestTree.current;
-      if (!current) return;
-      const edits = notationEdits(definition, value, current);
-      if (edits.length === 0) return;
-      ownEdit.current = true;
-      void latestEdit
-        .current(...notationEditOperations(edits))
-        .then((result) => {
-          if (!result.ok) ownEdit.current = false;
-        });
+      flush();
     }, EDIT_DELAY_MS);
   };
 
-  // each line's element key, read once per document text, tree and
-  // definition: a cursor move or a selection reuses it (a repeated scoped
-  // id's key is its goal's)
+  // each line's element key, and the element it is or is under, read once
+  // per document text, tree and definition: a cursor move or a selection
+  // reuses them (a line names its element by its id, a written or a short
+  // one; a repeated scoped id's key is its goal's)
   const keysCache = useRef<{
     text: string;
     tree: unknown;
     definition: AnyDialect;
     keys: (string | null)[];
+    owners: (string | null)[];
   } | null>(null);
-  const keysOf = (text: string): (string | null)[] => {
+  const linesOf = (text: string) => {
     const tree = latestTree.current;
     const cached = keysCache.current;
     if (
@@ -129,17 +207,22 @@ export default function NotationEditor({
       cached.tree === tree &&
       cached.definition === definition
     )
-      return cached.keys;
-    const keys = lineKeys(
+      return cached;
+    const lines = text.split('\n');
+    const known = tree ?? (() => false);
+    const next = {
+      text,
+      tree,
       definition,
-      text.split('\n'),
-      (key) => !!tree?.nodes.has(key),
-    );
-    keysCache.current = { text, tree, definition, keys };
-    return keys;
+      keys: lineKeys(definition, lines, known),
+      owners: lineOwners(definition, lines, known),
+    };
+    keysCache.current = next;
+    return next;
   };
-  const latestKeysOf = useRef(keysOf);
-  latestKeysOf.current = keysOf;
+  const keysOf = (text: string): (string | null)[] => linesOf(text).keys;
+  const latestLinesOf = useRef(linesOf);
+  latestLinesOf.current = linesOf;
 
   // cursor on a line → select its element
   const extensions = useMemo(
@@ -157,11 +240,7 @@ export default function NotationEditor({
         const line = doc.lineAt(update.state.selection.main.head).number;
         // its key, or the element line's above it
         const id =
-          latestKeysOf
-            .current(doc.toString())
-            .slice(0, line)
-            .filter((key): key is string => key !== null)
-            .at(-1) ?? null;
+          latestLinesOf.current(doc.toString()).owners[line - 1] ?? null;
         const node = id ? latestTree.current?.nodes.get(id) : undefined;
         // the key the line names (a repeated scoped id's is its goal's)
         if (node && id !== latestSelected.current) {

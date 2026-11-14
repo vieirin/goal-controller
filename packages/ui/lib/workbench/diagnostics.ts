@@ -17,7 +17,7 @@ import {
   type GoalDiagnostic,
 } from '@istar-ts/core';
 import type { PublishedDiagnostics } from './goalLsp';
-import { elementOfLine } from './notationDocument';
+import { elementOfLine, type LineElements } from './notationDocument';
 import { SOURCE, type Problem } from './types';
 
 const anchored = (problem: Problem): problem is GoalDiagnostic =>
@@ -123,15 +123,15 @@ export const serverProblems = (
   service: { id: string; anchoring: 'data' | 'range' },
   definition: AnyDialect,
   text: string | undefined,
-  /** whether the model has an element of this key (a repeated scoped id's is `G3/T1.1`) */
-  has?: (key: string) => boolean,
+  /** the model's elements, by key: the one a line's id names (a repeated scoped id's is `G3/T1.1`) */
+  known?: LineElements,
 ): Problem[] => {
   const field = readFieldUri(uri);
   const lines = text?.split('\n');
   const byRange = (diagnostic: (typeof diagnostics)[number]) =>
     field?.id ??
     (lines
-      ? (elementOfLine(definition, lines, diagnostic.range.start.line, has) ??
+      ? (elementOfLine(definition, lines, diagnostic.range.start.line, known) ??
         undefined)
       : undefined);
   return fromLspDiagnostics(

@@ -11,10 +11,12 @@ import {
   type PoolEdit,
   type PoolLocation,
 } from '@goal-controller/lib';
+import { readHead } from '@goal-controller/goal-language';
 import type { IstarOperation } from '@istar-ts/actions';
 import {
   applyNotationEdits,
   lineKeys,
+  lineOwners,
   notationEditOperations,
   type NotationEdit,
 } from './notationDocument';
@@ -56,22 +58,23 @@ const notationLines = (
   text: string,
 ): (NotationLine | null)[] => {
   const lines = text.split('\n');
-  const keys = lineKeys(definition, lines, (key) => tree.nodes.has(key));
-  let element: string | null = null;
+  const keys = lineKeys(definition, lines, tree);
+  const owners = lineOwners(definition, lines, tree);
   let from = 0;
   return lines.map((line, i) => {
     const start = from;
     from += line.length + 1;
     const key = keys[i];
     if (key) {
-      element = key;
       const node = tree.nodes.get(key);
-      const indent = line.length - line.trimStart().length;
-      const id = node?.id ?? key;
-      const name = line.indexOf(': ', indent + id.length - 1);
+      // the id after the kind's word (`goal G1: …`), or the line's start
+      const head = readHead(definition, line);
+      const idFrom =
+        head?.idSpan?.from ?? line.length - line.trimStart().length;
+      const idTo = head?.idSpan?.to ?? idFrom + (node?.id ?? key).length;
+      const name = line.indexOf(': ', idTo - 1);
       // the notation, as the view has it (trimmed), after the name
-      const afterName =
-        name >= 0 ? name + 2 + (node?.name.length ?? 0) : indent + id.length;
+      const afterName = name >= 0 ? name + 2 + (node?.name.length ?? 0) : idTo;
       const notation = node?.notation
         ? line.indexOf(node.notation, line.indexOf('[', afterName) + 1)
         : -1;
@@ -79,7 +82,7 @@ const notationLines = (
         element: key,
         from: start,
         fields: [
-          { field: 'id', from: start + indent },
+          { field: 'id', from: start + idFrom },
           ...(name >= 0 ? [{ field: 'name', from: start + name + 2 }] : []),
           ...(notation > 0
             ? [{ field: 'notation', from: start + notation }]
@@ -88,6 +91,7 @@ const notationLines = (
       };
     }
     const property = PROPERTY_LINE.exec(line);
+    const element = owners[i];
     return element && property
       ? {
           element,

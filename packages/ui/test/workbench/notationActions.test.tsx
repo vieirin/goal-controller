@@ -1,9 +1,9 @@
 /**
- * The Notation view, pool documents and the framework "give every element
- * an id" action dispatch actions on the workbench's dispatcher
- * (goal-controller#411), the same single undo history as the canvas and
- * the inspector (#410): one dispatched action per edit, undone by one
- * `glspUndo`.
+ * The Notation view and pool documents dispatch actions on the workbench's
+ * dispatcher (goal-controller#411), the same single undo history as the
+ * canvas and the inspector (#410): one dispatched action per edit, undone
+ * by one `glspUndo`. A line added creates its element, a line removed
+ * removes it, its links kept as orphans (goal-controller#518).
  */
 import {
   act,
@@ -173,16 +173,18 @@ describe('the Notation view dispatches actions (#411)', () => {
     expect(wb().text).toBe(before);
   });
 
-  it('typing an unrecognized id dispatches nothing', async () => {
+  it('a line with no kind’s word dispatches nothing: it is being typed (#518)', async () => {
     const { wb } = await opened(<NotationView engine='edgev2' />);
     const dispatch = vi.spyOn(wb().dispatcherFor('inspector'), 'dispatch');
     const textarea = await waitFor(() => {
       const found = notationTextarea();
-      expect(found.value).toContain('G1: Goal [+]');
+      expect(found.value).toContain('goal G1: Goal [+]');
       return found;
     });
-    // an unknown id: notationEdits reads no edit from it, so nothing is dispatched
-    fireEvent.change(textarea, { target: { value: 'ZZ: Nothing\n' } });
+    // an unknown word, and a line whose word is gone: nothing created,
+    // nothing removed (G2's line names it no more), nothing renamed
+    const value = `${textarea.value.replace('goal G2: Goal', 'G2: Goal')}\ngaol G9: Nothing`;
+    fireEvent.change(textarea, { target: { value } });
     await afterDebounce();
     expect(dispatch).not.toHaveBeenCalled();
   });
@@ -277,39 +279,158 @@ describe('pool documents dispatch actions (#411)', () => {
   });
 });
 
-describe('a framework model’s missing ids are given as one compound (#411)', () => {
-  it('gives every missing id as one compound action, undone by one glspUndo', async () => {
-    // its own open, not `opened()`'s simpleChoice.txt: a KAOS file opened
-    // over an iStar one asks to switch frameworks first (goal-controller#171)
-    const { wb } = workbench(<FrameworkNotationView mode='kaos' />);
-    await act(() => wb().openModelFile('kaos-welcome.txt', KAOS_WELCOME));
-    await waitFor(() => expect(wb().tree).not.toBeNull());
-    const before = wb().text;
-    const dispatch = vi.spyOn(wb().dispatcherFor('inspector'), 'dispatch');
-    const button = await waitFor(() => {
-      const found = document.querySelector('button');
-      expect(found).not.toBeNull();
-      return found!;
-    });
+/** The elements of the open model, by name. */
+const named = (wb: Workbench, name: string) =>
+  [...wb.session.store.getModel().elements.values()].filter(
+    (e) => e.name === name,
+  );
 
-    await act(async () => {
-      fireEvent.click(button);
+describe('a line creates its element, a line removed removes it (#518)', () => {
+  it('a new line under T2 creates its goal in the actor, its property too: one createNode, undone by one glspUndo', async () => {
+    const { wb } = await opened(<NotationView engine='edgev2' />);
+    const before = wb().text;
+    const actor = [...wb().session.store.getModel().elements.values()].find(
+      (e) => e.kind === 'istar.Actor',
+    )!;
+    const dispatch = vi.spyOn(wb().dispatcherFor('inspector'), 'dispatch');
+    const textarea = await waitFor(() => {
+      const found = notationTextarea();
+      expect(found.value).toContain('    task T2: Task');
+      return found;
     });
+    const value = textarea.value.replace(
+      '    task T2: Task',
+      '    task T2: Task\n  goal G9: Another goal\n    cost 3',
+    );
+    fireEvent.change(textarea, { target: { value } });
+    await afterDebounce();
 
     expect(dispatch).toHaveBeenCalledTimes(1);
-    const dispatched = dispatch.mock.calls[0]![0] as CompoundOperation;
-    expect(dispatched.kind).toBe('compound');
-    expect(dispatched.operationList.length).toBeGreaterThan(1);
-    expect(
-      dispatched.operationList.every((op) => op.kind === 'applyLabelEdit'),
-    ).toBe(true);
+    expect(dispatch.mock.calls[0]![0]).toMatchObject({
+      kind: 'createNode',
+      elementTypeId: 'istar.Goal',
+      containerId: actor.id,
+      location: { x: expect.any(Number), y: expect.any(Number) },
+      args: {
+        id: expect.any(String),
+        name: 'G9: Another goal',
+        customProperties: { cost: '3' },
+      },
+    });
     await settled(wb().session);
-    expect(wb().text).toContain('G1: Reliability');
-    expect(wb().text).toContain('A1: User');
+    const [created] = named(wb(), 'G9: Another goal');
+    expect(created).toMatchObject({
+      kind: 'istar.Goal',
+      parent: actor.id,
+      customProperties: { cost: '3' },
+    });
 
     await act(async () => {
       await wb().dispatcherFor('inspector').dispatch({ kind: 'glspUndo' });
     });
+    expect(named(wb(), 'G9: Another goal')).toEqual([]);
+    expect(wb().text).toBe(before);
+  });
+
+  it('a line removed removes only its element, its links kept as orphans; one glspUndo brings it back', async () => {
+    const { wb } = workbench(<FrameworkNotationView mode='kaos' />);
+    await act(() => wb().openModelFile('kaos-welcome.txt', KAOS_WELCOME));
+    await waitFor(() => expect(wb().tree).not.toBeNull());
+    const before = wb().text;
+    const model = wb().session.store.getModel();
+    const [property] = named(wb(), 'Internet connection available');
+    const touching = [...model.links.values()].filter(
+      (l) => l.source === property!.id || l.target === property!.id,
+    );
+    // its refinement leg, and its conflict with Save Bandwidth
+    expect(touching).toHaveLength(2);
+    const dispatch = vi.spyOn(wb().dispatcherFor('inspector'), 'dispatch');
+    const textarea = await waitFor(() => {
+      const found = notationTextarea();
+      expect(found.value).toContain('Internet connection available');
+      return found;
+    });
+    // its line and the lines under it (its Description, its link line)
+    const lines = textarea.value.split('\n');
+    const at = lines.findIndex((l) =>
+      l.includes('Internet connection available'),
+    );
+    const indent = (l: string) => l.length - l.trimStart().length;
+    let end = at + 1;
+    while (end < lines.length && indent(lines[end]!) > indent(lines[at]!))
+      end++;
+    const value = [...lines.slice(0, at), ...lines.slice(end)].join('\n');
+    fireEvent.change(textarea, { target: { value } });
+    await afterDebounce();
+
+    expect(dispatch).toHaveBeenCalledTimes(1);
+    expect(dispatch.mock.calls[0]![0]).toMatchObject({
+      kind: 'istar.replaceModel',
+    });
+    await settled(wb().session);
+    const after = wb().session.store.getModel();
+    expect(after.elements.has(property!.id)).toBe(false);
+    // every other element, and every link, still there
+    expect(after.elements.size).toBe(model.elements.size - 1);
+    expect([...after.links.keys()]).toEqual([...model.links.keys()]);
+    await waitFor(() =>
+      expect(wb().tree?.orphans.map((o) => o.missing)).toEqual([
+        [property!.id],
+        [property!.id],
+      ]),
+    );
+
+    await act(async () => {
+      await wb().dispatcherFor('inspector').dispatch({ kind: 'glspUndo' });
+    });
+    expect(wb().session.store.getModel().elements.has(property!.id)).toBe(true);
+    expect(wb().text).toBe(before);
+  });
+
+  it('a line added and one removed in one edit: one compound, undone by one glspUndo', async () => {
+    const { wb } = workbench(<FrameworkNotationView mode='kaos' />);
+    await act(() => wb().openModelFile('kaos-welcome.txt', KAOS_WELCOME));
+    await waitFor(() => expect(wb().tree).not.toBeNull());
+    const before = wb().text;
+    const [user] = named(wb(), 'User');
+    const dispatch = vi.spyOn(wb().dispatcherFor('inspector'), 'dispatch');
+    const textarea = await waitFor(() => {
+      const found = notationTextarea();
+      expect(found.value).toContain(': User');
+      return found;
+    });
+    // the agent's lines go, a softgoal's line (no id yet) and its property line come
+    const lines = textarea.value.split('\n');
+    const at = lines.findIndex((l) => l.endsWith(': User'));
+    const value = [
+      ...lines.slice(0, at),
+      'softgoal Fast recovery',
+      '  Priority high',
+    ].join('\n');
+    fireEvent.change(textarea, { target: { value } });
+    await afterDebounce();
+
+    expect(dispatch).toHaveBeenCalledTimes(1);
+    const dispatched = dispatch.mock.calls[0]![0] as CompoundOperation;
+    expect(dispatched.kind).toBe('compound');
+    expect(dispatched.operationList.map((op) => op.kind)).toEqual([
+      'istar.replaceModel',
+      'createNode',
+    ]);
+    expect(dispatched.operationList[1]).toMatchObject({
+      elementTypeId: 'kaos.Softgoal',
+      args: { name: 'Fast recovery', customProperties: { Priority: 'high' } },
+    });
+    expect(dispatched.operationList[1]).not.toHaveProperty('containerId');
+    await settled(wb().session);
+    expect(named(wb(), 'User')).toEqual([]);
+    expect(named(wb(), 'Fast recovery')).toHaveLength(1);
+
+    await act(async () => {
+      await wb().dispatcherFor('inspector').dispatch({ kind: 'glspUndo' });
+    });
+    expect(named(wb(), 'User')).toEqual([user]);
+    expect(named(wb(), 'Fast recovery')).toEqual([]);
     expect(wb().text).toBe(before);
   });
 });
