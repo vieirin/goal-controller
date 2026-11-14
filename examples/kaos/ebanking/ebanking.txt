@@ -2,7 +2,7 @@
   "actors": [],
   "orphans": [
     {
-      "id": "account_number_and_pin_known_by_unauthorized",
+      "id": "fb6a1601-66de-5506-a305-7975dfda9835",
       "text": "Avoid [AccountNumber&PinKnownByUnauthorized]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -16,33 +16,36 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "account_number_and_pin_known_by_unauthorized",
       "x": 40,
       "y": 80
     },
     {
-      "id": "thief",
+      "id": "a769f359-ed64-5c42-a992-70345de27af7",
       "text": "Thief",
       "type": "kaos.Agent",
       "customProperties": {
         "Type": "malicious",
         "Description": ""
       },
+      "kaosId": "thief",
       "x": 1160,
       "y": 580
     },
     {
-      "id": "banking_system",
+      "id": "bc90c06f-7650-5a1c-8090-601d85ac862d",
       "text": "Banking System",
       "type": "kaos.Agent",
       "customProperties": {
         "Type": "",
         "Description": ""
       },
+      "kaosId": "banking_system",
       "x": 1640,
       "y": 580
     },
     {
-      "id": "money_stolen_from_bank_accounts",
+      "id": "d44dede2-5262-516e-834c-7050629fcccb",
       "text": "Achieve [MoneyStolenFromBankAccounts]",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -50,11 +53,12 @@
         "FormalSpec": "",
         "Category": "AntiGoal"
       },
+      "kaosId": "money_stolen_from_bank_accounts",
       "x": 1160,
       "y": 80
     },
     {
-      "id": "accounts_attacked",
+      "id": "8efec7e6-eb2c-5024-ac7c-2224750f0bc2",
       "text": "Achieve [AccountsAttacked]",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -62,11 +66,12 @@
         "FormalSpec": "",
         "Category": "AntiGoal"
       },
+      "kaosId": "accounts_attacked",
       "x": 200,
       "y": 180
     },
     {
-      "id": "money_taken_from_attacked_accounts",
+      "id": "752ff811-355a-5f6a-889b-b7cf88033a54",
       "text": "Achieve [MoneyTakenFromAttackedAccounts]",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -74,11 +79,12 @@
         "FormalSpec": "",
         "Category": "AntiGoal"
       },
+      "kaosId": "money_taken_from_attacked_accounts",
       "x": 360,
       "y": 180
     },
     {
-      "id": "payment_medium_known_by_thief",
+      "id": "ec148319-8658-5fbc-9a53-e8c5d89a46e7",
       "text": "Achieve [PaymentMediumKnownByThief]",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -86,11 +92,12 @@
         "FormalSpec": "",
         "Category": "AntiGoal"
       },
+      "kaosId": "payment_medium_known_by_thief",
       "x": 1320,
       "y": 180
     },
     {
-      "id": "thief_knows_which_bank",
+      "id": "157b65f5-fdb7-56e8-9553-dfd73424ca59",
       "text": "Achieve [ThiefKnowsWhichBank]",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -98,11 +105,12 @@
         "FormalSpec": "",
         "Category": "AntiGoal"
       },
+      "kaosId": "thief_knows_which_bank",
       "x": 520,
       "y": 280
     },
     {
-      "id": "thief_knows_account_structure",
+      "id": "43bcb93a-e30a-500a-8963-faa17de150e9",
       "text": "Achieve [ThiefKnowsAccountStructure]",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -110,11 +118,12 @@
         "FormalSpec": "",
         "Category": "AntiGoal"
       },
+      "kaosId": "thief_knows_account_structure",
       "x": 680,
       "y": 280
     },
     {
-      "id": "account_number_and_pin_known_by_thief",
+      "id": "d6e11b54-7f8e-5ada-a219-e2343b02bc9f",
       "text": "Achieve [AccountNumber&PinKnownByThief]",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -122,11 +131,12 @@
         "FormalSpec": "◊ ∃ p: Person, acc: Account · ¬ (Owner(p, acc) ∨ Proxy(p, acc) ∨ Manager(p, acc)) ∧ KnowsV[p] acc.AccNum ∧ KnowsV[p] acc.PIN",
         "Category": "AntiGoal"
       },
+      "kaosId": "account_number_and_pin_known_by_thief",
       "x": 1480,
       "y": 280
     },
     {
-      "id": "pin_known_and_matching_account_number_found",
+      "id": "484fa497-5ec3-5ad0-aabf-439a7a4a3534",
       "text": "Achieve [PinKnown&MatchingAccountNumberFound]",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -134,11 +144,12 @@
         "FormalSpec": "",
         "Category": "AntiGoal"
       },
+      "kaosId": "pin_known_and_matching_account_number_found",
       "x": 1160,
       "y": 380
     },
     {
-      "id": "pin_known",
+      "id": "c7d6b657-d717-59de-af03-78cd430dc2f8",
       "text": "Achieve [PinKnown]",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -146,11 +157,12 @@
         "FormalSpec": "",
         "Category": "AntiGoal"
       },
+      "kaosId": "pin_known",
       "x": 840,
       "y": 480
     },
     {
-      "id": "matching_account_number_found",
+      "id": "e0668b7e-d42a-5083-9c50-fe2e2b49a65d",
       "text": "Achieve [MatchingAccountNumberFound]",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -158,11 +170,12 @@
         "FormalSpec": "",
         "Category": "AntiGoal"
       },
+      "kaosId": "matching_account_number_found",
       "x": 1320,
       "y": 480
     },
     {
-      "id": "account_number_checked_for_pin_match",
+      "id": "72d8087e-ddb5-5979-9293-5a16b24f3ab2",
       "text": "Achieve [AccountNumberCheckedForPinMatch]",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -170,11 +183,12 @@
         "FormalSpec": "",
         "Category": "AntiGoal"
       },
+      "kaosId": "account_number_checked_for_pin_match",
       "x": 1000,
       "y": 580
     },
     {
-      "id": "check_iterated_on_other_account_numbers_if_no_match",
+      "id": "9accca06-eb41-5e0d-86d7-aa671cdb98e1",
       "text": "Achieve [CheckIteratedOnOtherAccountNumbersIfNoMatch]",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -182,11 +196,12 @@
         "FormalSpec": "",
         "Category": "AntiGoal"
       },
+      "kaosId": "check_iterated_on_other_account_numbers_if_no_match",
       "x": 1320,
       "y": 580
     },
     {
-      "id": "repeatable_account_number_check_from_pin",
+      "id": "eaab16ba-b8f8-526c-bf2d-0a07e25b5e61",
       "text": "RepeatableAccountNumberCheckFromPin",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -194,11 +209,12 @@
         "FormalSpec": "",
         "Category": "AntiGoal"
       },
+      "kaosId": "repeatable_account_number_check_from_pin",
       "x": 1480,
       "y": 580
     },
     {
-      "id": "account_number_known_and_matching_pin_found",
+      "id": "6fd35630-5945-5b65-a009-6b1a5adb80ec",
       "text": "Achieve [AccountNumberKnown&MatchingPinFound]",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -206,11 +222,12 @@
         "FormalSpec": "",
         "Category": "AntiGoal"
       },
+      "kaosId": "account_number_known_and_matching_pin_found",
       "x": 1960,
       "y": 380
     },
     {
-      "id": "account_number_known",
+      "id": "f772ca52-413c-5392-8551-e1fe72f59151",
       "text": "Achieve [AccountNumberKnown]",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -218,11 +235,12 @@
         "FormalSpec": "",
         "Category": "AntiGoal"
       },
+      "kaosId": "account_number_known",
       "x": 1800,
       "y": 480
     },
     {
-      "id": "matching_pin_found",
+      "id": "400ee040-f090-578e-8fe4-cf7ea7669a67",
       "text": "Achieve [MatchingPinFound]",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -230,11 +248,12 @@
         "FormalSpec": "",
         "Category": "AntiGoal"
       },
+      "kaosId": "matching_pin_found",
       "x": 2120,
       "y": 480
     },
     {
-      "id": "pin_checked_for_account_number_match",
+      "id": "6c933c3b-ecea-5d4e-859c-b6f0dfd34873",
       "text": "Achieve [PinCheckedForAccountNumberMatch]",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -242,11 +261,12 @@
         "FormalSpec": "",
         "Category": "AntiGoal"
       },
+      "kaosId": "pin_checked_for_account_number_match",
       "x": 1960,
       "y": 580
     },
     {
-      "id": "check_iterated_on_other_pins_if_no_match",
+      "id": "3371af1a-be00-58eb-a4a1-7c723b17e88b",
       "text": "Achieve [CheckIteratedOnOtherPinsIfNoMatch]",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -254,11 +274,12 @@
         "FormalSpec": "",
         "Category": "AntiGoal"
       },
+      "kaosId": "check_iterated_on_other_pins_if_no_match",
       "x": 2120,
       "y": 580
     },
     {
-      "id": "repeatable_pin_check_from_account_number",
+      "id": "1e48aea7-fee3-5ee8-9a0e-092809b08588",
       "text": "RepeatablePinCheckFromAccountNumber",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -266,11 +287,12 @@
         "FormalSpec": "",
         "Category": "AntiGoal"
       },
+      "kaosId": "repeatable_pin_check_from_account_number",
       "x": 2280,
       "y": 580
     },
     {
-      "id": "avoid_repeatable_account_number_check_from_pin",
+      "id": "4a018584-ad17-5db5-9233-02733960bce4",
       "text": "Avoid [RepeatableAccountNumberCheckFromPin]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -284,11 +306,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "avoid_repeatable_account_number_check_from_pin",
       "x": 1480,
       "y": 680
     },
     {
-      "id": "avoid_repeatable_pin_check_from_account_number",
+      "id": "31781af8-604b-5d6c-a052-33b8d6389da6",
       "text": "Avoid [RepeatablePinCheckFromAccountNumber]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -302,6 +325,7 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "avoid_repeatable_pin_check_from_account_number",
       "x": 2280,
       "y": 680
     }
@@ -319,19 +343,19 @@
         {
           "id": "money_stolen_from_bank_accounts-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "accounts_attacked",
+          "source": "8efec7e6-eb2c-5024-ac7c-2224750f0bc2",
           "target": "money_stolen_from_bank_accounts-refinement-1"
         },
         {
           "id": "money_stolen_from_bank_accounts-refinement-1-2",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "money_taken_from_attacked_accounts",
+          "source": "752ff811-355a-5f6a-889b-b7cf88033a54",
           "target": "money_stolen_from_bank_accounts-refinement-1"
         },
         {
           "id": "money_stolen_from_bank_accounts-refinement-1-3",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "payment_medium_known_by_thief",
+          "source": "ec148319-8658-5fbc-9a53-e8c5d89a46e7",
           "target": "money_stolen_from_bank_accounts-refinement-1"
         }
       ],
@@ -339,7 +363,7 @@
         "id": "money_stolen_from_bank_accounts-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "money_stolen_from_bank_accounts-refinement-1",
-        "target": "money_stolen_from_bank_accounts"
+        "target": "d44dede2-5262-516e-834c-7050629fcccb"
       }
     },
     {
@@ -353,19 +377,19 @@
         {
           "id": "payment_medium_known_by_thief-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "thief_knows_which_bank",
+          "source": "157b65f5-fdb7-56e8-9553-dfd73424ca59",
           "target": "payment_medium_known_by_thief-refinement-1"
         },
         {
           "id": "payment_medium_known_by_thief-refinement-1-2",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "thief_knows_account_structure",
+          "source": "43bcb93a-e30a-500a-8963-faa17de150e9",
           "target": "payment_medium_known_by_thief-refinement-1"
         },
         {
           "id": "payment_medium_known_by_thief-refinement-1-3",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "account_number_and_pin_known_by_thief",
+          "source": "d6e11b54-7f8e-5ada-a219-e2343b02bc9f",
           "target": "payment_medium_known_by_thief-refinement-1"
         }
       ],
@@ -373,7 +397,7 @@
         "id": "payment_medium_known_by_thief-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "payment_medium_known_by_thief-refinement-1",
-        "target": "payment_medium_known_by_thief"
+        "target": "ec148319-8658-5fbc-9a53-e8c5d89a46e7"
       }
     },
     {
@@ -387,7 +411,7 @@
         {
           "id": "account_number_and_pin_known_by_thief-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "pin_known_and_matching_account_number_found",
+          "source": "484fa497-5ec3-5ad0-aabf-439a7a4a3534",
           "target": "account_number_and_pin_known_by_thief-refinement-1"
         }
       ],
@@ -395,7 +419,7 @@
         "id": "account_number_and_pin_known_by_thief-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "account_number_and_pin_known_by_thief-refinement-1",
-        "target": "account_number_and_pin_known_by_thief"
+        "target": "d6e11b54-7f8e-5ada-a219-e2343b02bc9f"
       }
     },
     {
@@ -409,7 +433,7 @@
         {
           "id": "account_number_and_pin_known_by_thief-refinement-2-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "account_number_known_and_matching_pin_found",
+          "source": "6fd35630-5945-5b65-a009-6b1a5adb80ec",
           "target": "account_number_and_pin_known_by_thief-refinement-2"
         }
       ],
@@ -417,7 +441,7 @@
         "id": "account_number_and_pin_known_by_thief-refinement-2-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "account_number_and_pin_known_by_thief-refinement-2",
-        "target": "account_number_and_pin_known_by_thief"
+        "target": "d6e11b54-7f8e-5ada-a219-e2343b02bc9f"
       }
     },
     {
@@ -431,13 +455,13 @@
         {
           "id": "pin_known_and_matching_account_number_found-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "pin_known",
+          "source": "c7d6b657-d717-59de-af03-78cd430dc2f8",
           "target": "pin_known_and_matching_account_number_found-refinement-1"
         },
         {
           "id": "pin_known_and_matching_account_number_found-refinement-1-2",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "matching_account_number_found",
+          "source": "e0668b7e-d42a-5083-9c50-fe2e2b49a65d",
           "target": "pin_known_and_matching_account_number_found-refinement-1"
         }
       ],
@@ -445,7 +469,7 @@
         "id": "pin_known_and_matching_account_number_found-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "pin_known_and_matching_account_number_found-refinement-1",
-        "target": "pin_known_and_matching_account_number_found"
+        "target": "484fa497-5ec3-5ad0-aabf-439a7a4a3534"
       }
     },
     {
@@ -459,19 +483,19 @@
         {
           "id": "matching_account_number_found-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "account_number_checked_for_pin_match",
+          "source": "72d8087e-ddb5-5979-9293-5a16b24f3ab2",
           "target": "matching_account_number_found-refinement-1"
         },
         {
           "id": "matching_account_number_found-refinement-1-2",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "check_iterated_on_other_account_numbers_if_no_match",
+          "source": "9accca06-eb41-5e0d-86d7-aa671cdb98e1",
           "target": "matching_account_number_found-refinement-1"
         },
         {
           "id": "matching_account_number_found-refinement-1-3",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "repeatable_account_number_check_from_pin",
+          "source": "eaab16ba-b8f8-526c-bf2d-0a07e25b5e61",
           "target": "matching_account_number_found-refinement-1"
         }
       ],
@@ -479,7 +503,7 @@
         "id": "matching_account_number_found-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "matching_account_number_found-refinement-1",
-        "target": "matching_account_number_found"
+        "target": "e0668b7e-d42a-5083-9c50-fe2e2b49a65d"
       }
     },
     {
@@ -493,13 +517,13 @@
         {
           "id": "account_number_known_and_matching_pin_found-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "account_number_known",
+          "source": "f772ca52-413c-5392-8551-e1fe72f59151",
           "target": "account_number_known_and_matching_pin_found-refinement-1"
         },
         {
           "id": "account_number_known_and_matching_pin_found-refinement-1-2",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "matching_pin_found",
+          "source": "400ee040-f090-578e-8fe4-cf7ea7669a67",
           "target": "account_number_known_and_matching_pin_found-refinement-1"
         }
       ],
@@ -507,7 +531,7 @@
         "id": "account_number_known_and_matching_pin_found-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "account_number_known_and_matching_pin_found-refinement-1",
-        "target": "account_number_known_and_matching_pin_found"
+        "target": "6fd35630-5945-5b65-a009-6b1a5adb80ec"
       }
     },
     {
@@ -521,19 +545,19 @@
         {
           "id": "matching_pin_found-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "pin_checked_for_account_number_match",
+          "source": "6c933c3b-ecea-5d4e-859c-b6f0dfd34873",
           "target": "matching_pin_found-refinement-1"
         },
         {
           "id": "matching_pin_found-refinement-1-2",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "check_iterated_on_other_pins_if_no_match",
+          "source": "3371af1a-be00-58eb-a4a1-7c723b17e88b",
           "target": "matching_pin_found-refinement-1"
         },
         {
           "id": "matching_pin_found-refinement-1-3",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "repeatable_pin_check_from_account_number",
+          "source": "1e48aea7-fee3-5ee8-9a0e-092809b08588",
           "target": "matching_pin_found-refinement-1"
         }
       ],
@@ -541,14 +565,14 @@
         "id": "matching_pin_found-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "matching_pin_found-refinement-1",
-        "target": "matching_pin_found"
+        "target": "400ee040-f090-578e-8fe4-cf7ea7669a67"
       }
     },
     {
       "id": "avoid_repeatable_account_number_check_from_pin-resolves-repeatable_account_number_check_from_pin",
       "type": "kaos.ResolutionLink",
-      "source": "avoid_repeatable_account_number_check_from_pin",
-      "target": "repeatable_account_number_check_from_pin",
+      "source": "4a018584-ad17-5db5-9233-02733960bce4",
+      "target": "eaab16ba-b8f8-526c-bf2d-0a07e25b5e61",
       "customProperties": {
         "ResolutionType": "obstacle prevention",
         "Anchor": ""
@@ -557,8 +581,8 @@
     {
       "id": "avoid_repeatable_pin_check_from_account_number-resolves-repeatable_pin_check_from_account_number",
       "type": "kaos.ResolutionLink",
-      "source": "avoid_repeatable_pin_check_from_account_number",
-      "target": "repeatable_pin_check_from_account_number",
+      "source": "31781af8-604b-5d6c-a052-33b8d6389da6",
+      "target": "1e48aea7-fee3-5ee8-9a0e-092809b08588",
       "customProperties": {
         "ResolutionType": "obstacle prevention",
         "Anchor": ""
@@ -567,38 +591,38 @@
     {
       "id": "thief-assigned-account_number_checked_for_pin_match",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "thief",
-      "target": "account_number_checked_for_pin_match"
+      "source": "a769f359-ed64-5c42-a992-70345de27af7",
+      "target": "72d8087e-ddb5-5979-9293-5a16b24f3ab2"
     },
     {
       "id": "thief-assigned-check_iterated_on_other_account_numbers_if_no_match",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "thief",
-      "target": "check_iterated_on_other_account_numbers_if_no_match"
+      "source": "a769f359-ed64-5c42-a992-70345de27af7",
+      "target": "9accca06-eb41-5e0d-86d7-aa671cdb98e1"
     },
     {
       "id": "banking_system-assigned-repeatable_account_number_check_from_pin",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "banking_system",
-      "target": "repeatable_account_number_check_from_pin"
+      "source": "bc90c06f-7650-5a1c-8090-601d85ac862d",
+      "target": "eaab16ba-b8f8-526c-bf2d-0a07e25b5e61"
     },
     {
       "id": "thief-assigned-pin_checked_for_account_number_match",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "thief",
-      "target": "pin_checked_for_account_number_match"
+      "source": "a769f359-ed64-5c42-a992-70345de27af7",
+      "target": "6c933c3b-ecea-5d4e-859c-b6f0dfd34873"
     },
     {
       "id": "thief-assigned-check_iterated_on_other_pins_if_no_match",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "thief",
-      "target": "check_iterated_on_other_pins_if_no_match"
+      "source": "a769f359-ed64-5c42-a992-70345de27af7",
+      "target": "3371af1a-be00-58eb-a4a1-7c723b17e88b"
     },
     {
       "id": "banking_system-assigned-repeatable_pin_check_from_account_number",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "banking_system",
-      "target": "repeatable_pin_check_from_account_number"
+      "source": "bc90c06f-7650-5a1c-8090-601d85ac862d",
+      "target": "1e48aea7-fee3-5ee8-9a0e-092809b08588"
     }
   ],
   "display": {},

@@ -2,7 +2,7 @@
   "actors": [],
   "orphans": [
     {
-      "id": "active_directory_network_services",
+      "id": "82734b94-6ba7-5ba3-95bc-1f9cedb162e6",
       "text": "Active Directory Network Services",
       "type": "kaos.BehavioralGoal",
       "x": 3560,
@@ -18,10 +18,11 @@
         "Stability": "",
         "Description": "Network services shall be controlled using Active Directory",
         "Concern": "Corporate Network, Telemetry Network, Enterprise SCADA Network"
-      }
+      },
+      "kaosId": "active_directory_network_services"
     },
     {
-      "id": "acme_change_control",
+      "id": "683414bc-87c1-5ea0-a246-d0348da9c81d",
       "text": "ACME Change Control",
       "type": "kaos.BehavioralGoal",
       "x": 3720,
@@ -36,10 +37,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "Existing ACME Change Control procedures to co-ordinate RFCs shall be followed"
-      }
+      },
+      "kaosId": "acme_change_control"
     },
     {
-      "id": "product_security_accreditation",
+      "id": "0938a9c7-9ccf-5b0e-b05a-b55caee13f1d",
       "text": "Product security accreditation",
       "type": "kaos.BehavioralGoal",
       "x": 9000,
@@ -54,10 +56,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "SCADA, Telemetry, and Control System products shall be accredited prior to their installation to the Enterprise SCADA environment."
-      }
+      },
+      "kaosId": "product_security_accreditation"
     },
     {
-      "id": "intrusion_prevention_system",
+      "id": "b5b99db7-83be-57a6-8e9c-546a4f9e0e1d",
       "text": "Intrusion Prevention System",
       "type": "kaos.BehavioralGoal",
       "x": 360,
@@ -72,10 +75,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "An Intrusion Prevention System shall be deployed to monitor and respond to malicious traffic."
-      }
+      },
+      "kaosId": "intrusion_prevention_system"
     },
     {
-      "id": "firewall_and_dmz",
+      "id": "65147238-4504-5c5e-9e58-1e74916944ae",
       "text": "Firewall and DMZ",
       "type": "kaos.BehavioralGoal",
       "x": 1320,
@@ -90,10 +94,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "All connections between SCADA, Telemetry and Control Systems shall be protected between internal boundaries and private/public domains by the application of a Firewall and DMZ"
-      }
+      },
+      "kaosId": "firewall_and_dmz"
     },
     {
-      "id": "firewall_rule_attributes",
+      "id": "7dc06e74-7603-56a0-b71f-b2db03434a7b",
       "text": "Firewall rule attributes",
       "type": "kaos.BehavioralGoal",
       "x": 840,
@@ -109,10 +114,11 @@
         "Stability": "",
         "Description": "Firewall rules shall contain the following attributes: device address, path (source to target system), port, protocol, user, device name",
         "Concern": "Firewall"
-      }
+      },
+      "kaosId": "firewall_rule_attributes"
     },
     {
-      "id": "firewall_trafffic_monitoring",
+      "id": "87511e53-a50e-5810-9e1a-7c42e02ac27a",
       "text": "Firewall trafffic monitoring",
       "type": "kaos.BehavioralGoal",
       "x": 1160,
@@ -128,10 +134,11 @@
         "Stability": "",
         "Description": "Firewall traffic shall be monitored by the existing Firewall administration software.",
         "Concern": "Firewall"
-      }
+      },
+      "kaosId": "firewall_trafffic_monitoring"
     },
     {
-      "id": "secure_routers",
+      "id": "86c001cc-bbb0-5641-acac-25c04dbc3d69",
       "text": "Secure Routers",
       "type": "kaos.BehavioralGoal",
       "x": 40,
@@ -146,10 +153,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "Routers shall be installed and maintained in compliance with the TCP/IP addressing standard, the ACME firewall build, and the ACME VPN configuration standard."
-      }
+      },
+      "kaosId": "secure_routers"
     },
     {
-      "id": "identifiable_connections",
+      "id": "4c6f5dd3-1bea-5478-bdf1-f4bbc269b4f3",
       "text": "Identifiable connections",
       "type": "kaos.BehavioralGoal",
       "x": 3560,
@@ -165,10 +173,11 @@
         "Stability": "",
         "Description": "All connections to SCADA, Telemetry, and Control Systems shall be identified",
         "Concern": "SCADA Workstation, Works Network, Enterprise SCADA Network"
-      }
+      },
+      "kaosId": "identifiable_connections"
     },
     {
-      "id": "warranted_connection",
+      "id": "1ae225a1-61ff-5c0b-a17e-cbfa5efd18a8",
       "text": "Warranted connection",
       "type": "kaos.BehavioralGoal",
       "x": 4520,
@@ -183,10 +192,11 @@
         "FitCriterion": "The warrant for each SCADA, Telemetry, and Control System connection is recorded in the BMS.",
         "Stability": "",
         "Description": "Each SCADA, Telemetry, and Control System network connection shall be warranted."
-      }
+      },
+      "kaosId": "warranted_connection"
     },
     {
-      "id": "secure_operating_environment",
+      "id": "658f34cc-b71f-588c-a425-2b4db872e030",
       "text": "Secure operating environment",
       "type": "kaos.BehavioralGoal",
       "x": 6760,
@@ -201,10 +211,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "The operating environment for SCADA, Telemetry and Control Systems associated with assets owned and operated by ACME shall be secure."
-      }
+      },
+      "kaosId": "secure_operating_environment"
     },
     {
-      "id": "secure_network_infrastructure",
+      "id": "69185cf9-fcba-5db5-988d-681752ee302a",
       "text": "Secure network infrastructure",
       "type": "kaos.BehavioralGoal",
       "x": 1800,
@@ -219,10 +230,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "Safeguard network infrastructure"
-      }
+      },
+      "kaosId": "secure_network_infrastructure"
     },
     {
-      "id": "secure_changes",
+      "id": "09739d1f-1144-5ea6-af58-4735b19f3bcb",
       "text": "Secure changes",
       "type": "kaos.BehavioralGoal",
       "x": 4360,
@@ -237,10 +249,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "Changes or additions to SCADA, Telemetry and Control Systems shall be secure."
-      }
+      },
+      "kaosId": "secure_changes"
     },
     {
-      "id": "secure_sla",
+      "id": "2639af76-d33b-5cbe-a8b7-79ecb6e93a67",
       "text": "Secure SLA",
       "type": "kaos.BehavioralGoal",
       "x": 8520,
@@ -255,10 +268,11 @@
         "FitCriterion": "TBC",
         "Stability": "",
         "Description": "ICT Service Level Agreements for sites with SCADA, Telemetry, and Control Systems shall be commensurate with the criticality of the site."
-      }
+      },
+      "kaosId": "secure_sla"
     },
     {
-      "id": "router_installation",
+      "id": "0172e3de-e111-5f32-964b-45e2dc2d343b",
       "text": "Router Installation",
       "type": "kaos.BehavioralGoal",
       "x": 40,
@@ -274,10 +288,11 @@
         "Stability": "",
         "Description": "Routers shall be installed in compliance with the TCP/IP addressing standard, the ACME firewall build, and the ACME VPN configuration standard.",
         "Concern": "Router"
-      }
+      },
+      "kaosId": "router_installation"
     },
     {
-      "id": "router_maintenance",
+      "id": "58179972-d9bc-5c6b-bc88-f790388001af",
       "text": "Router maintenance",
       "type": "kaos.BehavioralGoal",
       "x": 200,
@@ -293,10 +308,11 @@
         "Stability": "",
         "Description": "Routers shall be maintained in compliance with the TCP/IP addressing standard, the ACME firewall build, and the ACME VPN configuration standard.",
         "Concern": "Router"
-      }
+      },
+      "kaosId": "router_maintenance"
     },
     {
-      "id": "secure_remote_access",
+      "id": "6b5c1d24-07b9-5c86-a7f6-4dc674ff8e54",
       "text": "Secure Remote Access",
       "type": "kaos.BehavioralGoal",
       "x": 3080,
@@ -311,10 +327,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "Secure Remote access"
-      }
+      },
+      "kaosId": "secure_remote_access"
     },
     {
-      "id": "remote_access_inventory",
+      "id": "9b2a1d4b-e888-538b-8723-594898a786a7",
       "text": "Remote access inventory",
       "type": "kaos.BehavioralGoal",
       "x": 2920,
@@ -329,10 +346,11 @@
         "FitCriterion": "TBC",
         "Stability": "",
         "Description": "An inventory of all authorised remote access connections shall be maintained."
-      }
+      },
+      "kaosId": "remote_access_inventory"
     },
     {
-      "id": "internet_access",
+      "id": "c2e34729-a186-515a-a60f-fd0e7f6b8edb",
       "text": "Internet access",
       "type": "kaos.BehavioralGoal",
       "x": 520,
@@ -347,10 +365,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "Internet access from SCADA, Telemetry and Control Systems shall be disabled."
-      }
+      },
+      "kaosId": "internet_access"
     },
     {
-      "id": "access_control",
+      "id": "136117f1-7514-5534-93cc-a27fa510fd20",
       "text": "Access Control",
       "type": "kaos.BehavioralGoal",
       "x": 5960,
@@ -365,10 +384,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "Secure access control."
-      }
+      },
+      "kaosId": "access_control"
     },
     {
-      "id": "warranted_access",
+      "id": "e51f3bbb-ac91-53be-bb88-b4771df042d8",
       "text": "Warranted Access",
       "type": "kaos.BehavioralGoal",
       "x": 4840,
@@ -383,10 +403,11 @@
         "FitCriterion": "TBC",
         "Stability": "",
         "Description": "Credentials to SCADA, Telemetry, and Control Systems shall be authorised based on current operational need."
-      }
+      },
+      "kaosId": "warranted_access"
     },
     {
-      "id": "id_level_access_control",
+      "id": "0f8b5191-7776-5004-9600-f6e6a02c3538",
       "text": "Id level access control",
       "type": "kaos.BehavioralGoal",
       "x": 5480,
@@ -402,10 +423,11 @@
         "Stability": "",
         "Description": "User id level access control shall be enabled by Active Directory for all administrative activities on all servers and workstations.",
         "Concern": "SCADA Workstation, ICT PC, EnterpriseSCADA Server"
-      }
+      },
+      "kaosId": "id_level_access_control"
     },
     {
-      "id": "user_id_least_privilege",
+      "id": "cdb7921a-c167-5ea0-8195-78cffa099736",
       "text": "User Id Least privilege",
       "type": "kaos.BehavioralGoal",
       "x": 5160,
@@ -420,10 +442,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "User id access shall be based on least privilege."
-      }
+      },
+      "kaosId": "user_id_least_privilege"
     },
     {
-      "id": "enterprisescada_access_control",
+      "id": "2015955c-bf9f-5add-849b-be9408db110f",
       "text": "EnterpriseSCADA access control",
       "type": "kaos.BehavioralGoal",
       "x": 5640,
@@ -439,10 +462,11 @@
         "Stability": "",
         "Description": "EnterpriseSCADA access control credentials shall meet ACME security policy requirements.",
         "Concern": "STCS credentials"
-      }
+      },
+      "kaosId": "enterprisescada_access_control"
     },
     {
-      "id": "tms_access_control",
+      "id": "b23c56ee-0252-5863-98b7-630d4573061a",
       "text": "TMS access control",
       "type": "kaos.BehavioralGoal",
       "x": 6600,
@@ -458,10 +482,11 @@
         "Stability": "",
         "Description": "TMS access control credentials shall meet ACME security policy requirements.",
         "Concern": "STCS credentials"
-      }
+      },
+      "kaosId": "tms_access_control"
     },
     {
-      "id": "secure_operating_systems",
+      "id": "ba66056a-5251-5bdc-992c-76a2a504b2fe",
       "text": "Secure Operating Systems",
       "type": "kaos.BehavioralGoal",
       "x": 7560,
@@ -476,10 +501,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "Secure OS"
-      }
+      },
+      "kaosId": "secure_operating_systems"
     },
     {
-      "id": "os_hardening",
+      "id": "744aa5c6-bb47-5162-ba0d-98fa3ca7b987",
       "text": "OS hardening",
       "type": "kaos.BehavioralGoal",
       "x": 7080,
@@ -494,10 +520,11 @@
         "FitCriterion": "TBC",
         "Stability": "",
         "Description": "SCADA, Telemetry, and Control System operating systems shall run only those services necessary for running of installed SCADA, Telemetry, and Control System applications."
-      }
+      },
+      "kaosId": "os_hardening"
     },
     {
-      "id": "authorised_removable_media",
+      "id": "3c7cdd3f-85f2-5516-99d2-98742f58fe7a",
       "text": "Authorised removable media",
       "type": "kaos.BehavioralGoal",
       "x": 7880,
@@ -512,10 +539,11 @@
         "FitCriterion": "TBC",
         "Stability": "",
         "Description": "Use of removable media shall be authorised prior to use with SCADA, Telemetry, and Control System workstations."
-      }
+      },
+      "kaosId": "authorised_removable_media"
     },
     {
-      "id": "standard_build",
+      "id": "64083513-04e3-5484-b109-a940385656de",
       "text": "Standard build",
       "type": "kaos.BehavioralGoal",
       "x": 7080,
@@ -530,10 +558,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "All SCADA, Telemetry, and Control Systems operating systems shall be installed from a standard ACME build image."
-      }
+      },
+      "kaosId": "standard_build"
     },
     {
-      "id": "active_directory_software_deployment",
+      "id": "44664da6-abe0-559c-8df5-2fdd2ad424a9",
       "text": "Active Directory software deployment",
       "type": "kaos.BehavioralGoal",
       "x": 4680,
@@ -548,10 +577,11 @@
         "FitCriterion": "Automated alerts fire from the Active Directory domain controller when the software has been installed.",
         "Stability": "",
         "Description": "SCADA, Telemetry and Control System software shall be deployed via Active Directory."
-      }
+      },
+      "kaosId": "active_directory_software_deployment"
     },
     {
-      "id": "least_privilege_connections",
+      "id": "d2711ebd-3bb8-5a29-9647-89eb8ce39491",
       "text": "Least privilege connections",
       "type": "kaos.BehavioralGoal",
       "x": 1480,
@@ -567,10 +597,11 @@
         "Stability": "",
         "Description": "Firewalls shall block all network traffic unless it has been explicitly allowed.",
         "Concern": "Firewall"
-      }
+      },
+      "kaosId": "least_privilege_connections"
     },
     {
-      "id": "secure_roles",
+      "id": "e4236878-6f92-5279-896f-15788cf85172",
       "text": "Secure Roles",
       "type": "kaos.BehavioralGoal",
       "x": 8680,
@@ -585,10 +616,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "The security responsibilities of ACME employees, partners, and contractors responsible for installing, configuring, implementing, and operating ICT infrastructure supporting SCADA, Telemetry, and Control Systems shall be specified and be specified and communicated to all relevant parties."
-      }
+      },
+      "kaosId": "secure_roles"
     },
     {
-      "id": "secure_wifi",
+      "id": "e948f868-9739-5c58-bb8a-97de91bed1c7",
       "text": "Secure wifi",
       "type": "kaos.BehavioralGoal",
       "x": 2440,
@@ -603,10 +635,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "Wireless systems shall be securely deployed."
-      }
+      },
+      "kaosId": "secure_wifi"
     },
     {
-      "id": "access_revocation",
+      "id": "bdf950fe-d516-5b0f-b1d5-ffb1724d48a6",
       "text": "Access revocation",
       "type": "kaos.BehavioralGoal",
       "x": 2760,
@@ -622,10 +655,11 @@
         "Stability": "",
         "Description": "Procedures and assurance mechanisms for enabling and disabling remote access connections shall be implemented.",
         "Concern": "Corporate Network, Telemetry Network, Works Network, Enterprise SCADA Network"
-      }
+      },
+      "kaosId": "access_revocation"
     },
     {
-      "id": "password_policy",
+      "id": "aa24ff16-37c5-5258-b0d5-afd339b396ac",
       "text": "Password policy",
       "type": "kaos.BehavioralGoal",
       "x": 6120,
@@ -641,10 +675,11 @@
         "Stability": "",
         "Description": "Pasword policy",
         "Concern": "ICT credentials, STCS credentials"
-      }
+      },
+      "kaosId": "password_policy"
     },
     {
-      "id": "password_length",
+      "id": "a4b1ccf2-87ac-56e8-87f7-9f271e687980",
       "text": "Password length",
       "type": "kaos.BehavioralGoal",
       "x": 6120,
@@ -659,10 +694,11 @@
         "FitCriterion": "TBC",
         "Stability": "",
         "Description": "Passwords shall be set to a minimum of 12 characters."
-      }
+      },
+      "kaosId": "password_length"
     },
     {
-      "id": "password_expiration",
+      "id": "db07ff04-b2c1-56ea-a6b7-6f09748a667f",
       "text": "Password expiration",
       "type": "kaos.BehavioralGoal",
       "x": 5800,
@@ -677,10 +713,11 @@
         "FitCriterion": "TBC",
         "Stability": "",
         "Description": "Passwords shall be set to expire in line with ACME policy."
-      }
+      },
+      "kaosId": "password_expiration"
     },
     {
-      "id": "password_mixed_characters",
+      "id": "ab844029-7f0e-53a1-80fe-b91f8daa0db6",
       "text": "Password mixed characters",
       "type": "kaos.BehavioralGoal",
       "x": 5960,
@@ -695,10 +732,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "Passwords shall contain a mixture of upper, lower, and alphanumeric characters."
-      }
+      },
+      "kaosId": "password_mixed_characters"
     },
     {
-      "id": "vendor_passwords",
+      "id": "6d4f194d-cfcd-538d-93e3-5687c6235fee",
       "text": "Vendor passwords",
       "type": "kaos.BehavioralGoal",
       "x": 6440,
@@ -714,10 +752,11 @@
         "Stability": "",
         "Description": "Default vendor passwords shall be changed prior to deployment of system.",
         "Concern": "STCS credentials"
-      }
+      },
+      "kaosId": "vendor_passwords"
     },
     {
-      "id": "password_storage",
+      "id": "a008c059-bd46-5c23-bd4d-387d06210ba5",
       "text": "Password storage",
       "type": "kaos.BehavioralGoal",
       "x": 6280,
@@ -732,10 +771,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "Passwords shall not be written down."
-      }
+      },
+      "kaosId": "password_storage"
     },
     {
-      "id": "critical_vendor_patches",
+      "id": "032f4024-fd2d-5c3a-a20e-376d1be8268d",
       "text": "Critical Vendor patches",
       "type": "kaos.BehavioralGoal",
       "x": 3880,
@@ -750,10 +790,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "Critical Vendor Patches shall be installed within their recommended timescales."
-      }
+      },
+      "kaosId": "critical_vendor_patches"
     },
     {
-      "id": "patch_risk_management",
+      "id": "3a0ff5a8-31af-53f0-a4c2-15d1911af371",
       "text": "Patch Risk Management",
       "type": "kaos.BehavioralGoal",
       "x": 5000,
@@ -768,10 +809,11 @@
         "FitCriterion": "Risk and impact assessment fields fields filled in for each approved patch.",
         "Stability": "",
         "Description": "Where patching adversely impacts the availability, integrity, or stability of operational systems, a risk assessment shall be conducted and recommendations approved by the information security manager, the Standards Committee and system owner."
-      }
+      },
+      "kaosId": "patch_risk_management"
     },
     {
-      "id": "important_vendor_patches",
+      "id": "57fbcba1-05e3-5f92-9046-906a1b36942a",
       "text": "Important Vendor patches",
       "type": "kaos.BehavioralGoal",
       "x": 4360,
@@ -787,10 +829,11 @@
         "Stability": "",
         "Description": "Important Vendor patches shall be installed where applicable.",
         "Concern": "STCS Application"
-      }
+      },
+      "kaosId": "important_vendor_patches"
     },
     {
-      "id": "control_testing",
+      "id": "b6d6519f-f80f-5cc4-9664-d8d0a979888e",
       "text": "Control testing",
       "type": "kaos.BehavioralGoal",
       "x": 3880,
@@ -805,10 +848,11 @@
         "FitCriterion": "When a patch is released, the written process log notes the testing carried out and the outcome.",
         "Stability": "",
         "Description": "Patches and compensating controls shall be tested prior to release."
-      }
+      },
+      "kaosId": "control_testing"
     },
     {
-      "id": "compensating_controls",
+      "id": "cb0f5c8f-1c93-55e9-8ea6-7abb8c0f61df",
       "text": "Compensating controls",
       "type": "kaos.BehavioralGoal",
       "x": 4040,
@@ -823,10 +867,11 @@
         "FitCriterion": "TBC",
         "Stability": "",
         "Description": "Where patches cannot be deployed, compensating controls shall be applied to mitigate vulnerabilities remedied by undeployable patches."
-      }
+      },
+      "kaosId": "compensating_controls"
     },
     {
-      "id": "anti_virus",
+      "id": "c914a806-0b25-5148-b41f-24db0892ac1f",
       "text": "Anti-virus",
       "type": "kaos.BehavioralGoal",
       "x": 8200,
@@ -842,10 +887,11 @@
         "Stability": "",
         "Description": "Malware (Anti-Virus) software shall be deployed on workstations, mobile devices, and servers.",
         "Concern": "SCADA Workstation, ICT PC, EnterpriseSCADA Server"
-      }
+      },
+      "kaosId": "anti_virus"
     },
     {
-      "id": "scanned_media",
+      "id": "a521f95e-f8b9-5074-8e71-1acd4c0cf6b2",
       "text": "Scanned media",
       "type": "kaos.BehavioralGoal",
       "x": 7880,
@@ -860,10 +906,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "All removeable media shall be scanned prior to insertion into target systems."
-      }
+      },
+      "kaosId": "scanned_media"
     },
     {
-      "id": "malware_data_scanning",
+      "id": "2960016b-61b4-56cd-b1ca-4d5294041b3d",
       "text": "Malware data scanning",
       "type": "kaos.BehavioralGoal",
       "x": 8200,
@@ -878,10 +925,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "All data shall be scanned for Malware"
-      }
+      },
+      "kaosId": "malware_data_scanning"
     },
     {
-      "id": "operating_system_logs",
+      "id": "6f098f30-21fc-5f52-ad8a-4dbc651d2e3b",
       "text": "Operating system logs",
       "type": "kaos.BehavioralGoal",
       "x": 7400,
@@ -896,10 +944,11 @@
         "FitCriterion": "Logging for future analysis.",
         "Stability": "",
         "Description": "Operating system activity shall be logged."
-      }
+      },
+      "kaosId": "operating_system_logs"
     },
     {
-      "id": "critical_area_logging",
+      "id": "d4c6a9a3-18bc-59d3-b708-17171604878d",
       "text": "Critical area logging",
       "type": "kaos.BehavioralGoal",
       "x": 5320,
@@ -914,10 +963,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "Access to secure critical areas and systems shall be logged."
-      }
+      },
+      "kaosId": "critical_area_logging"
     },
     {
-      "id": "log_file_size",
+      "id": "c720ab33-87b2-5ab4-97fe-a2b7cbca18c4",
       "text": "Log file size",
       "type": "kaos.BehavioralGoal",
       "x": 7560,
@@ -932,10 +982,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "Log file sizes shall be set to a minimum of 500 MB."
-      }
+      },
+      "kaosId": "log_file_size"
     },
     {
-      "id": "log_file_overwrite",
+      "id": "16b56cb1-4fc6-5e1a-b83e-3fdd40477ca3",
       "text": "Log file overwrite",
       "type": "kaos.BehavioralGoal",
       "x": 7400,
@@ -950,10 +1001,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "Log files shall be set to overwrite."
-      }
+      },
+      "kaosId": "log_file_overwrite"
     },
     {
-      "id": "secure_backup",
+      "id": "0b5734d6-8fd2-5e03-b8d1-05a2b3918cb1",
       "text": "Secure backup",
       "type": "kaos.BehavioralGoal",
       "x": 9640,
@@ -968,10 +1020,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "SCADA, Telemetry, and Control System software and configuration data shall be backed-up to ensure swift recovery."
-      }
+      },
+      "kaosId": "secure_backup"
     },
     {
-      "id": "backup_media",
+      "id": "bee95554-ffc8-5d2c-bb83-f56526cd3e5e",
       "text": "Backup media",
       "type": "kaos.BehavioralGoal",
       "x": 9160,
@@ -986,10 +1039,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "SCADA, Telemetry, and Control System software shall be copied to removable media."
-      }
+      },
+      "kaosId": "backup_media"
     },
     {
-      "id": "backup_testing",
+      "id": "676d9f95-8e59-585e-a1de-06e277d7e31c",
       "text": "Backup testing",
       "type": "kaos.BehavioralGoal",
       "x": 9320,
@@ -1004,10 +1058,11 @@
         "FitCriterion": "Regular backup test to check integrity",
         "Stability": "",
         "Description": "Backups shall be regularly tested."
-      }
+      },
+      "kaosId": "backup_testing"
     },
     {
-      "id": "offsite_backup",
+      "id": "1159d8e7-8634-567b-9275-afe085fb255b",
       "text": "Offsite backup",
       "type": "kaos.BehavioralGoal",
       "x": 9480,
@@ -1022,10 +1077,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "Backups shall be stored offsite to ensure their availability in the event of a localised disaster."
-      }
+      },
+      "kaosId": "offsite_backup"
     },
     {
-      "id": "backup_hardware",
+      "id": "b11408a9-5412-5902-8c85-f7a7e391a9f0",
       "text": "Backup hardware",
       "type": "kaos.BehavioralGoal",
       "x": 9640,
@@ -1040,10 +1096,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "Hardware used to restore backups shall be retained to ensure the availability of data."
-      }
+      },
+      "kaosId": "backup_hardware"
     },
     {
-      "id": "backup_transmission",
+      "id": "7299dee5-b0ea-50ca-92fa-9fa0fa7d984b",
       "text": "Backup transmission",
       "type": "kaos.BehavioralGoal",
       "x": 9800,
@@ -1058,10 +1115,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "Backups shall be transported / transmitted securely."
-      }
+      },
+      "kaosId": "backup_transmission"
     },
     {
-      "id": "backup_storage",
+      "id": "b5a0aad9-ee5e-5a36-a1ab-0ea0d7aad8a1",
       "text": "Backup storage",
       "type": "kaos.BehavioralGoal",
       "x": 9480,
@@ -1076,10 +1134,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "Backups shall be stored in a fireproof safe."
-      }
+      },
+      "kaosId": "backup_storage"
     },
     {
-      "id": "backup_logs",
+      "id": "6b73eccb-94b8-5737-bed2-4b710b9973e6",
       "text": "Backup logs",
       "type": "kaos.BehavioralGoal",
       "x": 9960,
@@ -1094,10 +1153,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "Security, System, and Application event logs shall be included in the backup activity."
-      }
+      },
+      "kaosId": "backup_logs"
     },
     {
-      "id": "compliance_audit",
+      "id": "75bf655d-fe81-580c-b5ed-65eb589236ca",
       "text": "Compliance audit",
       "type": "kaos.BehavioralGoal",
       "x": 10600,
@@ -1112,10 +1172,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "Regular audits shall be carried out to ensure the ACME Information Security Policy is being followed."
-      }
+      },
+      "kaosId": "compliance_audit"
     },
     {
-      "id": "remote_connection_audit",
+      "id": "fab618e2-5b5c-5ff8-abb0-2b5930575b0b",
       "text": "Remote connection audit",
       "type": "kaos.BehavioralGoal",
       "x": 10280,
@@ -1130,10 +1191,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "Regular audits shall be carried out ensuring that no unauthorised remote access connections exist."
-      }
+      },
+      "kaosId": "remote_connection_audit"
     },
     {
-      "id": "asset_inventory",
+      "id": "bcb32123-bd0a-5789-97e9-8271686b74e6",
       "text": "Asset Inventory",
       "type": "kaos.BehavioralGoal",
       "x": 10440,
@@ -1148,10 +1210,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "All systems and components shall be documented to ensure an up-to-date Asset Inventory is maintained."
-      }
+      },
+      "kaosId": "asset_inventory"
     },
     {
-      "id": "build_data",
+      "id": "f116de4f-ffc9-5b05-a03f-04f2648c9f9c",
       "text": "Build data",
       "type": "kaos.BehavioralGoal",
       "x": 10440,
@@ -1166,10 +1229,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "All build and configuration details shall be documented."
-      }
+      },
+      "kaosId": "build_data"
     },
     {
-      "id": "third_party_compliance",
+      "id": "b68b51fb-967d-521d-b584-6badf3354404",
       "text": "Third party compliance",
       "type": "kaos.BehavioralGoal",
       "x": 10760,
@@ -1184,10 +1248,11 @@
         "FitCriterion": "TBC",
         "Stability": "",
         "Description": "Security responsibility shall be written into 3rd party agreements."
-      }
+      },
+      "kaosId": "third_party_compliance"
     },
     {
-      "id": "versioned_plc_changes",
+      "id": "ed6bd543-e4b3-58e8-a72b-7aa391aeb7ce",
       "text": "Versioned PLC changes",
       "type": "kaos.BehavioralGoal",
       "x": 4200,
@@ -1202,10 +1267,11 @@
         "FitCriterion": "This can be achieved by using a centralised software repository.",
         "Stability": "",
         "Description": "PLC software changes shall be versioned."
-      }
+      },
+      "kaosId": "versioned_plc_changes"
     },
     {
-      "id": "secure_site",
+      "id": "13257da8-e103-547c-9266-2091c8a7ab62",
       "text": "Secure site",
       "type": "kaos.BehavioralGoal",
       "x": 12040,
@@ -1220,10 +1286,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "SCADA, Telemetry, and Control Systems shall be physically protected from malicious attack, unauthorised access, and theft."
-      }
+      },
+      "kaosId": "secure_site"
     },
     {
-      "id": "computer_rooms",
+      "id": "8e15c4ee-fa61-5b8b-8717-5c0d90988f34",
       "text": "Computer Rooms",
       "type": "kaos.BehavioralGoal",
       "x": 12680,
@@ -1239,10 +1306,11 @@
         "Stability": "",
         "Description": "Server / Master level SCADA, Telemetry, and Control Systems shall be secured in restricted access computer rooms.",
         "Concern": "EnterpriseSCADA Server"
-      }
+      },
+      "kaosId": "computer_rooms"
     },
     {
-      "id": "locked_cabinets",
+      "id": "2681843c-3f11-5680-bd98-5f7909bc49f1",
       "text": "Locked cabinets",
       "type": "kaos.BehavioralGoal",
       "x": 12360,
@@ -1258,10 +1326,11 @@
         "Stability": "",
         "Description": "Server / Master level SCADA, Telemetry, and Control Systems shall be installed in locked cabinets.",
         "Concern": "EnterpriseSCADA Server"
-      }
+      },
+      "kaosId": "locked_cabinets"
     },
     {
-      "id": "industrialised_secure_cabinets",
+      "id": "8868d0c7-c5ac-50df-80ec-c689f633dc75",
       "text": "Industrialised secure cabinets",
       "type": "kaos.BehavioralGoal",
       "x": 13000,
@@ -1276,10 +1345,11 @@
         "FitCriterion": "Local operators periodically check security of cabinets.",
         "Stability": "",
         "Description": "PLC, SCADA, and Control Systems in operational environments shall be situated in industrialised secure cabinets."
-      }
+      },
+      "kaosId": "industrialised_secure_cabinets"
     },
     {
-      "id": "locked_doors",
+      "id": "ef964a1a-efa0-5c70-a185-c9a1dffc2287",
       "text": "Locked doors",
       "type": "kaos.BehavioralGoal",
       "x": 12520,
@@ -1294,10 +1364,11 @@
         "FitCriterion": "TBC",
         "Stability": "",
         "Description": "Physical security measures at sites shall include the use of locked doors."
-      }
+      },
+      "kaosId": "locked_doors"
     },
     {
-      "id": "environmental_controls",
+      "id": "db209352-2b0b-53fb-a321-dbfa794b5bc8",
       "text": "Environmental controls",
       "type": "kaos.BehavioralGoal",
       "x": 12200,
@@ -1312,10 +1383,11 @@
         "FitCriterion": "TBC",
         "Stability": "",
         "Description": "Environmental controls shall be installed to ensure vendor operating parameters are met."
-      }
+      },
+      "kaosId": "environmental_controls"
     },
     {
-      "id": "fire_detection",
+      "id": "7154c4a5-ef5e-5a29-b197-9745312672fa",
       "text": "Fire detection",
       "type": "kaos.BehavioralGoal",
       "x": 12040,
@@ -1330,10 +1402,11 @@
         "FitCriterion": "TBC",
         "Stability": "",
         "Description": "Fire detection mechanisms shall be installed."
-      }
+      },
+      "kaosId": "fire_detection"
     },
     {
-      "id": "fire_suppression",
+      "id": "3fe4c276-faa2-583c-8132-8e15ff686760",
       "text": "Fire suppression",
       "type": "kaos.BehavioralGoal",
       "x": 11720,
@@ -1348,10 +1421,11 @@
         "FitCriterion": "TBC",
         "Stability": "",
         "Description": "Fire suppression systems shall be installed."
-      }
+      },
+      "kaosId": "fire_suppression"
     },
     {
-      "id": "power_provision",
+      "id": "257b8d99-1bbe-58ad-bac8-0027e38d9c4c",
       "text": "Power provision",
       "type": "kaos.BehavioralGoal",
       "x": 12840,
@@ -1366,10 +1440,11 @@
         "FitCriterion": "TBC",
         "Stability": "",
         "Description": "Appropriate power provision shall be in situ to meet operational requirements."
-      }
+      },
+      "kaosId": "power_provision"
     },
     {
-      "id": "key_ict_security",
+      "id": "8c78f7df-fa7a-5205-a71e-f464e977ae53",
       "text": "Key ICT security",
       "type": "kaos.BehavioralGoal",
       "x": 11560,
@@ -1385,10 +1460,11 @@
         "Stability": "",
         "Description": "The area used to host key onsite ICT equipment shall be physically secured to prevent unauthorised physical access to any equipment used to process, store, or transmit ACME information.",
         "Concern": "Router, ICT cabinet"
-      }
+      },
+      "kaosId": "key_ict_security"
     },
     {
-      "id": "ict_awareness",
+      "id": "0289420b-2adb-53b2-8317-e4782f5b8e25",
       "text": "ICT awareness",
       "type": "kaos.BehavioralGoal",
       "x": 11240,
@@ -1404,10 +1480,11 @@
         "Stability": "",
         "Description": "All ICT partner personnel shall be made aware of the requirements for the proper handling and maintenance of the equipment hosted in the secure areas.",
         "Concern": "InfoPortal"
-      }
+      },
+      "kaosId": "ict_awareness"
     },
     {
-      "id": "business_activity_asset",
+      "id": "fd159c8c-94c8-5f92-8a03-f49ec64c3003",
       "text": "Business activity asset",
       "type": "kaos.BehavioralGoal",
       "x": 13320,
@@ -1422,10 +1499,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "Users shall only use information assets and the ICT infrastructure for the purpose of ACME business activities."
-      }
+      },
+      "kaosId": "business_activity_asset"
     },
     {
-      "id": "active_directory_wifi_control",
+      "id": "6b648806-393b-5f4e-9756-b7a9f66ed414",
       "text": "Active Directory wifi control",
       "type": "kaos.BehavioralGoal",
       "x": 3560,
@@ -1446,10 +1524,11 @@
         "Reference": "Corporate Network",
         "ReferenceType": "asset",
         "Rationale": "Active Directory enforces access control for ACME corporate devices."
-      }
+      },
+      "kaosId": "active_directory_wifi_control"
     },
     {
-      "id": "communication_device_backdoors",
+      "id": "e2ebc80d-0139-555b-a6e1-833d42b0c9f2",
       "text": "Communication device backdoors",
       "type": "kaos.BehavioralGoal",
       "x": 9000,
@@ -1470,10 +1549,11 @@
         "Reference": "Corporate Network",
         "ReferenceType": "asset",
         "Rationale": "Backdoors are vulnerabilities"
-      }
+      },
+      "kaosId": "communication_device_backdoors"
     },
     {
-      "id": "email_routing",
+      "id": "7ff3d468-fa23-5649-a4df-5cb3bec2af8f",
       "text": "Email routing",
       "type": "kaos.BehavioralGoal",
       "x": 6920,
@@ -1494,10 +1574,11 @@
         "Reference": "Corporate Network",
         "ReferenceType": "asset",
         "Rationale": "Email services are managed by corporate IT."
-      }
+      },
+      "kaosId": "email_routing"
     },
     {
-      "id": "port_scan",
+      "id": "4ba35ea8-1b16-50c0-8fa5-f95531e7883e",
       "text": "Port scan",
       "type": "kaos.BehavioralGoal",
       "x": 7240,
@@ -1518,10 +1599,11 @@
         "Reference": "Corporate Network",
         "ReferenceType": "asset",
         "Rationale": "None"
-      }
+      },
+      "kaosId": "port_scan"
     },
     {
-      "id": "ssid_broadcast",
+      "id": "f2e181cc-32dc-563a-98b3-0036b79656aa",
       "text": "SSID broadcast",
       "type": "kaos.BehavioralGoal",
       "x": 2440,
@@ -1542,10 +1624,11 @@
         "Reference": "Corporate Network",
         "ReferenceType": "asset",
         "Rationale": "None"
-      }
+      },
+      "kaosId": "ssid_broadcast"
     },
     {
-      "id": "third_party_remote_access",
+      "id": "9bc46ff2-209c-57cb-bdb5-b5788d80dac5",
       "text": "Third party remote access",
       "type": "kaos.BehavioralGoal",
       "x": 3240,
@@ -1566,10 +1649,11 @@
         "Reference": "Corporate Network",
         "ReferenceType": "asset",
         "Rationale": "None"
-      }
+      },
+      "kaosId": "third_party_remote_access"
     },
     {
-      "id": "two_factor_remote_access",
+      "id": "60c143b9-e815-54f0-80a8-99a2bca1f13f",
       "text": "Two-Factor Remote Access",
       "type": "kaos.BehavioralGoal",
       "x": 3400,
@@ -1590,10 +1674,11 @@
         "Reference": "Corporate Network",
         "ReferenceType": "asset",
         "Rationale": "None"
-      }
+      },
+      "kaosId": "two_factor_remote_access"
     },
     {
-      "id": "wifi_encryption",
+      "id": "982e8be7-b106-5de5-a168-8594e0151d5d",
       "text": "Wifi encryption",
       "type": "kaos.BehavioralGoal",
       "x": 2280,
@@ -1614,10 +1699,11 @@
         "Reference": "Corporate Network",
         "ReferenceType": "asset",
         "Rationale": "None"
-      }
+      },
+      "kaosId": "wifi_encryption"
     },
     {
-      "id": "acceptable_use_policy",
+      "id": "1d127a8c-26cc-5567-ada5-546253721e2b",
       "text": "Acceptable Use Policy",
       "type": "kaos.BehavioralGoal",
       "x": 10920,
@@ -1638,10 +1724,11 @@
         "Reference": "ICT Application",
         "ReferenceType": "asset",
         "Rationale": "None"
-      }
+      },
+      "kaosId": "acceptable_use_policy"
     },
     {
-      "id": "inbuilt_security",
+      "id": "31e6136d-916e-5150-9161-a20562419911",
       "text": "Inbuilt security",
       "type": "kaos.BehavioralGoal",
       "x": 7080,
@@ -1662,10 +1749,11 @@
         "Reference": "ICT Application",
         "ReferenceType": "asset",
         "Rationale": "None"
-      }
+      },
+      "kaosId": "inbuilt_security"
     },
     {
-      "id": "product_security_configuration",
+      "id": "c92a45b2-cbf3-5646-a735-1dbda0f88fd7",
       "text": "Product security configuration",
       "type": "kaos.BehavioralGoal",
       "x": 8360,
@@ -1686,10 +1774,11 @@
         "Reference": "ICT Application",
         "ReferenceType": "asset",
         "Rationale": "None"
-      }
+      },
+      "kaosId": "product_security_configuration"
     },
     {
-      "id": "administration_access_warrant",
+      "id": "3bdab491-420d-5f0e-bb94-e811d7a6b3e0",
       "text": "Administration access warrant",
       "type": "kaos.BehavioralGoal",
       "x": 4840,
@@ -1710,10 +1799,11 @@
         "Reference": "ICT Credentials",
         "ReferenceType": "asset",
         "Rationale": "None"
-      }
+      },
+      "kaosId": "administration_access_warrant"
     },
     {
-      "id": "pay_number_sharing",
+      "id": "e52e7049-7f41-59af-b08e-ac034149ed87",
       "text": "Pay number sharing",
       "type": "kaos.BehavioralGoal",
       "x": 13640,
@@ -1734,10 +1824,11 @@
         "Reference": "ICT Credentials",
         "ReferenceType": "asset",
         "Rationale": "None"
-      }
+      },
+      "kaosId": "pay_number_sharing"
     },
     {
-      "id": "credentials_non_disclosure",
+      "id": "21f2bd3b-a0cf-521a-8e8e-f2d5824c0ec5",
       "text": "Credentials non-disclosure",
       "type": "kaos.BehavioralGoal",
       "x": 6760,
@@ -1758,10 +1849,11 @@
         "Reference": "ICT Credentials",
         "ReferenceType": "asset",
         "Rationale": "None"
-      }
+      },
+      "kaosId": "credentials_non_disclosure"
     },
     {
-      "id": "third_party_requests",
+      "id": "1027d27c-1ae3-51bb-9545-ae2a27b1ca78",
       "text": "Third party requests",
       "type": "kaos.BehavioralGoal",
       "x": 3080,
@@ -1782,10 +1874,11 @@
         "Reference": "STCS Application",
         "ReferenceType": "asset",
         "Rationale": "None"
-      }
+      },
+      "kaosId": "third_party_requests"
     },
     {
-      "id": "application_program_backup",
+      "id": "aaa598cb-7951-5ce6-90b3-ca9515d57c28",
       "text": "Application program backup",
       "type": "kaos.BehavioralGoal",
       "x": 10120,
@@ -1806,10 +1899,11 @@
         "Reference": "STCS Application",
         "ReferenceType": "asset",
         "Rationale": "All software stored in  repository."
-      }
+      },
+      "kaosId": "application_program_backup"
     },
     {
-      "id": "responsibility_clarification",
+      "id": "7ecc4b2f-7f5e-5e1a-b459-e86e87e25df7",
       "text": "Responsibility clarification",
       "type": "kaos.BehavioralGoal",
       "x": 8680,
@@ -1830,10 +1924,11 @@
         "Reference": "InfoPortal",
         "ReferenceType": "asset",
         "Rationale": "None"
-      }
+      },
+      "kaosId": "responsibility_clarification"
     },
     {
-      "id": "router_misuse_prevention",
+      "id": "541d745d-e260-5278-9282-6b5a6ce5ee65",
       "text": "Router misuse prevention",
       "type": "kaos.BehavioralGoal",
       "x": 8840,
@@ -1854,10 +1949,11 @@
         "Reference": "Router",
         "ReferenceType": "asset",
         "Rationale": "None"
-      }
+      },
+      "kaosId": "router_misuse_prevention"
     },
     {
-      "id": "malicious_traffic_alert",
+      "id": "5570ec83-f68b-5385-b143-a65e08ebc9b3",
       "text": "Malicious traffic alert",
       "type": "kaos.BehavioralGoal",
       "x": 1160,
@@ -1878,10 +1974,11 @@
         "Reference": "Intrusion Detection System",
         "ReferenceType": "asset",
         "Rationale": "None"
-      }
+      },
+      "kaosId": "malicious_traffic_alert"
     },
     {
-      "id": "malicious_traffic_blocking",
+      "id": "78412681-45bf-553f-a486-2d27c4a403cb",
       "text": "Malicious traffic blocking",
       "type": "kaos.BehavioralGoal",
       "x": 1000,
@@ -1902,10 +1999,11 @@
         "Reference": "Firewall",
         "ReferenceType": "asset",
         "Rationale": "None"
-      }
+      },
+      "kaosId": "malicious_traffic_blocking"
     },
     {
-      "id": "mac_address_filtering",
+      "id": "01b8a6f5-b753-5b71-80a9-46c98b2210d0",
       "text": "MAC address filtering",
       "type": "kaos.BehavioralGoal",
       "x": 2600,
@@ -1926,10 +2024,11 @@
         "Reference": "Firewall",
         "ReferenceType": "asset",
         "Rationale": "None"
-      }
+      },
+      "kaosId": "mac_address_filtering"
     },
     {
-      "id": "authorised_smb_or_webdav_connections",
+      "id": "3d8975b8-cd42-5f52-860d-1d8d2dc30896",
       "text": "Authorised SMB or WebDAV connections",
       "type": "kaos.BehavioralGoal",
       "x": 2120,
@@ -1950,10 +2049,11 @@
         "Reference": "Firewall",
         "ReferenceType": "asset",
         "Rationale": "Several past Windows Zero Day threats impact SCADA systems rely on outbound WebDav connections."
-      }
+      },
+      "kaosId": "authorised_smb_or_webdav_connections"
     },
     {
-      "id": "firewall_administration_monitoring",
+      "id": "ed88a3f5-3cfc-5753-8b0c-7c8fd56c226c",
       "text": "Firewall administration monitoring",
       "type": "kaos.BehavioralGoal",
       "x": 1800,
@@ -1974,10 +2074,11 @@
         "Reference": "Firewall",
         "ReferenceType": "asset",
         "Rationale": "Firewall is considered critical infrastructure."
-      }
+      },
+      "kaosId": "firewall_administration_monitoring"
     },
     {
-      "id": "hardware_firewall",
+      "id": "d5b447f2-7dd9-5d61-9a55-1f40691e993c",
       "text": "Hardware Firewall",
       "type": "kaos.BehavioralGoal",
       "x": 1960,
@@ -1998,10 +2099,11 @@
         "Reference": "Firewall",
         "ReferenceType": "asset",
         "Rationale": "Separate firewall appliances remove the risk of less critical hardware affecting network availability if this hardware hosts the firewall."
-      }
+      },
+      "kaosId": "hardware_firewall"
     },
     {
-      "id": "pc_infrastructure",
+      "id": "67825714-c9e4-56f6-a08e-1eb4e46f92e8",
       "text": "PC infrastructure",
       "type": "kaos.DomainProperty",
       "x": 13800,
@@ -2010,10 +2112,11 @@
         "Kind": "Invariant",
         "Description": "Works diary GT concept",
         "Source": "Anon"
-      }
+      },
+      "kaosId": "pc_infrastructure"
     },
     {
-      "id": "ubiquitous_identity_data",
+      "id": "50ca6e68-1e89-5afb-b481-aa3aaf712a81",
       "text": "Ubiquitous identity data",
       "type": "kaos.Obstacle",
       "x": 6760,
@@ -2025,10 +2128,11 @@
         "Probability": "0.5",
         "Rationale": "We assume telemetry technicians know the areas and patterns well enough to spot anomalies arising from spoofed telemetry.",
         "Source": "Anon"
-      }
+      },
+      "kaosId": "ubiquitous_identity_data"
     },
     {
-      "id": "exposed_ict_cabinets",
+      "id": "674093b0-b607-5f73-bae5-b26e2dad4346",
       "text": "Exposed ICT cabinets",
       "type": "kaos.Obstacle",
       "x": 11080,
@@ -2040,10 +2144,11 @@
         "Probability": "0.5",
         "Rationale": "ICT cabinets are commonly exposed to allow quick access to technicians.",
         "Source": "Anon"
-      }
+      },
+      "kaosId": "exposed_ict_cabinets"
     },
     {
-      "id": "surplus_equipment",
+      "id": "30d6800a-d93f-58f3-94a7-29c83e609203",
       "text": "Surplus equipment",
       "type": "kaos.Obstacle",
       "x": 11240,
@@ -2055,10 +2160,11 @@
         "Probability": "0",
         "Rationale": "",
         "Source": "Anon"
-      }
+      },
+      "kaosId": "surplus_equipment"
     },
     {
-      "id": "unsanitised_equipment",
+      "id": "38d5c0a7-9d64-58ac-b5ee-ee55ba26b0ab",
       "text": "Unsanitised equipment",
       "type": "kaos.Obstacle",
       "x": 11400,
@@ -2070,10 +2176,11 @@
         "Probability": "0.6",
         "Rationale": "Old equipment is often left unsanitised around plants.",
         "Source": "Anon"
-      }
+      },
+      "kaosId": "unsanitised_equipment"
     },
     {
-      "id": "accessible_equipment",
+      "id": "a1ec5691-8dbf-5e24-8ae2-5360953a075b",
       "text": "Accessible equipment",
       "type": "kaos.Obstacle",
       "x": 11240,
@@ -2085,10 +2192,11 @@
         "Probability": "0.8",
         "Rationale": "Equipment is available to most people with access to the site.",
         "Source": "Anon"
-      }
+      },
+      "kaosId": "accessible_equipment"
     },
     {
-      "id": "unused_pc_application",
+      "id": "2c3bb32f-172f-522e-a7b4-30838a04eeee",
       "text": "Unused PC application",
       "type": "kaos.Obstacle",
       "x": 13320,
@@ -2100,10 +2208,11 @@
         "Probability": "0",
         "Rationale": "",
         "Source": "Anon"
-      }
+      },
+      "kaosId": "unused_pc_application"
     },
     {
-      "id": "redundant_application",
+      "id": "68fe0840-172c-50a3-aa9a-abcb8ee1eed4",
       "text": "Redundant application",
       "type": "kaos.Obstacle",
       "x": 13480,
@@ -2115,10 +2224,11 @@
         "Probability": "0",
         "Rationale": "",
         "Source": "Anon"
-      }
+      },
+      "kaosId": "redundant_application"
     },
     {
-      "id": "malware_application",
+      "id": "de3d379f-9756-57a8-b268-51c722c660df",
       "text": "Malware application",
       "type": "kaos.Obstacle",
       "x": 13160,
@@ -2130,10 +2240,11 @@
         "Probability": "0",
         "Rationale": "",
         "Source": "Anon"
-      }
+      },
+      "kaosId": "malware_application"
     },
     {
-      "id": "malicious_remote_installation",
+      "id": "d0b9131c-c339-5342-9afc-9bcfcf1e2393",
       "text": "Malicious remote installation",
       "type": "kaos.Obstacle",
       "x": 13160,
@@ -2145,10 +2256,11 @@
         "Probability": "0",
         "Rationale": "",
         "Source": "Anon"
-      }
+      },
+      "kaosId": "malicious_remote_installation"
     },
     {
-      "id": "desktop_installation",
+      "id": "8af2fe17-ea63-5471-9af4-858393ad02b9",
       "text": "Desktop installation",
       "type": "kaos.Obstacle",
       "x": 7720,
@@ -2160,10 +2272,11 @@
         "Probability": "0",
         "Rationale": "",
         "Source": "Anon"
-      }
+      },
+      "kaosId": "desktop_installation"
     },
     {
-      "id": "dll_preloading",
+      "id": "32c8bccf-82e2-5554-9358-0e1474c930fb",
       "text": "DLL preloading",
       "type": "kaos.Obstacle",
       "x": 13320,
@@ -2175,10 +2288,11 @@
         "Probability": "0",
         "Rationale": "",
         "Source": "Anon"
-      }
+      },
+      "kaosId": "dll_preloading"
     },
     {
-      "id": "zero_day_threat_exploit",
+      "id": "64b762f6-6306-5c3f-b4b3-847712d9d8b3",
       "text": "Zero-day threat exploit",
       "type": "kaos.Obstacle",
       "x": 8200,
@@ -2190,10 +2304,11 @@
         "Probability": "0.1",
         "Rationale": "Unlikely given the comparative significance of this part of the CNI.",
         "Source": "Anon"
-      }
+      },
+      "kaosId": "zero_day_threat_exploit"
     },
     {
-      "id": "unscanned_media",
+      "id": "7e6f0e0a-08c6-52f2-bb1a-0f025c6e3212",
       "text": "Unscanned media",
       "type": "kaos.Obstacle",
       "x": 7880,
@@ -2205,10 +2320,11 @@
         "Probability": "0",
         "Rationale": "",
         "Source": "Anon"
-      }
+      },
+      "kaosId": "unscanned_media"
     },
     {
-      "id": "scanning_software_disabled",
+      "id": "858dbd6b-1be4-5049-8ef8-71923b8124a4",
       "text": "Scanning software disabled",
       "type": "kaos.Obstacle",
       "x": 7880,
@@ -2220,10 +2336,11 @@
         "Probability": "0.8",
         "Rationale": "Scanning software is usually disabled as scans can cause an adverse reaction given the stability of some STCS applications.",
         "Source": "Anon"
-      }
+      },
+      "kaosId": "scanning_software_disabled"
     },
     {
-      "id": "scanning_software_not_installed",
+      "id": "e83185bf-4872-5bb0-8b4b-18d46359f1d9",
       "text": "Scanning software not installed",
       "type": "kaos.Obstacle",
       "x": 8040,
@@ -2235,10 +2352,11 @@
         "Probability": "0",
         "Rationale": "",
         "Source": "Anon"
-      }
+      },
+      "kaosId": "scanning_software_not_installed"
     },
     {
-      "id": "software_incompatibility",
+      "id": "3178d9ba-e2c6-58d3-b6b1-c781fb9a1528",
       "text": "Software incompatibility",
       "type": "kaos.Obstacle",
       "x": 8040,
@@ -2250,10 +2368,11 @@
         "Probability": "0.1",
         "Rationale": "Software is usually tested before deployment.",
         "Source": "Anon"
-      }
+      },
+      "kaosId": "software_incompatibility"
     },
     {
-      "id": "vendor_passwords_unchanged",
+      "id": "e7d7bb3d-23e4-54b6-9dd5-7044f09b72a2",
       "text": "Vendor passwords unchanged",
       "type": "kaos.Obstacle",
       "x": 6440,
@@ -2265,10 +2384,11 @@
         "Probability": "0.7",
         "Rationale": "Default passwords are often left unchanged.",
         "Source": "Anon"
-      }
+      },
+      "kaosId": "vendor_passwords_unchanged"
     },
     {
-      "id": "undetected_malicious_traffic",
+      "id": "d25c1f49-3afa-5ae9-a029-63694e5f3de5",
       "text": "Undetected malicious traffic",
       "type": "kaos.Obstacle",
       "x": 1160,
@@ -2280,10 +2400,11 @@
         "Probability": "0",
         "Rationale": "",
         "Source": "Anon"
-      }
+      },
+      "kaosId": "undetected_malicious_traffic"
     },
     {
-      "id": "crafted_packets",
+      "id": "9a0df8b7-de2d-5dd0-b138-1771bf1fc830",
       "text": "Crafted packets",
       "type": "kaos.Obstacle",
       "x": 1160,
@@ -2295,10 +2416,11 @@
         "Probability": "0.1",
         "Rationale": "Requires significant motivation and capability on the part of the likely attacks, which seems unlikely.",
         "Source": "Anon"
-      }
+      },
+      "kaosId": "crafted_packets"
     },
     {
-      "id": "incomplete_firewall_rule_set",
+      "id": "426d53c3-dec4-595f-931b-25a4125a5add",
       "text": "Incomplete firewall rule-set",
       "type": "kaos.Obstacle",
       "x": 1320,
@@ -2310,10 +2432,11 @@
         "Probability": "0.4",
         "Rationale": "May arise if applications are removed, modified, or added to the network, but occurs infrequently.",
         "Source": "Anon"
-      }
+      },
+      "kaosId": "incomplete_firewall_rule_set"
     },
     {
-      "id": "unavailable_software_repository",
+      "id": "0f8cbd45-5df8-5079-90de-947cf11f846c",
       "text": "Unavailable software repository",
       "type": "kaos.Obstacle",
       "x": 4680,
@@ -2323,10 +2446,11 @@
         "FormalSpec": "",
         "Category": "Availability_Threat",
         "Source": "CAIRIS"
-      }
+      },
+      "kaosId": "unavailable_software_repository"
     },
     {
-      "id": "plant_operator",
+      "id": "a0ad8b5b-f8be-5247-b766-81a5dca36540",
       "text": "Plant Operator",
       "type": "kaos.Agent",
       "x": 8040,
@@ -2335,10 +2459,11 @@
         "Description": "Plant operators monitor the water treatment process at a clean or waste water treatment plant.",
         "RoleType": "Stakeholder",
         "ShortCode": "POP"
-      }
+      },
+      "kaosId": "plant_operator"
     },
     {
-      "id": "information_security_manager",
+      "id": "2edc3bab-d07b-5bc5-9bd6-4866cb88be34",
       "text": "Information Security Manager",
       "type": "kaos.Agent",
       "x": 1640,
@@ -2347,10 +2472,11 @@
         "Description": "ACME Information Security Manager",
         "RoleType": "Stakeholder",
         "ShortCode": "ISM"
-      }
+      },
+      "kaosId": "information_security_manager"
     },
     {
-      "id": "vendor",
+      "id": "1983dddd-8f72-50fb-82d7-9899df1826a2",
       "text": "Vendor",
       "type": "kaos.Agent",
       "x": 13960,
@@ -2359,10 +2485,11 @@
         "Description": "Vendor of SCADA, Telemetry, and Control System software",
         "RoleType": "Stakeholder",
         "ShortCode": "VENDOR"
-      }
+      },
+      "kaosId": "vendor"
     },
     {
-      "id": "cracker",
+      "id": "2bcf4a15-7806-54b1-bb98-24ef690b4a0e",
       "text": "Cracker",
       "type": "kaos.Agent",
       "x": 14120,
@@ -2371,10 +2498,11 @@
         "Description": "Cracker",
         "RoleType": "Attacker",
         "ShortCode": "CRACK"
-      }
+      },
+      "kaosId": "cracker"
     },
     {
-      "id": "ict_partner",
+      "id": "615956ef-8818-54d7-b716-c22235d3ce97",
       "text": "ICT Partner",
       "type": "kaos.Agent",
       "x": 10600,
@@ -2383,10 +2511,11 @@
         "Description": "ICT partner contractually responsible for delivering ICT services to ACME.",
         "RoleType": "Stakeholder",
         "ShortCode": "ICT_P"
-      }
+      },
+      "kaosId": "ict_partner"
     },
     {
-      "id": "instrument_technician",
+      "id": "6e56edf6-03c4-5665-af29-1cf28e388e90",
       "text": "Instrument Technician",
       "type": "kaos.Agent",
       "x": 680,
@@ -2395,10 +2524,11 @@
         "Description": "Instrument Technicians are responsible for maintaining operational SCADA, Telemetry, and Control System software.",
         "RoleType": "Stakeholder",
         "ShortCode": "TECH"
-      }
+      },
+      "kaosId": "instrument_technician"
     },
     {
-      "id": "petty_criminal",
+      "id": "23b2ee4b-d26a-5540-bf03-71694f96391e",
       "text": "Petty Criminal",
       "type": "kaos.Agent",
       "x": 14280,
@@ -2407,10 +2537,11 @@
         "Description": "Engages in acts of petty crime",
         "RoleType": "Attacker",
         "ShortCode": "PETTY_CRIM"
-      }
+      },
+      "kaosId": "petty_criminal"
     },
     {
-      "id": "integrator",
+      "id": "2e099ed4-2389-52e5-ac97-74ec26e48426",
       "text": "Integrator",
       "type": "kaos.Agent",
       "x": 14440,
@@ -2419,10 +2550,11 @@
         "Description": "Work with process partners to implement the control philosophy associated with a capital project",
         "RoleType": "Stakeholder",
         "ShortCode": "INTGR"
-      }
+      },
+      "kaosId": "integrator"
     },
     {
-      "id": "facilities_management",
+      "id": "35a9cf36-1427-558d-bac2-02e249b6835a",
       "text": "Facilities Management",
       "type": "kaos.Agent",
       "x": 11880,
@@ -2431,10 +2563,11 @@
         "Description": "ACME facilities management contractor",
         "RoleType": "Stakeholder",
         "ShortCode": "FM"
-      }
+      },
+      "kaosId": "facilities_management"
     },
     {
-      "id": "machine",
+      "id": "4cb89355-a883-5cb4-8c66-cfdc7f5b14a6",
       "text": "Machine",
       "type": "kaos.Agent",
       "x": 14600,
@@ -2443,7 +2576,8 @@
         "Description": "System hardware",
         "RoleType": "Stakeholder",
         "ShortCode": "MACH"
-      }
+      },
+      "kaosId": "machine"
     }
   ],
   "dependencies": [],
@@ -2451,8 +2585,8 @@
     {
       "id": "desktop_installation-obstructs-authorised_removable_media",
       "type": "kaos.ObstructionLink",
-      "source": "desktop_installation",
-      "target": "authorised_removable_media",
+      "source": "8af2fe17-ea63-5471-9af4-858393ad02b9",
+      "target": "3c7cdd3f-85f2-5516-99d2-98742f58fe7a",
       "customProperties": {
         "Rationale": "None"
       }
@@ -2460,8 +2594,8 @@
     {
       "id": "unused_pc_application-obstructs-business_activity_asset",
       "type": "kaos.ObstructionLink",
-      "source": "unused_pc_application",
-      "target": "business_activity_asset",
+      "source": "2c3bb32f-172f-522e-a7b4-30838a04eeee",
+      "target": "fd159c8c-94c8-5f92-8a03-f49ec64c3003",
       "customProperties": {
         "Rationale": "None"
       }
@@ -2469,8 +2603,8 @@
     {
       "id": "exposed_ict_cabinets-obstructs-ict_awareness",
       "type": "kaos.ObstructionLink",
-      "source": "exposed_ict_cabinets",
-      "target": "ict_awareness",
+      "source": "674093b0-b607-5f73-bae5-b26e2dad4346",
+      "target": "0289420b-2adb-53b2-8317-e4782f5b8e25",
       "customProperties": {
         "Rationale": "None"
       }
@@ -2478,8 +2612,8 @@
     {
       "id": "surplus_equipment-obstructs-ict_awareness",
       "type": "kaos.ObstructionLink",
-      "source": "surplus_equipment",
-      "target": "ict_awareness",
+      "source": "30d6800a-d93f-58f3-94a7-29c83e609203",
+      "target": "0289420b-2adb-53b2-8317-e4782f5b8e25",
       "customProperties": {
         "Rationale": "None"
       }
@@ -2487,8 +2621,8 @@
     {
       "id": "exposed_ict_cabinets-obstructs-key_ict_security",
       "type": "kaos.ObstructionLink",
-      "source": "exposed_ict_cabinets",
-      "target": "key_ict_security",
+      "source": "674093b0-b607-5f73-bae5-b26e2dad4346",
+      "target": "8c78f7df-fa7a-5205-a71e-f464e977ae53",
       "customProperties": {
         "Rationale": "None"
       }
@@ -2496,8 +2630,8 @@
     {
       "id": "zero_day_threat_exploit-obstructs-malware_data_scanning",
       "type": "kaos.ObstructionLink",
-      "source": "zero_day_threat_exploit",
-      "target": "malware_data_scanning",
+      "source": "64b762f6-6306-5c3f-b4b3-847712d9d8b3",
+      "target": "2960016b-61b4-56cd-b1ca-4d5294041b3d",
       "customProperties": {
         "Rationale": "None"
       }
@@ -2505,8 +2639,8 @@
     {
       "id": "unscanned_media-obstructs-scanned_media",
       "type": "kaos.ObstructionLink",
-      "source": "unscanned_media",
-      "target": "scanned_media",
+      "source": "7e6f0e0a-08c6-52f2-bb1a-0f025c6e3212",
+      "target": "a521f95e-f8b9-5074-8e71-1acd4c0cf6b2",
       "customProperties": {
         "Rationale": "None"
       }
@@ -2514,8 +2648,8 @@
     {
       "id": "vendor_passwords_unchanged-obstructs-vendor_passwords",
       "type": "kaos.ObstructionLink",
-      "source": "vendor_passwords_unchanged",
-      "target": "vendor_passwords",
+      "source": "e7d7bb3d-23e4-54b6-9dd5-7044f09b72a2",
+      "target": "6d4f194d-cfcd-538d-93e3-5687c6235fee",
       "customProperties": {
         "Rationale": "None"
       }
@@ -2523,8 +2657,8 @@
     {
       "id": "ubiquitous_identity_data-obstructs-credentials_non_disclosure",
       "type": "kaos.ObstructionLink",
-      "source": "ubiquitous_identity_data",
-      "target": "credentials_non_disclosure",
+      "source": "50ca6e68-1e89-5afb-b481-aa3aaf712a81",
+      "target": "21f2bd3b-a0cf-521a-8e8e-f2d5824c0ec5",
       "customProperties": {
         "Rationale": "None"
       }
@@ -2532,8 +2666,8 @@
     {
       "id": "undetected_malicious_traffic-obstructs-malicious_traffic_alert",
       "type": "kaos.ObstructionLink",
-      "source": "undetected_malicious_traffic",
-      "target": "malicious_traffic_alert",
+      "source": "d25c1f49-3afa-5ae9-a029-63694e5f3de5",
+      "target": "5570ec83-f68b-5385-b143-a65e08ebc9b3",
       "customProperties": {
         "Rationale": "None"
       }
@@ -2541,8 +2675,8 @@
     {
       "id": "unavailable_software_repository-obstructs-active_directory_software_deployment",
       "type": "kaos.ObstructionLink",
-      "source": "unavailable_software_repository",
-      "target": "active_directory_software_deployment",
+      "source": "0f8cbd45-5df8-5079-90de-947cf11f846c",
+      "target": "44664da6-abe0-559c-8df5-2fdd2ad424a9",
       "customProperties": {
         "Rationale": "Obstructs use case Modify Telemetry Software"
       }
@@ -2563,19 +2697,19 @@
         {
           "id": "firewall_and_dmz-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "internet_access",
+          "source": "c2e34729-a186-515a-a60f-fd0e7f6b8edb",
           "target": "firewall_and_dmz-refinement-1"
         },
         {
           "id": "firewall_and_dmz-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "firewall_rule_attributes",
+          "source": "7dc06e74-7603-56a0-b71f-b2db03434a7b",
           "target": "firewall_and_dmz-refinement-1"
         },
         {
           "id": "firewall_and_dmz-refinement-1-3",
           "type": "kaos.RefinementLinkStart",
-          "source": "firewall_trafffic_monitoring",
+          "source": "87511e53-a50e-5810-9e1a-7c42e02ac27a",
           "target": "firewall_and_dmz-refinement-1",
           "customProperties": {
             "Rationale": "None"
@@ -2584,19 +2718,19 @@
         {
           "id": "firewall_and_dmz-refinement-1-4",
           "type": "kaos.RefinementLinkStart",
-          "source": "least_privilege_connections",
+          "source": "d2711ebd-3bb8-5a29-9647-89eb8ce39491",
           "target": "firewall_and_dmz-refinement-1"
         },
         {
           "id": "firewall_and_dmz-refinement-1-5",
           "type": "kaos.RefinementLinkStart",
-          "source": "firewall_administration_monitoring",
+          "source": "ed88a3f5-3cfc-5753-8b0c-7c8fd56c226c",
           "target": "firewall_and_dmz-refinement-1"
         },
         {
           "id": "firewall_and_dmz-refinement-1-6",
           "type": "kaos.RefinementLinkStart",
-          "source": "hardware_firewall",
+          "source": "d5b447f2-7dd9-5d61-9a55-1f40691e993c",
           "target": "firewall_and_dmz-refinement-1",
           "customProperties": {
             "Rationale": "None"
@@ -2605,7 +2739,7 @@
         {
           "id": "firewall_and_dmz-refinement-1-7",
           "type": "kaos.RefinementLinkStart",
-          "source": "authorised_smb_or_webdav_connections",
+          "source": "3d8975b8-cd42-5f52-860d-1d8d2dc30896",
           "target": "firewall_and_dmz-refinement-1"
         }
       ],
@@ -2613,7 +2747,7 @@
         "id": "firewall_and_dmz-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "firewall_and_dmz-refinement-1",
-        "target": "firewall_and_dmz"
+        "target": "65147238-4504-5c5e-9e58-1e74916944ae"
       }
     },
     {
@@ -2632,13 +2766,13 @@
         {
           "id": "secure_routers-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "router_installation",
+          "source": "0172e3de-e111-5f32-964b-45e2dc2d343b",
           "target": "secure_routers-refinement-1"
         },
         {
           "id": "secure_routers-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "router_maintenance",
+          "source": "58179972-d9bc-5c6b-bc88-f790388001af",
           "target": "secure_routers-refinement-1"
         }
       ],
@@ -2646,7 +2780,7 @@
         "id": "secure_routers-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "secure_routers-refinement-1",
-        "target": "secure_routers"
+        "target": "86c001cc-bbb0-5641-acac-25c04dbc3d69"
       }
     },
     {
@@ -2665,7 +2799,7 @@
         {
           "id": "identifiable_connections-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "active_directory_network_services",
+          "source": "82734b94-6ba7-5ba3-95bc-1f9cedb162e6",
           "target": "identifiable_connections-refinement-1",
           "customProperties": {
             "Rationale": "None"
@@ -2676,7 +2810,7 @@
         "id": "identifiable_connections-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "identifiable_connections-refinement-1",
-        "target": "identifiable_connections"
+        "target": "4c6f5dd3-1bea-5478-bdf1-f4bbc269b4f3"
       }
     },
     {
@@ -2695,67 +2829,67 @@
         {
           "id": "secure_operating_environment-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "secure_network_infrastructure",
+          "source": "69185cf9-fcba-5db5-988d-681752ee302a",
           "target": "secure_operating_environment-refinement-1"
         },
         {
           "id": "secure_operating_environment-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "secure_changes",
+          "source": "09739d1f-1144-5ea6-af58-4735b19f3bcb",
           "target": "secure_operating_environment-refinement-1"
         },
         {
           "id": "secure_operating_environment-refinement-1-3",
           "type": "kaos.RefinementLinkStart",
-          "source": "access_control",
+          "source": "136117f1-7514-5534-93cc-a27fa510fd20",
           "target": "secure_operating_environment-refinement-1"
         },
         {
           "id": "secure_operating_environment-refinement-1-4",
           "type": "kaos.RefinementLinkStart",
-          "source": "secure_operating_systems",
+          "source": "ba66056a-5251-5bdc-992c-76a2a504b2fe",
           "target": "secure_operating_environment-refinement-1"
         },
         {
           "id": "secure_operating_environment-refinement-1-5",
           "type": "kaos.RefinementLinkStart",
-          "source": "secure_sla",
+          "source": "2639af76-d33b-5cbe-a8b7-79ecb6e93a67",
           "target": "secure_operating_environment-refinement-1"
         },
         {
           "id": "secure_operating_environment-refinement-1-6",
           "type": "kaos.RefinementLinkStart",
-          "source": "secure_roles",
+          "source": "e4236878-6f92-5279-896f-15788cf85172",
           "target": "secure_operating_environment-refinement-1"
         },
         {
           "id": "secure_operating_environment-refinement-1-7",
           "type": "kaos.RefinementLinkStart",
-          "source": "product_security_accreditation",
+          "source": "0938a9c7-9ccf-5b0e-b05a-b55caee13f1d",
           "target": "secure_operating_environment-refinement-1"
         },
         {
           "id": "secure_operating_environment-refinement-1-8",
           "type": "kaos.RefinementLinkStart",
-          "source": "secure_backup",
+          "source": "0b5734d6-8fd2-5e03-b8d1-05a2b3918cb1",
           "target": "secure_operating_environment-refinement-1"
         },
         {
           "id": "secure_operating_environment-refinement-1-9",
           "type": "kaos.RefinementLinkStart",
-          "source": "compliance_audit",
+          "source": "75bf655d-fe81-580c-b5ed-65eb589236ca",
           "target": "secure_operating_environment-refinement-1"
         },
         {
           "id": "secure_operating_environment-refinement-1-10",
           "type": "kaos.RefinementLinkStart",
-          "source": "secure_site",
+          "source": "13257da8-e103-547c-9266-2091c8a7ab62",
           "target": "secure_operating_environment-refinement-1"
         },
         {
           "id": "secure_operating_environment-refinement-1-11",
           "type": "kaos.RefinementLinkStart",
-          "source": "business_activity_asset",
+          "source": "fd159c8c-94c8-5f92-8a03-f49ec64c3003",
           "target": "secure_operating_environment-refinement-1",
           "customProperties": {
             "Rationale": "None"
@@ -2766,7 +2900,7 @@
         "id": "secure_operating_environment-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "secure_operating_environment-refinement-1",
-        "target": "secure_operating_environment"
+        "target": "658f34cc-b71f-588c-a425-2b4db872e030"
       }
     },
     {
@@ -2785,37 +2919,37 @@
         {
           "id": "secure_network_infrastructure-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "secure_routers",
+          "source": "86c001cc-bbb0-5641-acac-25c04dbc3d69",
           "target": "secure_network_infrastructure-refinement-1"
         },
         {
           "id": "secure_network_infrastructure-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "intrusion_prevention_system",
+          "source": "b5b99db7-83be-57a6-8e9c-546a4f9e0e1d",
           "target": "secure_network_infrastructure-refinement-1"
         },
         {
           "id": "secure_network_infrastructure-refinement-1-3",
           "type": "kaos.RefinementLinkStart",
-          "source": "firewall_and_dmz",
+          "source": "65147238-4504-5c5e-9e58-1e74916944ae",
           "target": "secure_network_infrastructure-refinement-1"
         },
         {
           "id": "secure_network_infrastructure-refinement-1-4",
           "type": "kaos.RefinementLinkStart",
-          "source": "secure_wifi",
+          "source": "e948f868-9739-5c58-bb8a-97de91bed1c7",
           "target": "secure_network_infrastructure-refinement-1"
         },
         {
           "id": "secure_network_infrastructure-refinement-1-5",
           "type": "kaos.RefinementLinkStart",
-          "source": "secure_remote_access",
+          "source": "6b5c1d24-07b9-5c86-a7f6-4dc674ff8e54",
           "target": "secure_network_infrastructure-refinement-1"
         },
         {
           "id": "secure_network_infrastructure-refinement-1-6",
           "type": "kaos.RefinementLinkStart",
-          "source": "identifiable_connections",
+          "source": "4c6f5dd3-1bea-5478-bdf1-f4bbc269b4f3",
           "target": "secure_network_infrastructure-refinement-1"
         }
       ],
@@ -2823,7 +2957,7 @@
         "id": "secure_network_infrastructure-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "secure_network_infrastructure-refinement-1",
-        "target": "secure_network_infrastructure"
+        "target": "69185cf9-fcba-5db5-988d-681752ee302a"
       }
     },
     {
@@ -2842,43 +2976,43 @@
         {
           "id": "secure_changes-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "acme_change_control",
+          "source": "683414bc-87c1-5ea0-a246-d0348da9c81d",
           "target": "secure_changes-refinement-1"
         },
         {
           "id": "secure_changes-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "critical_vendor_patches",
+          "source": "032f4024-fd2d-5c3a-a20e-376d1be8268d",
           "target": "secure_changes-refinement-1"
         },
         {
           "id": "secure_changes-refinement-1-3",
           "type": "kaos.RefinementLinkStart",
-          "source": "compensating_controls",
+          "source": "cb0f5c8f-1c93-55e9-8ea6-7abb8c0f61df",
           "target": "secure_changes-refinement-1"
         },
         {
           "id": "secure_changes-refinement-1-4",
           "type": "kaos.RefinementLinkStart",
-          "source": "versioned_plc_changes",
+          "source": "ed6bd543-e4b3-58e8-a72b-7aa391aeb7ce",
           "target": "secure_changes-refinement-1"
         },
         {
           "id": "secure_changes-refinement-1-5",
           "type": "kaos.RefinementLinkStart",
-          "source": "important_vendor_patches",
+          "source": "57fbcba1-05e3-5f92-9046-906a1b36942a",
           "target": "secure_changes-refinement-1"
         },
         {
           "id": "secure_changes-refinement-1-6",
           "type": "kaos.RefinementLinkStart",
-          "source": "warranted_connection",
+          "source": "1ae225a1-61ff-5c0b-a17e-cbfa5efd18a8",
           "target": "secure_changes-refinement-1"
         },
         {
           "id": "secure_changes-refinement-1-7",
           "type": "kaos.RefinementLinkStart",
-          "source": "active_directory_software_deployment",
+          "source": "44664da6-abe0-559c-8df5-2fdd2ad424a9",
           "target": "secure_changes-refinement-1",
           "customProperties": {
             "Rationale": "None"
@@ -2887,7 +3021,7 @@
         {
           "id": "secure_changes-refinement-1-8",
           "type": "kaos.RefinementLinkStart",
-          "source": "warranted_access",
+          "source": "e51f3bbb-ac91-53be-bb88-b4771df042d8",
           "target": "secure_changes-refinement-1",
           "customProperties": {
             "Rationale": "None"
@@ -2896,7 +3030,7 @@
         {
           "id": "secure_changes-refinement-1-9",
           "type": "kaos.RefinementLinkStart",
-          "source": "patch_risk_management",
+          "source": "3a0ff5a8-31af-53f0-a4c2-15d1911af371",
           "target": "secure_changes-refinement-1"
         }
       ],
@@ -2904,7 +3038,7 @@
         "id": "secure_changes-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "secure_changes-refinement-1",
-        "target": "secure_changes"
+        "target": "09739d1f-1144-5ea6-af58-4735b19f3bcb"
       }
     },
     {
@@ -2923,31 +3057,31 @@
         {
           "id": "secure_remote_access-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "access_revocation",
+          "source": "bdf950fe-d516-5b0f-b1d5-ffb1724d48a6",
           "target": "secure_remote_access-refinement-1"
         },
         {
           "id": "secure_remote_access-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "remote_access_inventory",
+          "source": "9b2a1d4b-e888-538b-8723-594898a786a7",
           "target": "secure_remote_access-refinement-1"
         },
         {
           "id": "secure_remote_access-refinement-1-3",
           "type": "kaos.RefinementLinkStart",
-          "source": "third_party_requests",
+          "source": "1027d27c-1ae3-51bb-9545-ae2a27b1ca78",
           "target": "secure_remote_access-refinement-1"
         },
         {
           "id": "secure_remote_access-refinement-1-4",
           "type": "kaos.RefinementLinkStart",
-          "source": "third_party_remote_access",
+          "source": "9bc46ff2-209c-57cb-bdb5-b5788d80dac5",
           "target": "secure_remote_access-refinement-1"
         },
         {
           "id": "secure_remote_access-refinement-1-5",
           "type": "kaos.RefinementLinkStart",
-          "source": "two_factor_remote_access",
+          "source": "60c143b9-e815-54f0-80a8-99a2bca1f13f",
           "target": "secure_remote_access-refinement-1"
         }
       ],
@@ -2955,7 +3089,7 @@
         "id": "secure_remote_access-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "secure_remote_access-refinement-1",
-        "target": "secure_remote_access"
+        "target": "6b5c1d24-07b9-5c86-a7f6-4dc674ff8e54"
       }
     },
     {
@@ -2974,43 +3108,43 @@
         {
           "id": "access_control-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "user_id_least_privilege",
+          "source": "cdb7921a-c167-5ea0-8195-78cffa099736",
           "target": "access_control-refinement-1"
         },
         {
           "id": "access_control-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "critical_area_logging",
+          "source": "d4c6a9a3-18bc-59d3-b708-17171604878d",
           "target": "access_control-refinement-1"
         },
         {
           "id": "access_control-refinement-1-3",
           "type": "kaos.RefinementLinkStart",
-          "source": "id_level_access_control",
+          "source": "0f8b5191-7776-5004-9600-f6e6a02c3538",
           "target": "access_control-refinement-1"
         },
         {
           "id": "access_control-refinement-1-4",
           "type": "kaos.RefinementLinkStart",
-          "source": "enterprisescada_access_control",
+          "source": "2015955c-bf9f-5add-849b-be9408db110f",
           "target": "access_control-refinement-1"
         },
         {
           "id": "access_control-refinement-1-5",
           "type": "kaos.RefinementLinkStart",
-          "source": "password_policy",
+          "source": "aa24ff16-37c5-5258-b0d5-afd339b396ac",
           "target": "access_control-refinement-1"
         },
         {
           "id": "access_control-refinement-1-6",
           "type": "kaos.RefinementLinkStart",
-          "source": "tms_access_control",
+          "source": "b23c56ee-0252-5863-98b7-630d4573061a",
           "target": "access_control-refinement-1"
         },
         {
           "id": "access_control-refinement-1-7",
           "type": "kaos.RefinementLinkStart",
-          "source": "credentials_non_disclosure",
+          "source": "21f2bd3b-a0cf-521a-8e8e-f2d5824c0ec5",
           "target": "access_control-refinement-1"
         }
       ],
@@ -3018,7 +3152,7 @@
         "id": "access_control-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "access_control-refinement-1",
-        "target": "access_control"
+        "target": "136117f1-7514-5534-93cc-a27fa510fd20"
       }
     },
     {
@@ -3037,31 +3171,31 @@
         {
           "id": "secure_operating_systems-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "standard_build",
+          "source": "64083513-04e3-5484-b109-a940385656de",
           "target": "secure_operating_systems-refinement-1"
         },
         {
           "id": "secure_operating_systems-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "operating_system_logs",
+          "source": "6f098f30-21fc-5f52-ad8a-4dbc651d2e3b",
           "target": "secure_operating_systems-refinement-1"
         },
         {
           "id": "secure_operating_systems-refinement-1-3",
           "type": "kaos.RefinementLinkStart",
-          "source": "authorised_removable_media",
+          "source": "3c7cdd3f-85f2-5516-99d2-98742f58fe7a",
           "target": "secure_operating_systems-refinement-1"
         },
         {
           "id": "secure_operating_systems-refinement-1-4",
           "type": "kaos.RefinementLinkStart",
-          "source": "anti_virus",
+          "source": "c914a806-0b25-5148-b41f-24db0892ac1f",
           "target": "secure_operating_systems-refinement-1"
         },
         {
           "id": "secure_operating_systems-refinement-1-5",
           "type": "kaos.RefinementLinkStart",
-          "source": "product_security_configuration",
+          "source": "c92a45b2-cbf3-5646-a735-1dbda0f88fd7",
           "target": "secure_operating_systems-refinement-1"
         }
       ],
@@ -3069,7 +3203,7 @@
         "id": "secure_operating_systems-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "secure_operating_systems-refinement-1",
-        "target": "secure_operating_systems"
+        "target": "ba66056a-5251-5bdc-992c-76a2a504b2fe"
       }
     },
     {
@@ -3088,7 +3222,7 @@
         {
           "id": "authorised_removable_media-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "scanned_media",
+          "source": "a521f95e-f8b9-5074-8e71-1acd4c0cf6b2",
           "target": "authorised_removable_media-refinement-1"
         }
       ],
@@ -3096,7 +3230,7 @@
         "id": "authorised_removable_media-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "authorised_removable_media-refinement-1",
-        "target": "authorised_removable_media"
+        "target": "3c7cdd3f-85f2-5516-99d2-98742f58fe7a"
       }
     },
     {
@@ -3115,7 +3249,7 @@
         {
           "id": "standard_build-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "os_hardening",
+          "source": "744aa5c6-bb47-5162-ba0d-98fa3ca7b987",
           "target": "standard_build-refinement-1"
         }
       ],
@@ -3123,7 +3257,7 @@
         "id": "standard_build-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "standard_build-refinement-1",
-        "target": "standard_build"
+        "target": "64083513-04e3-5484-b109-a940385656de"
       }
     },
     {
@@ -3142,31 +3276,31 @@
         {
           "id": "password_policy-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "password_expiration",
+          "source": "db07ff04-b2c1-56ea-a6b7-6f09748a667f",
           "target": "password_policy-refinement-1"
         },
         {
           "id": "password_policy-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "password_mixed_characters",
+          "source": "ab844029-7f0e-53a1-80fe-b91f8daa0db6",
           "target": "password_policy-refinement-1"
         },
         {
           "id": "password_policy-refinement-1-3",
           "type": "kaos.RefinementLinkStart",
-          "source": "password_length",
+          "source": "a4b1ccf2-87ac-56e8-87f7-9f271e687980",
           "target": "password_policy-refinement-1"
         },
         {
           "id": "password_policy-refinement-1-4",
           "type": "kaos.RefinementLinkStart",
-          "source": "password_storage",
+          "source": "a008c059-bd46-5c23-bd4d-387d06210ba5",
           "target": "password_policy-refinement-1"
         },
         {
           "id": "password_policy-refinement-1-5",
           "type": "kaos.RefinementLinkStart",
-          "source": "vendor_passwords",
+          "source": "6d4f194d-cfcd-538d-93e3-5687c6235fee",
           "target": "password_policy-refinement-1"
         }
       ],
@@ -3174,7 +3308,7 @@
         "id": "password_policy-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "password_policy-refinement-1",
-        "target": "password_policy"
+        "target": "aa24ff16-37c5-5258-b0d5-afd339b396ac"
       }
     },
     {
@@ -3193,7 +3327,7 @@
         {
           "id": "critical_vendor_patches-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "control_testing",
+          "source": "b6d6519f-f80f-5cc4-9664-d8d0a979888e",
           "target": "critical_vendor_patches-refinement-1"
         }
       ],
@@ -3201,7 +3335,7 @@
         "id": "critical_vendor_patches-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "critical_vendor_patches-refinement-1",
-        "target": "critical_vendor_patches"
+        "target": "032f4024-fd2d-5c3a-a20e-376d1be8268d"
       }
     },
     {
@@ -3220,7 +3354,7 @@
         {
           "id": "important_vendor_patches-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "control_testing",
+          "source": "b6d6519f-f80f-5cc4-9664-d8d0a979888e",
           "target": "important_vendor_patches-refinement-1"
         }
       ],
@@ -3228,7 +3362,7 @@
         "id": "important_vendor_patches-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "important_vendor_patches-refinement-1",
-        "target": "important_vendor_patches"
+        "target": "57fbcba1-05e3-5f92-9046-906a1b36942a"
       }
     },
     {
@@ -3247,7 +3381,7 @@
         {
           "id": "compensating_controls-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "control_testing",
+          "source": "b6d6519f-f80f-5cc4-9664-d8d0a979888e",
           "target": "compensating_controls-refinement-1",
           "customProperties": {
             "Rationale": "None"
@@ -3258,7 +3392,7 @@
         "id": "compensating_controls-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "compensating_controls-refinement-1",
-        "target": "compensating_controls"
+        "target": "cb0f5c8f-1c93-55e9-8ea6-7abb8c0f61df"
       }
     },
     {
@@ -3277,7 +3411,7 @@
         {
           "id": "anti_virus-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "compensating_controls",
+          "source": "cb0f5c8f-1c93-55e9-8ea6-7abb8c0f61df",
           "target": "anti_virus-refinement-1",
           "customProperties": {
             "Rationale": "None"
@@ -3288,7 +3422,7 @@
         "id": "anti_virus-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "anti_virus-refinement-1",
-        "target": "anti_virus"
+        "target": "c914a806-0b25-5148-b41f-24db0892ac1f"
       }
     },
     {
@@ -3307,7 +3441,7 @@
         {
           "id": "anti_virus-refinement-2-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "malware_data_scanning",
+          "source": "2960016b-61b4-56cd-b1ca-4d5294041b3d",
           "target": "anti_virus-refinement-2"
         }
       ],
@@ -3315,7 +3449,7 @@
         "id": "anti_virus-refinement-2-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "anti_virus-refinement-2",
-        "target": "anti_virus"
+        "target": "c914a806-0b25-5148-b41f-24db0892ac1f"
       }
     },
     {
@@ -3334,13 +3468,13 @@
         {
           "id": "operating_system_logs-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "log_file_overwrite",
+          "source": "16b56cb1-4fc6-5e1a-b83e-3fdd40477ca3",
           "target": "operating_system_logs-refinement-1"
         },
         {
           "id": "operating_system_logs-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "log_file_size",
+          "source": "c720ab33-87b2-5ab4-97fe-a2b7cbca18c4",
           "target": "operating_system_logs-refinement-1"
         }
       ],
@@ -3348,7 +3482,7 @@
         "id": "operating_system_logs-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "operating_system_logs-refinement-1",
-        "target": "operating_system_logs"
+        "target": "6f098f30-21fc-5f52-ad8a-4dbc651d2e3b"
       }
     },
     {
@@ -3367,13 +3501,13 @@
         {
           "id": "critical_area_logging-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "log_file_size",
+          "source": "c720ab33-87b2-5ab4-97fe-a2b7cbca18c4",
           "target": "critical_area_logging-refinement-1"
         },
         {
           "id": "critical_area_logging-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "log_file_overwrite",
+          "source": "16b56cb1-4fc6-5e1a-b83e-3fdd40477ca3",
           "target": "critical_area_logging-refinement-1"
         }
       ],
@@ -3381,7 +3515,7 @@
         "id": "critical_area_logging-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "critical_area_logging-refinement-1",
-        "target": "critical_area_logging"
+        "target": "d4c6a9a3-18bc-59d3-b708-17171604878d"
       }
     },
     {
@@ -3400,43 +3534,43 @@
         {
           "id": "secure_backup-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "backup_media",
+          "source": "bee95554-ffc8-5d2c-bb83-f56526cd3e5e",
           "target": "secure_backup-refinement-1"
         },
         {
           "id": "secure_backup-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "backup_testing",
+          "source": "676d9f95-8e59-585e-a1de-06e277d7e31c",
           "target": "secure_backup-refinement-1"
         },
         {
           "id": "secure_backup-refinement-1-3",
           "type": "kaos.RefinementLinkStart",
-          "source": "offsite_backup",
+          "source": "1159d8e7-8634-567b-9275-afe085fb255b",
           "target": "secure_backup-refinement-1"
         },
         {
           "id": "secure_backup-refinement-1-4",
           "type": "kaos.RefinementLinkStart",
-          "source": "backup_hardware",
+          "source": "b11408a9-5412-5902-8c85-f7a7e391a9f0",
           "target": "secure_backup-refinement-1"
         },
         {
           "id": "secure_backup-refinement-1-5",
           "type": "kaos.RefinementLinkStart",
-          "source": "backup_transmission",
+          "source": "7299dee5-b0ea-50ca-92fa-9fa0fa7d984b",
           "target": "secure_backup-refinement-1"
         },
         {
           "id": "secure_backup-refinement-1-6",
           "type": "kaos.RefinementLinkStart",
-          "source": "backup_logs",
+          "source": "6b73eccb-94b8-5737-bed2-4b710b9973e6",
           "target": "secure_backup-refinement-1"
         },
         {
           "id": "secure_backup-refinement-1-7",
           "type": "kaos.RefinementLinkStart",
-          "source": "application_program_backup",
+          "source": "aaa598cb-7951-5ce6-90b3-ca9515d57c28",
           "target": "secure_backup-refinement-1"
         }
       ],
@@ -3444,7 +3578,7 @@
         "id": "secure_backup-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "secure_backup-refinement-1",
-        "target": "secure_backup"
+        "target": "0b5734d6-8fd2-5e03-b8d1-05a2b3918cb1"
       }
     },
     {
@@ -3463,7 +3597,7 @@
         {
           "id": "offsite_backup-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "backup_storage",
+          "source": "b5a0aad9-ee5e-5a36-a1ab-0ea0d7aad8a1",
           "target": "offsite_backup-refinement-1"
         }
       ],
@@ -3471,7 +3605,7 @@
         "id": "offsite_backup-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "offsite_backup-refinement-1",
-        "target": "offsite_backup"
+        "target": "1159d8e7-8634-567b-9275-afe085fb255b"
       }
     },
     {
@@ -3490,19 +3624,19 @@
         {
           "id": "compliance_audit-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "remote_connection_audit",
+          "source": "fab618e2-5b5c-5ff8-abb0-2b5930575b0b",
           "target": "compliance_audit-refinement-1"
         },
         {
           "id": "compliance_audit-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "asset_inventory",
+          "source": "bcb32123-bd0a-5789-97e9-8271686b74e6",
           "target": "compliance_audit-refinement-1"
         },
         {
           "id": "compliance_audit-refinement-1-3",
           "type": "kaos.RefinementLinkStart",
-          "source": "third_party_compliance",
+          "source": "b68b51fb-967d-521d-b584-6badf3354404",
           "target": "compliance_audit-refinement-1",
           "customProperties": {
             "Rationale": "None"
@@ -3511,7 +3645,7 @@
         {
           "id": "compliance_audit-refinement-1-4",
           "type": "kaos.RefinementLinkStart",
-          "source": "acceptable_use_policy",
+          "source": "1d127a8c-26cc-5567-ada5-546253721e2b",
           "target": "compliance_audit-refinement-1"
         }
       ],
@@ -3519,7 +3653,7 @@
         "id": "compliance_audit-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "compliance_audit-refinement-1",
-        "target": "compliance_audit"
+        "target": "75bf655d-fe81-580c-b5ed-65eb589236ca"
       }
     },
     {
@@ -3538,13 +3672,13 @@
         {
           "id": "asset_inventory-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "build_data",
+          "source": "f116de4f-ffc9-5b05-a03f-04f2648c9f9c",
           "target": "asset_inventory-refinement-1"
         },
         {
           "id": "asset_inventory-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "product_security_configuration",
+          "source": "c92a45b2-cbf3-5646-a735-1dbda0f88fd7",
           "target": "asset_inventory-refinement-1"
         }
       ],
@@ -3552,7 +3686,7 @@
         "id": "asset_inventory-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "asset_inventory-refinement-1",
-        "target": "asset_inventory"
+        "target": "bcb32123-bd0a-5789-97e9-8271686b74e6"
       }
     },
     {
@@ -3571,61 +3705,61 @@
         {
           "id": "secure_site-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "ict_awareness",
+          "source": "0289420b-2adb-53b2-8317-e4782f5b8e25",
           "target": "secure_site-refinement-1"
         },
         {
           "id": "secure_site-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "key_ict_security",
+          "source": "8c78f7df-fa7a-5205-a71e-f464e977ae53",
           "target": "secure_site-refinement-1"
         },
         {
           "id": "secure_site-refinement-1-3",
           "type": "kaos.RefinementLinkStart",
-          "source": "fire_suppression",
+          "source": "3fe4c276-faa2-583c-8132-8e15ff686760",
           "target": "secure_site-refinement-1"
         },
         {
           "id": "secure_site-refinement-1-4",
           "type": "kaos.RefinementLinkStart",
-          "source": "fire_detection",
+          "source": "7154c4a5-ef5e-5a29-b197-9745312672fa",
           "target": "secure_site-refinement-1"
         },
         {
           "id": "secure_site-refinement-1-5",
           "type": "kaos.RefinementLinkStart",
-          "source": "environmental_controls",
+          "source": "db209352-2b0b-53fb-a321-dbfa794b5bc8",
           "target": "secure_site-refinement-1"
         },
         {
           "id": "secure_site-refinement-1-6",
           "type": "kaos.RefinementLinkStart",
-          "source": "locked_cabinets",
+          "source": "2681843c-3f11-5680-bd98-5f7909bc49f1",
           "target": "secure_site-refinement-1"
         },
         {
           "id": "secure_site-refinement-1-7",
           "type": "kaos.RefinementLinkStart",
-          "source": "locked_doors",
+          "source": "ef964a1a-efa0-5c70-a185-c9a1dffc2287",
           "target": "secure_site-refinement-1"
         },
         {
           "id": "secure_site-refinement-1-8",
           "type": "kaos.RefinementLinkStart",
-          "source": "computer_rooms",
+          "source": "8e15c4ee-fa61-5b8b-8717-5c0d90988f34",
           "target": "secure_site-refinement-1"
         },
         {
           "id": "secure_site-refinement-1-9",
           "type": "kaos.RefinementLinkStart",
-          "source": "power_provision",
+          "source": "257b8d99-1bbe-58ad-bac8-0027e38d9c4c",
           "target": "secure_site-refinement-1"
         },
         {
           "id": "secure_site-refinement-1-10",
           "type": "kaos.RefinementLinkStart",
-          "source": "industrialised_secure_cabinets",
+          "source": "8868d0c7-c5ac-50df-80ec-c689f633dc75",
           "target": "secure_site-refinement-1"
         }
       ],
@@ -3633,7 +3767,7 @@
         "id": "secure_site-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "secure_site-refinement-1",
-        "target": "secure_site"
+        "target": "13257da8-e103-547c-9266-2091c8a7ab62"
       }
     },
     {
@@ -3652,7 +3786,7 @@
         {
           "id": "active_directory_network_services-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "active_directory_wifi_control",
+          "source": "6b648806-393b-5f4e-9756-b7a9f66ed414",
           "target": "active_directory_network_services-refinement-1"
         }
       ],
@@ -3660,7 +3794,7 @@
         "id": "active_directory_network_services-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "active_directory_network_services-refinement-1",
-        "target": "active_directory_network_services"
+        "target": "82734b94-6ba7-5ba3-95bc-1f9cedb162e6"
       }
     },
     {
@@ -3679,7 +3813,7 @@
         {
           "id": "product_security_accreditation-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "communication_device_backdoors",
+          "source": "e2ebc80d-0139-555b-a6e1-833d42b0c9f2",
           "target": "product_security_accreditation-refinement-1"
         }
       ],
@@ -3687,7 +3821,7 @@
         "id": "product_security_accreditation-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "product_security_accreditation-refinement-1",
-        "target": "product_security_accreditation"
+        "target": "0938a9c7-9ccf-5b0e-b05a-b55caee13f1d"
       }
     },
     {
@@ -3706,7 +3840,7 @@
         {
           "id": "firewall_trafffic_monitoring-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "malicious_traffic_blocking",
+          "source": "78412681-45bf-553f-a486-2d27c4a403cb",
           "target": "firewall_trafffic_monitoring-refinement-1",
           "customProperties": {
             "Rationale": "None"
@@ -3715,7 +3849,7 @@
         {
           "id": "firewall_trafffic_monitoring-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "malicious_traffic_alert",
+          "source": "5570ec83-f68b-5385-b143-a65e08ebc9b3",
           "target": "firewall_trafffic_monitoring-refinement-1"
         }
       ],
@@ -3723,7 +3857,7 @@
         "id": "firewall_trafffic_monitoring-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "firewall_trafffic_monitoring-refinement-1",
-        "target": "firewall_trafffic_monitoring"
+        "target": "87511e53-a50e-5810-9e1a-7c42e02ac27a"
       }
     },
     {
@@ -3742,7 +3876,7 @@
         {
           "id": "warranted_access-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "administration_access_warrant",
+          "source": "3bdab491-420d-5f0e-bb94-e811d7a6b3e0",
           "target": "warranted_access-refinement-1"
         }
       ],
@@ -3750,7 +3884,7 @@
         "id": "warranted_access-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "warranted_access-refinement-1",
-        "target": "warranted_access"
+        "target": "e51f3bbb-ac91-53be-bb88-b4771df042d8"
       }
     },
     {
@@ -3769,19 +3903,19 @@
         {
           "id": "os_hardening-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "email_routing",
+          "source": "7ff3d468-fa23-5649-a4df-5cb3bec2af8f",
           "target": "os_hardening-refinement-1"
         },
         {
           "id": "os_hardening-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "inbuilt_security",
+          "source": "31e6136d-916e-5150-9161-a20562419911",
           "target": "os_hardening-refinement-1"
         },
         {
           "id": "os_hardening-refinement-1-3",
           "type": "kaos.RefinementLinkStart",
-          "source": "port_scan",
+          "source": "4ba35ea8-1b16-50c0-8fa5-f95531e7883e",
           "target": "os_hardening-refinement-1",
           "customProperties": {
             "Rationale": "None"
@@ -3792,7 +3926,7 @@
         "id": "os_hardening-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "os_hardening-refinement-1",
-        "target": "os_hardening"
+        "target": "744aa5c6-bb47-5162-ba0d-98fa3ca7b987"
       }
     },
     {
@@ -3811,13 +3945,13 @@
         {
           "id": "secure_roles-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "responsibility_clarification",
+          "source": "7ecc4b2f-7f5e-5e1a-b459-e86e87e25df7",
           "target": "secure_roles-refinement-1"
         },
         {
           "id": "secure_roles-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "router_misuse_prevention",
+          "source": "541d745d-e260-5278-9282-6b5a6ce5ee65",
           "target": "secure_roles-refinement-1"
         }
       ],
@@ -3825,7 +3959,7 @@
         "id": "secure_roles-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "secure_roles-refinement-1",
-        "target": "secure_roles"
+        "target": "e4236878-6f92-5279-896f-15788cf85172"
       }
     },
     {
@@ -3844,25 +3978,25 @@
         {
           "id": "secure_wifi-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "wifi_encryption",
+          "source": "982e8be7-b106-5de5-a168-8594e0151d5d",
           "target": "secure_wifi-refinement-1"
         },
         {
           "id": "secure_wifi-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "ssid_broadcast",
+          "source": "f2e181cc-32dc-563a-98b3-0036b79656aa",
           "target": "secure_wifi-refinement-1"
         },
         {
           "id": "secure_wifi-refinement-1-3",
           "type": "kaos.RefinementLinkStart",
-          "source": "active_directory_wifi_control",
+          "source": "6b648806-393b-5f4e-9756-b7a9f66ed414",
           "target": "secure_wifi-refinement-1"
         },
         {
           "id": "secure_wifi-refinement-1-4",
           "type": "kaos.RefinementLinkStart",
-          "source": "mac_address_filtering",
+          "source": "01b8a6f5-b753-5b71-80a9-46c98b2210d0",
           "target": "secure_wifi-refinement-1"
         }
       ],
@@ -3870,7 +4004,7 @@
         "id": "secure_wifi-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "secure_wifi-refinement-1",
-        "target": "secure_wifi"
+        "target": "e948f868-9739-5c58-bb8a-97de91bed1c7"
       }
     },
     {
@@ -3889,7 +4023,7 @@
         {
           "id": "third_party_compliance-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "third_party_remote_access",
+          "source": "9bc46ff2-209c-57cb-bdb5-b5788d80dac5",
           "target": "third_party_compliance-refinement-1",
           "customProperties": {
             "Rationale": "None"
@@ -3900,7 +4034,7 @@
         "id": "third_party_compliance-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "third_party_compliance-refinement-1",
-        "target": "third_party_compliance"
+        "target": "b68b51fb-967d-521d-b584-6badf3354404"
       }
     },
     {
@@ -3914,13 +4048,13 @@
         {
           "id": "surplus_equipment-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "accessible_equipment",
+          "source": "a1ec5691-8dbf-5e24-8ae2-5360953a075b",
           "target": "surplus_equipment-refinement-1"
         },
         {
           "id": "surplus_equipment-refinement-1-2",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "unsanitised_equipment",
+          "source": "38d5c0a7-9d64-58ac-b5ee-ee55ba26b0ab",
           "target": "surplus_equipment-refinement-1"
         }
       ],
@@ -3928,7 +4062,7 @@
         "id": "surplus_equipment-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "surplus_equipment-refinement-1",
-        "target": "surplus_equipment"
+        "target": "30d6800a-d93f-58f3-94a7-29c83e609203"
       }
     },
     {
@@ -3942,7 +4076,7 @@
         {
           "id": "malware_application-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "malicious_remote_installation",
+          "source": "d0b9131c-c339-5342-9afc-9bcfcf1e2393",
           "target": "malware_application-refinement-1"
         }
       ],
@@ -3950,7 +4084,7 @@
         "id": "malware_application-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "malware_application-refinement-1",
-        "target": "malware_application"
+        "target": "de3d379f-9756-57a8-b268-51c722c660df"
       }
     },
     {
@@ -3964,7 +4098,7 @@
         {
           "id": "malware_application-refinement-2-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "desktop_installation",
+          "source": "8af2fe17-ea63-5471-9af4-858393ad02b9",
           "target": "malware_application-refinement-2"
         }
       ],
@@ -3972,7 +4106,7 @@
         "id": "malware_application-refinement-2-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "malware_application-refinement-2",
-        "target": "malware_application"
+        "target": "de3d379f-9756-57a8-b268-51c722c660df"
       }
     },
     {
@@ -3986,7 +4120,7 @@
         {
           "id": "unused_pc_application-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "malware_application",
+          "source": "de3d379f-9756-57a8-b268-51c722c660df",
           "target": "unused_pc_application-refinement-1"
         }
       ],
@@ -3994,7 +4128,7 @@
         "id": "unused_pc_application-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "unused_pc_application-refinement-1",
-        "target": "unused_pc_application"
+        "target": "2c3bb32f-172f-522e-a7b4-30838a04eeee"
       }
     },
     {
@@ -4008,7 +4142,7 @@
         {
           "id": "unused_pc_application-refinement-2-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "redundant_application",
+          "source": "68fe0840-172c-50a3-aa9a-abcb8ee1eed4",
           "target": "unused_pc_application-refinement-2"
         }
       ],
@@ -4016,7 +4150,7 @@
         "id": "unused_pc_application-refinement-2-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "unused_pc_application-refinement-2",
-        "target": "unused_pc_application"
+        "target": "2c3bb32f-172f-522e-a7b4-30838a04eeee"
       }
     },
     {
@@ -4030,7 +4164,7 @@
         {
           "id": "unscanned_media-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "scanning_software_disabled",
+          "source": "858dbd6b-1be4-5049-8ef8-71923b8124a4",
           "target": "unscanned_media-refinement-1"
         }
       ],
@@ -4038,7 +4172,7 @@
         "id": "unscanned_media-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "unscanned_media-refinement-1",
-        "target": "unscanned_media"
+        "target": "7e6f0e0a-08c6-52f2-bb1a-0f025c6e3212"
       }
     },
     {
@@ -4052,7 +4186,7 @@
         {
           "id": "unscanned_media-refinement-2-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "scanning_software_not_installed",
+          "source": "e83185bf-4872-5bb0-8b4b-18d46359f1d9",
           "target": "unscanned_media-refinement-2",
           "customProperties": {
             "Rationale": "None"
@@ -4063,7 +4197,7 @@
         "id": "unscanned_media-refinement-2-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "unscanned_media-refinement-2",
-        "target": "unscanned_media"
+        "target": "7e6f0e0a-08c6-52f2-bb1a-0f025c6e3212"
       }
     },
     {
@@ -4077,7 +4211,7 @@
         {
           "id": "scanning_software_not_installed-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "software_incompatibility",
+          "source": "3178d9ba-e2c6-58d3-b6b1-c781fb9a1528",
           "target": "scanning_software_not_installed-refinement-1"
         }
       ],
@@ -4085,7 +4219,7 @@
         "id": "scanning_software_not_installed-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "scanning_software_not_installed-refinement-1",
-        "target": "scanning_software_not_installed"
+        "target": "e83185bf-4872-5bb0-8b4b-18d46359f1d9"
       }
     },
     {
@@ -4099,7 +4233,7 @@
         {
           "id": "undetected_malicious_traffic-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "crafted_packets",
+          "source": "9a0df8b7-de2d-5dd0-b138-1771bf1fc830",
           "target": "undetected_malicious_traffic-refinement-1"
         }
       ],
@@ -4107,7 +4241,7 @@
         "id": "undetected_malicious_traffic-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "undetected_malicious_traffic-refinement-1",
-        "target": "undetected_malicious_traffic"
+        "target": "d25c1f49-3afa-5ae9-a029-63694e5f3de5"
       }
     },
     {
@@ -4121,7 +4255,7 @@
         {
           "id": "undetected_malicious_traffic-refinement-2-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "incomplete_firewall_rule_set",
+          "source": "426d53c3-dec4-595f-931b-25a4125a5add",
           "target": "undetected_malicious_traffic-refinement-2"
         }
       ],
@@ -4129,7 +4263,7 @@
         "id": "undetected_malicious_traffic-refinement-2-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "undetected_malicious_traffic-refinement-2",
-        "target": "undetected_malicious_traffic"
+        "target": "d25c1f49-3afa-5ae9-a029-63694e5f3de5"
       }
     },
     {
@@ -4143,7 +4277,7 @@
         {
           "id": "malware_application-refinement-3-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "dll_preloading",
+          "source": "32c8bccf-82e2-5554-9358-0e1474c930fb",
           "target": "malware_application-refinement-3",
           "customProperties": {
             "Rationale": "None"
@@ -4154,86 +4288,86 @@
         "id": "malware_application-refinement-3-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "malware_application-refinement-3",
-        "target": "malware_application"
+        "target": "de3d379f-9756-57a8-b268-51c722c660df"
       }
     },
     {
       "id": "plant_operator-assigned-scanned_media",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "plant_operator",
-      "target": "scanned_media"
+      "source": "a0ad8b5b-f8be-5247-b766-81a5dca36540",
+      "target": "a521f95e-f8b9-5074-8e71-1acd4c0cf6b2"
     },
     {
       "id": "plant_operator-assigned-password_storage",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "plant_operator",
-      "target": "password_storage"
+      "source": "a0ad8b5b-f8be-5247-b766-81a5dca36540",
+      "target": "a008c059-bd46-5c23-bd4d-387d06210ba5"
     },
     {
       "id": "plant_operator-assigned-password_mixed_characters",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "plant_operator",
-      "target": "password_mixed_characters"
+      "source": "a0ad8b5b-f8be-5247-b766-81a5dca36540",
+      "target": "ab844029-7f0e-53a1-80fe-b91f8daa0db6"
     },
     {
       "id": "information_security_manager-assigned-least_privilege_connections",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "information_security_manager",
-      "target": "least_privilege_connections"
+      "source": "2edc3bab-d07b-5bc5-9bd6-4866cb88be34",
+      "target": "d2711ebd-3bb8-5a29-9647-89eb8ce39491"
     },
     {
       "id": "information_security_manager-assigned-firewall_rule_attributes",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "information_security_manager",
-      "target": "firewall_rule_attributes"
+      "source": "2edc3bab-d07b-5bc5-9bd6-4866cb88be34",
+      "target": "7dc06e74-7603-56a0-b71f-b2db03434a7b"
     },
     {
       "id": "information_security_manager-assigned-access_revocation",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "information_security_manager",
-      "target": "access_revocation"
+      "source": "2edc3bab-d07b-5bc5-9bd6-4866cb88be34",
+      "target": "bdf950fe-d516-5b0f-b1d5-ffb1724d48a6"
     },
     {
       "id": "information_security_manager-assigned-remote_access_inventory",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "information_security_manager",
-      "target": "remote_access_inventory"
+      "source": "2edc3bab-d07b-5bc5-9bd6-4866cb88be34",
+      "target": "9b2a1d4b-e888-538b-8723-594898a786a7"
     },
     {
       "id": "information_security_manager-assigned-intrusion_prevention_system",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "information_security_manager",
-      "target": "intrusion_prevention_system"
+      "source": "2edc3bab-d07b-5bc5-9bd6-4866cb88be34",
+      "target": "b5b99db7-83be-57a6-8e9c-546a4f9e0e1d"
     },
     {
       "id": "information_security_manager-assigned-tms_access_control",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "information_security_manager",
-      "target": "tms_access_control"
+      "source": "2edc3bab-d07b-5bc5-9bd6-4866cb88be34",
+      "target": "b23c56ee-0252-5863-98b7-630d4573061a"
     },
     {
       "id": "information_security_manager-assigned-enterprisescada_access_control",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "information_security_manager",
-      "target": "enterprisescada_access_control"
+      "source": "2edc3bab-d07b-5bc5-9bd6-4866cb88be34",
+      "target": "2015955c-bf9f-5add-849b-be9408db110f"
     },
     {
       "id": "information_security_manager-assigned-secure_sla",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "information_security_manager",
-      "target": "secure_sla"
+      "source": "2edc3bab-d07b-5bc5-9bd6-4866cb88be34",
+      "target": "2639af76-d33b-5cbe-a8b7-79ecb6e93a67"
     },
     {
       "id": "information_security_manager-assigned-patch_risk_management",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "information_security_manager",
-      "target": "patch_risk_management"
+      "source": "2edc3bab-d07b-5bc5-9bd6-4866cb88be34",
+      "target": "3a0ff5a8-31af-53f0-a4c2-15d1911af371"
     },
     {
       "id": "information_security_manager-assigned-industrialised_secure_cabinets",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "information_security_manager",
-      "target": "industrialised_secure_cabinets",
+      "source": "2edc3bab-d07b-5bc5-9bd6-4866cb88be34",
+      "target": "8868d0c7-c5ac-50df-80ec-c689f633dc75",
       "customProperties": {
         "Rationale": "None"
       }
@@ -4241,116 +4375,116 @@
     {
       "id": "ict_partner-assigned-build_data",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "ict_partner",
-      "target": "build_data"
+      "source": "615956ef-8818-54d7-b716-c22235d3ce97",
+      "target": "f116de4f-ffc9-5b05-a03f-04f2648c9f9c"
     },
     {
       "id": "ict_partner-assigned-router_maintenance",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "ict_partner",
-      "target": "router_maintenance"
+      "source": "615956ef-8818-54d7-b716-c22235d3ce97",
+      "target": "58179972-d9bc-5c6b-bc88-f790388001af"
     },
     {
       "id": "ict_partner-assigned-router_installation",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "ict_partner",
-      "target": "router_installation"
+      "source": "615956ef-8818-54d7-b716-c22235d3ce97",
+      "target": "0172e3de-e111-5f32-964b-45e2dc2d343b"
     },
     {
       "id": "ict_partner-assigned-remote_connection_audit",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "ict_partner",
-      "target": "remote_connection_audit"
+      "source": "615956ef-8818-54d7-b716-c22235d3ce97",
+      "target": "fab618e2-5b5c-5ff8-abb0-2b5930575b0b"
     },
     {
       "id": "ict_partner-assigned-acme_change_control",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "ict_partner",
-      "target": "acme_change_control"
+      "source": "615956ef-8818-54d7-b716-c22235d3ce97",
+      "target": "683414bc-87c1-5ea0-a246-d0348da9c81d"
     },
     {
       "id": "ict_partner-assigned-log_file_overwrite",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "ict_partner",
-      "target": "log_file_overwrite"
+      "source": "615956ef-8818-54d7-b716-c22235d3ce97",
+      "target": "16b56cb1-4fc6-5e1a-b83e-3fdd40477ca3"
     },
     {
       "id": "ict_partner-assigned-log_file_size",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "ict_partner",
-      "target": "log_file_size"
+      "source": "615956ef-8818-54d7-b716-c22235d3ce97",
+      "target": "c720ab33-87b2-5ab4-97fe-a2b7cbca18c4"
     },
     {
       "id": "ict_partner-assigned-password_expiration",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "ict_partner",
-      "target": "password_expiration"
+      "source": "615956ef-8818-54d7-b716-c22235d3ce97",
+      "target": "db07ff04-b2c1-56ea-a6b7-6f09748a667f"
     },
     {
       "id": "ict_partner-assigned-password_length",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "ict_partner",
-      "target": "password_length"
+      "source": "615956ef-8818-54d7-b716-c22235d3ce97",
+      "target": "a4b1ccf2-87ac-56e8-87f7-9f271e687980"
     },
     {
       "id": "ict_partner-assigned-id_level_access_control",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "ict_partner",
-      "target": "id_level_access_control"
+      "source": "615956ef-8818-54d7-b716-c22235d3ce97",
+      "target": "0f8b5191-7776-5004-9600-f6e6a02c3538"
     },
     {
       "id": "ict_partner-assigned-user_id_least_privilege",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "ict_partner",
-      "target": "user_id_least_privilege"
+      "source": "615956ef-8818-54d7-b716-c22235d3ce97",
+      "target": "cdb7921a-c167-5ea0-8195-78cffa099736"
     },
     {
       "id": "ict_partner-assigned-backup_media",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "ict_partner",
-      "target": "backup_media"
+      "source": "615956ef-8818-54d7-b716-c22235d3ce97",
+      "target": "bee95554-ffc8-5d2c-bb83-f56526cd3e5e"
     },
     {
       "id": "ict_partner-assigned-backup_testing",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "ict_partner",
-      "target": "backup_testing"
+      "source": "615956ef-8818-54d7-b716-c22235d3ce97",
+      "target": "676d9f95-8e59-585e-a1de-06e277d7e31c"
     },
     {
       "id": "ict_partner-assigned-backup_hardware",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "ict_partner",
-      "target": "backup_hardware"
+      "source": "615956ef-8818-54d7-b716-c22235d3ce97",
+      "target": "b11408a9-5412-5902-8c85-f7a7e391a9f0"
     },
     {
       "id": "ict_partner-assigned-backup_transmission",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "ict_partner",
-      "target": "backup_transmission"
+      "source": "615956ef-8818-54d7-b716-c22235d3ce97",
+      "target": "7299dee5-b0ea-50ca-92fa-9fa0fa7d984b"
     },
     {
       "id": "ict_partner-assigned-backup_logs",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "ict_partner",
-      "target": "backup_logs"
+      "source": "615956ef-8818-54d7-b716-c22235d3ce97",
+      "target": "6b73eccb-94b8-5737-bed2-4b710b9973e6"
     },
     {
       "id": "ict_partner-assigned-backup_storage",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "ict_partner",
-      "target": "backup_storage"
+      "source": "615956ef-8818-54d7-b716-c22235d3ce97",
+      "target": "b5a0aad9-ee5e-5a36-a1ab-0ea0d7aad8a1"
     },
     {
       "id": "ict_partner-assigned-active_directory_software_deployment",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "ict_partner",
-      "target": "active_directory_software_deployment"
+      "source": "615956ef-8818-54d7-b716-c22235d3ce97",
+      "target": "44664da6-abe0-559c-8df5-2fdd2ad424a9"
     },
     {
       "id": "ict_partner-assigned-control_testing",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "ict_partner",
-      "target": "control_testing",
+      "source": "615956ef-8818-54d7-b716-c22235d3ce97",
+      "target": "b6d6519f-f80f-5cc4-9664-d8d0a979888e",
       "customProperties": {
         "Rationale": "None"
       }
@@ -4358,20 +4492,20 @@
     {
       "id": "instrument_technician-assigned-internet_access",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "instrument_technician",
-      "target": "internet_access"
+      "source": "6e56edf6-03c4-5665-af29-1cf28e388e90",
+      "target": "c2e34729-a186-515a-a60f-fd0e7f6b8edb"
     },
     {
       "id": "instrument_technician-assigned-versioned_plc_changes",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "instrument_technician",
-      "target": "versioned_plc_changes"
+      "source": "6e56edf6-03c4-5665-af29-1cf28e388e90",
+      "target": "ed6bd543-e4b3-58e8-a72b-7aa391aeb7ce"
     },
     {
       "id": "facilities_management-assigned-fire_suppression",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "facilities_management",
-      "target": "fire_suppression",
+      "source": "35a9cf36-1427-558d-bac2-02e249b6835a",
+      "target": "3fe4c276-faa2-583c-8132-8e15ff686760",
       "customProperties": {
         "Rationale": "None"
       }
@@ -4379,8 +4513,8 @@
     {
       "id": "facilities_management-assigned-fire_detection",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "facilities_management",
-      "target": "fire_detection",
+      "source": "35a9cf36-1427-558d-bac2-02e249b6835a",
+      "target": "7154c4a5-ef5e-5a29-b197-9745312672fa",
       "customProperties": {
         "Rationale": "None"
       }
@@ -4388,8 +4522,8 @@
     {
       "id": "facilities_management-assigned-environmental_controls",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "facilities_management",
-      "target": "environmental_controls",
+      "source": "35a9cf36-1427-558d-bac2-02e249b6835a",
+      "target": "db209352-2b0b-53fb-a321-dbfa794b5bc8",
       "customProperties": {
         "Rationale": "None"
       }
@@ -4397,8 +4531,8 @@
     {
       "id": "facilities_management-assigned-locked_cabinets",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "facilities_management",
-      "target": "locked_cabinets",
+      "source": "35a9cf36-1427-558d-bac2-02e249b6835a",
+      "target": "2681843c-3f11-5680-bd98-5f7909bc49f1",
       "customProperties": {
         "Rationale": "None"
       }
@@ -4406,8 +4540,8 @@
     {
       "id": "facilities_management-assigned-locked_doors",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "facilities_management",
-      "target": "locked_doors",
+      "source": "35a9cf36-1427-558d-bac2-02e249b6835a",
+      "target": "ef964a1a-efa0-5c70-a185-c9a1dffc2287",
       "customProperties": {
         "Rationale": "None"
       }
@@ -4415,8 +4549,8 @@
     {
       "id": "facilities_management-assigned-computer_rooms",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "facilities_management",
-      "target": "computer_rooms",
+      "source": "35a9cf36-1427-558d-bac2-02e249b6835a",
+      "target": "8e15c4ee-fa61-5b8b-8717-5c0d90988f34",
       "customProperties": {
         "Rationale": "None"
       }
@@ -4424,8 +4558,8 @@
     {
       "id": "facilities_management-assigned-power_provision",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "facilities_management",
-      "target": "power_provision",
+      "source": "35a9cf36-1427-558d-bac2-02e249b6835a",
+      "target": "257b8d99-1bbe-58ad-bac8-0027e38d9c4c",
       "customProperties": {
         "Rationale": "None"
       }

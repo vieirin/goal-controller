@@ -2,7 +2,7 @@
   "actors": [],
   "orphans": [
     {
-      "id": "data_handling_policy",
+      "id": "efc49994-45c7-56a1-90e5-b1df02067cec",
       "text": "Data handling policy",
       "type": "kaos.BehavioralGoal",
       "x": 40,
@@ -23,10 +23,11 @@
         "Reference": "Medical Certificate",
         "ReferenceType": "asset",
         "Rationale": "To provide documented procedures which are to be followed when transmitting confidential data internally within the company."
-      }
+      },
+      "kaosId": "data_handling_policy"
     },
     {
-      "id": "data_classification_policy",
+      "id": "d190cd16-f742-58ff-9254-5db59d4bed7b",
       "text": "Data classification policy",
       "type": "kaos.BehavioralGoal",
       "x": 200,
@@ -47,10 +48,11 @@
         "Reference": "Medical Certificate",
         "ReferenceType": "asset",
         "Rationale": "Reduce the probability of mishandling of data"
-      }
+      },
+      "kaosId": "data_classification_policy"
     },
     {
-      "id": "rfid_management_policy",
+      "id": "6dc3969f-ed70-5d3a-a276-4c9fc8a51e56",
       "text": "RFID Management Policy",
       "type": "kaos.BehavioralGoal",
       "x": 360,
@@ -71,10 +73,11 @@
         "Reference": "RFID Access Control System",
         "ReferenceType": "asset",
         "Rationale": "To ensure documented operating procedures for the use and management of ID Cards is provided and adhered to"
-      }
+      },
+      "kaosId": "rfid_management_policy"
     },
     {
-      "id": "rfid_cease_requirement",
+      "id": "c94c6e01-c477-51d1-b2ea-a9f51383cdfb",
       "text": "RFID Cease requirement",
       "type": "kaos.BehavioralGoal",
       "x": 520,
@@ -95,10 +98,11 @@
         "Reference": "RFID Access Control System",
         "ReferenceType": "asset",
         "Rationale": "Reduce the risk of unauthorised access to Balkan Rail facilities through fraudulent use of RFID cards"
-      }
+      },
+      "kaosId": "rfid_cease_requirement"
     },
     {
-      "id": "rfid_replacement_card_business_process",
+      "id": "889943cb-fe32-5102-af79-0153e5a7d249",
       "text": "RFID replacement card business process",
       "type": "kaos.BehavioralGoal",
       "x": 680,
@@ -119,10 +123,11 @@
         "Reference": "RFID Access Control System",
         "ReferenceType": "asset",
         "Rationale": "Improve accountability and audit tracking of access to physical resources."
-      }
+      },
+      "kaosId": "rfid_replacement_card_business_process"
     },
     {
-      "id": "accounting",
+      "id": "112f1f96-0093-58da-87e4-acc2d1a627b3",
       "text": "Accounting",
       "type": "kaos.Agent",
       "x": 840,
@@ -131,10 +136,11 @@
         "Description": "Member of Financial Services department",
         "RoleType": "Stakeholder",
         "ShortCode": "ACC"
-      }
+      },
+      "kaosId": "accounting"
     },
     {
-      "id": "human_resources",
+      "id": "c43e64ae-ee28-5a54-a382-4eebad7d4b5c",
       "text": "Human Resources",
       "type": "kaos.Agent",
       "x": 1000,
@@ -143,10 +149,11 @@
         "Description": "Human Resources",
         "RoleType": "Stakeholder",
         "ShortCode": "HR"
-      }
+      },
+      "kaosId": "human_resources"
     },
     {
-      "id": "it_administrator",
+      "id": "cd781aa8-75bb-5fa5-92fa-c2626e97eaf0",
       "text": "IT administrator",
       "type": "kaos.Agent",
       "x": 1160,
@@ -155,10 +162,11 @@
         "Description": "IT staff",
         "RoleType": "Stakeholder",
         "ShortCode": "ADMIN"
-      }
+      },
+      "kaosId": "it_administrator"
     },
     {
-      "id": "purchasing",
+      "id": "952b7932-6bfd-570e-8475-d1f0811b6229",
       "text": "Purchasing",
       "type": "kaos.Agent",
       "x": 1320,
@@ -167,10 +175,11 @@
         "Description": "Member of Purchasing and Supply department",
         "RoleType": "Stakeholder",
         "ShortCode": "PURCH"
-      }
+      },
+      "kaosId": "purchasing"
     },
     {
-      "id": "ex_employee",
+      "id": "fb6a3e2a-3bb7-552e-9e75-c63d4e6a9337",
       "text": "Ex-employee",
       "type": "kaos.Agent",
       "x": 1480,
@@ -179,10 +188,11 @@
         "Description": "Ex-employee",
         "RoleType": "Attacker",
         "ShortCode": "EXE"
-      }
+      },
+      "kaosId": "ex_employee"
     },
     {
-      "id": "criminal",
+      "id": "973e1bb0-5844-5216-aa25-89bbc5f48bab",
       "text": "Criminal",
       "type": "kaos.Agent",
       "x": 1640,
@@ -191,7 +201,8 @@
         "Description": "An indervidual who commits a specific crime.",
         "RoleType": "Attacker",
         "ShortCode": "Criminal"
-      }
+      },
+      "kaosId": "criminal"
     }
   ],
   "dependencies": [],

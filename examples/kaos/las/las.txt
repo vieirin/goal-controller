@@ -2,7 +2,7 @@
   "actors": [],
   "orphans": [
     {
-      "id": "achieve_ambulance_on_scene_when_incident_reported",
+      "id": "38a9b2a0-50cb-5f2e-87b5-98595e1b9c01",
       "text": "Achieve [Ambulance On Scene When Incident Reported]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -16,11 +16,12 @@
         "Stability": "",
         "Description": "Sooner-or-later, ambulance shall be on scene when incident is reported."
       },
+      "kaosId": "achieve_ambulance_on_scene_when_incident_reported",
       "x": 1160,
       "y": 80
     },
     {
-      "id": "achieve_ambulance_allocated_when_incident_reported",
+      "id": "4cd97ecc-74c4-56d3-88e7-f0b417181175",
       "text": "Achieve [Ambulance Allocated When Incident Reported]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -34,11 +35,12 @@
         "Stability": "",
         "Description": "Sooner-or-later, ambulance shall be allocated when incident is reported."
       },
+      "kaosId": "achieve_ambulance_allocated_when_incident_reported",
       "x": 40,
       "y": 180
     },
     {
-      "id": "achieve_ambulance_on_scene_when_ambulance_allocated",
+      "id": "8579c007-029e-5e71-b267-a38b9911d875",
       "text": "Achieve [Ambulance On Scene When Ambulance Allocated]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -52,11 +54,12 @@
         "Stability": "",
         "Description": "Sooner-or-later, ambulance shall be on scene when allocated."
       },
+      "kaosId": "achieve_ambulance_on_scene_when_ambulance_allocated",
       "x": 1320,
       "y": 180
     },
     {
-      "id": "achieve_ambulance_mobilized_when_ambulance_allocated",
+      "id": "0f06df87-f1c5-535a-bfe1-9d90aeb63287",
       "text": "Achieve [Ambulance Mobilized When Ambulance Allocated]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -70,11 +73,12 @@
         "Stability": "",
         "Description": "Sooner-or-later, ambulance shall be mobilized when allocated."
       },
+      "kaosId": "achieve_ambulance_mobilized_when_ambulance_allocated",
       "x": 680,
       "y": 280
     },
     {
-      "id": "achieve_ambulance_on_scene_when_ambulance_mobilized",
+      "id": "dfc1304f-1390-5206-ae8c-66976c87f187",
       "text": "Achieve [Ambulance On Scene When Ambulance Mobilized]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -88,11 +92,12 @@
         "Stability": "",
         "Description": "Sooner-or-later, ambulance shall be on scene when mobilized."
       },
+      "kaosId": "achieve_ambulance_on_scene_when_ambulance_mobilized",
       "x": 1640,
       "y": 280
     },
     {
-      "id": "achieve_ambulance_mobilized_when_ambulance_allocated_on_road",
+      "id": "e0434a6b-b2e3-56fc-8d79-2244fb405e51",
       "text": "Achieve [Ambulance Mobilized When Ambulance Allocated On Road]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -106,11 +111,12 @@
         "Stability": "",
         "Description": "Sooner-or-later, ambulance shall be mobilized when allocated and on road."
       },
+      "kaosId": "achieve_ambulance_mobilized_when_ambulance_allocated_on_road",
       "x": 360,
       "y": 380
     },
     {
-      "id": "achieve_ambulance_mobilized_when_ambulance_allocated_at_station",
+      "id": "b5baa9ca-c056-5bc7-9e6e-1d9246c4b8f4",
       "text": "Achieve [Ambulance Mobilized When Ambulance Allocated At Station]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -124,11 +130,12 @@
         "Stability": "",
         "Description": "Sooner-or-later, ambulance shall be mobilized when allocated and at station."
       },
+      "kaosId": "achieve_ambulance_mobilized_when_ambulance_allocated_at_station",
       "x": 840,
       "y": 380
     },
     {
-      "id": "achieve_ambulance_mobilized_by_fax",
+      "id": "27b2c9b4-6220-56aa-b435-e85430c53a64",
       "text": "Achieve [Ambulance Mobilized By Fax When Ambulance Allocated At Station]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -142,11 +149,12 @@
         "Stability": "",
         "Description": "Sooner-or-later, ambulance shall be mobilized by fax when allocated and at station."
       },
+      "kaosId": "achieve_ambulance_mobilized_by_fax",
       "x": 680,
       "y": 480
     },
     {
-      "id": "achieve_ambulance_mobilized_by_phone",
+      "id": "b3ba37bc-0941-5db3-a29f-e5da06bd032b",
       "text": "Achieve [Ambulance Mobilized By Phone When Ambulance Allocated At Station]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -160,11 +168,12 @@
         "Stability": "",
         "Description": "Sooner-or-later, ambulance shall be mobilized by phone when allocated and at station."
       },
+      "kaosId": "achieve_ambulance_mobilized_by_phone",
       "x": 840,
       "y": 480
     },
     {
-      "id": "mobilized_ambulance_not_on_scene_in_time",
+      "id": "3e0a071b-049a-50b0-ae76-0b2ccb7325f5",
       "text": "Mobilized Ambulance Not On Scene in Time",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -172,11 +181,12 @@
         "FormalSpec": "sooner-or-later (ambulanceMobilized() and always not ambulanceOnScene())",
         "Category": ""
       },
+      "kaosId": "mobilized_ambulance_not_on_scene_in_time",
       "x": 1640,
       "y": 380
     },
     {
-      "id": "ambulance_stuck_in_traffic_jam",
+      "id": "aa2588b7-99e0-5654-99da-fa25c345f4c0",
       "text": "Ambulance Stuck In Traffic Jam",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -184,11 +194,12 @@
         "FormalSpec": "sooner-or-later (ambulanceMobilized() and always (ambulanceInTrafficJam()))",
         "Category": ""
       },
+      "kaosId": "ambulance_stuck_in_traffic_jam",
       "x": 1160,
       "y": 480
     },
     {
-      "id": "ambulance_lost",
+      "id": "381ad13d-cb6d-582d-87ce-d75e6dbc8427",
       "text": "Ambulance Lost",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -196,11 +207,12 @@
         "FormalSpec": "sooner-or-later (ambulanceMobilized() and always (ambulanceLost()))",
         "Category": ""
       },
+      "kaosId": "ambulance_lost",
       "x": 1640,
       "y": 480
     },
     {
-      "id": "ambulance_broken_down",
+      "id": "6ed956be-c62f-5d8e-94f3-bf860081075c",
       "text": "Ambulance Broken Down",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -208,11 +220,12 @@
         "FormalSpec": "sooner-or-later (ambulanceMobilized() and always (ambulanceBrokenDown()))",
         "Category": ""
       },
+      "kaosId": "ambulance_broken_down",
       "x": 2120,
       "y": 480
     },
     {
-      "id": "ambulance_not_in_familiar_area",
+      "id": "74777a7f-7d61-5106-9d98-e9e308ef7c03",
       "text": "Ambulance Not In Familiar Area",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -220,11 +233,12 @@
         "FormalSpec": "sooner-or-later (ambulanceMobilized() and always (not ambulanceInFamiliarArea()))",
         "Category": ""
       },
+      "kaosId": "ambulance_not_in_familiar_area",
       "x": 1480,
       "y": 580
     },
     {
-      "id": "gps_not_working",
+      "id": "28db8b56-417f-57eb-9d20-9fcb426dbc2f",
       "text": "GPS Not Working",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -232,11 +246,12 @@
         "FormalSpec": "sooner-or-later (ambulanceMobilized() and always (gpsNotWorking()))",
         "Category": ""
       },
+      "kaosId": "gps_not_working",
       "x": 1640,
       "y": 580
     },
     {
-      "id": "avoid_ambulance_not_in_familiar_area",
+      "id": "8025684c-a097-549f-af17-0876031e2fbf",
       "text": "Avoid [Ambulance Not In Familiar Area]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -250,11 +265,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "avoid_ambulance_not_in_familiar_area",
       "x": 1480,
       "y": 680
     },
     {
-      "id": "ambulance_on_scene_not_in_traffic_jam",
+      "id": "44f4abba-ec93-58f2-92c3-79b781feaeb1",
       "text": "Ambulance On Scene Not In Traffic Jam",
       "type": "kaos.DomainProperty",
       "customProperties": {
@@ -262,11 +278,12 @@
         "Description": "Ambulance cannot reach incident scene if stuck in traffic jams.",
         "FormalSpec": "always (if ambulanceOnScene() then not ambulanceInTrafficJam())"
       },
+      "kaosId": "ambulance_on_scene_not_in_traffic_jam",
       "x": 1320,
       "y": 480
     },
     {
-      "id": "ambulance_on_scene_not_lost",
+      "id": "ee081121-34d9-593a-8be3-ac07683c0c79",
       "text": "Ambulance On Scene Not Lost",
       "type": "kaos.DomainProperty",
       "customProperties": {
@@ -274,11 +291,12 @@
         "Description": "Ambulance cannot reach incident scene if lost.",
         "FormalSpec": "always (if ambulanceOnScene() then not ambulanceLost())"
       },
+      "kaosId": "ambulance_on_scene_not_lost",
       "x": 1960,
       "y": 480
     },
     {
-      "id": "ambulance_on_scene_not_broken_down",
+      "id": "a36a256d-c175-5150-9eb9-73df74b24f84",
       "text": "Ambulance On Scene Broken Down",
       "type": "kaos.DomainProperty",
       "customProperties": {
@@ -286,11 +304,12 @@
         "Description": "Ambulance cannot reach incident scene if broken down.",
         "FormalSpec": "always (if ambulanceOnScene() then not ambulanceBrokenDown())"
       },
+      "kaosId": "ambulance_on_scene_not_broken_down",
       "x": 2280,
       "y": 480
     },
     {
-      "id": "ambulance_lost_iff_gps_not_working_and_not_in_familiar_area",
+      "id": "18c3504f-dd32-53e3-8013-9997670cbe0e",
       "text": "Ambulance Lost Iff GPS Not Working And Not In Familiar Area",
       "type": "kaos.DomainProperty",
       "customProperties": {
@@ -298,11 +317,12 @@
         "Description": "Ambulance cannot reach incident scene if in unfamiliar area and if the GPS is not working.",
         "FormalSpec": "always (ambulanceLost() iff (not ambulanceInFamiliarArea() and gpsNotWorking()))"
       },
+      "kaosId": "ambulance_lost_iff_gps_not_working_and_not_in_familiar_area",
       "x": 1800,
       "y": 580
     },
     {
-      "id": "by_fax_or_by_phone_mobilization",
+      "id": "e115c807-b2a1-5a0e-abac-8316756f4fe2",
       "text": "Ambulance Mobilized By Fax or Phone",
       "type": "kaos.DomainProperty",
       "customProperties": {
@@ -310,39 +330,43 @@
         "Description": "An ambulance mobilized by fax or by phone is considered as mobilized.",
         "FormalSpec": "always (if (ambulanceMobilizedByFax() or ambulanceMobilizedByPhone()) then ambulanceMobilized())"
       },
+      "kaosId": "by_fax_or_by_phone_mobilization",
       "x": 1000,
       "y": 480
     },
     {
-      "id": "despatcher",
+      "id": "250c1d07-f319-559a-9230-e840c03498b5",
       "text": "Despatcher",
       "type": "kaos.Agent",
       "customProperties": {
         "Type": "",
         "Description": "Despatcher is the person at the call center dealing \n                with urgent calls and ambulance mobilization."
       },
+      "kaosId": "despatcher",
       "x": 520,
       "y": 380
     },
     {
-      "id": "ambulance_staff",
+      "id": "63bf5d8a-74d6-55a0-ab20-ad7b4b3ee5bc",
       "text": "Ambulance Staff",
       "type": "kaos.Agent",
       "customProperties": {
         "Type": "",
         "Description": "Ambulance Staff contains the ambulance driver and the paramedic(s)."
       },
+      "kaosId": "ambulance_staff",
       "x": 1800,
       "y": 280
     },
     {
-      "id": "ads",
+      "id": "1542c388-4e13-5a0f-8811-931168d06ab2",
       "text": "ADS",
       "type": "kaos.Agent",
       "customProperties": {
         "Type": "",
         "Description": "Automated despatching system"
       },
+      "kaosId": "ads",
       "x": 200,
       "y": 180
     }
@@ -365,13 +389,13 @@
         {
           "id": "achieve_ambulance_on_scene_when_incident_reported-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "achieve_ambulance_allocated_when_incident_reported",
+          "source": "4cd97ecc-74c4-56d3-88e7-f0b417181175",
           "target": "achieve_ambulance_on_scene_when_incident_reported-refinement-1"
         },
         {
           "id": "achieve_ambulance_on_scene_when_incident_reported-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "achieve_ambulance_on_scene_when_ambulance_allocated",
+          "source": "8579c007-029e-5e71-b267-a38b9911d875",
           "target": "achieve_ambulance_on_scene_when_incident_reported-refinement-1"
         }
       ],
@@ -379,7 +403,7 @@
         "id": "achieve_ambulance_on_scene_when_incident_reported-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "achieve_ambulance_on_scene_when_incident_reported-refinement-1",
-        "target": "achieve_ambulance_on_scene_when_incident_reported"
+        "target": "38a9b2a0-50cb-5f2e-87b5-98595e1b9c01"
       }
     },
     {
@@ -398,13 +422,13 @@
         {
           "id": "achieve_ambulance_on_scene_when_ambulance_allocated-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "achieve_ambulance_mobilized_when_ambulance_allocated",
+          "source": "0f06df87-f1c5-535a-bfe1-9d90aeb63287",
           "target": "achieve_ambulance_on_scene_when_ambulance_allocated-refinement-1"
         },
         {
           "id": "achieve_ambulance_on_scene_when_ambulance_allocated-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "achieve_ambulance_on_scene_when_ambulance_mobilized",
+          "source": "dfc1304f-1390-5206-ae8c-66976c87f187",
           "target": "achieve_ambulance_on_scene_when_ambulance_allocated-refinement-1"
         }
       ],
@@ -412,7 +436,7 @@
         "id": "achieve_ambulance_on_scene_when_ambulance_allocated-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "achieve_ambulance_on_scene_when_ambulance_allocated-refinement-1",
-        "target": "achieve_ambulance_on_scene_when_ambulance_allocated"
+        "target": "8579c007-029e-5e71-b267-a38b9911d875"
       }
     },
     {
@@ -431,7 +455,7 @@
         {
           "id": "achieve_ambulance_mobilized_when_ambulance_allocated-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "achieve_ambulance_mobilized_when_ambulance_allocated_on_road",
+          "source": "e0434a6b-b2e3-56fc-8d79-2244fb405e51",
           "target": "achieve_ambulance_mobilized_when_ambulance_allocated-refinement-1",
           "customProperties": {
             "Probability": ".8"
@@ -440,7 +464,7 @@
         {
           "id": "achieve_ambulance_mobilized_when_ambulance_allocated-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "achieve_ambulance_mobilized_when_ambulance_allocated_at_station",
+          "source": "b5baa9ca-c056-5bc7-9e6e-1d9246c4b8f4",
           "target": "achieve_ambulance_mobilized_when_ambulance_allocated-refinement-1",
           "customProperties": {
             "Probability": ".2"
@@ -451,7 +475,7 @@
         "id": "achieve_ambulance_mobilized_when_ambulance_allocated-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "achieve_ambulance_mobilized_when_ambulance_allocated-refinement-1",
-        "target": "achieve_ambulance_mobilized_when_ambulance_allocated"
+        "target": "0f06df87-f1c5-535a-bfe1-9d90aeb63287"
       }
     },
     {
@@ -470,19 +494,19 @@
         {
           "id": "achieve_ambulance_mobilized_when_ambulance_allocated_at_station-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "achieve_ambulance_mobilized_by_fax",
+          "source": "27b2c9b4-6220-56aa-b435-e85430c53a64",
           "target": "achieve_ambulance_mobilized_when_ambulance_allocated_at_station-refinement-1"
         },
         {
           "id": "achieve_ambulance_mobilized_when_ambulance_allocated_at_station-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "achieve_ambulance_mobilized_by_phone",
+          "source": "b3ba37bc-0941-5db3-a29f-e5da06bd032b",
           "target": "achieve_ambulance_mobilized_when_ambulance_allocated_at_station-refinement-1"
         },
         {
           "id": "achieve_ambulance_mobilized_when_ambulance_allocated_at_station-refinement-1-3",
           "type": "kaos.RefinementLinkStart",
-          "source": "by_fax_or_by_phone_mobilization",
+          "source": "e115c807-b2a1-5a0e-abac-8316756f4fe2",
           "target": "achieve_ambulance_mobilized_when_ambulance_allocated_at_station-refinement-1"
         }
       ],
@@ -490,7 +514,7 @@
         "id": "achieve_ambulance_mobilized_when_ambulance_allocated_at_station-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "achieve_ambulance_mobilized_when_ambulance_allocated_at_station-refinement-1",
-        "target": "achieve_ambulance_mobilized_when_ambulance_allocated_at_station"
+        "target": "b5baa9ca-c056-5bc7-9e6e-1d9246c4b8f4"
       }
     },
     {
@@ -504,13 +528,13 @@
         {
           "id": "mobilized_ambulance_not_on_scene_in_time-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "ambulance_stuck_in_traffic_jam",
+          "source": "aa2588b7-99e0-5654-99da-fa25c345f4c0",
           "target": "mobilized_ambulance_not_on_scene_in_time-refinement-1"
         },
         {
           "id": "mobilized_ambulance_not_on_scene_in_time-refinement-1-2",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "ambulance_on_scene_not_in_traffic_jam",
+          "source": "44f4abba-ec93-58f2-92c3-79b781feaeb1",
           "target": "mobilized_ambulance_not_on_scene_in_time-refinement-1"
         }
       ],
@@ -518,7 +542,7 @@
         "id": "mobilized_ambulance_not_on_scene_in_time-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "mobilized_ambulance_not_on_scene_in_time-refinement-1",
-        "target": "mobilized_ambulance_not_on_scene_in_time"
+        "target": "3e0a071b-049a-50b0-ae76-0b2ccb7325f5"
       }
     },
     {
@@ -532,13 +556,13 @@
         {
           "id": "mobilized_ambulance_not_on_scene_in_time-refinement-2-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "ambulance_lost",
+          "source": "381ad13d-cb6d-582d-87ce-d75e6dbc8427",
           "target": "mobilized_ambulance_not_on_scene_in_time-refinement-2"
         },
         {
           "id": "mobilized_ambulance_not_on_scene_in_time-refinement-2-2",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "ambulance_on_scene_not_lost",
+          "source": "ee081121-34d9-593a-8be3-ac07683c0c79",
           "target": "mobilized_ambulance_not_on_scene_in_time-refinement-2"
         }
       ],
@@ -546,7 +570,7 @@
         "id": "mobilized_ambulance_not_on_scene_in_time-refinement-2-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "mobilized_ambulance_not_on_scene_in_time-refinement-2",
-        "target": "mobilized_ambulance_not_on_scene_in_time"
+        "target": "3e0a071b-049a-50b0-ae76-0b2ccb7325f5"
       }
     },
     {
@@ -560,13 +584,13 @@
         {
           "id": "mobilized_ambulance_not_on_scene_in_time-refinement-3-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "ambulance_broken_down",
+          "source": "6ed956be-c62f-5d8e-94f3-bf860081075c",
           "target": "mobilized_ambulance_not_on_scene_in_time-refinement-3"
         },
         {
           "id": "mobilized_ambulance_not_on_scene_in_time-refinement-3-2",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "ambulance_on_scene_not_broken_down",
+          "source": "a36a256d-c175-5150-9eb9-73df74b24f84",
           "target": "mobilized_ambulance_not_on_scene_in_time-refinement-3"
         }
       ],
@@ -574,7 +598,7 @@
         "id": "mobilized_ambulance_not_on_scene_in_time-refinement-3-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "mobilized_ambulance_not_on_scene_in_time-refinement-3",
-        "target": "mobilized_ambulance_not_on_scene_in_time"
+        "target": "3e0a071b-049a-50b0-ae76-0b2ccb7325f5"
       }
     },
     {
@@ -588,19 +612,19 @@
         {
           "id": "ambulance_lost-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "ambulance_not_in_familiar_area",
+          "source": "74777a7f-7d61-5106-9d98-e9e308ef7c03",
           "target": "ambulance_lost-refinement-1"
         },
         {
           "id": "ambulance_lost-refinement-1-2",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "gps_not_working",
+          "source": "28db8b56-417f-57eb-9d20-9fcb426dbc2f",
           "target": "ambulance_lost-refinement-1"
         },
         {
           "id": "ambulance_lost-refinement-1-3",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "ambulance_lost_iff_gps_not_working_and_not_in_familiar_area",
+          "source": "18c3504f-dd32-53e3-8013-9997670cbe0e",
           "target": "ambulance_lost-refinement-1"
         }
       ],
@@ -608,20 +632,20 @@
         "id": "ambulance_lost-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "ambulance_lost-refinement-1",
-        "target": "ambulance_lost"
+        "target": "381ad13d-cb6d-582d-87ce-d75e6dbc8427"
       }
     },
     {
       "id": "mobilized_ambulance_not_on_scene_in_time-obstructs-achieve_ambulance_on_scene_when_ambulance_mobilized",
       "type": "kaos.ObstructionLink",
-      "source": "mobilized_ambulance_not_on_scene_in_time",
-      "target": "achieve_ambulance_on_scene_when_ambulance_mobilized"
+      "source": "3e0a071b-049a-50b0-ae76-0b2ccb7325f5",
+      "target": "dfc1304f-1390-5206-ae8c-66976c87f187"
     },
     {
       "id": "avoid_ambulance_not_in_familiar_area-resolves-ambulance_not_in_familiar_area",
       "type": "kaos.ResolutionLink",
-      "source": "avoid_ambulance_not_in_familiar_area",
-      "target": "ambulance_not_in_familiar_area",
+      "source": "8025684c-a097-549f-af17-0876031e2fbf",
+      "target": "74777a7f-7d61-5106-9d98-e9e308ef7c03",
       "customProperties": {
         "ResolutionType": "",
         "Anchor": ""
@@ -630,32 +654,32 @@
     {
       "id": "ads-assigned-achieve_ambulance_allocated_when_incident_reported",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "ads",
-      "target": "achieve_ambulance_allocated_when_incident_reported"
+      "source": "1542c388-4e13-5a0f-8811-931168d06ab2",
+      "target": "4cd97ecc-74c4-56d3-88e7-f0b417181175"
     },
     {
       "id": "ambulance_staff-assigned-achieve_ambulance_on_scene_when_ambulance_mobilized",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "ambulance_staff",
-      "target": "achieve_ambulance_on_scene_when_ambulance_mobilized"
+      "source": "63bf5d8a-74d6-55a0-ab20-ad7b4b3ee5bc",
+      "target": "dfc1304f-1390-5206-ae8c-66976c87f187"
     },
     {
       "id": "despatcher-assigned-achieve_ambulance_mobilized_when_ambulance_allocated_on_road",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "despatcher",
-      "target": "achieve_ambulance_mobilized_when_ambulance_allocated_on_road"
+      "source": "250c1d07-f319-559a-9230-e840c03498b5",
+      "target": "e0434a6b-b2e3-56fc-8d79-2244fb405e51"
     },
     {
       "id": "ads-assigned-achieve_ambulance_mobilized_by_fax",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "ads",
-      "target": "achieve_ambulance_mobilized_by_fax"
+      "source": "1542c388-4e13-5a0f-8811-931168d06ab2",
+      "target": "27b2c9b4-6220-56aa-b435-e85430c53a64"
     },
     {
       "id": "despatcher-assigned-achieve_ambulance_mobilized_by_phone",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "despatcher",
-      "target": "achieve_ambulance_mobilized_by_phone"
+      "source": "250c1d07-f319-559a-9230-e840c03498b5",
+      "target": "b3ba37bc-0941-5db3-a29f-e5da06bd032b"
     }
   ],
   "display": {},

@@ -2,7 +2,7 @@
   "actors": [],
   "orphans": [
     {
-      "id": "detectwar_dialing_attack",
+      "id": "61dd01b2-7c5c-5b6b-8832-925f85e536d3",
       "text": "DetectWar-dialing attack",
       "type": "kaos.BehavioralGoal",
       "x": 200,
@@ -17,10 +17,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "The system shall detect risk War-dialing attack after its occurrence."
-      }
+      },
+      "kaosId": "detectwar_dialing_attack"
     },
     {
-      "id": "detectunknown_applications",
+      "id": "61e1c990-060b-5624-aab7-8a691e81e53c",
       "text": "DetectUnknown applications",
       "type": "kaos.BehavioralGoal",
       "x": 40,
@@ -35,10 +36,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "The system shall detect vulnerability Unknown applications after its occurrence."
-      }
+      },
+      "kaosId": "detectunknown_applications"
     },
     {
-      "id": "detectwar_dialing",
+      "id": "b7154f3e-99a2-53c7-8b94-4d9390646ee2",
       "text": "DetectWar-dialing",
       "type": "kaos.BehavioralGoal",
       "x": 200,
@@ -53,10 +55,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "The system shall detect threat War-dialing after its occurrence."
-      }
+      },
+      "kaosId": "detectwar_dialing"
     },
     {
-      "id": "anomalous_credentials_reset",
+      "id": "23c882e2-bcdf-5aa5-8a34-6f456ee71b75",
       "text": "Anomalous credentials reset",
       "type": "kaos.BehavioralGoal",
       "x": 200,
@@ -71,10 +74,11 @@
         "FitCriterion": "Login attempt logs available to service desk, together with a procedure for contacting the Information Security Manager in the event of anomalies.",
         "Stability": "",
         "Description": "Prior to responding to a password reset request, service desk operators shall monitor recent login logs for any malicious activity, and report any anomalies to the Information Security Manager."
-      }
+      },
+      "kaosId": "anomalous_credentials_reset"
     },
     {
-      "id": "pay_number_sharing",
+      "id": "e52e7049-7f41-59af-b08e-ac034149ed87",
       "text": "Pay number sharing",
       "type": "kaos.BehavioralGoal",
       "x": 520,
@@ -95,10 +99,11 @@
         "Reference": "ICT Credentials",
         "ReferenceType": "asset",
         "Rationale": "None"
-      }
+      },
+      "kaosId": "pay_number_sharing"
     },
     {
-      "id": "third_party_requests",
+      "id": "1027d27c-1ae3-51bb-9545-ae2a27b1ca78",
       "text": "Third party requests",
       "type": "kaos.BehavioralGoal",
       "x": 680,
@@ -119,10 +124,11 @@
         "Reference": "STCS Application",
         "ReferenceType": "asset",
         "Rationale": "None"
-      }
+      },
+      "kaosId": "third_party_requests"
     },
     {
-      "id": "application_program_backup",
+      "id": "aaa598cb-7951-5ce6-90b3-ca9515d57c28",
       "text": "Application program backup",
       "type": "kaos.BehavioralGoal",
       "x": 840,
@@ -143,10 +149,11 @@
         "Reference": "STCS Application",
         "ReferenceType": "asset",
         "Rationale": "All software stored in  repository."
-      }
+      },
+      "kaosId": "application_program_backup"
     },
     {
-      "id": "pc_infrastructure",
+      "id": "67825714-c9e4-56f6-a08e-1eb4e46f92e8",
       "text": "PC infrastructure",
       "type": "kaos.DomainProperty",
       "x": 1000,
@@ -155,10 +162,11 @@
         "Kind": "Invariant",
         "Description": "Works diary GT concept",
         "Source": "Anon"
-      }
+      },
+      "kaosId": "pc_infrastructure"
     },
     {
-      "id": "vendor",
+      "id": "1983dddd-8f72-50fb-82d7-9899df1826a2",
       "text": "Vendor",
       "type": "kaos.Agent",
       "x": 1160,
@@ -167,10 +175,11 @@
         "Description": "Vendor of SCADA, Telemetry, and Control System software",
         "RoleType": "Stakeholder",
         "ShortCode": "VENDOR"
-      }
+      },
+      "kaosId": "vendor"
     },
     {
-      "id": "cracker",
+      "id": "2bcf4a15-7806-54b1-bb98-24ef690b4a0e",
       "text": "Cracker",
       "type": "kaos.Agent",
       "x": 1320,
@@ -179,10 +188,11 @@
         "Description": "Cracker",
         "RoleType": "Attacker",
         "ShortCode": "CRACK"
-      }
+      },
+      "kaosId": "cracker"
     },
     {
-      "id": "petty_criminal",
+      "id": "23b2ee4b-d26a-5540-bf03-71694f96391e",
       "text": "Petty Criminal",
       "type": "kaos.Agent",
       "x": 1480,
@@ -191,10 +201,11 @@
         "Description": "Engages in acts of petty crime",
         "RoleType": "Attacker",
         "ShortCode": "PETTY_CRIM"
-      }
+      },
+      "kaosId": "petty_criminal"
     },
     {
-      "id": "integrator",
+      "id": "2e099ed4-2389-52e5-ac97-74ec26e48426",
       "text": "Integrator",
       "type": "kaos.Agent",
       "x": 1640,
@@ -203,10 +214,11 @@
         "Description": "Work with process partners to implement the control philosophy associated with a capital project",
         "RoleType": "Stakeholder",
         "ShortCode": "INTGR"
-      }
+      },
+      "kaosId": "integrator"
     },
     {
-      "id": "service_desk",
+      "id": "9b512f3f-b461-552c-92f8-d6c0dc8f2f31",
       "text": "Service Desk",
       "type": "kaos.Agent",
       "x": 360,
@@ -215,10 +227,11 @@
         "Description": "Service Desk staff acting as first-line support for any ICT problems.",
         "RoleType": "Stakeholder",
         "ShortCode": "SERV_DESK"
-      }
+      },
+      "kaosId": "service_desk"
     },
     {
-      "id": "machine",
+      "id": "4cb89355-a883-5cb4-8c66-cfdc7f5b14a6",
       "text": "Machine",
       "type": "kaos.Agent",
       "x": 1800,
@@ -227,7 +240,8 @@
         "Description": "System hardware",
         "RoleType": "Stakeholder",
         "ShortCode": "MACH"
-      }
+      },
+      "kaosId": "machine"
     }
   ],
   "dependencies": [],
@@ -248,7 +262,7 @@
         {
           "id": "detectwar_dialing_attack-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "detectunknown_applications",
+          "source": "61e1c990-060b-5624-aab7-8a691e81e53c",
           "target": "detectwar_dialing_attack-refinement-1"
         }
       ],
@@ -256,7 +270,7 @@
         "id": "detectwar_dialing_attack-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "detectwar_dialing_attack-refinement-1",
-        "target": "detectwar_dialing_attack"
+        "target": "61dd01b2-7c5c-5b6b-8832-925f85e536d3"
       }
     },
     {
@@ -275,7 +289,7 @@
         {
           "id": "detectwar_dialing_attack-refinement-2-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "detectwar_dialing",
+          "source": "b7154f3e-99a2-53c7-8b94-4d9390646ee2",
           "target": "detectwar_dialing_attack-refinement-2"
         }
       ],
@@ -283,7 +297,7 @@
         "id": "detectwar_dialing_attack-refinement-2-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "detectwar_dialing_attack-refinement-2",
-        "target": "detectwar_dialing_attack"
+        "target": "61dd01b2-7c5c-5b6b-8832-925f85e536d3"
       }
     },
     {
@@ -302,7 +316,7 @@
         {
           "id": "detectwar_dialing-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "anomalous_credentials_reset",
+          "source": "23c882e2-bcdf-5aa5-8a34-6f456ee71b75",
           "target": "detectwar_dialing-refinement-1"
         }
       ],
@@ -310,14 +324,14 @@
         "id": "detectwar_dialing-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "detectwar_dialing-refinement-1",
-        "target": "detectwar_dialing"
+        "target": "b7154f3e-99a2-53c7-8b94-4d9390646ee2"
       }
     },
     {
       "id": "service_desk-assigned-anomalous_credentials_reset",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "service_desk",
-      "target": "anomalous_credentials_reset"
+      "source": "9b512f3f-b461-552c-92f8-d6c0dc8f2f31",
+      "target": "23c882e2-bcdf-5aa5-8a34-6f456ee71b75"
     }
   ],
   "display": {},

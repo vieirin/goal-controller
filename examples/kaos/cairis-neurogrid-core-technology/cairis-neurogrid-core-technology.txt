@@ -2,7 +2,7 @@
   "actors": [],
   "orphans": [
     {
-      "id": "anonymisation_guidelines",
+      "id": "b693f7f8-a948-5a97-847c-3e80f962128b",
       "text": "Anonymisation guidelines",
       "type": "kaos.BehavioralGoal",
       "x": 40,
@@ -23,10 +23,11 @@
         "Reference": "Clinical data",
         "ReferenceType": "asset",
         "Rationale": "None"
-      }
+      },
+      "kaosId": "anonymisation_guidelines"
     },
     {
-      "id": "anonymised_data",
+      "id": "8671a348-10d2-558f-8295-8629f605b36d",
       "text": "Anonymised data",
       "type": "kaos.BehavioralGoal",
       "x": 200,
@@ -47,10 +48,11 @@
         "Reference": "Clinical data",
         "ReferenceType": "asset",
         "Rationale": "None"
-      }
+      },
+      "kaosId": "anonymised_data"
     },
     {
-      "id": "truststores",
+      "id": "377089bf-ff7d-5c9e-b532-3cbbfa3b1ee1",
       "text": "Truststores",
       "type": "kaos.BehavioralGoal",
       "x": 360,
@@ -71,10 +73,11 @@
         "Reference": "User certificate",
         "ReferenceType": "asset",
         "Rationale": "None"
-      }
+      },
+      "kaosId": "truststores"
     },
     {
-      "id": "certificate_storage",
+      "id": "168ea5d3-df78-5c1e-b0c4-e493f4676a4d",
       "text": "Certificate storage",
       "type": "kaos.BehavioralGoal",
       "x": 520,
@@ -95,10 +98,11 @@
         "Reference": "User certificate",
         "ReferenceType": "asset",
         "Rationale": "Hacking a weakly defined machine can give an attacker access to NeuroGrid and any authorised data sets."
-      }
+      },
+      "kaosId": "certificate_storage"
     },
     {
-      "id": "incorrect_access_response",
+      "id": "9459bfab-a9d2-5785-a329-f5d51accd427",
       "text": "Incorrect access response",
       "type": "kaos.BehavioralGoal",
       "x": 680,
@@ -119,10 +123,11 @@
         "Reference": "User certificate",
         "ReferenceType": "asset",
         "Rationale": "Do not want attackers to know if they have valid access permissions or not."
-      }
+      },
+      "kaosId": "incorrect_access_response"
     },
     {
-      "id": "user_certificate_addressability",
+      "id": "82f74c4c-2039-569d-ade2-5075869cbdc3",
       "text": "User certificate addressability",
       "type": "kaos.BehavioralGoal",
       "x": 840,
@@ -143,10 +148,11 @@
         "Reference": "User certificate",
         "ReferenceType": "asset",
         "Rationale": "Provide defence in depth if a root certificate is compromised."
-      }
+      },
+      "kaosId": "user_certificate_addressability"
     },
     {
-      "id": "dataset_policy",
+      "id": "2d434a8f-9d8b-5723-8ff5-ca9c5f0812d5",
       "text": "Dataset policy",
       "type": "kaos.BehavioralGoal",
       "x": 1000,
@@ -167,10 +173,11 @@
         "Reference": "Access Control Policy",
         "ReferenceType": "asset",
         "Rationale": "Need to determine which users can do what."
-      }
+      },
+      "kaosId": "dataset_policy"
     },
     {
-      "id": "access_sponsor",
+      "id": "717c7e6d-cf59-5846-8273-4acaa0fe942b",
       "text": "Access sponsor",
       "type": "kaos.BehavioralGoal",
       "x": 1160,
@@ -191,10 +198,11 @@
         "Reference": "Access Control Policy",
         "ReferenceType": "asset",
         "Rationale": "None"
-      }
+      },
+      "kaosId": "access_sponsor"
     },
     {
-      "id": "sponsor_clearance",
+      "id": "91a4bef2-40e8-5f3a-bc66-c57aa71b53c0",
       "text": "Sponsor clearance",
       "type": "kaos.BehavioralGoal",
       "x": 1320,
@@ -215,10 +223,11 @@
         "Reference": "Access Control Policy",
         "ReferenceType": "asset",
         "Rationale": "None"
-      }
+      },
+      "kaosId": "sponsor_clearance"
     },
     {
-      "id": "guest_workflow_submission",
+      "id": "03ae77ef-a66d-5ed8-8af3-7bdb349cd6c4",
       "text": "Guest workflow submission",
       "type": "kaos.BehavioralGoal",
       "x": 1480,
@@ -239,10 +248,11 @@
         "Reference": "Guest Certificate",
         "ReferenceType": "asset",
         "Rationale": "None"
-      }
+      },
+      "kaosId": "guest_workflow_submission"
     },
     {
-      "id": "guest_node_restriction",
+      "id": "a715ee5f-5a50-5eca-97d3-8a05ebb5bc19",
       "text": "Guest node restriction",
       "type": "kaos.BehavioralGoal",
       "x": 1640,
@@ -263,10 +273,11 @@
         "Reference": "Guest Certificate",
         "ReferenceType": "asset",
         "Rationale": "None"
-      }
+      },
+      "kaosId": "guest_node_restriction"
     },
     {
-      "id": "webdav_client",
+      "id": "61f2dd84-5c89-558d-adda-70327ff0affa",
       "text": "WebDAV client",
       "type": "kaos.BehavioralGoal",
       "x": 1800,
@@ -287,10 +298,11 @@
         "Reference": "WebDAV Collection",
         "ReferenceType": "asset",
         "Rationale": "None"
-      }
+      },
+      "kaosId": "webdav_client"
     },
     {
-      "id": "webdav_folder_retention",
+      "id": "c7342f5e-a871-5a81-bf4c-6a24684257b6",
       "text": "WebDAV folder retention",
       "type": "kaos.BehavioralGoal",
       "x": 1960,
@@ -311,10 +323,11 @@
         "Reference": "WebDAV Collection",
         "ReferenceType": "asset",
         "Rationale": "None"
-      }
+      },
+      "kaosId": "webdav_folder_retention"
     },
     {
-      "id": "folder_visibility",
+      "id": "ca3c9a5d-334a-52ca-809f-cd090780e006",
       "text": "Folder visibility",
       "type": "kaos.BehavioralGoal",
       "x": 2120,
@@ -335,10 +348,11 @@
         "Reference": "WebDAV Collection",
         "ReferenceType": "asset",
         "Rationale": "None"
-      }
+      },
+      "kaosId": "folder_visibility"
     },
     {
-      "id": "folder_permissions",
+      "id": "cd7b6053-7433-54f2-8d67-2b9a23cb3380",
       "text": "Folder permissions",
       "type": "kaos.BehavioralGoal",
       "x": 2280,
@@ -359,10 +373,11 @@
         "Reference": "WebDAV Collection",
         "ReferenceType": "asset",
         "Rationale": "Do not want attackers to know if they have valid access permissions or not."
-      }
+      },
+      "kaosId": "folder_permissions"
     },
     {
-      "id": "meta_data_query",
+      "id": "40687624-4cb6-5d75-8a1f-b0d7ed1b4507",
       "text": "Meta-data query",
       "type": "kaos.BehavioralGoal",
       "x": 2440,
@@ -383,10 +398,11 @@
         "Reference": "Grid meta-data",
         "ReferenceType": "asset",
         "Rationale": "None"
-      }
+      },
+      "kaosId": "meta_data_query"
     },
     {
-      "id": "https_data_transfer",
+      "id": "14e0291f-02d7-59ba-845a-d506b8f2978d",
       "text": "HTTPS data transfer",
       "type": "kaos.BehavioralGoal",
       "x": 2600,
@@ -407,10 +423,11 @@
         "Reference": "Portal",
         "ReferenceType": "asset",
         "Rationale": "None"
-      }
+      },
+      "kaosId": "https_data_transfer"
     },
     {
-      "id": "encrypted_data_transfer",
+      "id": "98e22249-1c28-59c8-80e7-0bd375935651",
       "text": "Encrypted data transfer",
       "type": "kaos.BehavioralGoal",
       "x": 2760,
@@ -431,10 +448,11 @@
         "Reference": "Portal",
         "ReferenceType": "asset",
         "Rationale": "Safeguard confidentiality and integrity."
-      }
+      },
+      "kaosId": "encrypted_data_transfer"
     },
     {
-      "id": "completion_email",
+      "id": "d0839fab-bfd5-560b-bf9f-04e31d99dbdd",
       "text": "Completion email",
       "type": "kaos.BehavioralGoal",
       "x": 3080,
@@ -455,10 +473,11 @@
         "Reference": "Workflow",
         "ReferenceType": "asset",
         "Rationale": "Useful reminder for submitters."
-      }
+      },
+      "kaosId": "completion_email"
     },
     {
-      "id": "api_data_transfer",
+      "id": "bbba1e81-5a35-55b8-b35b-09578d566e1a",
       "text": "API data transfer",
       "type": "kaos.BehavioralGoal",
       "x": 3240,
@@ -479,10 +498,11 @@
         "Reference": "Workflow",
         "ReferenceType": "asset",
         "Rationale": "None"
-      }
+      },
+      "kaosId": "api_data_transfer"
     },
     {
-      "id": "infrastructure_knowledge",
+      "id": "5f4153cc-728f-57e5-b567-0807380f4afe",
       "text": "Infrastructure knowledge",
       "type": "kaos.DomainProperty",
       "x": 3400,
@@ -491,10 +511,11 @@
         "Kind": "Hypothesis",
         "Description": "NeuroGrid API users have a working knowledge of the NeuroGrid infrastructure, and the security mechanisms used by it.",
         "Source": "Shamal Faily"
-      }
+      },
+      "kaosId": "infrastructure_knowledge"
     },
     {
-      "id": "physical_infrastructure_security",
+      "id": "e52c8ad5-df14-58ba-a66d-fdbd5071453f",
       "text": "Physical infrastructure security",
       "type": "kaos.DomainProperty",
       "x": 3560,
@@ -503,10 +524,11 @@
         "Kind": "Hypothesis",
         "Description": "The NeuroGrid server nodes are physically secure.",
         "Source": "Shamal Faily"
-      }
+      },
+      "kaosId": "physical_infrastructure_security"
     },
     {
-      "id": "non_federated_access_control",
+      "id": "86504782-6a73-5b42-b12a-ab8e5df5be57",
       "text": "Non-federated access control",
       "type": "kaos.DomainProperty",
       "x": 3720,
@@ -515,10 +537,11 @@
         "Kind": "Invariant",
         "Description": "Access Control Policies are non-federated, although they appear to be.",
         "Source": "Shamal Faily"
-      }
+      },
+      "kaosId": "non_federated_access_control"
     },
     {
-      "id": "inter_process_data_transmission",
+      "id": "89e98045-5581-568a-a979-541116ef4c4e",
       "text": "Inter-process data transmission",
       "type": "kaos.Obstacle",
       "x": 3880,
@@ -528,10 +551,11 @@
         "FormalSpec": "",
         "Category": "Vulnerability",
         "Source": "Shamal Faily"
-      }
+      },
+      "kaosId": "inter_process_data_transmission"
     },
     {
-      "id": "workflow_workflow_data_transfer",
+      "id": "b2aa1e35-4156-533b-b562-e9d41bc0bd18",
       "text": "Workflow-Workflow data transfer",
       "type": "kaos.Obstacle",
       "x": 3880,
@@ -541,10 +565,11 @@
         "FormalSpec": "",
         "Category": "Confidentiality_Threat",
         "Source": "Shamal Faily"
-      }
+      },
+      "kaosId": "workflow_workflow_data_transfer"
     },
     {
-      "id": "workflow_ipc",
+      "id": "149d57c3-c40c-5e2e-be43-894118f5455e",
       "text": "Workflow IPC",
       "type": "kaos.Obstacle",
       "x": 4040,
@@ -554,10 +579,11 @@
         "FormalSpec": "",
         "Category": "Integrity_Threat",
         "Source": "Shamal Faily"
-      }
+      },
+      "kaosId": "workflow_ipc"
     },
     {
-      "id": "guest_workflow_submissions",
+      "id": "fb5fc599-fc28-5934-a075-f294defeada4",
       "text": "Guest workflow submissions",
       "type": "kaos.Obstacle",
       "x": 1480,
@@ -567,10 +593,11 @@
         "FormalSpec": "",
         "Category": "Accountability_Threat",
         "Source": "Shamal Faily"
-      }
+      },
+      "kaosId": "guest_workflow_submissions"
     },
     {
-      "id": "insecure_internal_data_transmission",
+      "id": "f0f59d87-0131-5d25-ae22-adb2c4e621ec",
       "text": "Insecure internal data transmission",
       "type": "kaos.Obstacle",
       "x": 2760,
@@ -580,10 +607,11 @@
         "FormalSpec": "",
         "Category": "Integrity_Threat",
         "Source": "Shamal Faily"
-      }
+      },
+      "kaosId": "insecure_internal_data_transmission"
     },
     {
-      "id": "unencrypted_data_transmission",
+      "id": "12531614-d1bf-5da0-b362-fb94f9e5b434",
       "text": "Unencrypted data transmission",
       "type": "kaos.Obstacle",
       "x": 2760,
@@ -593,10 +621,11 @@
         "FormalSpec": "",
         "Category": "Confidentiality_Threat",
         "Source": "Shamal Faily"
-      }
+      },
+      "kaosId": "unencrypted_data_transmission"
     },
     {
-      "id": "unsigned_data_transmission",
+      "id": "5f1b3fe2-1fcb-5f29-a33a-76e8bd926356",
       "text": "Unsigned data transmission",
       "type": "kaos.Obstacle",
       "x": 2920,
@@ -606,10 +635,11 @@
         "FormalSpec": "",
         "Category": "Integrity_Threat",
         "Source": "Shamal Faily"
-      }
+      },
+      "kaosId": "unsigned_data_transmission"
     },
     {
-      "id": "data_consumer",
+      "id": "d5a3e370-f1ea-57fb-b106-21c3ddfd7304",
       "text": "Data Consumer",
       "type": "kaos.Agent",
       "x": 4200,
@@ -618,10 +648,11 @@
         "Description": "Uses NeuroGrid data",
         "RoleType": "Stakeholder",
         "ShortCode": "DCON"
-      }
+      },
+      "kaosId": "data_consumer"
     },
     {
-      "id": "data_provider",
+      "id": "c06e6777-8590-580c-9d02-d8c7ac58f639",
       "text": "Data Provider",
       "type": "kaos.Agent",
       "x": 4360,
@@ -630,10 +661,11 @@
         "Description": "Supplies data to NeuroGrid",
         "RoleType": "Stakeholder",
         "ShortCode": "DPRO"
-      }
+      },
+      "kaosId": "data_provider"
     },
     {
-      "id": "social_engineer",
+      "id": "8b284b6d-eba8-598d-8bbf-fa341727bbb7",
       "text": "Social Engineer",
       "type": "kaos.Agent",
       "x": 4520,
@@ -642,10 +674,11 @@
         "Description": "Uses human frailty to access computational resources.",
         "RoleType": "Stakeholder",
         "ShortCode": "SENG"
-      }
+      },
+      "kaosId": "social_engineer"
     },
     {
-      "id": "certificate_authority",
+      "id": "e22a0f99-0bfa-5392-bccb-a7e16e87c00c",
       "text": "Certificate Authority",
       "type": "kaos.Agent",
       "x": 4680,
@@ -654,10 +687,11 @@
         "Description": "Authorises access requests for NeuroGrid and responsible for day-to-day administration.",
         "RoleType": "Stakeholder",
         "ShortCode": "CA"
-      }
+      },
+      "kaosId": "certificate_authority"
     },
     {
-      "id": "hacker",
+      "id": "2802b1b5-445f-5925-b7cd-3beba518d96d",
       "text": "Hacker",
       "type": "kaos.Agent",
       "x": 4840,
@@ -666,10 +700,11 @@
         "Description": "Professional or semi-professional hacker",
         "RoleType": "Attacker",
         "ShortCode": "AKR"
-      }
+      },
+      "kaosId": "hacker"
     },
     {
-      "id": "researcher",
+      "id": "a31b40b9-c739-5d50-8258-9a6e30fcb3a4",
       "text": "Researcher",
       "type": "kaos.Agent",
       "x": 5000,
@@ -678,10 +713,11 @@
         "Description": "Uses and supplies data to NeuroGrid",
         "RoleType": "Stakeholder",
         "ShortCode": "RCHR"
-      }
+      },
+      "kaosId": "researcher"
     },
     {
-      "id": "developer",
+      "id": "baf7e24a-d380-5af0-9030-d781e33d053a",
       "text": "Developer",
       "type": "kaos.Agent",
       "x": 5160,
@@ -690,10 +726,11 @@
         "Description": "Develops NeuroGrid applications based on the provided NeuroGrid API and services.",
         "RoleType": "Stakeholder",
         "ShortCode": "DEV"
-      }
+      },
+      "kaosId": "developer"
     },
     {
-      "id": "sysadmin",
+      "id": "7e92949b-ac55-579c-8e95-8174f7f397a6",
       "text": "Sysadmin",
       "type": "kaos.Agent",
       "x": 5320,
@@ -702,7 +739,8 @@
         "Description": "Responsible for day-to-day administration of NeuroGrid, including authorisation of access requests.",
         "RoleType": "Stakeholder",
         "ShortCode": "SYSADMIN"
-      }
+      },
+      "kaosId": "sysadmin"
     }
   ],
   "dependencies": [],
@@ -710,8 +748,8 @@
     {
       "id": "insecure_internal_data_transmission-obstructs-encrypted_data_transfer",
       "type": "kaos.ObstructionLink",
-      "source": "insecure_internal_data_transmission",
-      "target": "encrypted_data_transfer",
+      "source": "f0f59d87-0131-5d25-ae22-adb2c4e621ec",
+      "target": "98e22249-1c28-59c8-80e7-0bd375935651",
       "customProperties": {
         "Rationale": "None."
       }
@@ -719,8 +757,8 @@
     {
       "id": "guest_workflow_submissions-obstructs-guest_workflow_submission",
       "type": "kaos.ObstructionLink",
-      "source": "guest_workflow_submissions",
-      "target": "guest_workflow_submission",
+      "source": "fb5fc599-fc28-5934-a075-f294defeada4",
+      "target": "03ae77ef-a66d-5ed8-8af3-7bdb349cd6c4",
       "customProperties": {
         "Rationale": "None"
       }
@@ -736,7 +774,7 @@
         {
           "id": "inter_process_data_transmission-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "workflow_workflow_data_transfer",
+          "source": "b2aa1e35-4156-533b-b562-e9d41bc0bd18",
           "target": "inter_process_data_transmission-refinement-1",
           "customProperties": {
             "Rationale": "None"
@@ -747,7 +785,7 @@
         "id": "inter_process_data_transmission-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "inter_process_data_transmission-refinement-1",
-        "target": "inter_process_data_transmission"
+        "target": "89e98045-5581-568a-a979-541116ef4c4e"
       }
     },
     {
@@ -761,7 +799,7 @@
         {
           "id": "inter_process_data_transmission-refinement-2-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "workflow_ipc",
+          "source": "149d57c3-c40c-5e2e-be43-894118f5455e",
           "target": "inter_process_data_transmission-refinement-2",
           "customProperties": {
             "Rationale": "None"
@@ -772,7 +810,7 @@
         "id": "inter_process_data_transmission-refinement-2-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "inter_process_data_transmission-refinement-2",
-        "target": "inter_process_data_transmission"
+        "target": "89e98045-5581-568a-a979-541116ef4c4e"
       }
     },
     {
@@ -786,7 +824,7 @@
         {
           "id": "insecure_internal_data_transmission-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "unencrypted_data_transmission",
+          "source": "12531614-d1bf-5da0-b362-fb94f9e5b434",
           "target": "insecure_internal_data_transmission-refinement-1",
           "customProperties": {
             "Rationale": "None"
@@ -797,7 +835,7 @@
         "id": "insecure_internal_data_transmission-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "insecure_internal_data_transmission-refinement-1",
-        "target": "insecure_internal_data_transmission"
+        "target": "f0f59d87-0131-5d25-ae22-adb2c4e621ec"
       }
     },
     {
@@ -811,7 +849,7 @@
         {
           "id": "insecure_internal_data_transmission-refinement-2-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "unsigned_data_transmission",
+          "source": "5f1b3fe2-1fcb-5f29-a33a-76e8bd926356",
           "target": "insecure_internal_data_transmission-refinement-2",
           "customProperties": {
             "Rationale": "None"
@@ -822,20 +860,20 @@
         "id": "insecure_internal_data_transmission-refinement-2-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "insecure_internal_data_transmission-refinement-2",
-        "target": "insecure_internal_data_transmission"
+        "target": "f0f59d87-0131-5d25-ae22-adb2c4e621ec"
       }
     },
     {
       "id": "sysadmin-assigned-webdav_folder_retention",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "sysadmin",
-      "target": "webdav_folder_retention"
+      "source": "7e92949b-ac55-579c-8e95-8174f7f397a6",
+      "target": "c7342f5e-a871-5a81-bf4c-6a24684257b6"
     },
     {
       "id": "sysadmin-assigned-folder_permissions",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "sysadmin",
-      "target": "folder_permissions"
+      "source": "7e92949b-ac55-579c-8e95-8174f7f397a6",
+      "target": "cd7b6053-7433-54f2-8d67-2b9a23cb3380"
     }
   ],
   "display": {},

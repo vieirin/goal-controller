@@ -2,7 +2,7 @@
   "actors": [],
   "orphans": [
     {
-      "id": "achieve_incident_resolved",
+      "id": "1ae1ecd6-a1db-5c31-be81-6d625a54cf8e",
       "text": "Achieve [Incident Resolved]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -17,11 +17,12 @@
         "Description": "",
         "RSR": "95%"
       },
+      "kaosId": "achieve_incident_resolved",
       "x": 5000,
       "y": 80
     },
     {
-      "id": "achieve_incident_reported",
+      "id": "42580588-a59d-503b-b91f-a454d6f287e7",
       "text": "Achieve [Incident Reported]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -35,11 +36,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "achieve_incident_reported",
       "x": 40,
       "y": 180
     },
     {
-      "id": "achieve_ambulance_intervention",
+      "id": "ca20ba13-0ae3-5e4d-9e98-549cd562b598",
       "text": "Achieve [Ambulance Intervention]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -53,11 +55,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "achieve_ambulance_intervention",
       "x": 4040,
       "y": 180
     },
     {
-      "id": "achieve_incident_resolved_by_intervention",
+      "id": "6d5731fa-8d0d-5ecc-a83c-dd0665d1f438",
       "text": "Achieve [Incident Resolved By Ambulance Intervention]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -71,11 +74,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "achieve_incident_resolved_by_intervention",
       "x": 8840,
       "y": 180
     },
     {
-      "id": "achieve_ambulance_mobilization",
+      "id": "acfe6e04-25da-51b3-bbbf-092300772aee",
       "text": "Achieve [Ambulance Mobilization]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -89,11 +93,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "achieve_ambulance_mobilization",
       "x": 3240,
       "y": 280
     },
     {
-      "id": "achieve_mobilized_ambulance_intervention",
+      "id": "d8f8365e-ea6e-5b19-a860-59b1d6373e7f",
       "text": "Achieve [Mobilized Ambulance Intervention]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -107,11 +112,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "achieve_mobilized_ambulance_intervention",
       "x": 7080,
       "y": 280
     },
     {
-      "id": "maintain_accurate_incident_form",
+      "id": "e074238a-a068-511d-b01a-f929971c0506",
       "text": "Maintain [Accurate Incident Form]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -125,11 +131,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "maintain_accurate_incident_form",
       "x": 360,
       "y": 380
     },
     {
-      "id": "achieve_ambulance_mobilization_based_on_if",
+      "id": "0ed54284-3c36-5e6f-8c7e-86b19bec8599",
       "text": "Achieve [Ambulance Mobilization Based On Incident Form]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -143,11 +150,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "achieve_ambulance_mobilization_based_on_if",
       "x": 3400,
       "y": 380
     },
     {
-      "id": "achieve_ambulance_allocation_based_on_if",
+      "id": "5b82bc23-2be0-5688-ae10-1fdc66bb898e",
       "text": "Achieve [Ambulance Allocation Based On Incident Form]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -161,11 +169,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "achieve_ambulance_allocation_based_on_if",
       "x": 1480,
       "y": 480
     },
     {
-      "id": "achieve_allocated_ambulance_mobilization",
+      "id": "5ff07868-e4a4-5f53-a1bc-0b24ed4163b6",
       "text": "Achieve [Allocated Ambulance Mobilization]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -179,11 +188,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "achieve_allocated_ambulance_mobilization",
       "x": 4360,
       "y": 480
     },
     {
-      "id": "maintain_ambulance_available",
+      "id": "9aa9318c-8b83-5b8c-a45f-05acd7dbffa0",
       "text": "Maintain [Ambulance Available]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -197,11 +207,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "maintain_ambulance_available",
       "x": 680,
       "y": 580
     },
     {
-      "id": "achieve_ambulance_allocation_based_on_if_when_available",
+      "id": "45bc3529-506a-52e2-86c3-8ce3b712424a",
       "text": "Achieve [Ambulance Allocation Based On Incident Form When Ambulance Available]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -215,11 +226,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "achieve_ambulance_allocation_based_on_if_when_available",
       "x": 1480,
       "y": 580
     },
     {
-      "id": "achieve_allocation_at_station",
+      "id": "abd02701-af34-599d-aa88-bbb6bd31fa1d",
       "text": "Achieve [Allocated Ambulance Mobilization At Station]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -233,11 +245,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "achieve_allocation_at_station",
       "x": 3560,
       "y": 580
     },
     {
-      "id": "achieve_allocation_on_road",
+      "id": "81de6a6d-fce9-558b-bece-f5a6fe3ceea2",
       "text": "Achieve [Allocated Ambulance Mobilization On Road]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -251,11 +264,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "achieve_allocation_on_road",
       "x": 5480,
       "y": 580
     },
     {
-      "id": "maintain_ambulance_info_available",
+      "id": "684fa9df-9a16-59ec-8048-cbda5952430e",
       "text": "Maintain [Accurate Ambulance Information Known]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -269,11 +283,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "maintain_ambulance_info_available",
       "x": 1320,
       "y": 680
     },
     {
-      "id": "achieve_ambulance_allocation_based_on_if_and_af_when_available",
+      "id": "f7330b64-5915-528e-8576-a7c5f1d7b657",
       "text": "Achieve [Ambulance Allocation Based On Incident Form And Ambulance Info When Ambulance Available]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -287,11 +302,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "achieve_ambulance_allocation_based_on_if_and_af_when_available",
       "x": 2120,
       "y": 680
     },
     {
-      "id": "achieve_allocation_at_station_based_on_info",
+      "id": "46968693-3923-54da-8142-6c1fcfc60cff",
       "text": "Achieve [Allocated Ambulance Mobilization At Station Based On Location Info]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -305,11 +321,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "achieve_allocation_at_station_based_on_info",
       "x": 3240,
       "y": 680
     },
     {
-      "id": "achieve_allocation_on_road_based_on_info",
+      "id": "4030cf88-a057-5afa-8e4d-70cefe5f7113",
       "text": "Achieve [Allocated Ambulance Mobilization On Road Based On Location Info]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -323,11 +340,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "achieve_allocation_on_road_based_on_info",
       "x": 5480,
       "y": 680
     },
     {
-      "id": "maintain_location_info_known",
+      "id": "7db0de65-bc2e-500c-bdf8-0fe9ed46224a",
       "text": "Maintain [Accurate Ambulance Location Known]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -341,11 +359,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "maintain_location_info_known",
       "x": 4360,
       "y": 680
     },
     {
-      "id": "maintain_ambulance_availability_available",
+      "id": "e80e7fdc-0ad1-5b14-bd5e-1ff76007831f",
       "text": "Maintain [Accurate Ambulance Availability Known]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -359,11 +378,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "maintain_ambulance_availability_available",
       "x": 1320,
       "y": 780
     },
     {
-      "id": "accurate_availability_information_encoded",
+      "id": "e0e7e5ab-10bf-5646-b4e7-89971dcc2b02",
       "text": "Maintain [Accurate Information Encoded On MDT]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -377,11 +397,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "accurate_availability_information_encoded",
       "x": 840,
       "y": 880
     },
     {
-      "id": "accurate_availability_info_based_on_ei",
+      "id": "a9bfc2d5-9a17-5773-8465-47ded5d7bbf5",
       "text": "Maintain [Availability Known Based On Encoded Information]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -395,11 +416,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "accurate_availability_info_based_on_ei",
       "x": 1480,
       "y": 880
     },
     {
-      "id": "accurate_mapping",
+      "id": "1e12e7c1-2c89-500c-b41e-b08b1851c0b4",
       "text": "Maintain [Accurate Mapping]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -413,11 +435,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "accurate_mapping",
       "x": 1160,
       "y": 980
     },
     {
-      "id": "accurate_availability_info_based_on_ei_and_am",
+      "id": "242521eb-566f-5590-a80d-d9effa022475",
       "text": "Maintain [Availability Known Based On Encoded Information And Accurate Mapping]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -431,11 +454,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "accurate_availability_info_based_on_ei_and_am",
       "x": 1640,
       "y": 980
     },
     {
-      "id": "accurate_availability_info_sent",
+      "id": "8f44914c-c8dc-5ea1-b0b4-f39ab1e3240a",
       "text": "Achieve [Availability Information Sent]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -449,11 +473,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "accurate_availability_info_sent",
       "x": 1320,
       "y": 1080
     },
     {
-      "id": "accurate_availability_info_transmitted",
+      "id": "2e217da7-0a0c-5f83-afdc-b07e532720d4",
       "text": "Achieve [Availability Information Transmitted]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -467,11 +492,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "accurate_availability_info_transmitted",
       "x": 1640,
       "y": 1080
     },
     {
-      "id": "accurate_availability_info_recorded",
+      "id": "9cb90580-e123-5df7-b2d2-2d1144d11ac3",
       "text": "Maintain [Availability Information Recorded]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -485,11 +511,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "accurate_availability_info_recorded",
       "x": 1960,
       "y": 1080
     },
     {
-      "id": "moborder_printed_at_station",
+      "id": "66ff5d39-bc07-5fb5-a648-048032e8dc81",
       "text": "Achieve [Mobilization Order Printed At Station]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -503,11 +530,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "moborder_printed_at_station",
       "x": 2920,
       "y": 780
     },
     {
-      "id": "achieve_allocation_when_moborder_printed",
+      "id": "302e1acc-ba03-5e48-bf8c-2fd5626831ad",
       "text": "Achieve [Allocated Ambulance Mobilization When Mobilization Order Printed]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -521,11 +549,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "achieve_allocation_when_moborder_printed",
       "x": 3880,
       "y": 780
     },
     {
-      "id": "moborder_sent_to_printer",
+      "id": "bda64aeb-1c7d-52b3-8588-c74e19aba19b",
       "text": "Achieve [Mobilization Order Sent To Printer]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -539,11 +568,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "moborder_sent_to_printer",
       "x": 2440,
       "y": 880
     },
     {
-      "id": "accurate_mapping_printer",
+      "id": "69cb86c7-ea41-584c-a7de-0245e7d07241",
       "text": "Maintain [Accurate Printer Mapping]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -557,11 +587,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "accurate_mapping_printer",
       "x": 2440,
       "y": 980
     },
     {
-      "id": "moborder_sent_to_printer_based_on_am",
+      "id": "76899338-2a6c-52ac-9939-bcb1fb6ac58c",
       "text": "Achieve [Mobilization Order Sent To Printer Based On Mapping]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -575,11 +606,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "moborder_sent_to_printer_based_on_am",
       "x": 2600,
       "y": 980
     },
     {
-      "id": "moborder_transmitted_to_printer",
+      "id": "cd955184-e6ad-55e7-8a86-f9af6d7217fb",
       "text": "Achieve [Mobilization Order Transmitted]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -593,11 +625,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "moborder_transmitted_to_printer",
       "x": 2760,
       "y": 880
     },
     {
-      "id": "moborder_printed",
+      "id": "6abd7f59-ddf2-5d3d-b9aa-e99db88beed1",
       "text": "Achieve [Mobilization Order Printed]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -611,11 +644,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "moborder_printed",
       "x": 3080,
       "y": 880
     },
     {
-      "id": "moborder_displayed_on_mdt",
+      "id": "db6a8282-bdac-554d-9368-bce67dd24a52",
       "text": "Achieve [Mobilization Order Displayed On MDT]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -629,11 +663,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "moborder_displayed_on_mdt",
       "x": 5160,
       "y": 780
     },
     {
-      "id": "achieve_allocation_when_moborder_displayed",
+      "id": "19a79938-525f-5d64-aee6-3e38b71e9dc6",
       "text": "Achieve [Allocated Ambulance Mobilization When Mobilization Order Displayed]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -647,11 +682,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "achieve_allocation_when_moborder_displayed",
       "x": 5960,
       "y": 780
     },
     {
-      "id": "moborder_sent_to_mdt",
+      "id": "12af4e9b-2ae3-5a0c-a4ae-cfda8cf3ad0e",
       "text": "Achieve [Mobilization Order Sent To MDT]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -665,11 +701,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "moborder_sent_to_mdt",
       "x": 4840,
       "y": 880
     },
     {
-      "id": "accurate_mapping_mdt",
+      "id": "b600c02d-d06e-506d-b9f9-7129f9527bbf",
       "text": "Maintain [Accurate MDT Mapping]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -683,11 +720,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "accurate_mapping_mdt",
       "x": 4840,
       "y": 980
     },
     {
-      "id": "moborder_sent_to_mdt_based_on_am",
+      "id": "103040e9-ca81-57d4-b0b7-9f348379e267",
       "text": "Achieve [Mobilization Order Sent To MDT Based On Mapping]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -701,11 +739,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "moborder_sent_to_mdt_based_on_am",
       "x": 5000,
       "y": 980
     },
     {
-      "id": "moborder_transmitted_to_mdt",
+      "id": "786cc555-a160-57ff-81b0-acafcf6f1be3",
       "text": "Achieve [Mobilization Order Transmitted]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -719,11 +758,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "moborder_transmitted_to_mdt",
       "x": 5320,
       "y": 880
     },
     {
-      "id": "moborder_displayed",
+      "id": "4b6ca4d3-9a37-5dbe-a850-4cb587c6e5fa",
       "text": "Achieve [Mobilization Order Displayed]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -737,99 +777,108 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "moborder_displayed",
       "x": 5640,
       "y": 880
     },
     {
-      "id": "public",
+      "id": "760209c8-f55c-529e-bf80-0910a9f31c54",
       "text": "Public",
       "type": "kaos.Agent",
       "customProperties": {
         "Type": "",
         "Description": ""
       },
+      "kaosId": "public",
       "x": 200,
       "y": 180
     },
     {
-      "id": "staff",
+      "id": "1c035579-645e-5de7-8a7a-31fb2e6261b3",
       "text": "Ambulance Staff",
       "type": "kaos.Agent",
       "customProperties": {
         "Type": "",
         "Description": ""
       },
+      "kaosId": "staff",
       "x": 9000,
       "y": 180
     },
     {
-      "id": "operator",
+      "id": "16813b92-aa37-510d-8fdc-74a65d8c12b8",
       "text": "Operator",
       "type": "kaos.Agent",
       "customProperties": {
         "Type": "",
         "Description": ""
       },
+      "kaosId": "operator",
       "x": 520,
       "y": 380
     },
     {
-      "id": "cad",
+      "id": "0720fc9d-a487-5254-9248-bbd5857812ee",
       "text": "CAD",
       "type": "kaos.Agent",
       "customProperties": {
         "Type": "",
         "Description": ""
       },
+      "kaosId": "cad",
       "x": 2280,
       "y": 680
     },
     {
-      "id": "avls",
+      "id": "818d83ab-4aca-542b-a2c8-a24b28340d31",
       "text": "AVLS",
       "type": "kaos.Agent",
       "customProperties": {
         "Type": "",
         "Description": ""
       },
+      "kaosId": "avls",
       "x": 4520,
       "y": 680
     },
     {
-      "id": "mdt",
+      "id": "aba2ddf7-133c-59d8-870a-9a70395b9e91",
       "text": "MDT",
       "type": "kaos.Agent",
       "customProperties": {
         "Type": "",
         "Description": ""
       },
+      "kaosId": "mdt",
       "x": 1480,
       "y": 1080
     },
     {
-      "id": "ci",
+      "id": "e6f852f6-a705-5858-a732-3c836fcffe10",
       "text": "Communication Infrastructure",
       "type": "kaos.Agent",
       "customProperties": {
         "Type": "",
         "Description": ""
       },
+      "kaosId": "ci",
       "x": 1800,
       "y": 1080
     },
     {
-      "id": "printer",
+      "id": "38460f0d-8e50-5b8c-bd39-f8de4028cb2a",
       "text": "Printer",
       "type": "kaos.Agent",
       "customProperties": {
         "Type": "",
         "Description": ""
       },
+      "kaosId": "printer",
       "x": 3240,
       "y": 880
     },
     {
-      "id": "moborder_not_printed",
+      "id": "294cd331-980b-5674-9740-c0b33f823a61",
       "text": "Mobilization Order Not Printed",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -837,11 +886,12 @@
         "FormalSpec": "",
         "Category": ""
       },
+      "kaosId": "moborder_not_printed",
       "x": 3080,
       "y": 980
     },
     {
-      "id": "paper_jam",
+      "id": "e6e1c038-d45e-5b84-8f23-1afc9a83fac3",
       "text": "Paper Jam",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -854,11 +904,12 @@
         "Probability[e4]": "(20.00%, 20.00%, 40.00%)",
         "Probability[e5]": "(0.00%, 0.00%, 0.00%)"
       },
+      "kaosId": "paper_jam",
       "x": 2920,
       "y": 1080
     },
     {
-      "id": "out_of_paper",
+      "id": "11fc6f78-e742-5abe-8cc6-21194a6cf1c5",
       "text": "Out Of Paper",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -871,11 +922,12 @@
         "Probability[e4]": "(5.00%, 5.00%, 10.00%)",
         "Probability[e5]": "(0.00%, 0.00%, 0.00%)"
       },
+      "kaosId": "out_of_paper",
       "x": 3080,
       "y": 1080
     },
     {
-      "id": "data_lost",
+      "id": "14ed1a6c-d122-5ff9-aa6e-f5cc720117f7",
       "text": "Data Lost",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -888,11 +940,12 @@
         "Probability[e4]": "(1.00%, 10.00%, 15.00%)",
         "Probability[e5]": "(0.00%, 0.00%, 0.00%)"
       },
+      "kaosId": "data_lost",
       "x": 3240,
       "y": 1080
     },
     {
-      "id": "printer_off",
+      "id": "f22142ac-22ec-542c-9f99-6b4d7a6230de",
       "text": "Printer Off",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -905,11 +958,12 @@
         "Probability[e4]": "(1.00%, 1.00%, 1.00%)",
         "Probability[e5]": "(0.00%, 0.00%, 0.00%)"
       },
+      "kaosId": "printer_off",
       "x": 3400,
       "y": 1080
     },
     {
-      "id": "moborder_not_displayed",
+      "id": "e65f6361-0008-5cf2-8402-60a4e3d7f05c",
       "text": "Mobilization Order Not Displayed",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -917,11 +971,12 @@
         "FormalSpec": "",
         "Category": ""
       },
+      "kaosId": "moborder_not_displayed",
       "x": 5640,
       "y": 980
     },
     {
-      "id": "mdt_turned_off",
+      "id": "5d7098b9-3688-5d4e-bd7d-a728ddb3a7bd",
       "text": "MDT Turned Off",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -934,11 +989,12 @@
         "Probability[e4]": "(1.00%, 1.00%, 1.00%)",
         "Probability[e5]": "(0.00%, 0.00%, 0.00%)"
       },
+      "kaosId": "mdt_turned_off",
       "x": 5640,
       "y": 1080
     },
     {
-      "id": "location_known_not_info_known",
+      "id": "bab5dfe9-64b8-512f-bc89-0725ba2b4341",
       "text": "Accurate Ambulance Location Known",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -946,11 +1002,12 @@
         "FormalSpec": "",
         "Category": ""
       },
+      "kaosId": "location_known_not_info_known",
       "x": 4520,
       "y": 780
     },
     {
-      "id": "avls_out_of_service",
+      "id": "59ae2450-d9d9-5a9e-ae13-5a6176da0ff4",
       "text": "AVLS Out of Service",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -963,11 +1020,12 @@
         "Probability[e4]": "(0.00%, 0.00%, 0.00%)",
         "Probability[e5]": "(0.00%, 0.00%, 0.00%)"
       },
+      "kaosId": "avls_out_of_service",
       "x": 4360,
       "y": 880
     },
     {
-      "id": "gps_lost_connection",
+      "id": "7dfd6652-c2e0-5e50-a552-80e882f7702c",
       "text": "GPS lost connection",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -980,11 +1038,12 @@
         "Probability[e4]": "(30.00%, 40.00%, 50.00%)",
         "Probability[e5]": "(0.00%, 0.00%, 0.00%)"
       },
+      "kaosId": "gps_lost_connection",
       "x": 4520,
       "y": 880
     },
     {
-      "id": "location_innaccurate",
+      "id": "6a1f4265-fddb-55e9-95ba-ece17f80cbbb",
       "text": "Location Innaccurate",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -997,11 +1056,12 @@
         "Probability[e4]": "(25.00%, 30.00%, 30.00%)",
         "Probability[e5]": "(0.00%, 0.00%, 0.00%)"
       },
+      "kaosId": "location_innaccurate",
       "x": 4680,
       "y": 880
     },
     {
-      "id": "accurate_availability_information_not_encoded",
+      "id": "817a1a54-0958-5c13-a498-ea6f045f6ed6",
       "text": "Accurate Information Not Encoded On MDT",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1009,11 +1069,12 @@
         "FormalSpec": "",
         "Category": ""
       },
+      "kaosId": "accurate_availability_information_not_encoded",
       "x": 840,
       "y": 980
     },
     {
-      "id": "forget_to_encode_status",
+      "id": "d5b886bd-dd86-5e1f-bd31-4ff18134ed10",
       "text": "Forget To Encode Status",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1026,11 +1087,12 @@
         "Probability[e4]": "(20.00%, 25.00%, 40.00%)",
         "Probability[e5]": "(10.00%, 12.00%, 16.00%)"
       },
+      "kaosId": "forget_to_encode_status",
       "x": 840,
       "y": 1080
     },
     {
-      "id": "wrong_button_pressed",
+      "id": "4b089f2d-f2dd-5007-ac10-78e2cf0ca527",
       "text": "Wrong Button Pressed",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1043,11 +1105,12 @@
         "Probability[e4]": "(10.00%, 10.00%, 10.00%)",
         "Probability[e5]": "(0.00%, 0.00%, 0.00%)"
       },
+      "kaosId": "wrong_button_pressed",
       "x": 1000,
       "y": 1080
     },
     {
-      "id": "mobilized_ambulance_not_intervention",
+      "id": "1d600805-faa3-56f2-bbd0-1beaf0910aba",
       "text": "No Ambulance Intervention When Mobilized",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1055,11 +1118,12 @@
         "FormalSpec": "",
         "Category": ""
       },
+      "kaosId": "mobilized_ambulance_not_intervention",
       "x": 7080,
       "y": 380
     },
     {
-      "id": "service_end",
+      "id": "6b4c2437-b3ed-5fe1-9805-526e65c2f5a5",
       "text": "Service End Before Intervention",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1072,11 +1136,12 @@
         "Probability[e4]": "(10.00%, 15.00%, 20.00%)",
         "Probability[e5]": "(10.00%, 10.00%, 20.00%)"
       },
+      "kaosId": "service_end",
       "x": 6440,
       "y": 480
     },
     {
-      "id": "mobilization_retracted",
+      "id": "9b3a36c2-a3b9-5d2e-b5d8-8e2313ae33a3",
       "text": "Mobilization Retracted",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1084,11 +1149,12 @@
         "FormalSpec": "",
         "Category": ""
       },
+      "kaosId": "mobilization_retracted",
       "x": 6760,
       "y": 480
     },
     {
-      "id": "destination_changed",
+      "id": "cf20631a-7aff-5923-8369-7fe31ffc863e",
       "text": "Destination Changed",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1101,11 +1167,12 @@
         "Probability[e4]": "(5.00%, 5.00%, 10.00%)",
         "Probability[e5]": "(0.00%, 0.00%, 0.00%)"
       },
+      "kaosId": "destination_changed",
       "x": 6600,
       "y": 580
     },
     {
-      "id": "destination_forgotten",
+      "id": "35fa25b0-834f-5b5a-88ef-3973f2dc97be",
       "text": "Destination Forgotten",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1118,11 +1185,12 @@
         "Probability[e4]": "(10.00%, 15.00%, 20.00%)",
         "Probability[e5]": "(0.00%, 0.00%, 0.00%)"
       },
+      "kaosId": "destination_forgotten",
       "x": 6760,
       "y": 580
     },
     {
-      "id": "mobilization_cancelled",
+      "id": "36f19242-8b13-52cf-a0d5-1a862028d297",
       "text": "Mobilization Cancelled",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1135,11 +1203,12 @@
         "Probability[e4]": "(15.00%, 20.00%, 20.00%)",
         "Probability[e5]": "(4.00%, 6.00%, 10.00%)"
       },
+      "kaosId": "mobilization_cancelled",
       "x": 6920,
       "y": 580
     },
     {
-      "id": "ambulance_stopped_or_in_wrong_direction",
+      "id": "71121db4-0342-57a3-b5f5-0332297b238e",
       "text": "Ambulance Stopped Or In Wrong Direction",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1147,11 +1216,12 @@
         "FormalSpec": "",
         "Category": ""
       },
+      "kaosId": "ambulance_stopped_or_in_wrong_direction",
       "x": 7400,
       "y": 480
     },
     {
-      "id": "ambulance_stopped",
+      "id": "47af9012-fc94-5ad4-b46a-f3efc6a57d55",
       "text": "Ambulance Stopped",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1159,11 +1229,12 @@
         "FormalSpec": "",
         "Category": ""
       },
+      "kaosId": "ambulance_stopped",
       "x": 7080,
       "y": 580
     },
     {
-      "id": "ambulance_broken",
+      "id": "f53b71f4-e08f-50e1-94c3-037ee137ca9d",
       "text": "Ambulance Broken Down Or Accident",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1176,11 +1247,12 @@
         "Probability[e4]": "(5.00%, 5.00%, 5.00%)",
         "Probability[e5]": "(4.00%, 6.00%, 10.00%)"
       },
+      "kaosId": "ambulance_broken",
       "x": 7080,
       "y": 680
     },
     {
-      "id": "ambulance_stopped_in_traffic",
+      "id": "433cfcaf-0f26-5377-b95e-9125057b5ff5",
       "text": "Ambulance Stopped In Traffic",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1193,11 +1265,12 @@
         "Probability[e4]": "(40.00%, 50.00%, 70.00%)",
         "Probability[e5]": "(20.00%, 30.00%, 40.00%)"
       },
+      "kaosId": "ambulance_stopped_in_traffic",
       "x": 7240,
       "y": 680
     },
     {
-      "id": "ambulance_in_wrong_direction",
+      "id": "eaae980f-bf34-531c-9099-8d013d88d8de",
       "text": "Ambulance In Wrong Direction",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1205,11 +1278,12 @@
         "FormalSpec": "",
         "Category": ""
       },
+      "kaosId": "ambulance_in_wrong_direction",
       "x": 7560,
       "y": 580
     },
     {
-      "id": "ambulance_lost",
+      "id": "381ad13d-cb6d-582d-87ce-d75e6dbc8427",
       "text": "Ambulance Lost",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1217,11 +1291,12 @@
         "FormalSpec": "",
         "Category": ""
       },
+      "kaosId": "ambulance_lost",
       "x": 7400,
       "y": 680
     },
     {
-      "id": "gps_broken",
+      "id": "1edeb1d3-75fa-54a1-8075-ff834966a293",
       "text": "GPS Broken",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1234,11 +1309,12 @@
         "Probability[e4]": "(0.00%, 0.00%, 0.00%)",
         "Probability[e5]": "(0.00%, 0.00%, 0.00%)"
       },
+      "kaosId": "gps_broken",
       "x": 7560,
       "y": 780
     },
     {
-      "id": "ambulance_in_unfamiliar_area",
+      "id": "fb27db64-a005-5656-ab7f-70e72f9acfac",
       "text": "Ambulance In Unfamiliar Area",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1251,11 +1327,12 @@
         "Probability[e4]": "(20.00%, 20.00%, 30.00%)",
         "Probability[e5]": "(20.00%, 24.00%, 30.00%)"
       },
+      "kaosId": "ambulance_in_unfamiliar_area",
       "x": 7400,
       "y": 780
     },
     {
-      "id": "ambulance_traffic_deviation",
+      "id": "b50da3b9-84c2-57c1-bd5d-80570a25bb28",
       "text": "Ambulance In Traffic Deviation",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1268,11 +1345,12 @@
         "Probability[e4]": "(40.00%, 50.00%, 70.00%)",
         "Probability[e5]": "(20.00%, 30.00%, 40.00%)"
       },
+      "kaosId": "ambulance_traffic_deviation",
       "x": 7720,
       "y": 680
     },
     {
-      "id": "incident_not_resolved_by_intervention",
+      "id": "2758475c-327a-5b2b-93a7-78d469781ada",
       "text": "Incident Not Resolved By Intervention",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1280,11 +1358,12 @@
         "FormalSpec": "",
         "Category": ""
       },
+      "kaosId": "incident_not_resolved_by_intervention",
       "x": 9000,
       "y": 280
     },
     {
-      "id": "patient_not_treated_at_location",
+      "id": "7cb7bc2f-8738-5abb-b0fc-50d1687059a3",
       "text": "Patient Not Treated At Location",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1292,11 +1371,12 @@
         "FormalSpec": "",
         "Category": ""
       },
+      "kaosId": "patient_not_treated_at_location",
       "x": 8360,
       "y": 380
     },
     {
-      "id": "patient_unreachable_safely",
+      "id": "2ebd57fa-e471-55d5-abe0-8016b4e1efff",
       "text": "Patient Not Safely Reachable",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1304,11 +1384,12 @@
         "FormalSpec": "",
         "Category": ""
       },
+      "kaosId": "patient_unreachable_safely",
       "x": 8840,
       "y": 480
     },
     {
-      "id": "fire_environment",
+      "id": "3aafc2cc-37a7-5065-a675-71dd28037acb",
       "text": "Fire Environment",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1321,11 +1402,12 @@
         "Probability[e4]": "(7.00%, 7.00%, 7.00%)",
         "Probability[e5]": "(0.00%, 2.00%, 2.00%)"
       },
+      "kaosId": "fire_environment",
       "x": 8680,
       "y": 580
     },
     {
-      "id": "hazardous_environment",
+      "id": "b8cfcaf4-bfc5-5d95-a531-480a88ccb91a",
       "text": "Hazardous Environment",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1338,11 +1420,12 @@
         "Probability[e4]": "(25.00%, 30.00%, 65.00%)",
         "Probability[e5]": "(2.00%, 4.00%, 6.00%)"
       },
+      "kaosId": "hazardous_environment",
       "x": 8840,
       "y": 580
     },
     {
-      "id": "unreachable_patient",
+      "id": "86e70937-c7b6-594d-8386-544f9f7a16da",
       "text": "Unreachable Patient",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1355,11 +1438,12 @@
         "Probability[e4]": "(15.00%, 20.00%, 35.00%)",
         "Probability[e5]": "(0.00%, 0.00%, 0.00%)"
       },
+      "kaosId": "unreachable_patient",
       "x": 9000,
       "y": 580
     },
     {
-      "id": "critical_care_not_given",
+      "id": "703ba997-deb5-51c4-a02e-ea0f94eefe8b",
       "text": "Critical Care Not Given",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1367,11 +1451,12 @@
         "FormalSpec": "",
         "Category": ""
       },
+      "kaosId": "critical_care_not_given",
       "x": 8200,
       "y": 480
     },
     {
-      "id": "available_ressource_not_used",
+      "id": "da6ebb93-93be-53ee-b03d-cc51bbac9a29",
       "text": "Available Ressource Not Used",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1379,11 +1464,12 @@
         "FormalSpec": "",
         "Category": ""
       },
+      "kaosId": "available_ressource_not_used",
       "x": 8360,
       "y": 580
     },
     {
-      "id": "ressource_out_of_order",
+      "id": "43c3b3db-3741-5d78-8c5a-8e66e9af451f",
       "text": "Ressource Out Of Order",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1396,11 +1482,12 @@
         "Probability[e4]": "(25.00%, 40.00%, 45.00%)",
         "Probability[e5]": "(0.00%, 0.00%, 0.00%)"
       },
+      "kaosId": "ressource_out_of_order",
       "x": 8360,
       "y": 680
     },
     {
-      "id": "qualification_missing_for_ressource",
+      "id": "3cc8803a-519d-5943-a53e-2921f91af12b",
       "text": "Qualification Missing For Ressource",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1413,11 +1500,12 @@
         "Probability[e4]": "(20.00%, 30.00%, 40.00%)",
         "Probability[e5]": "(2.00%, 2.00%, 4.00%)"
       },
+      "kaosId": "qualification_missing_for_ressource",
       "x": 8520,
       "y": 680
     },
     {
-      "id": "insufficient_ressource",
+      "id": "707475a6-b4ce-56eb-9a9c-cb341e76bec0",
       "text": "Insufficient Ressource",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1425,11 +1513,12 @@
         "FormalSpec": "",
         "Category": ""
       },
+      "kaosId": "insufficient_ressource",
       "x": 7880,
       "y": 580
     },
     {
-      "id": "ressource_confusion",
+      "id": "85a676f1-3fd9-5caf-9d54-81d45cb553ee",
       "text": "Ressource Confusion",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1442,11 +1531,12 @@
         "Probability[e4]": "(0.00%, 0.00%, 0.00%)",
         "Probability[e5]": "(0.00%, 0.00%, 0.00%)"
       },
+      "kaosId": "ressource_confusion",
       "x": 7880,
       "y": 680
     },
     {
-      "id": "ressource_not_available",
+      "id": "c4f64b9b-92f1-5687-a84e-771f44e2d161",
       "text": "Ressource Not Available",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1459,11 +1549,12 @@
         "Probability[e4]": "(10.00%, 15.00%, 20.00%)",
         "Probability[e5]": "(0.00%, 0.00%, 0.00%)"
       },
+      "kaosId": "ressource_not_available",
       "x": 8040,
       "y": 680
     },
     {
-      "id": "patient_not_admitted_or_transported_at_hospital",
+      "id": "25eda477-a942-587f-8714-b8ff9b129ce8",
       "text": "Patient Not Admitted Or Transported At Hospital",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1471,11 +1562,12 @@
         "FormalSpec": "",
         "Category": ""
       },
+      "kaosId": "patient_not_admitted_or_transported_at_hospital",
       "x": 9640,
       "y": 380
     },
     {
-      "id": "wrong_info_about_patient",
+      "id": "84471550-6411-551f-80e9-b52f86accca0",
       "text": "Wrong Info About Patient",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1488,11 +1580,12 @@
         "Probability[e4]": "(25.00%, 30.00%, 30.00%)",
         "Probability[e5]": "(2.00%, 6.00%, 10.00%)"
       },
+      "kaosId": "wrong_info_about_patient",
       "x": 8200,
       "y": 680
     },
     {
-      "id": "patient_not_transported",
+      "id": "f93569d2-1d91-5c5d-bf39-1757b2f92df9",
       "text": "patient_not_transported",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1500,11 +1593,12 @@
         "FormalSpec": "",
         "Category": ""
       },
+      "kaosId": "patient_not_transported",
       "x": 9320,
       "y": 480
     },
     {
-      "id": "patient_not_in_ambulance",
+      "id": "63d97ecc-f78e-5a62-ab7f-9402977d57cd",
       "text": "Patient Not In Ambulance",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1512,11 +1606,12 @@
         "FormalSpec": "",
         "Category": ""
       },
+      "kaosId": "patient_not_in_ambulance",
       "x": 9320,
       "y": 580
     },
     {
-      "id": "patient_not_in_ambulance_and_not_transported",
+      "id": "822eac80-fdd3-5b97-ac25-ff7dcef85ea1",
       "text": "Patient Not In Ambulance And Not Transported",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1524,11 +1619,12 @@
         "FormalSpec": "",
         "Category": ""
       },
+      "kaosId": "patient_not_in_ambulance_and_not_transported",
       "x": 9640,
       "y": 580
     },
     {
-      "id": "patient_not_transportable",
+      "id": "e271c9a8-a202-5857-8fe1-1edf89d8107b",
       "text": "Patient Not Transportable",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1541,11 +1637,12 @@
         "Probability[e4]": "(5.00%, 5.00%, 5.00%)",
         "Probability[e5]": "(2.00%, 2.00%, 4.00%)"
       },
+      "kaosId": "patient_not_transportable",
       "x": 9640,
       "y": 680
     },
     {
-      "id": "insufficient_capacity",
+      "id": "fda6167f-1fd9-5a1e-a55e-417663929365",
       "text": "Insufficient Capacity",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1558,11 +1655,12 @@
         "Probability[e4]": "(5.00%, 5.00%, 5.00%)",
         "Probability[e5]": "(0.00%, 0.00%, 0.00%)"
       },
+      "kaosId": "insufficient_capacity",
       "x": 9160,
       "y": 680
     },
     {
-      "id": "overweight_patient",
+      "id": "d0d4da98-1387-5ec7-9f28-40decd9db211",
       "text": "Overweight Patient",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1575,11 +1673,12 @@
         "Probability[e4]": "(3.00%, 5.00%, 10.00%)",
         "Probability[e5]": "(2.00%, 2.00%, 2.00%)"
       },
+      "kaosId": "overweight_patient",
       "x": 9320,
       "y": 680
     },
     {
-      "id": "patient_cannot_reach_ambulance",
+      "id": "12dea6d3-5c10-5db4-aeee-b459a5e89543",
       "text": "Patient Cannot Reach Ambulance",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1592,11 +1691,12 @@
         "Probability[e4]": "(5.00%, 10.00%, 25.00%)",
         "Probability[e5]": "(2.00%, 4.00%, 6.00%)"
       },
+      "kaosId": "patient_cannot_reach_ambulance",
       "x": 9480,
       "y": 680
     },
     {
-      "id": "patient_not_admitted",
+      "id": "88c445dc-d8ed-514a-bd76-2726bf36371a",
       "text": "patient_not_admitted",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1604,11 +1704,12 @@
         "FormalSpec": "",
         "Category": ""
       },
+      "kaosId": "patient_not_admitted",
       "x": 9960,
       "y": 480
     },
     {
-      "id": "available_bed_not_assigned",
+      "id": "3f39e510-edd6-5d4c-aa49-8d892f275a71",
       "text": "Available Bed Not Assigned",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1621,11 +1722,12 @@
         "Probability[e4]": "(5.00%, 7.00%, 10.00%)",
         "Probability[e5]": "(2.00%, 4.00%, 6.00%)"
       },
+      "kaosId": "available_bed_not_assigned",
       "x": 9960,
       "y": 580
     },
     {
-      "id": "special_unit_required",
+      "id": "cb3b3f59-29da-563f-9e23-40c99479db12",
       "text": "Special Unit Required",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1638,11 +1740,12 @@
         "Probability[e4]": "(20.00%, 25.00%, 40.00%)",
         "Probability[e5]": "(6.00%, 8.00%, 10.00%)"
       },
+      "kaosId": "special_unit_required",
       "x": 10120,
       "y": 580
     },
     {
-      "id": "no_bed",
+      "id": "8e91f4bd-cd4c-5c32-b9f6-5757c32fe15c",
       "text": "No Bed Available",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1655,11 +1758,12 @@
         "Probability[e4]": "(10.00%, 15.00%, 25.00%)",
         "Probability[e5]": "(0.00%, 0.00%, 0.00%)"
       },
+      "kaosId": "no_bed",
       "x": 9800,
       "y": 580
     },
     {
-      "id": "not_allocation_when_moborder_printed",
+      "id": "5cc05cd6-ef04-5660-94b7-6a39880ec9e6",
       "text": "Allocated Ambulance Not Mobilized And Mobilization Order Printed",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1667,11 +1771,12 @@
         "FormalSpec": "",
         "Category": ""
       },
+      "kaosId": "not_allocation_when_moborder_printed",
       "x": 3880,
       "y": 880
     },
     {
-      "id": "ambulance_not_at_station",
+      "id": "b1e0a09b-95bb-5bbd-8659-27b026b39587",
       "text": "Allocated Ambulance Not At Station",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1684,11 +1789,12 @@
         "Probability[e4]": "(30.00%, 10.00%, 50.00%)",
         "Probability[e5]": "(2.00%, 4.00%, 10.00%)"
       },
+      "kaosId": "ambulance_not_at_station",
       "x": 3560,
       "y": 980
     },
     {
-      "id": "allocated_ambulance_not_available",
+      "id": "2b1e5862-be59-55bc-be5c-77ed31623534",
       "text": "Allocated Ambulance Not Available",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1701,11 +1807,12 @@
         "Probability[e4]": "(10.00%, 20.00%, 30.00%)",
         "Probability[e5]": "(20.00%, 30.00%, 40.00%)"
       },
+      "kaosId": "allocated_ambulance_not_available",
       "x": 3720,
       "y": 980
     },
     {
-      "id": "printed_mobilization_order_ignored",
+      "id": "5985df74-94c5-589d-b082-21b503dabfef",
       "text": "Printed Mobilization Order Ignored",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1713,11 +1820,12 @@
         "FormalSpec": "",
         "Category": ""
       },
+      "kaosId": "printed_mobilization_order_ignored",
       "x": 3880,
       "y": 980
     },
     {
-      "id": "crew_not_near_printer",
+      "id": "70c9b898-2653-56d2-baa5-af441caf2c32",
       "text": "Crew Not Near Printer",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1730,11 +1838,12 @@
         "Probability[e4]": "(5.00%, 5.00%, 5.00%)",
         "Probability[e5]": "(0.00%, 2.00%, 4.00%)"
       },
+      "kaosId": "crew_not_near_printer",
       "x": 3880,
       "y": 1080
     },
     {
-      "id": "mobilization_taken_by_other_ambulance",
+      "id": "7a9a499f-42bc-5d40-a134-3c6a309a5e70",
       "text": "Mobilization Taken By Other Ambulance",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1747,11 +1856,12 @@
         "Probability[e4]": "(0.00%, 0.00%, 0.00%)",
         "Probability[e5]": "(0.00%, 0.00%, 0.00%)"
       },
+      "kaosId": "mobilization_taken_by_other_ambulance",
       "x": 4040,
       "y": 980
     },
     {
-      "id": "mobilized_to_wrong_destination",
+      "id": "3c70f246-333f-57e4-973e-576222ca564b",
       "text": "Mobilization For Wrong Destination",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1764,11 +1874,12 @@
         "Probability[e4]": "(5.00%, 5.00%, 10.00%)",
         "Probability[e5]": "(2.00%, 4.00%, 6.00%)"
       },
+      "kaosId": "mobilized_to_wrong_destination",
       "x": 4200,
       "y": 980
     },
     {
-      "id": "moborder_not_sent_to_mdt_based_on_am",
+      "id": "9132ac45-8ced-5d79-a34c-20f48e0ece53",
       "text": "Mobilization Order Not Sent To MDT Based On Mapping",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1776,11 +1887,12 @@
         "FormalSpec": "",
         "Category": ""
       },
+      "kaosId": "moborder_not_sent_to_mdt_based_on_am",
       "x": 5000,
       "y": 1080
     },
     {
-      "id": "no_line_free",
+      "id": "fcd2bf69-8086-5efe-ac44-f81d942a767b",
       "text": "No Line Free",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1793,11 +1905,12 @@
         "Probability[e4]": "(0.00%, 0.00, 0.00%)",
         "Probability[e5]": "(0.00%, 0.00, 0.00%)"
       },
+      "kaosId": "no_line_free",
       "x": 5000,
       "y": 1180
     },
     {
-      "id": "moborder_not_sent_to_printer_based_on_am",
+      "id": "54862324-ab67-523d-8116-c2fd89c7f0e4",
       "text": "Mobilization Order Not Sent To Printer Based On Mapping",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1805,11 +1918,12 @@
         "FormalSpec": "",
         "Category": ""
       },
+      "kaosId": "moborder_not_sent_to_printer_based_on_am",
       "x": 2600,
       "y": 1080
     },
     {
-      "id": "moborder_not_transmitted_to_mdt",
+      "id": "3fd8aaed-a695-5162-8f1b-3188542beeea",
       "text": "Mobilization Order Not Transmitted To MDT",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1817,11 +1931,12 @@
         "FormalSpec": "",
         "Category": ""
       },
+      "kaosId": "moborder_not_transmitted_to_mdt",
       "x": 5320,
       "y": 980
     },
     {
-      "id": "congestion",
+      "id": "2bc80705-a453-5b1b-b366-b7f4f8257e10",
       "text": "Congestion",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1834,11 +1949,12 @@
         "Probability[e4]": "(0.00%, 0.00, 0.00%)",
         "Probability[e5]": "(0.00%, 0.00, 0.00%)"
       },
+      "kaosId": "congestion",
       "x": 5160,
       "y": 1080
     },
     {
-      "id": "blackspot",
+      "id": "c2514d84-bc93-5932-acb5-7a20f0af7f5b",
       "text": "Blackspot",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1851,11 +1967,12 @@
         "Probability[e4]": "(10.00%, 15.00%, 20.00%)",
         "Probability[e5]": "(2.00%, 2.00%, 4.00%)"
       },
+      "kaosId": "blackspot",
       "x": 5320,
       "y": 1080
     },
     {
-      "id": "corrupted_mobilization_order",
+      "id": "efce973e-80df-5496-a966-db6c5aa07857",
       "text": "Corrupted Mobilization Order",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1868,11 +1985,12 @@
         "Probability[e4]": "(0.00%, 0.00, 0.00%)",
         "Probability[e5]": "(0.00%, 0.00, 0.00%)"
       },
+      "kaosId": "corrupted_mobilization_order",
       "x": 5480,
       "y": 1080
     },
     {
-      "id": "no_allocation_when_moborder_displayed",
+      "id": "560b60b8-d287-59b4-82f2-5c52ebead954",
       "text": "Allocated Ambulance Not Mobilized And Mobilization Order Displayed",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1880,11 +1998,12 @@
         "FormalSpec": "",
         "Category": ""
       },
+      "kaosId": "no_allocation_when_moborder_displayed",
       "x": 5960,
       "y": 880
     },
     {
-      "id": "ambulance_not_available_when_moborder_displayed",
+      "id": "6278c4df-b8a4-5f0c-b93f-f62f799437b3",
       "text": "Ambulance Not Available And Mobilization Order Displayed",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1897,11 +2016,12 @@
         "Probability[e4]": "(10.00%, 20.00%, 30.00%)",
         "Probability[e5]": "(20.00%, 30.00%, 40.00%)"
       },
+      "kaosId": "ambulance_not_available_when_moborder_displayed",
       "x": 5800,
       "y": 980
     },
     {
-      "id": "mobilized_to_wrong_destination_when_displayed",
+      "id": "7c61d798-e613-5c8d-8c94-8c7e00bed53a",
       "text": "Wrong Destination",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1909,11 +2029,12 @@
         "FormalSpec": "",
         "Category": ""
       },
+      "kaosId": "mobilized_to_wrong_destination_when_displayed",
       "x": 6280,
       "y": 980
     },
     {
-      "id": "destination_confused",
+      "id": "bbc9710a-03dd-5be8-bee2-9214115dbecf",
       "text": "Destination Confused",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1926,11 +2047,12 @@
         "Probability[e4]": "(5.00%, 5.00%, 7.00%)",
         "Probability[e5]": "(2.00%, 2.00%, 4.00%)"
       },
+      "kaosId": "destination_confused",
       "x": 6280,
       "y": 1080
     },
     {
-      "id": "displayed_mobilization_order_ignored",
+      "id": "eb788a6c-b7e3-5b41-b960-345b639da5eb",
       "text": "Displayed Mobilization Order Ignored",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1938,11 +2060,12 @@
         "FormalSpec": "",
         "Category": ""
       },
+      "kaosId": "displayed_mobilization_order_ignored",
       "x": 5960,
       "y": 980
     },
     {
-      "id": "crew_not_in_ambulance",
+      "id": "097379d7-8de7-55ce-bb27-07f9b62355d0",
       "text": "Crew Not In Ambulance",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1955,11 +2078,12 @@
         "Probability[e4]": "(10.00%, 15.00%, 20.00%)",
         "Probability[e5]": "(0.00%, 0.00%, 0.00%)"
       },
+      "kaosId": "crew_not_in_ambulance",
       "x": 6120,
       "y": 1080
     },
     {
-      "id": "crew_distracted",
+      "id": "7a5523c8-dbe5-558e-a2d4-8bfb22986d9b",
       "text": "Crew Distracted",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -1972,6 +2096,7 @@
         "Probability[e4]": "(5.00%, 5.00%, 5.00%)",
         "Probability[e5]": "(0.00%, 2.00%, 4.00%)"
       },
+      "kaosId": "crew_distracted",
       "x": 5960,
       "y": 1080
     }
@@ -1994,19 +2119,19 @@
         {
           "id": "achieve_incident_resolved-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "achieve_incident_reported",
+          "source": "42580588-a59d-503b-b91f-a454d6f287e7",
           "target": "achieve_incident_resolved-refinement-1"
         },
         {
           "id": "achieve_incident_resolved-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "achieve_ambulance_intervention",
+          "source": "ca20ba13-0ae3-5e4d-9e98-549cd562b598",
           "target": "achieve_incident_resolved-refinement-1"
         },
         {
           "id": "achieve_incident_resolved-refinement-1-3",
           "type": "kaos.RefinementLinkStart",
-          "source": "achieve_incident_resolved_by_intervention",
+          "source": "6d5731fa-8d0d-5ecc-a83c-dd0665d1f438",
           "target": "achieve_incident_resolved-refinement-1"
         }
       ],
@@ -2014,7 +2139,7 @@
         "id": "achieve_incident_resolved-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "achieve_incident_resolved-refinement-1",
-        "target": "achieve_incident_resolved"
+        "target": "1ae1ecd6-a1db-5c31-be81-6d625a54cf8e"
       }
     },
     {
@@ -2033,13 +2158,13 @@
         {
           "id": "achieve_ambulance_intervention-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "achieve_ambulance_mobilization",
+          "source": "acfe6e04-25da-51b3-bbbf-092300772aee",
           "target": "achieve_ambulance_intervention-refinement-1"
         },
         {
           "id": "achieve_ambulance_intervention-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "achieve_mobilized_ambulance_intervention",
+          "source": "d8f8365e-ea6e-5b19-a860-59b1d6373e7f",
           "target": "achieve_ambulance_intervention-refinement-1"
         }
       ],
@@ -2047,7 +2172,7 @@
         "id": "achieve_ambulance_intervention-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "achieve_ambulance_intervention-refinement-1",
-        "target": "achieve_ambulance_intervention"
+        "target": "ca20ba13-0ae3-5e4d-9e98-549cd562b598"
       }
     },
     {
@@ -2066,13 +2191,13 @@
         {
           "id": "achieve_ambulance_mobilization-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "maintain_accurate_incident_form",
+          "source": "e074238a-a068-511d-b01a-f929971c0506",
           "target": "achieve_ambulance_mobilization-refinement-1"
         },
         {
           "id": "achieve_ambulance_mobilization-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "achieve_ambulance_mobilization_based_on_if",
+          "source": "0ed54284-3c36-5e6f-8c7e-86b19bec8599",
           "target": "achieve_ambulance_mobilization-refinement-1"
         }
       ],
@@ -2080,7 +2205,7 @@
         "id": "achieve_ambulance_mobilization-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "achieve_ambulance_mobilization-refinement-1",
-        "target": "achieve_ambulance_mobilization"
+        "target": "acfe6e04-25da-51b3-bbbf-092300772aee"
       }
     },
     {
@@ -2099,13 +2224,13 @@
         {
           "id": "achieve_ambulance_mobilization_based_on_if-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "achieve_ambulance_allocation_based_on_if",
+          "source": "5b82bc23-2be0-5688-ae10-1fdc66bb898e",
           "target": "achieve_ambulance_mobilization_based_on_if-refinement-1"
         },
         {
           "id": "achieve_ambulance_mobilization_based_on_if-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "achieve_allocated_ambulance_mobilization",
+          "source": "5ff07868-e4a4-5f53-a1bc-0b24ed4163b6",
           "target": "achieve_ambulance_mobilization_based_on_if-refinement-1"
         }
       ],
@@ -2113,7 +2238,7 @@
         "id": "achieve_ambulance_mobilization_based_on_if-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "achieve_ambulance_mobilization_based_on_if-refinement-1",
-        "target": "achieve_ambulance_mobilization_based_on_if"
+        "target": "0ed54284-3c36-5e6f-8c7e-86b19bec8599"
       }
     },
     {
@@ -2132,13 +2257,13 @@
         {
           "id": "achieve_ambulance_allocation_based_on_if-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "maintain_ambulance_available",
+          "source": "9aa9318c-8b83-5b8c-a45f-05acd7dbffa0",
           "target": "achieve_ambulance_allocation_based_on_if-refinement-1"
         },
         {
           "id": "achieve_ambulance_allocation_based_on_if-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "achieve_ambulance_allocation_based_on_if_when_available",
+          "source": "45bc3529-506a-52e2-86c3-8ce3b712424a",
           "target": "achieve_ambulance_allocation_based_on_if-refinement-1"
         }
       ],
@@ -2146,7 +2271,7 @@
         "id": "achieve_ambulance_allocation_based_on_if-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "achieve_ambulance_allocation_based_on_if-refinement-1",
-        "target": "achieve_ambulance_allocation_based_on_if"
+        "target": "5b82bc23-2be0-5688-ae10-1fdc66bb898e"
       }
     },
     {
@@ -2165,13 +2290,13 @@
         {
           "id": "achieve_allocated_ambulance_mobilization-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "achieve_allocation_at_station",
+          "source": "abd02701-af34-599d-aa88-bbb6bd31fa1d",
           "target": "achieve_allocated_ambulance_mobilization-refinement-1"
         },
         {
           "id": "achieve_allocated_ambulance_mobilization-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "achieve_allocation_on_road",
+          "source": "81de6a6d-fce9-558b-bece-f5a6fe3ceea2",
           "target": "achieve_allocated_ambulance_mobilization-refinement-1"
         }
       ],
@@ -2179,7 +2304,7 @@
         "id": "achieve_allocated_ambulance_mobilization-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "achieve_allocated_ambulance_mobilization-refinement-1",
-        "target": "achieve_allocated_ambulance_mobilization"
+        "target": "5ff07868-e4a4-5f53-a1bc-0b24ed4163b6"
       }
     },
     {
@@ -2198,13 +2323,13 @@
         {
           "id": "achieve_ambulance_allocation_based_on_if_when_available-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "maintain_ambulance_info_available",
+          "source": "684fa9df-9a16-59ec-8048-cbda5952430e",
           "target": "achieve_ambulance_allocation_based_on_if_when_available-refinement-1"
         },
         {
           "id": "achieve_ambulance_allocation_based_on_if_when_available-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "achieve_ambulance_allocation_based_on_if_and_af_when_available",
+          "source": "f7330b64-5915-528e-8576-a7c5f1d7b657",
           "target": "achieve_ambulance_allocation_based_on_if_when_available-refinement-1"
         }
       ],
@@ -2212,7 +2337,7 @@
         "id": "achieve_ambulance_allocation_based_on_if_when_available-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "achieve_ambulance_allocation_based_on_if_when_available-refinement-1",
-        "target": "achieve_ambulance_allocation_based_on_if_when_available"
+        "target": "45bc3529-506a-52e2-86c3-8ce3b712424a"
       }
     },
     {
@@ -2231,13 +2356,13 @@
         {
           "id": "achieve_allocation_at_station-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "achieve_allocation_at_station_based_on_info",
+          "source": "46968693-3923-54da-8142-6c1fcfc60cff",
           "target": "achieve_allocation_at_station-refinement-1"
         },
         {
           "id": "achieve_allocation_at_station-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "maintain_location_info_known",
+          "source": "7db0de65-bc2e-500c-bdf8-0fe9ed46224a",
           "target": "achieve_allocation_at_station-refinement-1"
         }
       ],
@@ -2245,7 +2370,7 @@
         "id": "achieve_allocation_at_station-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "achieve_allocation_at_station-refinement-1",
-        "target": "achieve_allocation_at_station"
+        "target": "abd02701-af34-599d-aa88-bbb6bd31fa1d"
       }
     },
     {
@@ -2264,13 +2389,13 @@
         {
           "id": "achieve_allocation_on_road-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "achieve_allocation_on_road_based_on_info",
+          "source": "4030cf88-a057-5afa-8e4d-70cefe5f7113",
           "target": "achieve_allocation_on_road-refinement-1"
         },
         {
           "id": "achieve_allocation_on_road-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "maintain_location_info_known",
+          "source": "7db0de65-bc2e-500c-bdf8-0fe9ed46224a",
           "target": "achieve_allocation_on_road-refinement-1"
         }
       ],
@@ -2278,7 +2403,7 @@
         "id": "achieve_allocation_on_road-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "achieve_allocation_on_road-refinement-1",
-        "target": "achieve_allocation_on_road"
+        "target": "81de6a6d-fce9-558b-bece-f5a6fe3ceea2"
       }
     },
     {
@@ -2297,13 +2422,13 @@
         {
           "id": "maintain_ambulance_info_available-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "maintain_location_info_known",
+          "source": "7db0de65-bc2e-500c-bdf8-0fe9ed46224a",
           "target": "maintain_ambulance_info_available-refinement-1"
         },
         {
           "id": "maintain_ambulance_info_available-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "maintain_ambulance_availability_available",
+          "source": "e80e7fdc-0ad1-5b14-bd5e-1ff76007831f",
           "target": "maintain_ambulance_info_available-refinement-1"
         }
       ],
@@ -2311,7 +2436,7 @@
         "id": "maintain_ambulance_info_available-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "maintain_ambulance_info_available-refinement-1",
-        "target": "maintain_ambulance_info_available"
+        "target": "684fa9df-9a16-59ec-8048-cbda5952430e"
       }
     },
     {
@@ -2330,13 +2455,13 @@
         {
           "id": "achieve_allocation_at_station_based_on_info-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "moborder_printed_at_station",
+          "source": "66ff5d39-bc07-5fb5-a648-048032e8dc81",
           "target": "achieve_allocation_at_station_based_on_info-refinement-1"
         },
         {
           "id": "achieve_allocation_at_station_based_on_info-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "achieve_allocation_when_moborder_printed",
+          "source": "302e1acc-ba03-5e48-bf8c-2fd5626831ad",
           "target": "achieve_allocation_at_station_based_on_info-refinement-1"
         }
       ],
@@ -2344,7 +2469,7 @@
         "id": "achieve_allocation_at_station_based_on_info-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "achieve_allocation_at_station_based_on_info-refinement-1",
-        "target": "achieve_allocation_at_station_based_on_info"
+        "target": "46968693-3923-54da-8142-6c1fcfc60cff"
       }
     },
     {
@@ -2363,13 +2488,13 @@
         {
           "id": "achieve_allocation_on_road_based_on_info-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "moborder_displayed_on_mdt",
+          "source": "db6a8282-bdac-554d-9368-bce67dd24a52",
           "target": "achieve_allocation_on_road_based_on_info-refinement-1"
         },
         {
           "id": "achieve_allocation_on_road_based_on_info-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "achieve_allocation_when_moborder_displayed",
+          "source": "19a79938-525f-5d64-aee6-3e38b71e9dc6",
           "target": "achieve_allocation_on_road_based_on_info-refinement-1"
         }
       ],
@@ -2377,7 +2502,7 @@
         "id": "achieve_allocation_on_road_based_on_info-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "achieve_allocation_on_road_based_on_info-refinement-1",
-        "target": "achieve_allocation_on_road_based_on_info"
+        "target": "4030cf88-a057-5afa-8e4d-70cefe5f7113"
       }
     },
     {
@@ -2396,13 +2521,13 @@
         {
           "id": "maintain_ambulance_availability_available-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "accurate_availability_information_encoded",
+          "source": "e0e7e5ab-10bf-5646-b4e7-89971dcc2b02",
           "target": "maintain_ambulance_availability_available-refinement-1"
         },
         {
           "id": "maintain_ambulance_availability_available-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "accurate_availability_info_based_on_ei",
+          "source": "a9bfc2d5-9a17-5773-8465-47ded5d7bbf5",
           "target": "maintain_ambulance_availability_available-refinement-1"
         }
       ],
@@ -2410,7 +2535,7 @@
         "id": "maintain_ambulance_availability_available-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "maintain_ambulance_availability_available-refinement-1",
-        "target": "maintain_ambulance_availability_available"
+        "target": "e80e7fdc-0ad1-5b14-bd5e-1ff76007831f"
       }
     },
     {
@@ -2429,13 +2554,13 @@
         {
           "id": "accurate_availability_info_based_on_ei-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "accurate_mapping",
+          "source": "1e12e7c1-2c89-500c-b41e-b08b1851c0b4",
           "target": "accurate_availability_info_based_on_ei-refinement-1"
         },
         {
           "id": "accurate_availability_info_based_on_ei-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "accurate_availability_info_based_on_ei_and_am",
+          "source": "242521eb-566f-5590-a80d-d9effa022475",
           "target": "accurate_availability_info_based_on_ei-refinement-1"
         }
       ],
@@ -2443,7 +2568,7 @@
         "id": "accurate_availability_info_based_on_ei-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "accurate_availability_info_based_on_ei-refinement-1",
-        "target": "accurate_availability_info_based_on_ei"
+        "target": "a9bfc2d5-9a17-5773-8465-47ded5d7bbf5"
       }
     },
     {
@@ -2462,19 +2587,19 @@
         {
           "id": "accurate_availability_info_based_on_ei_and_am-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "accurate_availability_info_sent",
+          "source": "8f44914c-c8dc-5ea1-b0b4-f39ab1e3240a",
           "target": "accurate_availability_info_based_on_ei_and_am-refinement-1"
         },
         {
           "id": "accurate_availability_info_based_on_ei_and_am-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "accurate_availability_info_transmitted",
+          "source": "2e217da7-0a0c-5f83-afdc-b07e532720d4",
           "target": "accurate_availability_info_based_on_ei_and_am-refinement-1"
         },
         {
           "id": "accurate_availability_info_based_on_ei_and_am-refinement-1-3",
           "type": "kaos.RefinementLinkStart",
-          "source": "accurate_availability_info_recorded",
+          "source": "9cb90580-e123-5df7-b2d2-2d1144d11ac3",
           "target": "accurate_availability_info_based_on_ei_and_am-refinement-1"
         }
       ],
@@ -2482,7 +2607,7 @@
         "id": "accurate_availability_info_based_on_ei_and_am-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "accurate_availability_info_based_on_ei_and_am-refinement-1",
-        "target": "accurate_availability_info_based_on_ei_and_am"
+        "target": "242521eb-566f-5590-a80d-d9effa022475"
       }
     },
     {
@@ -2501,19 +2626,19 @@
         {
           "id": "moborder_printed_at_station-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "moborder_sent_to_printer",
+          "source": "bda64aeb-1c7d-52b3-8588-c74e19aba19b",
           "target": "moborder_printed_at_station-refinement-1"
         },
         {
           "id": "moborder_printed_at_station-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "moborder_transmitted_to_printer",
+          "source": "cd955184-e6ad-55e7-8a86-f9af6d7217fb",
           "target": "moborder_printed_at_station-refinement-1"
         },
         {
           "id": "moborder_printed_at_station-refinement-1-3",
           "type": "kaos.RefinementLinkStart",
-          "source": "moborder_printed",
+          "source": "6abd7f59-ddf2-5d3d-b9aa-e99db88beed1",
           "target": "moborder_printed_at_station-refinement-1"
         }
       ],
@@ -2521,7 +2646,7 @@
         "id": "moborder_printed_at_station-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "moborder_printed_at_station-refinement-1",
-        "target": "moborder_printed_at_station"
+        "target": "66ff5d39-bc07-5fb5-a648-048032e8dc81"
       }
     },
     {
@@ -2540,13 +2665,13 @@
         {
           "id": "moborder_sent_to_printer-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "accurate_mapping_printer",
+          "source": "69cb86c7-ea41-584c-a7de-0245e7d07241",
           "target": "moborder_sent_to_printer-refinement-1"
         },
         {
           "id": "moborder_sent_to_printer-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "moborder_sent_to_printer_based_on_am",
+          "source": "76899338-2a6c-52ac-9939-bcb1fb6ac58c",
           "target": "moborder_sent_to_printer-refinement-1"
         }
       ],
@@ -2554,7 +2679,7 @@
         "id": "moborder_sent_to_printer-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "moborder_sent_to_printer-refinement-1",
-        "target": "moborder_sent_to_printer"
+        "target": "bda64aeb-1c7d-52b3-8588-c74e19aba19b"
       }
     },
     {
@@ -2573,19 +2698,19 @@
         {
           "id": "moborder_displayed_on_mdt-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "moborder_sent_to_mdt",
+          "source": "12af4e9b-2ae3-5a0c-a4ae-cfda8cf3ad0e",
           "target": "moborder_displayed_on_mdt-refinement-1"
         },
         {
           "id": "moborder_displayed_on_mdt-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "moborder_transmitted_to_mdt",
+          "source": "786cc555-a160-57ff-81b0-acafcf6f1be3",
           "target": "moborder_displayed_on_mdt-refinement-1"
         },
         {
           "id": "moborder_displayed_on_mdt-refinement-1-3",
           "type": "kaos.RefinementLinkStart",
-          "source": "moborder_displayed",
+          "source": "4b6ca4d3-9a37-5dbe-a850-4cb587c6e5fa",
           "target": "moborder_displayed_on_mdt-refinement-1"
         }
       ],
@@ -2593,7 +2718,7 @@
         "id": "moborder_displayed_on_mdt-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "moborder_displayed_on_mdt-refinement-1",
-        "target": "moborder_displayed_on_mdt"
+        "target": "db6a8282-bdac-554d-9368-bce67dd24a52"
       }
     },
     {
@@ -2612,13 +2737,13 @@
         {
           "id": "moborder_sent_to_mdt-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "accurate_mapping_mdt",
+          "source": "b600c02d-d06e-506d-b9f9-7129f9527bbf",
           "target": "moborder_sent_to_mdt-refinement-1"
         },
         {
           "id": "moborder_sent_to_mdt-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "moborder_sent_to_mdt_based_on_am",
+          "source": "103040e9-ca81-57d4-b0b7-9f348379e267",
           "target": "moborder_sent_to_mdt-refinement-1"
         }
       ],
@@ -2626,7 +2751,7 @@
         "id": "moborder_sent_to_mdt-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "moborder_sent_to_mdt-refinement-1",
-        "target": "moborder_sent_to_mdt"
+        "target": "12af4e9b-2ae3-5a0c-a4ae-cfda8cf3ad0e"
       }
     },
     {
@@ -2640,7 +2765,7 @@
         {
           "id": "moborder_not_printed-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "paper_jam",
+          "source": "e6e1c038-d45e-5b84-8f23-1afc9a83fac3",
           "target": "moborder_not_printed-refinement-1"
         }
       ],
@@ -2648,7 +2773,7 @@
         "id": "moborder_not_printed-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "moborder_not_printed-refinement-1",
-        "target": "moborder_not_printed"
+        "target": "294cd331-980b-5674-9740-c0b33f823a61"
       }
     },
     {
@@ -2662,7 +2787,7 @@
         {
           "id": "moborder_not_printed-refinement-2-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "out_of_paper",
+          "source": "11fc6f78-e742-5abe-8cc6-21194a6cf1c5",
           "target": "moborder_not_printed-refinement-2"
         }
       ],
@@ -2670,7 +2795,7 @@
         "id": "moborder_not_printed-refinement-2-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "moborder_not_printed-refinement-2",
-        "target": "moborder_not_printed"
+        "target": "294cd331-980b-5674-9740-c0b33f823a61"
       }
     },
     {
@@ -2684,7 +2809,7 @@
         {
           "id": "moborder_not_printed-refinement-3-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "data_lost",
+          "source": "14ed1a6c-d122-5ff9-aa6e-f5cc720117f7",
           "target": "moborder_not_printed-refinement-3"
         }
       ],
@@ -2692,7 +2817,7 @@
         "id": "moborder_not_printed-refinement-3-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "moborder_not_printed-refinement-3",
-        "target": "moborder_not_printed"
+        "target": "294cd331-980b-5674-9740-c0b33f823a61"
       }
     },
     {
@@ -2706,7 +2831,7 @@
         {
           "id": "moborder_not_printed-refinement-4-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "printer_off",
+          "source": "f22142ac-22ec-542c-9f99-6b4d7a6230de",
           "target": "moborder_not_printed-refinement-4"
         }
       ],
@@ -2714,7 +2839,7 @@
         "id": "moborder_not_printed-refinement-4-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "moborder_not_printed-refinement-4",
-        "target": "moborder_not_printed"
+        "target": "294cd331-980b-5674-9740-c0b33f823a61"
       }
     },
     {
@@ -2728,7 +2853,7 @@
         {
           "id": "moborder_not_displayed-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "mdt_turned_off",
+          "source": "5d7098b9-3688-5d4e-bd7d-a728ddb3a7bd",
           "target": "moborder_not_displayed-refinement-1"
         }
       ],
@@ -2736,7 +2861,7 @@
         "id": "moborder_not_displayed-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "moborder_not_displayed-refinement-1",
-        "target": "moborder_not_displayed"
+        "target": "e65f6361-0008-5cf2-8402-60a4e3d7f05c"
       }
     },
     {
@@ -2750,7 +2875,7 @@
         {
           "id": "location_known_not_info_known-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "avls_out_of_service",
+          "source": "59ae2450-d9d9-5a9e-ae13-5a6176da0ff4",
           "target": "location_known_not_info_known-refinement-1"
         }
       ],
@@ -2758,7 +2883,7 @@
         "id": "location_known_not_info_known-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "location_known_not_info_known-refinement-1",
-        "target": "location_known_not_info_known"
+        "target": "bab5dfe9-64b8-512f-bc89-0725ba2b4341"
       }
     },
     {
@@ -2772,7 +2897,7 @@
         {
           "id": "location_known_not_info_known-refinement-2-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "gps_lost_connection",
+          "source": "7dfd6652-c2e0-5e50-a552-80e882f7702c",
           "target": "location_known_not_info_known-refinement-2"
         }
       ],
@@ -2780,7 +2905,7 @@
         "id": "location_known_not_info_known-refinement-2-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "location_known_not_info_known-refinement-2",
-        "target": "location_known_not_info_known"
+        "target": "bab5dfe9-64b8-512f-bc89-0725ba2b4341"
       }
     },
     {
@@ -2794,7 +2919,7 @@
         {
           "id": "location_known_not_info_known-refinement-3-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "location_innaccurate",
+          "source": "6a1f4265-fddb-55e9-95ba-ece17f80cbbb",
           "target": "location_known_not_info_known-refinement-3"
         }
       ],
@@ -2802,7 +2927,7 @@
         "id": "location_known_not_info_known-refinement-3-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "location_known_not_info_known-refinement-3",
-        "target": "location_known_not_info_known"
+        "target": "bab5dfe9-64b8-512f-bc89-0725ba2b4341"
       }
     },
     {
@@ -2816,7 +2941,7 @@
         {
           "id": "accurate_availability_information_not_encoded-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "forget_to_encode_status",
+          "source": "d5b886bd-dd86-5e1f-bd31-4ff18134ed10",
           "target": "accurate_availability_information_not_encoded-refinement-1"
         }
       ],
@@ -2824,7 +2949,7 @@
         "id": "accurate_availability_information_not_encoded-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "accurate_availability_information_not_encoded-refinement-1",
-        "target": "accurate_availability_information_not_encoded"
+        "target": "817a1a54-0958-5c13-a498-ea6f045f6ed6"
       }
     },
     {
@@ -2838,7 +2963,7 @@
         {
           "id": "accurate_availability_information_not_encoded-refinement-2-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "wrong_button_pressed",
+          "source": "4b089f2d-f2dd-5007-ac10-78e2cf0ca527",
           "target": "accurate_availability_information_not_encoded-refinement-2"
         }
       ],
@@ -2846,7 +2971,7 @@
         "id": "accurate_availability_information_not_encoded-refinement-2-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "accurate_availability_information_not_encoded-refinement-2",
-        "target": "accurate_availability_information_not_encoded"
+        "target": "817a1a54-0958-5c13-a498-ea6f045f6ed6"
       }
     },
     {
@@ -2860,7 +2985,7 @@
         {
           "id": "mobilized_ambulance_not_intervention-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "service_end",
+          "source": "6b4c2437-b3ed-5fe1-9805-526e65c2f5a5",
           "target": "mobilized_ambulance_not_intervention-refinement-1"
         }
       ],
@@ -2868,7 +2993,7 @@
         "id": "mobilized_ambulance_not_intervention-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "mobilized_ambulance_not_intervention-refinement-1",
-        "target": "mobilized_ambulance_not_intervention"
+        "target": "1d600805-faa3-56f2-bbd0-1beaf0910aba"
       }
     },
     {
@@ -2882,7 +3007,7 @@
         {
           "id": "mobilized_ambulance_not_intervention-refinement-2-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "mobilization_retracted",
+          "source": "9b3a36c2-a3b9-5d2e-b5d8-8e2313ae33a3",
           "target": "mobilized_ambulance_not_intervention-refinement-2"
         }
       ],
@@ -2890,7 +3015,7 @@
         "id": "mobilized_ambulance_not_intervention-refinement-2-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "mobilized_ambulance_not_intervention-refinement-2",
-        "target": "mobilized_ambulance_not_intervention"
+        "target": "1d600805-faa3-56f2-bbd0-1beaf0910aba"
       }
     },
     {
@@ -2904,7 +3029,7 @@
         {
           "id": "mobilized_ambulance_not_intervention-refinement-3-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "ambulance_stopped_or_in_wrong_direction",
+          "source": "71121db4-0342-57a3-b5f5-0332297b238e",
           "target": "mobilized_ambulance_not_intervention-refinement-3"
         }
       ],
@@ -2912,7 +3037,7 @@
         "id": "mobilized_ambulance_not_intervention-refinement-3-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "mobilized_ambulance_not_intervention-refinement-3",
-        "target": "mobilized_ambulance_not_intervention"
+        "target": "1d600805-faa3-56f2-bbd0-1beaf0910aba"
       }
     },
     {
@@ -2926,7 +3051,7 @@
         {
           "id": "mobilization_retracted-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "destination_changed",
+          "source": "cf20631a-7aff-5923-8369-7fe31ffc863e",
           "target": "mobilization_retracted-refinement-1"
         }
       ],
@@ -2934,7 +3059,7 @@
         "id": "mobilization_retracted-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "mobilization_retracted-refinement-1",
-        "target": "mobilization_retracted"
+        "target": "9b3a36c2-a3b9-5d2e-b5d8-8e2313ae33a3"
       }
     },
     {
@@ -2948,7 +3073,7 @@
         {
           "id": "mobilization_retracted-refinement-2-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "destination_forgotten",
+          "source": "35fa25b0-834f-5b5a-88ef-3973f2dc97be",
           "target": "mobilization_retracted-refinement-2"
         }
       ],
@@ -2956,7 +3081,7 @@
         "id": "mobilization_retracted-refinement-2-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "mobilization_retracted-refinement-2",
-        "target": "mobilization_retracted"
+        "target": "9b3a36c2-a3b9-5d2e-b5d8-8e2313ae33a3"
       }
     },
     {
@@ -2970,7 +3095,7 @@
         {
           "id": "mobilization_retracted-refinement-3-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "mobilization_cancelled",
+          "source": "36f19242-8b13-52cf-a0d5-1a862028d297",
           "target": "mobilization_retracted-refinement-3"
         }
       ],
@@ -2978,7 +3103,7 @@
         "id": "mobilization_retracted-refinement-3-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "mobilization_retracted-refinement-3",
-        "target": "mobilization_retracted"
+        "target": "9b3a36c2-a3b9-5d2e-b5d8-8e2313ae33a3"
       }
     },
     {
@@ -2992,7 +3117,7 @@
         {
           "id": "ambulance_stopped_or_in_wrong_direction-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "ambulance_stopped",
+          "source": "47af9012-fc94-5ad4-b46a-f3efc6a57d55",
           "target": "ambulance_stopped_or_in_wrong_direction-refinement-1"
         }
       ],
@@ -3000,7 +3125,7 @@
         "id": "ambulance_stopped_or_in_wrong_direction-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "ambulance_stopped_or_in_wrong_direction-refinement-1",
-        "target": "ambulance_stopped_or_in_wrong_direction"
+        "target": "71121db4-0342-57a3-b5f5-0332297b238e"
       }
     },
     {
@@ -3014,7 +3139,7 @@
         {
           "id": "ambulance_stopped_or_in_wrong_direction-refinement-2-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "ambulance_in_wrong_direction",
+          "source": "eaae980f-bf34-531c-9099-8d013d88d8de",
           "target": "ambulance_stopped_or_in_wrong_direction-refinement-2"
         }
       ],
@@ -3022,7 +3147,7 @@
         "id": "ambulance_stopped_or_in_wrong_direction-refinement-2-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "ambulance_stopped_or_in_wrong_direction-refinement-2",
-        "target": "ambulance_stopped_or_in_wrong_direction"
+        "target": "71121db4-0342-57a3-b5f5-0332297b238e"
       }
     },
     {
@@ -3036,7 +3161,7 @@
         {
           "id": "ambulance_stopped-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "ambulance_broken",
+          "source": "f53b71f4-e08f-50e1-94c3-037ee137ca9d",
           "target": "ambulance_stopped-refinement-1"
         }
       ],
@@ -3044,7 +3169,7 @@
         "id": "ambulance_stopped-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "ambulance_stopped-refinement-1",
-        "target": "ambulance_stopped"
+        "target": "47af9012-fc94-5ad4-b46a-f3efc6a57d55"
       }
     },
     {
@@ -3058,7 +3183,7 @@
         {
           "id": "ambulance_stopped-refinement-2-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "ambulance_stopped_in_traffic",
+          "source": "433cfcaf-0f26-5377-b95e-9125057b5ff5",
           "target": "ambulance_stopped-refinement-2"
         }
       ],
@@ -3066,7 +3191,7 @@
         "id": "ambulance_stopped-refinement-2-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "ambulance_stopped-refinement-2",
-        "target": "ambulance_stopped"
+        "target": "47af9012-fc94-5ad4-b46a-f3efc6a57d55"
       }
     },
     {
@@ -3080,7 +3205,7 @@
         {
           "id": "ambulance_in_wrong_direction-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "ambulance_lost",
+          "source": "381ad13d-cb6d-582d-87ce-d75e6dbc8427",
           "target": "ambulance_in_wrong_direction-refinement-1"
         }
       ],
@@ -3088,7 +3213,7 @@
         "id": "ambulance_in_wrong_direction-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "ambulance_in_wrong_direction-refinement-1",
-        "target": "ambulance_in_wrong_direction"
+        "target": "eaae980f-bf34-531c-9099-8d013d88d8de"
       }
     },
     {
@@ -3102,7 +3227,7 @@
         {
           "id": "ambulance_in_wrong_direction-refinement-2-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "ambulance_traffic_deviation",
+          "source": "b50da3b9-84c2-57c1-bd5d-80570a25bb28",
           "target": "ambulance_in_wrong_direction-refinement-2"
         }
       ],
@@ -3110,7 +3235,7 @@
         "id": "ambulance_in_wrong_direction-refinement-2-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "ambulance_in_wrong_direction-refinement-2",
-        "target": "ambulance_in_wrong_direction"
+        "target": "eaae980f-bf34-531c-9099-8d013d88d8de"
       }
     },
     {
@@ -3124,13 +3249,13 @@
         {
           "id": "ambulance_lost-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "ambulance_in_unfamiliar_area",
+          "source": "fb27db64-a005-5656-ab7f-70e72f9acfac",
           "target": "ambulance_lost-refinement-1"
         },
         {
           "id": "ambulance_lost-refinement-1-2",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "gps_broken",
+          "source": "1edeb1d3-75fa-54a1-8075-ff834966a293",
           "target": "ambulance_lost-refinement-1"
         }
       ],
@@ -3138,7 +3263,7 @@
         "id": "ambulance_lost-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "ambulance_lost-refinement-1",
-        "target": "ambulance_lost"
+        "target": "381ad13d-cb6d-582d-87ce-d75e6dbc8427"
       }
     },
     {
@@ -3152,7 +3277,7 @@
         {
           "id": "incident_not_resolved_by_intervention-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "patient_not_treated_at_location",
+          "source": "7cb7bc2f-8738-5abb-b0fc-50d1687059a3",
           "target": "incident_not_resolved_by_intervention-refinement-1"
         }
       ],
@@ -3160,7 +3285,7 @@
         "id": "incident_not_resolved_by_intervention-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "incident_not_resolved_by_intervention-refinement-1",
-        "target": "incident_not_resolved_by_intervention"
+        "target": "2758475c-327a-5b2b-93a7-78d469781ada"
       }
     },
     {
@@ -3174,7 +3299,7 @@
         {
           "id": "incident_not_resolved_by_intervention-refinement-2-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "patient_not_admitted_or_transported_at_hospital",
+          "source": "25eda477-a942-587f-8714-b8ff9b129ce8",
           "target": "incident_not_resolved_by_intervention-refinement-2"
         }
       ],
@@ -3182,7 +3307,7 @@
         "id": "incident_not_resolved_by_intervention-refinement-2-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "incident_not_resolved_by_intervention-refinement-2",
-        "target": "incident_not_resolved_by_intervention"
+        "target": "2758475c-327a-5b2b-93a7-78d469781ada"
       }
     },
     {
@@ -3196,7 +3321,7 @@
         {
           "id": "patient_not_treated_at_location-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "critical_care_not_given",
+          "source": "703ba997-deb5-51c4-a02e-ea0f94eefe8b",
           "target": "patient_not_treated_at_location-refinement-1"
         }
       ],
@@ -3204,7 +3329,7 @@
         "id": "patient_not_treated_at_location-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "patient_not_treated_at_location-refinement-1",
-        "target": "patient_not_treated_at_location"
+        "target": "7cb7bc2f-8738-5abb-b0fc-50d1687059a3"
       }
     },
     {
@@ -3218,7 +3343,7 @@
         {
           "id": "patient_not_treated_at_location-refinement-2-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "patient_unreachable_safely",
+          "source": "2ebd57fa-e471-55d5-abe0-8016b4e1efff",
           "target": "patient_not_treated_at_location-refinement-2"
         }
       ],
@@ -3226,7 +3351,7 @@
         "id": "patient_not_treated_at_location-refinement-2-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "patient_not_treated_at_location-refinement-2",
-        "target": "patient_not_treated_at_location"
+        "target": "7cb7bc2f-8738-5abb-b0fc-50d1687059a3"
       }
     },
     {
@@ -3240,7 +3365,7 @@
         {
           "id": "patient_unreachable_safely-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "fire_environment",
+          "source": "3aafc2cc-37a7-5065-a675-71dd28037acb",
           "target": "patient_unreachable_safely-refinement-1"
         }
       ],
@@ -3248,7 +3373,7 @@
         "id": "patient_unreachable_safely-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "patient_unreachable_safely-refinement-1",
-        "target": "patient_unreachable_safely"
+        "target": "2ebd57fa-e471-55d5-abe0-8016b4e1efff"
       }
     },
     {
@@ -3262,7 +3387,7 @@
         {
           "id": "patient_unreachable_safely-refinement-2-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "hazardous_environment",
+          "source": "b8cfcaf4-bfc5-5d95-a531-480a88ccb91a",
           "target": "patient_unreachable_safely-refinement-2"
         }
       ],
@@ -3270,7 +3395,7 @@
         "id": "patient_unreachable_safely-refinement-2-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "patient_unreachable_safely-refinement-2",
-        "target": "patient_unreachable_safely"
+        "target": "2ebd57fa-e471-55d5-abe0-8016b4e1efff"
       }
     },
     {
@@ -3284,7 +3409,7 @@
         {
           "id": "patient_unreachable_safely-refinement-3-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "unreachable_patient",
+          "source": "86e70937-c7b6-594d-8386-544f9f7a16da",
           "target": "patient_unreachable_safely-refinement-3"
         }
       ],
@@ -3292,7 +3417,7 @@
         "id": "patient_unreachable_safely-refinement-3-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "patient_unreachable_safely-refinement-3",
-        "target": "patient_unreachable_safely"
+        "target": "2ebd57fa-e471-55d5-abe0-8016b4e1efff"
       }
     },
     {
@@ -3306,7 +3431,7 @@
         {
           "id": "critical_care_not_given-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "insufficient_ressource",
+          "source": "707475a6-b4ce-56eb-9a9c-cb341e76bec0",
           "target": "critical_care_not_given-refinement-1"
         }
       ],
@@ -3314,7 +3439,7 @@
         "id": "critical_care_not_given-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "critical_care_not_given-refinement-1",
-        "target": "critical_care_not_given"
+        "target": "703ba997-deb5-51c4-a02e-ea0f94eefe8b"
       }
     },
     {
@@ -3328,7 +3453,7 @@
         {
           "id": "critical_care_not_given-refinement-2-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "available_ressource_not_used",
+          "source": "da6ebb93-93be-53ee-b03d-cc51bbac9a29",
           "target": "critical_care_not_given-refinement-2"
         }
       ],
@@ -3336,7 +3461,7 @@
         "id": "critical_care_not_given-refinement-2-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "critical_care_not_given-refinement-2",
-        "target": "critical_care_not_given"
+        "target": "703ba997-deb5-51c4-a02e-ea0f94eefe8b"
       }
     },
     {
@@ -3350,7 +3475,7 @@
         {
           "id": "available_ressource_not_used-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "wrong_info_about_patient",
+          "source": "84471550-6411-551f-80e9-b52f86accca0",
           "target": "available_ressource_not_used-refinement-1"
         }
       ],
@@ -3358,7 +3483,7 @@
         "id": "available_ressource_not_used-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "available_ressource_not_used-refinement-1",
-        "target": "available_ressource_not_used"
+        "target": "da6ebb93-93be-53ee-b03d-cc51bbac9a29"
       }
     },
     {
@@ -3372,7 +3497,7 @@
         {
           "id": "available_ressource_not_used-refinement-2-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "ressource_out_of_order",
+          "source": "43c3b3db-3741-5d78-8c5a-8e66e9af451f",
           "target": "available_ressource_not_used-refinement-2"
         }
       ],
@@ -3380,7 +3505,7 @@
         "id": "available_ressource_not_used-refinement-2-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "available_ressource_not_used-refinement-2",
-        "target": "available_ressource_not_used"
+        "target": "da6ebb93-93be-53ee-b03d-cc51bbac9a29"
       }
     },
     {
@@ -3394,7 +3519,7 @@
         {
           "id": "available_ressource_not_used-refinement-3-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "qualification_missing_for_ressource",
+          "source": "3cc8803a-519d-5943-a53e-2921f91af12b",
           "target": "available_ressource_not_used-refinement-3"
         }
       ],
@@ -3402,7 +3527,7 @@
         "id": "available_ressource_not_used-refinement-3-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "available_ressource_not_used-refinement-3",
-        "target": "available_ressource_not_used"
+        "target": "da6ebb93-93be-53ee-b03d-cc51bbac9a29"
       }
     },
     {
@@ -3416,7 +3541,7 @@
         {
           "id": "insufficient_ressource-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "ressource_confusion",
+          "source": "85a676f1-3fd9-5caf-9d54-81d45cb553ee",
           "target": "insufficient_ressource-refinement-1"
         }
       ],
@@ -3424,7 +3549,7 @@
         "id": "insufficient_ressource-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "insufficient_ressource-refinement-1",
-        "target": "insufficient_ressource"
+        "target": "707475a6-b4ce-56eb-9a9c-cb341e76bec0"
       }
     },
     {
@@ -3438,7 +3563,7 @@
         {
           "id": "insufficient_ressource-refinement-2-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "ressource_not_available",
+          "source": "c4f64b9b-92f1-5687-a84e-771f44e2d161",
           "target": "insufficient_ressource-refinement-2"
         }
       ],
@@ -3446,7 +3571,7 @@
         "id": "insufficient_ressource-refinement-2-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "insufficient_ressource-refinement-2",
-        "target": "insufficient_ressource"
+        "target": "707475a6-b4ce-56eb-9a9c-cb341e76bec0"
       }
     },
     {
@@ -3460,7 +3585,7 @@
         {
           "id": "insufficient_ressource-refinement-3-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "wrong_info_about_patient",
+          "source": "84471550-6411-551f-80e9-b52f86accca0",
           "target": "insufficient_ressource-refinement-3"
         }
       ],
@@ -3468,7 +3593,7 @@
         "id": "insufficient_ressource-refinement-3-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "insufficient_ressource-refinement-3",
-        "target": "insufficient_ressource"
+        "target": "707475a6-b4ce-56eb-9a9c-cb341e76bec0"
       }
     },
     {
@@ -3482,7 +3607,7 @@
         {
           "id": "patient_not_admitted_or_transported_at_hospital-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "patient_not_transported",
+          "source": "f93569d2-1d91-5c5d-bf39-1757b2f92df9",
           "target": "patient_not_admitted_or_transported_at_hospital-refinement-1"
         }
       ],
@@ -3490,7 +3615,7 @@
         "id": "patient_not_admitted_or_transported_at_hospital-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "patient_not_admitted_or_transported_at_hospital-refinement-1",
-        "target": "patient_not_admitted_or_transported_at_hospital"
+        "target": "25eda477-a942-587f-8714-b8ff9b129ce8"
       }
     },
     {
@@ -3504,7 +3629,7 @@
         {
           "id": "patient_not_admitted_or_transported_at_hospital-refinement-2-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "patient_not_admitted",
+          "source": "88c445dc-d8ed-514a-bd76-2726bf36371a",
           "target": "patient_not_admitted_or_transported_at_hospital-refinement-2"
         }
       ],
@@ -3512,7 +3637,7 @@
         "id": "patient_not_admitted_or_transported_at_hospital-refinement-2-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "patient_not_admitted_or_transported_at_hospital-refinement-2",
-        "target": "patient_not_admitted_or_transported_at_hospital"
+        "target": "25eda477-a942-587f-8714-b8ff9b129ce8"
       }
     },
     {
@@ -3526,7 +3651,7 @@
         {
           "id": "patient_not_transported-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "patient_not_in_ambulance",
+          "source": "63d97ecc-f78e-5a62-ab7f-9402977d57cd",
           "target": "patient_not_transported-refinement-1"
         }
       ],
@@ -3534,7 +3659,7 @@
         "id": "patient_not_transported-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "patient_not_transported-refinement-1",
-        "target": "patient_not_transported"
+        "target": "f93569d2-1d91-5c5d-bf39-1757b2f92df9"
       }
     },
     {
@@ -3548,7 +3673,7 @@
         {
           "id": "patient_not_transported-refinement-2-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "patient_not_in_ambulance_and_not_transported",
+          "source": "822eac80-fdd3-5b97-ac25-ff7dcef85ea1",
           "target": "patient_not_transported-refinement-2"
         }
       ],
@@ -3556,7 +3681,7 @@
         "id": "patient_not_transported-refinement-2-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "patient_not_transported-refinement-2",
-        "target": "patient_not_transported"
+        "target": "f93569d2-1d91-5c5d-bf39-1757b2f92df9"
       }
     },
     {
@@ -3570,7 +3695,7 @@
         {
           "id": "patient_not_in_ambulance-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "insufficient_capacity",
+          "source": "fda6167f-1fd9-5a1e-a55e-417663929365",
           "target": "patient_not_in_ambulance-refinement-1"
         }
       ],
@@ -3578,7 +3703,7 @@
         "id": "patient_not_in_ambulance-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "patient_not_in_ambulance-refinement-1",
-        "target": "patient_not_in_ambulance"
+        "target": "63d97ecc-f78e-5a62-ab7f-9402977d57cd"
       }
     },
     {
@@ -3592,7 +3717,7 @@
         {
           "id": "patient_not_in_ambulance-refinement-2-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "overweight_patient",
+          "source": "d0d4da98-1387-5ec7-9f28-40decd9db211",
           "target": "patient_not_in_ambulance-refinement-2"
         }
       ],
@@ -3600,7 +3725,7 @@
         "id": "patient_not_in_ambulance-refinement-2-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "patient_not_in_ambulance-refinement-2",
-        "target": "patient_not_in_ambulance"
+        "target": "63d97ecc-f78e-5a62-ab7f-9402977d57cd"
       }
     },
     {
@@ -3614,7 +3739,7 @@
         {
           "id": "patient_not_in_ambulance-refinement-3-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "patient_cannot_reach_ambulance",
+          "source": "12dea6d3-5c10-5db4-aeee-b459a5e89543",
           "target": "patient_not_in_ambulance-refinement-3"
         }
       ],
@@ -3622,7 +3747,7 @@
         "id": "patient_not_in_ambulance-refinement-3-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "patient_not_in_ambulance-refinement-3",
-        "target": "patient_not_in_ambulance"
+        "target": "63d97ecc-f78e-5a62-ab7f-9402977d57cd"
       }
     },
     {
@@ -3636,7 +3761,7 @@
         {
           "id": "patient_not_in_ambulance_and_not_transported-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "ambulance_broken",
+          "source": "f53b71f4-e08f-50e1-94c3-037ee137ca9d",
           "target": "patient_not_in_ambulance_and_not_transported-refinement-1"
         }
       ],
@@ -3644,7 +3769,7 @@
         "id": "patient_not_in_ambulance_and_not_transported-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "patient_not_in_ambulance_and_not_transported-refinement-1",
-        "target": "patient_not_in_ambulance_and_not_transported"
+        "target": "822eac80-fdd3-5b97-ac25-ff7dcef85ea1"
       }
     },
     {
@@ -3658,7 +3783,7 @@
         {
           "id": "patient_not_in_ambulance_and_not_transported-refinement-2-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "patient_not_transportable",
+          "source": "e271c9a8-a202-5857-8fe1-1edf89d8107b",
           "target": "patient_not_in_ambulance_and_not_transported-refinement-2"
         }
       ],
@@ -3666,7 +3791,7 @@
         "id": "patient_not_in_ambulance_and_not_transported-refinement-2-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "patient_not_in_ambulance_and_not_transported-refinement-2",
-        "target": "patient_not_in_ambulance_and_not_transported"
+        "target": "822eac80-fdd3-5b97-ac25-ff7dcef85ea1"
       }
     },
     {
@@ -3680,7 +3805,7 @@
         {
           "id": "patient_not_admitted-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "no_bed",
+          "source": "8e91f4bd-cd4c-5c32-b9f6-5757c32fe15c",
           "target": "patient_not_admitted-refinement-1"
         }
       ],
@@ -3688,7 +3813,7 @@
         "id": "patient_not_admitted-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "patient_not_admitted-refinement-1",
-        "target": "patient_not_admitted"
+        "target": "88c445dc-d8ed-514a-bd76-2726bf36371a"
       }
     },
     {
@@ -3702,7 +3827,7 @@
         {
           "id": "patient_not_admitted-refinement-2-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "available_bed_not_assigned",
+          "source": "3f39e510-edd6-5d4c-aa49-8d892f275a71",
           "target": "patient_not_admitted-refinement-2"
         }
       ],
@@ -3710,7 +3835,7 @@
         "id": "patient_not_admitted-refinement-2-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "patient_not_admitted-refinement-2",
-        "target": "patient_not_admitted"
+        "target": "88c445dc-d8ed-514a-bd76-2726bf36371a"
       }
     },
     {
@@ -3724,7 +3849,7 @@
         {
           "id": "patient_not_admitted-refinement-3-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "special_unit_required",
+          "source": "cb3b3f59-29da-563f-9e23-40c99479db12",
           "target": "patient_not_admitted-refinement-3"
         }
       ],
@@ -3732,7 +3857,7 @@
         "id": "patient_not_admitted-refinement-3-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "patient_not_admitted-refinement-3",
-        "target": "patient_not_admitted"
+        "target": "88c445dc-d8ed-514a-bd76-2726bf36371a"
       }
     },
     {
@@ -3746,7 +3871,7 @@
         {
           "id": "not_allocation_when_moborder_printed-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "ambulance_not_at_station",
+          "source": "b1e0a09b-95bb-5bbd-8659-27b026b39587",
           "target": "not_allocation_when_moborder_printed-refinement-1"
         }
       ],
@@ -3754,7 +3879,7 @@
         "id": "not_allocation_when_moborder_printed-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "not_allocation_when_moborder_printed-refinement-1",
-        "target": "not_allocation_when_moborder_printed"
+        "target": "5cc05cd6-ef04-5660-94b7-6a39880ec9e6"
       }
     },
     {
@@ -3768,7 +3893,7 @@
         {
           "id": "not_allocation_when_moborder_printed-refinement-2-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "allocated_ambulance_not_available",
+          "source": "2b1e5862-be59-55bc-be5c-77ed31623534",
           "target": "not_allocation_when_moborder_printed-refinement-2"
         }
       ],
@@ -3776,7 +3901,7 @@
         "id": "not_allocation_when_moborder_printed-refinement-2-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "not_allocation_when_moborder_printed-refinement-2",
-        "target": "not_allocation_when_moborder_printed"
+        "target": "5cc05cd6-ef04-5660-94b7-6a39880ec9e6"
       }
     },
     {
@@ -3790,7 +3915,7 @@
         {
           "id": "not_allocation_when_moborder_printed-refinement-3-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "printed_mobilization_order_ignored",
+          "source": "5985df74-94c5-589d-b082-21b503dabfef",
           "target": "not_allocation_when_moborder_printed-refinement-3"
         }
       ],
@@ -3798,7 +3923,7 @@
         "id": "not_allocation_when_moborder_printed-refinement-3-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "not_allocation_when_moborder_printed-refinement-3",
-        "target": "not_allocation_when_moborder_printed"
+        "target": "5cc05cd6-ef04-5660-94b7-6a39880ec9e6"
       }
     },
     {
@@ -3812,7 +3937,7 @@
         {
           "id": "not_allocation_when_moborder_printed-refinement-4-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "mobilization_taken_by_other_ambulance",
+          "source": "7a9a499f-42bc-5d40-a134-3c6a309a5e70",
           "target": "not_allocation_when_moborder_printed-refinement-4"
         }
       ],
@@ -3820,7 +3945,7 @@
         "id": "not_allocation_when_moborder_printed-refinement-4-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "not_allocation_when_moborder_printed-refinement-4",
-        "target": "not_allocation_when_moborder_printed"
+        "target": "5cc05cd6-ef04-5660-94b7-6a39880ec9e6"
       }
     },
     {
@@ -3834,7 +3959,7 @@
         {
           "id": "not_allocation_when_moborder_printed-refinement-5-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "mobilized_to_wrong_destination",
+          "source": "3c70f246-333f-57e4-973e-576222ca564b",
           "target": "not_allocation_when_moborder_printed-refinement-5"
         }
       ],
@@ -3842,7 +3967,7 @@
         "id": "not_allocation_when_moborder_printed-refinement-5-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "not_allocation_when_moborder_printed-refinement-5",
-        "target": "not_allocation_when_moborder_printed"
+        "target": "5cc05cd6-ef04-5660-94b7-6a39880ec9e6"
       }
     },
     {
@@ -3856,7 +3981,7 @@
         {
           "id": "printed_mobilization_order_ignored-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "crew_not_near_printer",
+          "source": "70c9b898-2653-56d2-baa5-af441caf2c32",
           "target": "printed_mobilization_order_ignored-refinement-1"
         }
       ],
@@ -3864,7 +3989,7 @@
         "id": "printed_mobilization_order_ignored-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "printed_mobilization_order_ignored-refinement-1",
-        "target": "printed_mobilization_order_ignored"
+        "target": "5985df74-94c5-589d-b082-21b503dabfef"
       }
     },
     {
@@ -3878,7 +4003,7 @@
         {
           "id": "moborder_not_sent_to_mdt_based_on_am-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "no_line_free",
+          "source": "fcd2bf69-8086-5efe-ac44-f81d942a767b",
           "target": "moborder_not_sent_to_mdt_based_on_am-refinement-1"
         }
       ],
@@ -3886,7 +4011,7 @@
         "id": "moborder_not_sent_to_mdt_based_on_am-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "moborder_not_sent_to_mdt_based_on_am-refinement-1",
-        "target": "moborder_not_sent_to_mdt_based_on_am"
+        "target": "9132ac45-8ced-5d79-a34c-20f48e0ece53"
       }
     },
     {
@@ -3900,7 +4025,7 @@
         {
           "id": "moborder_not_sent_to_printer_based_on_am-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "no_line_free",
+          "source": "fcd2bf69-8086-5efe-ac44-f81d942a767b",
           "target": "moborder_not_sent_to_printer_based_on_am-refinement-1"
         }
       ],
@@ -3908,7 +4033,7 @@
         "id": "moborder_not_sent_to_printer_based_on_am-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "moborder_not_sent_to_printer_based_on_am-refinement-1",
-        "target": "moborder_not_sent_to_printer_based_on_am"
+        "target": "54862324-ab67-523d-8116-c2fd89c7f0e4"
       }
     },
     {
@@ -3922,7 +4047,7 @@
         {
           "id": "moborder_not_transmitted_to_mdt-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "congestion",
+          "source": "2bc80705-a453-5b1b-b366-b7f4f8257e10",
           "target": "moborder_not_transmitted_to_mdt-refinement-1"
         }
       ],
@@ -3930,7 +4055,7 @@
         "id": "moborder_not_transmitted_to_mdt-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "moborder_not_transmitted_to_mdt-refinement-1",
-        "target": "moborder_not_transmitted_to_mdt"
+        "target": "3fd8aaed-a695-5162-8f1b-3188542beeea"
       }
     },
     {
@@ -3944,7 +4069,7 @@
         {
           "id": "moborder_not_transmitted_to_mdt-refinement-2-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "blackspot",
+          "source": "c2514d84-bc93-5932-acb5-7a20f0af7f5b",
           "target": "moborder_not_transmitted_to_mdt-refinement-2"
         }
       ],
@@ -3952,7 +4077,7 @@
         "id": "moborder_not_transmitted_to_mdt-refinement-2-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "moborder_not_transmitted_to_mdt-refinement-2",
-        "target": "moborder_not_transmitted_to_mdt"
+        "target": "3fd8aaed-a695-5162-8f1b-3188542beeea"
       }
     },
     {
@@ -3966,7 +4091,7 @@
         {
           "id": "moborder_not_transmitted_to_mdt-refinement-3-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "corrupted_mobilization_order",
+          "source": "efce973e-80df-5496-a966-db6c5aa07857",
           "target": "moborder_not_transmitted_to_mdt-refinement-3"
         }
       ],
@@ -3974,7 +4099,7 @@
         "id": "moborder_not_transmitted_to_mdt-refinement-3-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "moborder_not_transmitted_to_mdt-refinement-3",
-        "target": "moborder_not_transmitted_to_mdt"
+        "target": "3fd8aaed-a695-5162-8f1b-3188542beeea"
       }
     },
     {
@@ -3988,7 +4113,7 @@
         {
           "id": "no_allocation_when_moborder_displayed-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "ambulance_not_available_when_moborder_displayed",
+          "source": "6278c4df-b8a4-5f0c-b93f-f62f799437b3",
           "target": "no_allocation_when_moborder_displayed-refinement-1"
         }
       ],
@@ -3996,7 +4121,7 @@
         "id": "no_allocation_when_moborder_displayed-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "no_allocation_when_moborder_displayed-refinement-1",
-        "target": "no_allocation_when_moborder_displayed"
+        "target": "560b60b8-d287-59b4-82f2-5c52ebead954"
       }
     },
     {
@@ -4010,7 +4135,7 @@
         {
           "id": "no_allocation_when_moborder_displayed-refinement-2-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "displayed_mobilization_order_ignored",
+          "source": "eb788a6c-b7e3-5b41-b960-345b639da5eb",
           "target": "no_allocation_when_moborder_displayed-refinement-2"
         }
       ],
@@ -4018,7 +4143,7 @@
         "id": "no_allocation_when_moborder_displayed-refinement-2-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "no_allocation_when_moborder_displayed-refinement-2",
-        "target": "no_allocation_when_moborder_displayed"
+        "target": "560b60b8-d287-59b4-82f2-5c52ebead954"
       }
     },
     {
@@ -4032,7 +4157,7 @@
         {
           "id": "no_allocation_when_moborder_displayed-refinement-3-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "mobilized_to_wrong_destination_when_displayed",
+          "source": "7c61d798-e613-5c8d-8c94-8c7e00bed53a",
           "target": "no_allocation_when_moborder_displayed-refinement-3"
         }
       ],
@@ -4040,7 +4165,7 @@
         "id": "no_allocation_when_moborder_displayed-refinement-3-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "no_allocation_when_moborder_displayed-refinement-3",
-        "target": "no_allocation_when_moborder_displayed"
+        "target": "560b60b8-d287-59b4-82f2-5c52ebead954"
       }
     },
     {
@@ -4054,7 +4179,7 @@
         {
           "id": "mobilized_to_wrong_destination_when_displayed-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "destination_confused",
+          "source": "bbc9710a-03dd-5be8-bee2-9214115dbecf",
           "target": "mobilized_to_wrong_destination_when_displayed-refinement-1"
         }
       ],
@@ -4062,7 +4187,7 @@
         "id": "mobilized_to_wrong_destination_when_displayed-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "mobilized_to_wrong_destination_when_displayed-refinement-1",
-        "target": "mobilized_to_wrong_destination_when_displayed"
+        "target": "7c61d798-e613-5c8d-8c94-8c7e00bed53a"
       }
     },
     {
@@ -4076,7 +4201,7 @@
         {
           "id": "displayed_mobilization_order_ignored-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "crew_distracted",
+          "source": "7a5523c8-dbe5-558e-a2d4-8bfb22986d9b",
           "target": "displayed_mobilization_order_ignored-refinement-1"
         }
       ],
@@ -4084,7 +4209,7 @@
         "id": "displayed_mobilization_order_ignored-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "displayed_mobilization_order_ignored-refinement-1",
-        "target": "displayed_mobilization_order_ignored"
+        "target": "eb788a6c-b7e3-5b41-b960-345b639da5eb"
       }
     },
     {
@@ -4098,7 +4223,7 @@
         {
           "id": "displayed_mobilization_order_ignored-refinement-2-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "crew_not_in_ambulance",
+          "source": "097379d7-8de7-55ce-bb27-07f9b62355d0",
           "target": "displayed_mobilization_order_ignored-refinement-2"
         }
       ],
@@ -4106,182 +4231,182 @@
         "id": "displayed_mobilization_order_ignored-refinement-2-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "displayed_mobilization_order_ignored-refinement-2",
-        "target": "displayed_mobilization_order_ignored"
+        "target": "eb788a6c-b7e3-5b41-b960-345b639da5eb"
       }
     },
     {
       "id": "incident_not_resolved_by_intervention-obstructs-achieve_incident_resolved_by_intervention",
       "type": "kaos.ObstructionLink",
-      "source": "incident_not_resolved_by_intervention",
-      "target": "achieve_incident_resolved_by_intervention"
+      "source": "2758475c-327a-5b2b-93a7-78d469781ada",
+      "target": "6d5731fa-8d0d-5ecc-a83c-dd0665d1f438"
     },
     {
       "id": "mobilized_ambulance_not_intervention-obstructs-achieve_mobilized_ambulance_intervention",
       "type": "kaos.ObstructionLink",
-      "source": "mobilized_ambulance_not_intervention",
-      "target": "achieve_mobilized_ambulance_intervention"
+      "source": "1d600805-faa3-56f2-bbd0-1beaf0910aba",
+      "target": "d8f8365e-ea6e-5b19-a860-59b1d6373e7f"
     },
     {
       "id": "location_known_not_info_known-obstructs-maintain_location_info_known",
       "type": "kaos.ObstructionLink",
-      "source": "location_known_not_info_known",
-      "target": "maintain_location_info_known"
+      "source": "bab5dfe9-64b8-512f-bc89-0725ba2b4341",
+      "target": "7db0de65-bc2e-500c-bdf8-0fe9ed46224a"
     },
     {
       "id": "accurate_availability_information_not_encoded-obstructs-accurate_availability_information_encoded",
       "type": "kaos.ObstructionLink",
-      "source": "accurate_availability_information_not_encoded",
-      "target": "accurate_availability_information_encoded"
+      "source": "817a1a54-0958-5c13-a498-ea6f045f6ed6",
+      "target": "e0e7e5ab-10bf-5646-b4e7-89971dcc2b02"
     },
     {
       "id": "not_allocation_when_moborder_printed-obstructs-achieve_allocation_when_moborder_printed",
       "type": "kaos.ObstructionLink",
-      "source": "not_allocation_when_moborder_printed",
-      "target": "achieve_allocation_when_moborder_printed"
+      "source": "5cc05cd6-ef04-5660-94b7-6a39880ec9e6",
+      "target": "302e1acc-ba03-5e48-bf8c-2fd5626831ad"
     },
     {
       "id": "moborder_not_sent_to_printer_based_on_am-obstructs-moborder_sent_to_printer_based_on_am",
       "type": "kaos.ObstructionLink",
-      "source": "moborder_not_sent_to_printer_based_on_am",
-      "target": "moborder_sent_to_printer_based_on_am"
+      "source": "54862324-ab67-523d-8116-c2fd89c7f0e4",
+      "target": "76899338-2a6c-52ac-9939-bcb1fb6ac58c"
     },
     {
       "id": "moborder_not_printed-obstructs-moborder_printed",
       "type": "kaos.ObstructionLink",
-      "source": "moborder_not_printed",
-      "target": "moborder_printed"
+      "source": "294cd331-980b-5674-9740-c0b33f823a61",
+      "target": "6abd7f59-ddf2-5d3d-b9aa-e99db88beed1"
     },
     {
       "id": "no_allocation_when_moborder_displayed-obstructs-achieve_allocation_when_moborder_displayed",
       "type": "kaos.ObstructionLink",
-      "source": "no_allocation_when_moborder_displayed",
-      "target": "achieve_allocation_when_moborder_displayed"
+      "source": "560b60b8-d287-59b4-82f2-5c52ebead954",
+      "target": "19a79938-525f-5d64-aee6-3e38b71e9dc6"
     },
     {
       "id": "moborder_not_sent_to_mdt_based_on_am-obstructs-moborder_sent_to_mdt_based_on_am",
       "type": "kaos.ObstructionLink",
-      "source": "moborder_not_sent_to_mdt_based_on_am",
-      "target": "moborder_sent_to_mdt_based_on_am"
+      "source": "9132ac45-8ced-5d79-a34c-20f48e0ece53",
+      "target": "103040e9-ca81-57d4-b0b7-9f348379e267"
     },
     {
       "id": "moborder_not_transmitted_to_mdt-obstructs-moborder_transmitted_to_mdt",
       "type": "kaos.ObstructionLink",
-      "source": "moborder_not_transmitted_to_mdt",
-      "target": "moborder_transmitted_to_mdt"
+      "source": "3fd8aaed-a695-5162-8f1b-3188542beeea",
+      "target": "786cc555-a160-57ff-81b0-acafcf6f1be3"
     },
     {
       "id": "moborder_not_displayed-obstructs-moborder_displayed",
       "type": "kaos.ObstructionLink",
-      "source": "moborder_not_displayed",
-      "target": "moborder_displayed"
+      "source": "e65f6361-0008-5cf2-8402-60a4e3d7f05c",
+      "target": "4b6ca4d3-9a37-5dbe-a850-4cb587c6e5fa"
     },
     {
       "id": "public-assigned-achieve_incident_reported",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "public",
-      "target": "achieve_incident_reported"
+      "source": "760209c8-f55c-529e-bf80-0910a9f31c54",
+      "target": "42580588-a59d-503b-b91f-a454d6f287e7"
     },
     {
       "id": "staff-assigned-achieve_incident_resolved_by_intervention",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "staff",
-      "target": "achieve_incident_resolved_by_intervention"
+      "source": "1c035579-645e-5de7-8a7a-31fb2e6261b3",
+      "target": "6d5731fa-8d0d-5ecc-a83c-dd0665d1f438"
     },
     {
       "id": "staff-assigned-achieve_mobilized_ambulance_intervention",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "staff",
-      "target": "achieve_mobilized_ambulance_intervention"
+      "source": "1c035579-645e-5de7-8a7a-31fb2e6261b3",
+      "target": "d8f8365e-ea6e-5b19-a860-59b1d6373e7f"
     },
     {
       "id": "operator-assigned-maintain_accurate_incident_form",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "operator",
-      "target": "maintain_accurate_incident_form"
+      "source": "16813b92-aa37-510d-8fdc-74a65d8c12b8",
+      "target": "e074238a-a068-511d-b01a-f929971c0506"
     },
     {
       "id": "cad-assigned-achieve_ambulance_allocation_based_on_if_and_af_when_available",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "cad",
-      "target": "achieve_ambulance_allocation_based_on_if_and_af_when_available"
+      "source": "0720fc9d-a487-5254-9248-bbd5857812ee",
+      "target": "f7330b64-5915-528e-8576-a7c5f1d7b657"
     },
     {
       "id": "avls-assigned-maintain_location_info_known",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "avls",
-      "target": "maintain_location_info_known"
+      "source": "818d83ab-4aca-542b-a2c8-a24b28340d31",
+      "target": "7db0de65-bc2e-500c-bdf8-0fe9ed46224a"
     },
     {
       "id": "staff-assigned-accurate_availability_information_encoded",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "staff",
-      "target": "accurate_availability_information_encoded"
+      "source": "1c035579-645e-5de7-8a7a-31fb2e6261b3",
+      "target": "e0e7e5ab-10bf-5646-b4e7-89971dcc2b02"
     },
     {
       "id": "mdt-assigned-accurate_availability_info_sent",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "mdt",
-      "target": "accurate_availability_info_sent"
+      "source": "aba2ddf7-133c-59d8-870a-9a70395b9e91",
+      "target": "8f44914c-c8dc-5ea1-b0b4-f39ab1e3240a"
     },
     {
       "id": "ci-assigned-accurate_availability_info_transmitted",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "ci",
-      "target": "accurate_availability_info_transmitted"
+      "source": "e6f852f6-a705-5858-a732-3c836fcffe10",
+      "target": "2e217da7-0a0c-5f83-afdc-b07e532720d4"
     },
     {
       "id": "cad-assigned-accurate_availability_info_recorded",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "cad",
-      "target": "accurate_availability_info_recorded"
+      "source": "0720fc9d-a487-5254-9248-bbd5857812ee",
+      "target": "9cb90580-e123-5df7-b2d2-2d1144d11ac3"
     },
     {
       "id": "staff-assigned-achieve_allocation_when_moborder_printed",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "staff",
-      "target": "achieve_allocation_when_moborder_printed"
+      "source": "1c035579-645e-5de7-8a7a-31fb2e6261b3",
+      "target": "302e1acc-ba03-5e48-bf8c-2fd5626831ad"
     },
     {
       "id": "cad-assigned-moborder_sent_to_printer_based_on_am",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "cad",
-      "target": "moborder_sent_to_printer_based_on_am"
+      "source": "0720fc9d-a487-5254-9248-bbd5857812ee",
+      "target": "76899338-2a6c-52ac-9939-bcb1fb6ac58c"
     },
     {
       "id": "ci-assigned-moborder_transmitted_to_printer",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "ci",
-      "target": "moborder_transmitted_to_printer"
+      "source": "e6f852f6-a705-5858-a732-3c836fcffe10",
+      "target": "cd955184-e6ad-55e7-8a86-f9af6d7217fb"
     },
     {
       "id": "printer-assigned-moborder_printed",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "printer",
-      "target": "moborder_printed"
+      "source": "38460f0d-8e50-5b8c-bd39-f8de4028cb2a",
+      "target": "6abd7f59-ddf2-5d3d-b9aa-e99db88beed1"
     },
     {
       "id": "staff-assigned-achieve_allocation_when_moborder_displayed",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "staff",
-      "target": "achieve_allocation_when_moborder_displayed"
+      "source": "1c035579-645e-5de7-8a7a-31fb2e6261b3",
+      "target": "19a79938-525f-5d64-aee6-3e38b71e9dc6"
     },
     {
       "id": "cad-assigned-moborder_sent_to_mdt_based_on_am",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "cad",
-      "target": "moborder_sent_to_mdt_based_on_am"
+      "source": "0720fc9d-a487-5254-9248-bbd5857812ee",
+      "target": "103040e9-ca81-57d4-b0b7-9f348379e267"
     },
     {
       "id": "ci-assigned-moborder_transmitted_to_mdt",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "ci",
-      "target": "moborder_transmitted_to_mdt"
+      "source": "e6f852f6-a705-5858-a732-3c836fcffe10",
+      "target": "786cc555-a160-57ff-81b0-acafcf6f1be3"
     },
     {
       "id": "mdt-assigned-moborder_displayed",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "mdt",
-      "target": "moborder_displayed"
+      "source": "aba2ddf7-133c-59d8-870a-9a70395b9e91",
+      "target": "4b6ca4d3-9a37-5dbe-a850-4cb587c6e5fa"
     }
   ],
   "display": {},
