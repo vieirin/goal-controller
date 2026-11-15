@@ -1,0 +1,7 @@
+// las-quantitative: the system, its agents composed
+// kaoslts: KAOS2LTSA's derivation (Letier, Kramer, Magee and Uchitel, ASE'08 §4)
+
+// not translated:
+//   assert AmbulanceIntervention: not translated, it has a predicateCall operator
+
+// step 2: fluents, from the operations’ domain postconditions

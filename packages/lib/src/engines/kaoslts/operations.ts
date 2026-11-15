@@ -95,7 +95,8 @@ export const operationModelOf = (model: KaosltsGoalModel): OperationModel => {
   const operations: Operation[] = [];
   const variables: StateVariable[] = [];
   for (const element of model.elements) {
-    const name = element.name.trim() || element.id;
+    // an element without a name is called as its tool called it (goal-controller#518)
+    const name = element.name.trim() || element.alias || element.id;
     switch (element.as) {
       case 'goal':
         requirements.push({

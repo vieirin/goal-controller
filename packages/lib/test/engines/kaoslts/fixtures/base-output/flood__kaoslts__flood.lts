@@ -1,0 +1,14 @@
+// flood: the system, its agents composed
+// kaoslts: KAOS2LTSA's derivation (Letier, Kramer, Magee and Uchitel, ASE'08 §4)
+
+// not translated:
+//   assert DepthAcquiredEvery5SecondsByRadar: not translated, it has a predicateCall operator
+//   assert AcquiredRadarDepthAccurate: not translated, it has a predicateCall operator
+//   assert SpeedAcquiredEvery5SecondsByUltrasound: not translated, it has a predicateCall operator
+//   assert UltrasoundSpeedAccurate: not translated, it has a predicateCall operator
+//   assert LocalsWarnedByPhoneWhenLevelsCritical: not translated, it has a predicateCall operator
+//   assert SpeedAcquiredEvery10SecondsByUltrasound: not translated, it has a predicateCall operator
+//   assert LocalsWarnedBySMSWhenLevelsCritical: not translated, it has a predicateCall operator
+//   assert LocalsWarnedByEmail: not translated, it has a predicateCall operator
+
+// step 2: fluents, from the operations’ domain postconditions

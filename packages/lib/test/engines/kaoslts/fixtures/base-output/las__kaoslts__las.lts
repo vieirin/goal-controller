@@ -1,0 +1,16 @@
+// las: the system, its agents composed
+// kaoslts: KAOS2LTSA's derivation (Letier, Kramer, Magee and Uchitel, ASE'08 §4)
+
+// not translated:
+//   assert AmbulanceOnSceneWhenIncidentReported: not translated, it has a predicateCall operator
+//   assert AmbulanceAllocatedWhenIncidentReported: not translated, it has a predicateCall operator
+//   assert AmbulanceOnSceneWhenAmbulanceAllocated: not translated, it has a predicateCall operator
+//   assert AmbulanceMobilizedWhenAmbulanceAllocated: not translated, it has a predicateCall operator
+//   assert AmbulanceOnSceneWhenAmbulanceMobilized: not translated, it has a predicateCall operator
+//   assert AmbulanceMobilizedWhenAmbulanceAllocatedOnRoad: not translated, it has a predicateCall operator
+//   assert AmbulanceMobilizedWhenAmbulanceAllocatedAtStation: not translated, it has a predicateCall operator
+//   assert AmbulanceMobilizedByFaxWhenAmbulanceAllocatedAtStation: not translated, it has a predicateCall operator
+//   assert AmbulanceMobilizedByPhoneWhenAmbulanceAllocatedAtStation: not translated, it has a predicateCall operator
+//   assert AmbulanceNotInFamiliarArea: not translated, it has a predicateCall operator
+
+// step 2: fluents, from the operations’ domain postconditions
