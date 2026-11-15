@@ -34,7 +34,7 @@ describe("a dialect's own kinds, created from the text (goal-controller#440, #51
     ]);
   });
 
-  it('creates an NFR kind from its word, its written id kept in its name', () => {
+  it('creates an NFR kind from its word, its written id kept apart from its name', () => {
     expect(
       created(nfr as unknown as AnyDialect, 'nfr S1: Fast enough'),
     ).to.deep.equal([
@@ -42,8 +42,8 @@ describe("a dialect's own kinds, created from the text (goal-controller#440, #51
         create: {
           iStarId: '7857cb00-0000-4000-8000-000000000000',
           kind: 'nfr.NFR',
-          text: 'S1: Fast enough',
-          properties: {},
+          text: 'Fast enough',
+          properties: { writtenId: 'S1' },
           after: null,
           line: 0,
           writeId: null,

@@ -308,8 +308,8 @@ describe('element lines `kind id: name` (#518)', () => {
           create: {
             iStarId: '7857cb01-1111-2222',
             kind: 'fw.Agent',
-            text: 'net_up: Internet connection available',
-            properties: {},
+            text: 'Internet connection available',
+            properties: { writtenId: 'net_up' },
             after: null,
             line: 2,
             writeId: null,

@@ -137,6 +137,72 @@ describe('creating and removing elements from the text (#518)', () => {
     ]);
   });
 
+  it('repairs the orphans by writing the removed element’s line again, with the same id', () => {
+    const model = parseModel(KAOS_WELCOME);
+    const tree = goalView(model as never, kaos);
+    const { text: doc } = notationDocument(kaos, tree);
+    const gone = [...model.elements.values()].find((e) => e.name === 'Backup')!;
+    const line = doc
+      .split('\n')
+      .findIndex((l) => l.includes(`${gone.id.slice(0, 8)}: Backup`));
+    expect(line).toBeGreaterThan(-1);
+    // the line removed: its element is, and its links are orphans
+    const removed = doc.split('\n').filter((_, i) => i !== line);
+    const without = parseModel(
+      applyNotationEdits(
+        KAOS_WELCOME,
+        notationEdits(kaos, removed.join('\n'), tree, { newId: ids }),
+      ),
+    );
+    const orphaned = goalView(without as never, kaos);
+    expect(orphaned.orphans.length).toBeGreaterThan(0);
+    // written again where it was: the element is back under its own id
+    const again = applyNotationEdits(
+      applyNotationEdits(
+        KAOS_WELCOME,
+        notationEdits(kaos, removed.join('\n'), tree, { newId: ids }),
+      ),
+      notationEdits(kaos, doc, orphaned, { newId: ids }),
+      orphaned,
+    );
+    const repaired = parseModel(again);
+    expect(repaired.elements.has(gone.id)).toBe(true);
+    expect(goalView(repaired as never, kaos).orphans).toEqual([]);
+    expect(repaired.elements.get(gone.id)!.name).toBe('Backup');
+  });
+
+  it('renames an element whose id is changed in place: same element, same links', () => {
+    const model = parseModel(KAOS_WELCOME);
+    const tree = goalView(model as never, kaos);
+    const { text: doc } = notationDocument(kaos, tree);
+    const gone = [...model.elements.values()].find((e) => e.name === 'Backup')!;
+    const edited = doc.replace(
+      `${gone.id.slice(0, 8)}: Backup`,
+      'backup_1: Backup',
+    );
+    const edits = notationEdits(kaos, edited, tree, { newId: ids });
+    expect(edits).toEqual([
+      { iStarId: gone.id, key: 'writtenId', value: 'backup_1' },
+    ]);
+    const next = parseModel(applyNotationEdits(KAOS_WELCOME, edits));
+    expect(next.elements.size).toBe(model.elements.size);
+    expect(next.elements.get(gone.id)).toMatchObject({
+      name: 'Backup',
+      x: gone.x,
+      y: gone.y,
+    });
+    // its id is the written one, kept apart from its name
+    const view = goalView(next as never, kaos);
+    expect(view.orphans).toEqual([]);
+    expect(
+      [...view.nodes.values()].find((n) => n.iStarId === gone.id),
+    ).toMatchObject({ id: 'backup_1', name: 'Backup', hasId: true });
+    expect(notationDocument(kaos, view).text).toContain('backup_1: Backup');
+    expect(
+      notationEdits(kaos, notationDocument(kaos, view).text, view),
+    ).toEqual([]);
+  });
+
   it('an element of a removed actor that stays goes on the paper', () => {
     const model = parseModel(ISTAR);
     const actor = [...model.elements.values()].find(

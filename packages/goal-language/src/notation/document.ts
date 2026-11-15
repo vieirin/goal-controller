@@ -19,6 +19,7 @@ import {
   actorPropertiesOf,
   istarKindOf,
   shortId,
+  WRITTEN_ID_KEY,
   extensionKindsRead,
   linkPropertiesOf,
 } from '@goal-controller/dialect';
@@ -26,6 +27,8 @@ import {
   documentLine,
   elementLine,
   hasWrittenId,
+  oneLine,
+  shownId,
   propertyLine,
   writeAnnotations,
   writeDeclaration,
@@ -342,9 +345,12 @@ export const notationEdits = (
     after: string | null;
     line: number;
     writeId: boolean;
+    iStarId?: string;
   };
   const blocks: Block[] = [];
   const created: Created[] = [];
+  // the element a new element's line directly follows (it keeps its properties)
+  const fallbacks = new Map<Created, Block | null>();
   let current: Block | Created | null = null;
   // the actor lines, wherever they are (goal-controller#109)
   const actorLines: ActorLineReading[] = [];
@@ -356,6 +362,11 @@ export const notationEdits = (
   let above: string | null = null;
   const identities = lineIdentities(definition, identifiedOf(tree));
   const lines = doc.split('\n');
+  // a line whose id alone differs from its element's: that element's rename
+  const renamed = renamesOf(definition, lines, tree);
+  // the orphans' missing ends not taken yet: a line written again with one's
+  // short id is that element, so its orphans resolve
+  const missing = (tree.orphans ?? []).flatMap((orphan) => orphan.missing);
   for (const [index, written] of lines.entries()) {
     const read = readLine(definition, written);
     const indent = written.length - written.trimStart().length;
@@ -363,15 +374,19 @@ export const notationEdits = (
       read.kind === 'element' &&
       (read.word || read.id !== null || !hasIds(definition))
     ) {
-      current = null;
       const word = read.word;
       if (!word || word.kind === null || read.errors.length) typing = true;
-      const identity = identities.resolve(indent, read.id);
+      const renaming = renamed.get(index);
+      const identity = renaming
+        ? { key: renaming }
+        : identities.resolve(indent, read.id);
       if (identity && 'ambiguous' in identity) {
+        current = null;
         identity.ambiguous.forEach((key) => named.add(key));
         continue;
       }
       if (!identity) {
+        // a line being typed is none's: the lines under it stay their element's
         if (!word?.kind) continue;
         // a runtime id says its kind (`T1` a task's): another than the word's is no element yet
         if (
@@ -394,31 +409,62 @@ export const notationEdits = (
         if (element?.annotated) set(annotatedProperties(read));
         if (element?.declares && read.declaration)
           set(read.declaration.properties);
+        // a line with an id a missing end starts with: that element again
+        const again =
+          read.id === null
+            ? undefined
+            : missing.find((end) => shortId(end) === read.id);
+        if (again !== undefined) missing.splice(missing.indexOf(again), 1);
+        else if (read.id !== null && !hasIds(definition))
+          properties[WRITTEN_ID_KEY] = read.id;
         const create: Created = {
           kind: word.kind,
-          text: read.text,
+          text: hasIds(definition) ? read.text : bareText(read),
           properties,
           lineProperties: new Map(),
           after: above,
           line: index,
           writeId: read.id === null,
+          ...(again !== undefined && { iStarId: again }),
         };
         created.push(create);
-        if (!element?.declares) current = create;
+        // property lines under it that its predecessor has are the
+        // predecessor's: a line added above them takes none
+        if (!element?.declares) {
+          const before: Block | null =
+            current && 'node' in current ? current : null;
+          current = create;
+          fallbacks.set(create, before);
+        } else current = null;
         continue;
       }
       const id = identity.key;
+      current = null;
+      // a line repeating another's id (a copy): erroneous, it edits nothing,
+      // and the lines under either are no one's to read
+      if (named.has(id)) {
+        typing = true;
+        const first = blocks.find((block) => block.key === id);
+        if (first) first.unreadable = true;
+        const kept = tree.nodes.get(id);
+        if (kept)
+          current = {
+            key: id,
+            node: kept,
+            properties: new Map(),
+            unreadable: true,
+            links: [],
+            linksUnreadable: false,
+          };
+        continue;
+      }
       named.add(id);
       const node = tree.nodes.get(id);
       if (!node) continue;
       above = id;
       // its word says another kind: the line is no edit of it
       if (word?.kind && word.kind !== node.kind) continue;
-      // its short id is shown, never stored
-      const text =
-        !hasWrittenId(node) && read.id === shortId(node.iStarId)
-          ? read.text.slice(read.id.length).replace(/^\s*:\s*/, '')
-          : read.text;
+      const { text, line, rename } = elementText(definition, node, read);
       const element = definition.elements[node.kind];
       const errorBefore = (to: number) =>
         read.errors.some((error) => error.offset < to);
@@ -426,8 +472,13 @@ export const notationEdits = (
       if (element?.annotated && !errorBefore(read.textSpan.from))
         setKeys(node, ANNOTATION_KEYS, annotatedProperties(read));
       if (element?.declares) {
-        if (text !== nodeLine(definition, node))
-          edits.push({ iStarId: node.iStarId, text });
+        if (text !== line) edits.push({ iStarId: node.iStarId, text });
+        if (rename !== undefined)
+          edits.push({
+            iStarId: node.iStarId,
+            key: WRITTEN_ID_KEY,
+            value: rename,
+          });
         // an unreadable declaration (being typed) changes nothing yet
         const declaration = read.declaration;
         if (
@@ -439,8 +490,13 @@ export const notationEdits = (
         continue;
       }
       if (!isListed(definition, node)) continue;
-      if (text !== nodeLine(definition, node))
-        edits.push({ iStarId: node.iStarId, text });
+      if (text !== line) edits.push({ iStarId: node.iStarId, text });
+      if (rename !== undefined)
+        edits.push({
+          iStarId: node.iStarId,
+          key: WRITTEN_ID_KEY,
+          value: rename,
+        });
       current = {
         key: id,
         node,
@@ -488,8 +544,17 @@ export const notationEdits = (
         !read.errors.length &&
         read.key !== LINK_LINE_KEY &&
         isLineKey(definition, current.kind, read)
-      )
-        current.lineProperties.set(read.key, read.value);
+      ) {
+        // a property its predecessor stores stays the predecessor's
+        const before = fallbacks.get(current);
+        if (
+          before &&
+          before.node.properties[read.key] !== undefined &&
+          !before.properties.has(read.key)
+        )
+          before.properties.set(read.key, read.value);
+        else current.lineProperties.set(read.key, read.value);
+      }
       continue;
     }
     if (
@@ -535,7 +600,11 @@ export const notationEdits = (
     for (const key of keys) {
       const value = properties.get(key);
       const stored = node.properties[key];
-      if (value !== undefined && value !== stored) {
+      // a value over several lines is written as one: unchanged until a line changes it
+      if (
+        value !== undefined &&
+        value !== (stored === undefined ? stored : oneLine(stored))
+      ) {
         edits.push({ iStarId: node.iStarId, key, value });
       } else if (value === undefined && stored !== undefined && !unreadable) {
         edits.push({ iStarId: node.iStarId, key, value: null });
@@ -544,7 +613,7 @@ export const notationEdits = (
   }
   if (typing) return edits;
   for (const create of created) {
-    const iStarId = newId();
+    const iStarId = create.iStarId ?? newId();
     edits.push({
       create: {
         iStarId,
@@ -563,6 +632,123 @@ export const notationEdits = (
   for (const { id, node } of lineOrder(definition, tree))
     if (!named.has(id)) edits.push({ remove: node.iStarId });
   return edits;
+};
+
+/** A line's text without the id it starts with (`id: name` → `name`): what its element's name stores. */
+const bareText = (read: { id: string | null; text: string }): string =>
+  read.id === null
+    ? read.text
+    : read.text.slice(read.id.length).replace(/^\s*:\s*/, '');
+
+/**
+ * What an element's line says of its text and id (goal-controller#518).
+ * `text`: what its name stores; `line`: what it stores now, to compare it
+ * with; `rename`: the written id to keep apart from the name (`WRITTEN_ID_KEY`;
+ * null: none any more; undefined: unchanged). An engine's runtime id, and a
+ * written id an older model has in its name, stay in the name; a short id is
+ * never stored.
+ */
+const elementText = (
+  definition: Document,
+  node: DocumentNode,
+  read: { id: string | null; text: string },
+): { text: string; line: string; rename?: string | null } => {
+  const apart = !!node.properties[WRITTEN_ID_KEY];
+  const renamed =
+    read.id !== null && read.id !== shownId(node) ? read.id : undefined;
+  // an older model's written id in its name moves out of it when it changes
+  const moving = renamed !== undefined && hasWrittenId(node) && !apart;
+  if (hasIds(definition) || (hasWrittenId(node) && !apart && !moving))
+    return {
+      text:
+        !hasWrittenId(node) &&
+        read.id !== null &&
+        read.id === shortId(node.iStarId)
+          ? bareText(read)
+          : read.text,
+      line: nodeLine(definition, node),
+    };
+  const rename =
+    renamed === undefined
+      ? undefined
+      : renamed === shortId(node.iStarId)
+        ? null
+        : renamed;
+  return {
+    text: bareText(read),
+    line: moving
+      ? nodeLine(definition, node)
+      : elementLine({ elements: {} }, { ...node, hasId: false }),
+    ...(rename !== undefined && { rename }),
+  };
+};
+
+/**
+ * The lines whose id alone differs from their element's (goal-controller#518,
+ * a rename: the same element, its position, links and properties): a line
+ * naming no element, of the kind of exactly one element no line names, which
+ * stood between the same two element lines (the first and the last: none).
+ * By line index, the key of the element. A line being typed is none.
+ */
+const renamesOf = (
+  definition: Document,
+  lines: readonly string[],
+  tree: DocumentTree,
+): Map<number, string> => {
+  const result = new Map<number, string>();
+  const identities = lineIdentities(definition, identifiedOf(tree));
+  type Entry = {
+    line: number;
+    key: string | null;
+    kind: string | null;
+    id: string | null;
+    clean: boolean;
+  };
+  const sequence: Entry[] = [];
+  for (const [line, written] of lines.entries()) {
+    const read = readLine(definition, written);
+    if (
+      read.kind !== 'element' ||
+      !(read.word || read.id !== null || !hasIds(definition))
+    )
+      continue;
+    const identity = identities.resolve(
+      written.length - written.trimStart().length,
+      read.id,
+    );
+    sequence.push({
+      line,
+      key: identity && 'key' in identity ? identity.key : null,
+      kind: read.word?.kind ?? null,
+      id: read.id,
+      clean: !read.errors.length && read.id !== null,
+    });
+  }
+  const named = new Set(
+    sequence.flatMap((e) => (e.key === null ? [] : [e.key])),
+  );
+  const order = lineOrder(definition, tree).map((entry) => entry.id);
+  const free = order.filter((key) => !named.has(key));
+  const NONE = '\0';
+  sequence.forEach((entry, i) => {
+    if (entry.key !== null || !entry.clean || !entry.kind || !entry.id) return;
+    if (hasIds(definition) && kindOfId(definition, entry.id) !== entry.kind)
+      return;
+    const before = i === 0 ? null : (sequence[i - 1]!.key ?? NONE);
+    const after =
+      i === sequence.length - 1 ? null : (sequence[i + 1]!.key ?? NONE);
+    const found = free.filter((key) => {
+      const at = order.indexOf(key);
+      return (
+        tree.nodes.get(key)?.kind === entry.kind &&
+        (order[at - 1] ?? null) === before &&
+        (order[at + 1] ?? null) === after
+      );
+    });
+    if (found.length === 1 && ![...result.values()].includes(found[0]!))
+      result.set(entry.line, found[0]!);
+  });
+  return result;
 };
 
 /**

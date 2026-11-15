@@ -4,7 +4,11 @@
  * element's only when an id and a colon follow the word; otherwise it is
  * the property line it was.
  */
-import type { AnyDialect, DocumentTree } from '@goal-controller/dialect';
+import {
+  WRITTEN_ID_KEY,
+  type AnyDialect,
+  type DocumentTree,
+} from '@goal-controller/dialect';
 import { expect } from 'chai';
 import {
   completionsAt,
@@ -86,10 +90,22 @@ for (const [name, definition, id] of [
             ? [edit.create.kind, edit.create.text, edit.create.properties]
             : edit,
         ),
-      ).to.deep.equal([
-        ['istar.Goal', 'G1: Deliver', { failure: 'late' }],
-        ['x.Failure', `${id}: Cannot reach`, {}],
-      ]);
+      ).to.deep.equal(
+        // where ids are any, the written id is kept apart from the name
+        definition === plain
+          ? [
+              [
+                'istar.Goal',
+                'Deliver',
+                { failure: 'late', [WRITTEN_ID_KEY]: 'G1' },
+              ],
+              ['x.Failure', 'Cannot reach', { [WRITTEN_ID_KEY]: id }],
+            ]
+          : [
+              ['istar.Goal', 'G1: Deliver', { failure: 'late' }],
+              ['x.Failure', `${id}: Cannot reach`, {}],
+            ],
+      );
       expect(
         documentDiagnostics(
           definition,

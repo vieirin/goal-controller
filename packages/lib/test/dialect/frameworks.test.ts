@@ -434,8 +434,8 @@ describe('frameworks: the Notation view of a KAOS or NFR model (#171)', () => {
         create: {
           iStarId: 'new-element',
           kind: 'kaos.DomainProperty',
-          text: 'DP9: Power is on',
-          properties: {},
+          text: 'Power is on',
+          properties: { writtenId: 'DP9' },
           after: byName(view, 'User').key,
           line: doc.split('\n').length,
           writeId: null,

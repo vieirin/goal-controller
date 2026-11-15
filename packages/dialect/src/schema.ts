@@ -1100,6 +1100,14 @@ export const kindWordsOf = (
 /** How many characters of its piStar id an element without an id of its own shows (`shortId`). */
 export const SHORT_ID_LENGTH = 8;
 
+/**
+ * The custom property an author-written id is kept in, where ids are not
+ * prefixes of a name's text (KAOS, NFR, a dialect without id prefixes,
+ * goal-controller#518): the element's name stays what its line says after
+ * the id. An engine dialect's runtime id stays in its name (`G1: Deliver`).
+ */
+export const WRITTEN_ID_KEY = 'writtenId';
+
 /** The id a line shows for an element without one of its own: its piStar id's first characters. */
 export const shortId = (iStarId: string): string =>
   iStarId.slice(0, SHORT_ID_LENGTH);

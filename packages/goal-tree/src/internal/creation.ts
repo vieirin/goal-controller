@@ -3,7 +3,11 @@
  * goal-tree runs it (`RunMapper`, goal-controller#215).
  */
 import { childrenOf, isActorIn, metamodelOf } from '@istar-ts/core';
-import { hasIds, ISTAR_KIND_OF } from '@goal-controller/dialect';
+import {
+  hasIds,
+  ISTAR_KIND_OF,
+  WRITTEN_ID_KEY,
+} from '@goal-controller/dialect';
 import {
   readProperties,
   type PropertyOwner,
@@ -72,8 +76,14 @@ const readText = (
   { lenient = false }: { lenient?: boolean } = {},
 ) => {
   if (dialect.elements && !hasIds({ elements: dialect.elements })) {
+    // an id the author wrote is kept apart from the name (`WRITTEN_ID_KEY`)
+    const kept = node.customProperties?.[WRITTEN_ID_KEY];
     const written = otherFrameworkOf(dialect)
-      ? FRAMEWORK_TEXT.exec(node.name)
+      ? FRAMEWORK_TEXT.exec(
+          typeof kept === 'string' && kept !== ''
+            ? `${kept}: ${node.name}`
+            : node.name,
+        )
       : null;
     return written
       ? { id: written[1]!, goalName: written[2]!, executionDetail: null }

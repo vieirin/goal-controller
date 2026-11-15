@@ -13,6 +13,7 @@ import {
 } from '@istar-ts/core';
 import {
   DEFAULT_FRAMEWORK,
+  WRITTEN_ID_KEY,
   extensionKindsRead,
   type AnyDialect,
   type DocumentOrphan,
@@ -231,7 +232,15 @@ export function goalView(
         ? (element.kind as ViewKind)
         : undefined);
     if (!kind || !isNode(element) || refined.hubs.has(element.id)) continue;
-    const text = element.name;
+    // where ids are any, an id the author wrote is kept apart from the name
+    // (`WRITTEN_ID_KEY`): the text is read as if it began with it
+    const keptId = element.customProperties?.[WRITTEN_ID_KEY];
+    const text =
+      (nameReading(dialect) === 'line' || withoutPrefixes) &&
+      typeof keptId === 'string' &&
+      keptId !== ''
+        ? `${keptId}: ${element.name}`
+        : element.name;
     const written = (
       nameReading(dialect) === 'line'
         ? FRAMEWORK_TEXT

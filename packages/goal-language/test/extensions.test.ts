@@ -222,21 +222,33 @@ describe('a dialect of its own (no engine)', () => {
       expect(documentDiagnostics(definition, unknown, context)).to.deep.equal(
         [],
       );
+      // its id alone differs, between the same lines: the element is renamed
+      // (its `{Id = G1}` annotation is gone from the line: its tags clear)
       expect(
         notationEdits(definition, unknown, withIds, { newId: () => 'n1' }),
+      ).to.deep.equal([
+        { iStarId: 'g1', key: 'tag', value: null },
+        { iStarId: 'g1', key: 'tagValue', value: null },
+        { iStarId: 'g1', text: 'Deliver' },
+        { iStarId: 'g1', key: 'writtenId', value: 'G7' },
+      ]);
+      // another kind of line is a new element
+      const added =
+        '<<smart>> agent a1: Robot\n  {Id = G1} goal G1: Deliver\n  goal G7: Again\n  plan T1: Plan it';
+      expect(
+        notationEdits(definition, added, withIds, { newId: () => 'n1' }),
       ).to.deep.equal([
         {
           create: {
             iStarId: 'n1',
             kind: 'istar.Goal',
-            text: 'G7: Deliver',
-            properties: {},
-            after: 'a1',
-            line: 1,
+            text: 'Again',
+            properties: { writtenId: 'G7' },
+            after: 'g1',
+            line: 2,
             writeId: null,
           },
         },
-        { remove: 'g1' },
       ]);
     });
   });
