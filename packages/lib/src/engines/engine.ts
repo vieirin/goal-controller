@@ -310,6 +310,27 @@ const errorLine = ({ elementId, key, message }: PropertyError): string =>
   `${elementId ? `${elementId} ` : ''}${key}: ${message}`;
 
 /**
+ * Why a model with a link that lost an end (`orphanLinks`) is not generated
+ * from, or analysed (goal-controller#518): `verb` and the first orphan by
+ * its link and the missing end's short id, the others listed after it. Null:
+ * the model has none.
+ */
+export const orphanMessage = (
+  model: AnyModel,
+  subject: string,
+  verb = 'generate from',
+): string | null => {
+  const orphans = orphanLinks(model);
+  if (orphans.length === 0) return null;
+  const more =
+    orphans.length > 1 ? ` (and ${orphans.length - 1} more, in Problems)` : '';
+  return [
+    `${subject} does not ${verb} a model with a link that lost an end: ${orphanLine(orphans[0]!)}${more}`,
+    ...orphans.map((orphan) => `- ${orphanLine(orphan)}`),
+  ].join('\n');
+};
+
+/**
  * Refuses to generate from a model with a link that lost an end
  * (goal-controller#518, `orphanLinks`), whatever the engine and framework, or
  * with an error on a property the engine reads (goal-controller#274,
@@ -324,14 +345,8 @@ export const refuseOnPropertyErrors = (
 ): void => {
   const more = (count: number) =>
     count > 1 ? ` (and ${count - 1} more, in Problems)` : '';
-  const orphans = orphanLinks(model);
-  if (orphans.length > 0)
-    throw new Error(
-      [
-        `${engineLabel(engine)} does not generate from a model with a link that lost an end: ${orphanLine(orphans[0]!)}${more(orphans.length)}`,
-        ...orphans.map((orphan) => `- ${orphanLine(orphan)}`),
-      ].join('\n'),
-    );
+  const orphaned = orphanMessage(model, engineLabel(engine));
+  if (orphaned !== null) throw new Error(orphaned);
   const errors = propertyErrors(engine, model, projectResources);
   const [first] = errors;
   if (!first) return;

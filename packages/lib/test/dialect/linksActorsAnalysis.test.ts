@@ -236,7 +236,7 @@ describe('the workbench’s analysis (#107)', () => {
       'weights',
       toyAnalyses.weights,
       '{ not json',
-      {} as AnyModel,
+      { links: new Map() } as unknown as AnyModel,
       toyAnalysisModel,
     );
     expect('error' in run).to.equal(true);

@@ -10,6 +10,7 @@
  */
 import type { GoalDiagnostic } from '@istar-ts/core';
 import {
+  orphanMessage,
   runAnalysis,
   type AnyModel,
   type Analysis,
@@ -202,6 +203,9 @@ export const analyse = (
     caseId: null,
     step: 0,
   };
+  // a link that lost an end: the values would miss it (goal-controller#518)
+  const orphaned = orphanMessage(model, analysis.label, 'run on');
+  if (orphaned !== null) return { ...base, error: orphaned };
   let analysisModel;
   try {
     analysisModel = readModel(model);
