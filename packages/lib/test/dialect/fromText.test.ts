@@ -385,7 +385,10 @@ describe('a kind’s word completes at a line’s head (#518)', () => {
 });
 
 describe('an imported .kaos model’s Notation document has no diagnostics (#390)', () => {
-  for (const seed of ['ambulance', 'elevator', 'mooring'])
+  // flood.kaos writes `dustyEnvironment()` and declares `DustyEnvironment`: a
+  // defect of the seed itself, not of its import
+  const SEED_DEFECTS = ['dustyEnvironment is not a declared predicate'];
+  for (const seed of ['ambulance', 'elevator', 'mooring', 'las', 'flood'])
     it(`examples/kaos/${seed}/${seed}.kaos`, () => {
       const { model: json, diagnostics } = kaosNativeFile.read(
         example(`examples/kaos/${seed}/${seed}.kaos`),
@@ -401,8 +404,42 @@ describe('an imported .kaos model’s Notation document has no diagnostics (#390
       // its elements show their UUIDs' first characters, none an identifier
       expect(doc).to.match(/^\w+ [0-9a-f]{8}: /m);
       expect(
-        documentDiagnostics(dialect, doc, contextFromView(dialect, view, [])),
+        documentDiagnostics(
+          dialect,
+          doc,
+          contextFromView(dialect, view, []),
+        ).filter((d) => !SEED_DEFECTS.includes(d.message)),
       ).to.deep.equal([]);
+      // what the document writes reads back as the model it was written from:
+      // a description over several lines, a goal without a name
       expect(notationEdits(dialect, doc, view)).to.deep.equal([]);
     });
+
+  it('keeps a description over several lines when another line is edited', () => {
+    const { model: json } = kaosNativeFile.read(
+      example('examples/kaos/las/las.kaos'),
+      { modelName: 'las' },
+    );
+    const model = parseModel(JSON.stringify(json), 'kaos' as never, 'kaos');
+    const dialect = kaos as unknown as AnyDialect;
+    const view = goalView(model as never, dialect);
+    const doc = notationDocument(dialect, view).text;
+    const lines = doc.split('\n');
+    // the despatcher's description is one line of the document
+    const at = lines.findIndex((l) => l.includes('with urgent calls'));
+    expect(at).to.be.greaterThan(0);
+    expect(lines[at]).to.contain('dealing with urgent calls');
+    // a line typed after it, and a name changed elsewhere: only that edit
+    const typed = [
+      ...lines.slice(0, at + 1),
+      '  behavioral_g',
+      ...lines.slice(at + 1),
+    ];
+    expect(notationEdits(dialect, typed.join('\n'), view)).to.deep.equal([]);
+    const first = lines.findIndex((l) => l.startsWith('behavioral_goal'));
+    const renamed = lines.map((l, i) => (i === first ? `${l} too` : l));
+    const edits = notationEdits(dialect, renamed.join('\n'), view);
+    expect(edits).to.have.length(1);
+    expect(edits[0]).to.have.property('text');
+  });
 });

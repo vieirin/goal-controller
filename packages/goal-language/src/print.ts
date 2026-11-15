@@ -147,4 +147,13 @@ export const writeDeclaration = (
 
 /** A property line's text: `maintain battery > 20` (the key alone when empty). */
 export const propertyLine = (key: string, value: string): string =>
-  value.trim() ? `${key} ${value.trim()}` : key;
+  oneLine(value) ? `${key} ${oneLine(value)}` : key;
+
+/**
+ * A property value as one line: its line breaks and the blanks around them
+ * one space (a line of the document holds one line; goal-controller#518: an
+ * imported `.kaos` description runs over several). What a document writes
+ * and reads of a value, so a value that has breaks reads back as itself.
+ */
+export const oneLine = (value: string): string =>
+  value.trim().replace(/\s*\n\s*/g, ' ');

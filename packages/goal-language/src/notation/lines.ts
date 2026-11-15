@@ -701,6 +701,16 @@ const withHead = (
       'G'.padEnd(head.idSpan.to - from, '1'),
     )(read);
   }
+  // an element without a name (`behavioral_goal 7857cb00: `, an imported
+  // `.kaos` goal that has none) is read with a stand-in one, which it then lacks
+  let emptyName: number | null = null;
+  if (head.id !== null && head.idSpan && nameReading(definition) === 'line') {
+    const colon = /^[ \t]*:[ \t]*$/.exec(text.slice(head.idSpan.to));
+    if (colon) {
+      emptyName = head.idSpan.to + colon[0].indexOf(':') + 1;
+      read = `${read.slice(0, emptyName)} _`;
+    }
+  }
   const reading = readLine(definition, read, wordNames);
   const word = {
     text: head.word,
@@ -751,6 +761,16 @@ const withHead = (
   }
   if (head.id === null) return { ...reading, word, id: null, idSpan: null };
   const textFrom = head.idSpan!.from;
+  if (emptyName !== null)
+    return {
+      ...reading,
+      word,
+      id: head.id,
+      idSpan: head.idSpan,
+      name: '',
+      text: text.slice(textFrom, emptyName),
+      textSpan: { from: textFrom, to: emptyName },
+    };
   const replaced = placeholder ? placeholder.to - placeholder.from : 0;
   return {
     ...reading,
