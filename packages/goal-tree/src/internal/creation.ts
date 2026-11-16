@@ -3,13 +3,18 @@
  * goal-tree runs it (`RunMapper`, goal-controller#215).
  */
 import { childrenOf, isActorIn, metamodelOf } from '@istar-ts/core';
-import { hasIds, ISTAR_KIND_OF } from '@goal-controller/dialect';
+import {
+  hasIds,
+  ISTAR_KIND_OF,
+  WRITTEN_ID_KEY,
+} from '@goal-controller/dialect';
 import {
   readProperties,
   type PropertyOwner,
   type ReadingContext,
 } from '@goal-controller/goal-language';
 import { getGoalDetail } from '../parsers/goalNameParser';
+import { FRAMEWORK_TEXT } from '../view';
 import type {
   AnyModel,
   GoalExecutionDetail,
@@ -57,20 +62,33 @@ type BuiltNode = {
 };
 
 /**
- * An element's text read in the engine's dialect. In a dialect without ids
- * (no element kind has a prefix) it is not parsed: its id is its piStar
- * id, its name its text (goal-controller#125). In a dialect of another
- * framework (goal-controller#171), or for an element no tree holds, a text
- * without an id (DSM3's own files) keeps its piStar id, and its text is its
- * name.
+ * An element's text read in the engine's dialect. In an iStar dialect
+ * without ids (no element kind has a prefix) it is not parsed: its id is its
+ * piStar id, its name its text (goal-controller#125). In a dialect of
+ * another framework (goal-controller#171), or for an element no tree holds,
+ * a text without an id (DSM3's own files) keeps its piStar id, and its text
+ * is its name; a framework's id is any its line writes (`G1: Reliability`,
+ * goal-controller#518), as the Notation view reads it (`FRAMEWORK_TEXT`).
  */
 const readText = (
   node: Node,
   dialect: MapperDialect,
   { lenient = false }: { lenient?: boolean } = {},
 ) => {
-  if (dialect.elements && !hasIds({ elements: dialect.elements }))
-    return { id: node.id, goalName: node.name, executionDetail: null };
+  if (dialect.elements && !hasIds({ elements: dialect.elements })) {
+    // an id the author wrote is kept apart from the name (`WRITTEN_ID_KEY`)
+    const kept = node.customProperties?.[WRITTEN_ID_KEY];
+    const written = otherFrameworkOf(dialect)
+      ? FRAMEWORK_TEXT.exec(
+          typeof kept === 'string' && kept !== ''
+            ? `${kept}: ${node.name}`
+            : node.name,
+        )
+      : null;
+    return written
+      ? { id: written[1]!, goalName: written[2]!, executionDetail: null }
+      : { id: node.id, goalName: node.name, executionDetail: null };
+  }
   if (!otherFrameworkOf(dialect) && !lenient)
     return getGoalDetail({ goalText: node.name, dialect });
   // a text without an id is no error here: the Notation view asks for one
@@ -167,6 +185,15 @@ const inputOf = (
   };
 };
 
+/** An element's alias: its extra under the dialect's `alias` key (goal-controller#518), if a word. */
+const aliasOf = (
+  element: { extra?: Readonly<Record<string, unknown>> },
+  dialect: MapperDialect,
+): string | undefined => {
+  const alias = dialect.alias ? element.extra?.[dialect.alias] : undefined;
+  return typeof alias === 'string' && alias !== '' ? alias : undefined;
+};
+
 /**
  * Per call: each node's input, for its entry's afterCreation, and what the
  * properties' references resolve against (goal-controller#243).
@@ -197,6 +224,10 @@ const readingOf = (model: AnyModel, mapper: RunMapper): ReadingContext => {
             lenient: true,
           });
           if (written && !kinds.has(written)) kinds.set(written, kind);
+          // its alias (an imported KAOS element's KAOSTools identifier,
+          // goal-controller#518), as the Notation view resolves it
+          const alias = aliasOf(element, mapper.dialect);
+          if (alias && !kinds.has(alias)) kinds.set(alias, kind);
         }
       }
       return kinds.get(id);
@@ -588,6 +619,9 @@ function build(
         name: element.name,
         ...(element.parent !== undefined && { actor: element.parent }),
         properties: { ...element.customProperties },
+        ...(aliasOf(element, mapper.dialect) !== undefined && {
+          alias: aliasOf(element, mapper.dialect),
+        }),
       };
       const entry = mapper.entries.get(element.kind);
       if (!entry) return written;

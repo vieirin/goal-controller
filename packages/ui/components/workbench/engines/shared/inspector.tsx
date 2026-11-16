@@ -784,7 +784,7 @@ export function SelectedNode({
         output — to inspect
         {modelReadOnly
           ? ' it'
-          : ' and edit it. Add or remove goals, tasks and links in the diagram'}
+          : ' and edit it. Add or remove goals and tasks in the diagram or the Notation tab, links in the diagram'}
         . Counts and constructs are in the Model tab.
       </p>
     );

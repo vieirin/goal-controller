@@ -57,6 +57,7 @@ export const frameworkProblems = (
         | 'properties'
         | 'links'
         | 'projectResources'
+        | 'alias'
       >
     >,
   /** the project's resources, parsed (their entries are what a keyed key may name) */
@@ -139,9 +140,18 @@ const closureProblems = (
     }),
   );
 
-/** The element a reference names: by its piStar id, or the id its text starts with (`G1: …`). */
-const referenced = (model: AnyModel, value: string) =>
+/**
+ * The element a reference names: by its piStar id, its alias (the dialect's
+ * `alias` extra: an imported KAOS element's KAOSTools identifier,
+ * goal-controller#518), or the id its text starts with (`G1: …`).
+ */
+const referenced = (model: AnyModel, value: string, alias?: string) =>
   model.elements.get(value) ??
+  (alias !== undefined
+    ? [...model.elements.values()].find(
+        (element) => element.extra?.[alias] === value,
+      )
+    : undefined) ??
   [...model.elements.values()].find((element) =>
     element.name.startsWith(`${value}: `),
   );
@@ -206,11 +216,13 @@ const namesOf = (
 const referenceProblems = (
   model: AnyModel,
   definition: Pick<AnyDialect, 'name'> &
-    Partial<Pick<AnyDialect, 'properties' | 'links' | 'projectResources'>>,
+    Partial<
+      Pick<AnyDialect, 'properties' | 'links' | 'projectResources' | 'alias'>
+    >,
   resources: Readonly<Record<string, ProjectResourceContext>> = {},
 ): Problem[] => {
   const scope: TargetScope = {
-    kindOf: (id) => referenced(model, id)?.kind,
+    kindOf: (id) => referenced(model, id, definition.alias)?.kind,
     entriesOf: (resource) => resources[resource]?.entries,
   };
   const owners = [
@@ -225,7 +237,7 @@ const referenceProblems = (
   ];
   // a member's element, as a member reads it: its kind and its texts
   const memberElement = (ref: string) => {
-    const element = referenced(model, ref);
+    const element = referenced(model, ref, definition.alias);
     return (
       element && {
         kind: element.kind,

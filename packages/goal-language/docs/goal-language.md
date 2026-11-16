@@ -42,9 +42,16 @@ A **document** is lines (`Document`). There are two kinds of line:
 - **Element lines** (`ElementLine`) have this shape:
 
   ```
-  <<stereotype>> {tag = value} G1: Name [RT notation] {int 0..100 = 80}
-  └── annotations ──────────┘ id  name  └ notation ┘ └ declaration ─┘
+  <<stereotype>> {tag = value} resource R1: Name [RT notation] {int 0..100 = 80}
+  └── annotations ──────────┘ kind     id  name  └ notation ┘ └ declaration ─┘
   ```
+
+  In a Notation document the line starts with its **kind's word**
+  (goal-controller#518), the kind's local name in snake_case (`goal`,
+  `task`, `behavioral_goal`), after its annotations. It is read before the
+  grammar (`readHead`), and the element's text (its name in the model, what
+  an engine reads) is the rest: `G1: Name [RT notation]`. See the
+  [reference](reference.md#the-kind-word).
 
   The id is `G`, `T`, `R` or `AT` (MutRoSe's tasks) followed by `1`, `1.2`, `1X`, `1a` or `X`
   (GODA's `TX`: see the [reference](reference.md#ids)). A
@@ -61,10 +68,29 @@ A **document** is lines (`Document`). There are two kinds of line:
   key alone (`root`). The parser reads the value as text. The validator then
   reads it with its property's value type.
 
-A dialect without ids (piStar-ext's own definition) writes a `PlainDocument`
-of `AnnotatedName` lines. A name there is any text on one line except
-brackets and braces. A line may start with an id (`G1: Deliver`), which
-names its element; a line without one is the element at its position.
+A dialect without ids (piStar-ext's own definition, KAOS, NFR) writes a
+`PlainDocument` of `AnnotatedName` lines. A name there is any text on one
+line except brackets and braces. After its kind word, a line shows its
+element's id: the one its text starts with (`net_up: Internet connection
+available`), or, for an element without one, the first 8 characters of its
+piStar id (`behavioral_goal 7857cb00: Achieve [Manual Backup]`), never
+stored in its text.
+
+**Identity is the id, in every dialect.** A line names the element its id
+names, wherever the line is; a line whose id or name alone is changed where
+it is renames or relabels its element. A line whose id names no element (or
+that has no id) creates an element of its word's kind, with its name, its
+annotations or declaration, and the property lines indented under it;
+removing a line removes its element (`notationEdits`' `create` and
+`remove`). What an edit means is read from a line diff between the text the
+model has and the text as typed (the rules are in
+`src/notation/document.ts`'s header): an unchanged property line stays its
+element's whatever is typed around it, and a line being typed edits
+nothing. The
+element's links stay: a link that loses an end is an orphan, an error that
+blocks generation until the line is written back or the link removed. A
+model can be written from an empty document. In an engine's dialect the id
+is the runtime id (`goal G1: …`, `task T1.1: …`), and a new line needs one.
 
 ### Property lines without ids
 
@@ -72,26 +98,24 @@ A dialect without ids may declare properties on the kinds it lists
 (goal-controller#138). Its **declared keys are tokens**, as id prefixes are:
 
 ```
-RoomClean
+goal 1b9e4a07: RoomClean
   type achieve
   achievement roomClean
-  "type achieve"
-    type maintain
+goal 5c0d2f19: "type achieve"
+  type maintain
 ```
 
 - A line that starts (after its indentation) with one of the dialect's
   declared keys (`propertyLineOrder`), followed by a space or the line's end,
-  is a `PropertyLine` of the element line above it. Any other line is an
-  `AnnotatedName`, its element's by position. A key is a whole word, before
-  any annotation: `typed in`, `Type it` and `<<x>> type achieve` are element
-  lines.
+  is a `PropertyLine` of the element line above it. A line that starts
+  with a kind word is an element line, read as an `AnnotatedName` after it.
+  A key is a whole word, before any annotation: `<<x>> type achieve` is no
+  property line. A word that is both a key and a kind's fails the
+  definition (`kindWordProblem`).
 - The value is the property's, read by its type as on a line with ids: a
   value its type rejects (`type perform`) is a diagnostic on the line, and
   the line stays a property line. A line doesn't turn into an element line
-  while its value is being typed, so completion and the element order hold.
-- **Positions count element lines only.** Property lines, like link and
-  actor lines, are added and removed freely; the `ids` of
-  `notationDocument` (the context's `order`) list the element lines alone.
+  while its value is being typed.
 - The Notation view writes an element's properties under its line, in
   `propertyLineOrder`, indented one `indent` deeper, as a document with ids
   does.
@@ -107,11 +131,10 @@ RoomClean
   (`propertyKeysOf(definition)`, passed as `parseWith`'s `keys`, as
   `idPrefixesOf` gives the id prefixes). A dialect without declared keys
   (GRL) reads every line as before, and quotes no name.
-- **Completion:** after the indentation, on a line that isn't an element's
-  (a blank one, or one past the elements' count), the keys the element above
-  declares and hasn't set; after a key, its value by its type. **Hover,
-  diagnostics and navigation** treat the line as an id document's property
-  line, the element above being the one at its position.
+- **Completion:** after the indentation, the kinds' words and the keys the
+  element above declares and hasn't set; after a key, its value by its
+  type. **Hover, diagnostics and navigation** treat the line as an id
+  document's property line, of the element the line above names.
 
 ### Predefined value types
 
@@ -208,7 +231,7 @@ Each is stored under the key `Key[name]` and written as a property line
 with that key, after the property's own line:
 
 ```
-O2: Paper Jam
+obstacle 5c1d0e2a: Paper Jam
   Probability[e1] (13.33%, 20.00%, 33.33%)
   Probability[e2] (0.00%, 5.00%, 50.00%)
 ```
@@ -233,8 +256,8 @@ goal-controller#107) writes a link with properties as a **property line with
 the key `link`**, under the link's **source** element:
 
 ```
-G1: Deliver
-  T1: Drive
+goal G1: Deliver
+  task T1: Drive
     robot r2
     link G1 {weight = 50} {note = cheap}
 ```
@@ -276,11 +299,11 @@ links: links({
 ```
 
 ```
-G2: Inform
-  T1: Show
+goal G2: Inform
+  task T1: Show
     link G2 {context = C5 & !C9}
     link G5 {context = C2}
-  T2: Call
+  task T2: Call
     link Q1 {context = C1}
 ```
 
@@ -308,17 +331,15 @@ several elements have that text, `#n` names the n-th of them in the
 document's order:
 
 ```
-Heat with the heat pump
+task 0f3c9a21: Heat with the heat pump
   link "Low running cost" {weight = 100}
   link "Comfort"#2 {weight = 25}
 ```
 
 - Such a document reads a line starting `link "` as a link line, a line
-  starting with one of its declared keys as a property line (above), and any
-  other line as an element line. An element whose text starts `link "` would
-  be read as a link line.
-- A link line keeps its place in the document's order: lines are still their
-  elements' by position, and a link line's is its source's.
+  starting with one of its declared keys as a property line (above), and a
+  line starting with a kind word as an element line. A link line is its
+  source's, the element the line above names.
 - **Diagnostics** besides the ones above: a text no element has
   (`No element "Nope"`); a text several have, without `#n`
   (`2 elements are named "Heat": write "Heat"#1, "Heat"#2`); an `#n` past
@@ -339,16 +360,15 @@ document**, before the first element line, in the model's order of actors:
 ```
 actor "Patient" {importance = High} {importanceQuantitative = 50}
 actor "Robot"#2 {importance = Low}
-G1: Deliver the medicine
-  T1: Fetch it
+goal G1: Deliver the medicine
+  task T1: Fetch it
 ```
 
 - The value is the actor's **name, in quotes** (actors have no ids, in any
   dialect), then one `{key = value}` per property, as a link line's. `#n`
   picks the n-th of several actors with that name, in the model's order.
 - It names its actor **wherever it is**: it belongs to no element, so a
-  line moved under the elements still sets its actor. In a dialect without
-  ids it takes no element's position, as a link line doesn't.
+  line moved under the elements still sets its actor.
 - It is a `PropertyLine` as the grammar reads any; a document without ids
   reads a line starting `actor "` as one. No token, rule or lexer state of
   its own: a document without actor properties reads and prints as before.
@@ -420,7 +440,8 @@ notation: {
 from the definition given to `createEngineMapper({ dialect })` and
 `goalView(model, dialect)`. It:
 
-1. reads the element line (`G1: Name [notation]`);
+1. reads the element's text (`G1: Name [notation]`: its name in the model,
+   without the Notation document's kind word);
 2. reports syntax errors, and each operator the dialect does not enable
    (`` 1:21 `?` is not an operator of Edge``), to `onSyntaxError` or the
    console;
@@ -461,11 +482,16 @@ shape of an `rt/context` notification). The validator reports:
 - annotations or a declaration on a kind that carries none, and a repeated
   stereotype or tagged value;
 - a notation naming a non-child, a child missing from it, a construct
-  contradicting the refinement links, a line naming no element of the
-  diagram, and a duplicate id.
+  contradicting the refinement links, and a duplicate id;
+- an element line without a kind word, with a word no kind has, or with
+  another kind's than its element's; an id two elements show; in an
+  engine's dialect, a line without a runtime id of its kind;
+- a link that has lost an end (an orphan, code `orphan`).
 
 Completion (`completionsAt`, `fieldCompletionsAt`) offers:
 
+- at a line's head (after its indentation and annotations): the kinds'
+  words;
 - inside a notation: the goal's children, `skip`, and only the enabled
   operators, each with its construct;
 - on a property line: the keys the kind reads that aren't set yet;

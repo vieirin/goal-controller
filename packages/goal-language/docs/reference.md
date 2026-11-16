@@ -7,6 +7,7 @@ names what is checked:
 
 - `goal accept` / `goal reject`: each line is read as one element line.
 - `goal-document`: the whole block is read as a document.
+- `goal-complete <dialect>`: completion at the cursor `‸`, in a dialect.
 - `goal-value <type>`: each line is read as one value of that type.
 - `goal-rt`: each line is `notation ⇒ grouping`, with the operators
   parenthesised.
@@ -35,6 +36,11 @@ PlainDocument : (NL | AnnotatedName)* ;
   indentation), a line is an element line if it starts with `<<`, `{`, or
   `G`/`T`/`R` followed by a digit or `X`. Otherwise it is a property line
   if it starts with a key (`[A-Za-z][A-Za-z0-9_]*`).
+- **The kind word.** In a Notation document an element line starts with
+  its kind's word, after its annotations (`goal G1: Deliver`). The word is
+  read before the grammar ([below](#the-kind-word)); the grammar reads the
+  line without it, so the examples on this page that the parser reads
+  (`goal`, `goal-document`) have none.
 - **Comments:** none.
 
 ```goal-document accept
@@ -56,26 +62,26 @@ G1: Deliver sample G2: Reach lab
 ```
 
 A **plain document** (`PlainDocument`) is for a dialect whose kinds have no
-id prefix, such as piStar-ext's own definition:
+id prefix, such as piStar-ext's own definition, KAOS or NFR:
 
 - every non-blank line is an `AnnotatedName`;
-- a line may start with an id (`G1: Deliver`). That id names the element
-  whose name starts with the same id, wherever the line is;
-- a line without an id is the element at its position: the n-th non-blank
-  line is the n-th element of the model, in the order the Notation view
-  writes them. Every element line counts in the positions, with or without
-  an id;
-- lines with and without ids may be mixed;
+- a line may start with an id (`G1: Deliver`, `net_up: Internet connection
+  available`): any word of `[A-Za-z0-9_][A-Za-z0-9_.-]*` before a colon,
+  once its kind word is read ([below](#the-kind-word));
+- an id names its element wherever the line is, never by its position: an
+  element's written id (its text starts with it), or, for an element
+  without one, the first 8 characters of its piStar id (`7857cb00`), which
+  the Notation view writes and never stores in the element's text;
 - a line that starts with one of the dialect's declared keys (followed by a
-  space or the line's end) is a `PropertyLine` of the element line above,
-  and takes no position (goal-controller#138). GoalLexer reads a `KEY` there
+  space or the line's end) is a `PropertyLine` of the element line above
+  (goal-controller#138). GoalLexer reads a `KEY` there
   only where it is given the dialect's keys (`propertyKeysOf`). A name that
   would read so is written quoted (`"type achieve"`), and read without its
   quotes ([goal-language.md](goal-language.md#property-lines-without-ids)).
 
-A line's id that names no element is reported, and so is an id written
-twice ([diagnostics.md](diagnostics.md#lines)). The Notation view writes an
-element's id when its name starts with one: it writes the name as it is.
+An id written twice is reported, and so is an id two elements show
+([diagnostics.md](diagnostics.md#lines)). A line whose id names no element
+creates one, and an element no line names is removed.
 
 ```goal-document-plain accept
 <<goal-based>> {Id = A1} Robot: arm (1)
@@ -91,6 +97,53 @@ ElementLine   : Annotation* ElementId ':' WORD ('[' (Cost | RtExpr) ']')? Declar
 AnnotatedName : Annotation* (ElementId ':')? PLAIN_NAME ('[' RtExpr ']')? Declaration? ;
 ElementId     : ('G' | 'T' | 'R' | 'AT') (FLOAT 'X'? | 'X' | DIGIT_SUBID) ;
 Cost          : 'W' '=' (FLOAT IDENT? | IDENT) ;
+```
+
+### The kind word
+
+A Notation document's element line is `annotations kind id: name …`: the
+word of its element's kind, between its annotations and its id (goal-controller#518):
+
+```
+<<action>> {type = duty} task T1: Book a room
+behavioral_goal 7857cb00: Achieve [Manual Backup]
+```
+
+- The word is the kind's local name (after its last `.`) in snake_case
+  (`kindWord`: `kaos.BehavioralGoal` is `behavioral_goal`, `nfr.NFR` is
+  `nfr`, `rationalAgents.Planning` is `planning`). A dialect's words are
+  derived from its kinds (`kindWordsOf`), never listed; two kinds with one
+  word, or a word that is one of its line keys (a property key, `link`,
+  `actor`), fail the definition.
+- `readHead` reads it before the grammar, as link and actor lines are
+  read: after the indentation and annotations, a lowercase word
+  (`[a-z][a-z0-9_]*`) followed by a space or the line's end, then
+  optionally an id and `:`. It is a head when the word is a kind's, or,
+  no kind's, when an id and `:` follow it and it is no line key (the
+  validator reports the unknown word). `readLine` reads the rest of the
+  line with the word blanked, so every span is the line's own, and an id
+  the dialect's `ElementId` doesn't read (`7857cb00`, `net_up`) as one.
+- The word says the kind of a new element its line creates; on an existing
+  element's line, another kind's word is an error and the line changes
+  nothing.
+- Completion offers the words at a line's head (after its indentation and
+  annotations), and the highlighter colours the word as a keyword.
+
+```goal-complete edgeV2
+ta‸
+%% offers task
+```
+
+Under an element, a line's head offers the words before the element's
+property keys. A word that is also a key a line starts with (a property's,
+`link`, `actor`: tropos4as's kind `tropos4as.Failure` and a goal's
+`failure`) starts an element line only when an id and `:` follow it
+(`failure F1: Cannot reach`); otherwise the line is that property line.
+
+```goal-complete edgeV2+rationalAgents
+goal G1: Deliver [T1]
+  <<action>> ‸
+%% offers goal, task, resource
 ```
 
 ### Ids
@@ -133,6 +186,9 @@ Q1: Deliver sample
 G12a: Deliver sample
 ```
 
+These are the ids of a dialect whose kinds have prefixes (an engine's): the
+runtime ids its engine reads. Its element lines need one, and a line whose
+id isn't its kind's is reported ([diagnostics.md](diagnostics.md#lines)).
 An id names one element of the model. A dialect with `idScope:
 'ancestorGoal'` (GODA) names a task by its goal: two tasks may have the
 same id under different goals (`T1.1` under `G3` and under `G4`), and the
@@ -616,11 +672,11 @@ variables. MutRoSe's world (its classes and their attributes) isn't known
 yet, so after `r.` the names in scope are offered, not `r`'s attributes.
 
 ```goal-complete mutrose
-G1: Serve every request [G2]
+goal G1: Serve every request [G2]
   GoalType Achieve
   Controls requests : Sequence(Request)
   AchieveCondition requests->‸
-G2: Fetch
+goal G2: Fetch
 %% offers select, forAll, exists, collect, reject
 %% inserts select ⇒ select(${1:v}:${2:Type} | ${3:condition})
 %% inserts forAll ⇒ forAll(${1:x} | ${2:condition})
@@ -630,19 +686,19 @@ When the operation's arguments are written already, it inserts the name
 only, in place of the whole name:
 
 ```goal-complete mutrose
-G1: Serve every request [G2]
+goal G1: Serve every request [G2]
   GoalType Achieve
   Controls requests : Sequence(Request)
   AchieveCondition requests->ex‸ists(r | r.served)
-G2: Fetch
+goal G2: Fetch
 %% offers select, forAll, exists, collect, reject
 %% inserts forAll ⇒ forAll
 ```
 
 ```goal-complete mutrose
-G1: Serve every request [G2]
+goal G1: Serve every request [G2]
   Controls requests : Sequence(Request)
-G2: Fetch the dirty ones
+goal G2: Fetch the dirty ones
   GoalType Query
   Monitors requests
   QueriedProperty requests->select(r:Request | r.‸
@@ -834,7 +890,7 @@ two things this needs:
 
   | Where | Tokens |
   | --- | --- |
-  | line start (a document) | indentation (skipped); then `<<` / `{` (annotations), an id start (`G`/`T`/`R`/`AT` + digit or `X`), or a KEY (a property line) |
+  | line start (a document, its kind word blanked by `readHead`) | indentation (skipped); then `<<` / `{` (annotations), an id start (`G`/`T`/`R`/`AT` + digit or `X`), or a KEY (a property line) |
   | `<<…>>` | TEXT, `>>` |
   | `{…}` before the id | TEXT, `=`, `}` |
   | the id, the name and the notation | RTRegex.g4's set: `G T R [ ] : @ \| ? + # ; ->` (with `AT`), then `, ^ & ~ ! ( ) *` and the calls (`FALLBACK`, `DM`), DIGIT_SUBID, FLOAT, `skip`, `X`, WORD, tabs (skipped); a WORD that is a prefix and `X` (`GX`) is split into them, but right after the line's colon |

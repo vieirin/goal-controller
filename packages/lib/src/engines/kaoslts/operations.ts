@@ -62,8 +62,13 @@ export type Operationalisation = {
 
 /** An attribute of an object (`sump.highWater`): a state variable. */
 export type StateVariable = {
-  /** the object's piStar id, as formulas name it */
+  /**
+   * the object as formulas name it: its alias (an imported element's
+   * KAOSTools identifier, goal-controller#518), else its piStar id
+   */
   object: string;
+  /** the object's piStar id: what owns the lines it gives */
+  objectId: string;
   objectName: string;
   attribute: string;
   /** as declared: `bool`, a number, values (`On|Off`), a type's name */
@@ -90,7 +95,8 @@ export const operationModelOf = (model: KaosltsGoalModel): OperationModel => {
   const operations: Operation[] = [];
   const variables: StateVariable[] = [];
   for (const element of model.elements) {
-    const name = element.name.trim() || element.id;
+    // an element without a name is called as its tool called it (goal-controller#518)
+    const name = element.name.trim() || element.alias || element.id;
     switch (element.as) {
       case 'goal':
         requirements.push({
@@ -126,7 +132,8 @@ export const operationModelOf = (model: KaosltsGoalModel): OperationModel => {
         for (const { name: attribute, value: type } of element.engine
           .attributes)
           variables.push({
-            object: element.id,
+            object: element.alias ?? element.id,
+            objectId: element.id,
             objectName: name,
             attribute,
             type: type.trim(),

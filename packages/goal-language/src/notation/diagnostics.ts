@@ -11,6 +11,9 @@ import {
   evaluateCondition,
   fillTemplate,
   hasIds,
+  kindWord,
+  kindWordsOf,
+  shortId,
   linkLinesOf,
   linkPropertiesOf,
   relationMismatch,
@@ -32,7 +35,8 @@ import { arityText, CALLS, takesOperands, type CallName } from '../catalog.js';
 import { isEnabled } from './reading.js';
 import { checkInputOf, parses, type AnyCheckInput } from './checks.js';
 import type { PropertyOwner } from './properties.js';
-import { kindOfId, lineScope, scopedKey } from './scope.js';
+import { kindOfId, scopedKey } from './scope.js';
+import { identifiedOfContext, lineIdentities } from './identity.js';
 import {
   fieldPropertyOf,
   unknownNameMessage,
@@ -42,7 +46,6 @@ import {
 import {
   LINK_LINE_KEY,
   linkOfLine,
-  takesPosition,
   targetKey,
   writtenTarget,
   readLinkLine,
@@ -244,26 +247,6 @@ type Definition = Pick<
       'links' | 'linkLines' | 'actors' | 'framework' | 'projectResources'
     >
   >;
-
-/**
- * Why a framework's line (KAOS, NFR: goal-controller#171) names no element
- * of its kinds: its id's prefix (`T1`, read as iStar's catalog reads it) is
- * none of theirs. Null: one of its kinds takes it, or an iStar dialect's
- * line (its other prefixes are the diagram's to say, `notInDiagram`).
- */
-const foreignPrefix = (definition: Definition, id: string): string | null => {
-  if ((definition.framework ?? 'istar-2.0') === 'istar-2.0') return null;
-  if (kindOfId(definition, id) !== undefined) return null;
-  const prefixes = [
-    ...new Set(
-      Object.values(definition.elements).flatMap((e) =>
-        e?.prefix ? [e.prefix] : [],
-      ),
-    ),
-  ];
-  const prefix = /^[A-Z]+/.exec(id)?.[0] ?? id;
-  return `${prefix} is no prefix of ${definition.name}'s: its elements are ${prefixes.map((p) => `${p}…`).join(', ')}`;
-};
 
 /**
  * What an element line's bracket holds against what its dialect reads there:
@@ -521,24 +504,6 @@ export const documentDiagnostics = (
   // the actors the actor lines have named (goal-controller#109)
   const actorsWritten = new Set<string>();
   const lines = doc.split('\n');
-  // lines that name no element are their elements' in order (link lines take
-  // no position)
-  const order = hasIds(definition) ? null : (context.order ?? []);
-  if (order) {
-    const count = lines.filter((line) =>
-      takesPosition(definition, line),
-    ).length;
-    if (count !== order.length)
-      return [
-        {
-          from: 0,
-          to: doc.length,
-          severity: 'error',
-          message: `${count} lines for ${order.length} elements: each line is an element's, in order (add or remove elements in the diagram)`,
-        },
-      ];
-  }
-  let index = 0;
   type Block = {
     id: string;
     element: DefinitionContextElement;
@@ -546,6 +511,8 @@ export const documentDiagnostics = (
     values: Map<string, string>;
     /** the targets its `link` lines name, and how many times */
     linkTargets: Map<string, number>;
+    /** a new element's (its line creates it, goal-controller#518) */
+    fresh?: boolean;
   };
   let block: Block | null = null;
   // the indentation of the open block's element line
@@ -554,6 +521,11 @@ export const documentDiagnostics = (
   const closeBlock = () => {
     if (!block) return;
     const { id, element, lines, values } = block;
+    // a new element's: the model has no properties to check yet
+    if (block.fresh) {
+      block = null;
+      return;
+    }
     // what the document sets: its property lines replace the stored ones
     const properties: Record<string, string> = {};
     for (const [key, value] of Object.entries(element.properties))
@@ -583,10 +555,13 @@ export const documentDiagnostics = (
         owner && d.elementId === undefined ? { ...d, elementId: owner } : d,
       ),
     );
-  // the goal lines above, by indentation: an id scoped by its nearest goal
-  const scope = lineScope(definition);
+  // the element each line names, by its id (goal-controller#518)
+  const identities = lineIdentities(definition, identifiedOfContext(context));
   /** an element's id as written, by its key (a repeated scoped id's is `G3/T1.1`) */
   const idOf = (key: string) => context.elements[key]?.id ?? key;
+  const words = Object.keys(kindWordsOf(definition));
+  // each element's line: where an orphan link to it is said
+  const elementLines = new Map<string, { from: number; to: number }>();
   let offset = 0;
   for (const written of lines) {
     const lineFrom = offset;
@@ -597,55 +572,136 @@ export const documentDiagnostics = (
       from: lineFrom + span.from,
       to: lineFrom + span.to,
     });
-    // a line without ids' definition: an id written names its element, else
-    // the line is its element's by position (every line but a link line counts)
-    const written_id = read.kind === 'element' ? read.id : null;
-    const position =
-      order && takesPosition(definition, written) ? order[index++]! : null;
-    const named = order
-      ? written_id
-        ? (context.named?.[written_id] ?? `unknown ${written_id}`)
-        : position
-      : written_id;
-    // the goal an element line is under, and the key its id names there
-    const goal =
-      named && !order && read.kind === 'element'
-        ? scope.enter(indent, named)
-        : null;
-    const id =
-      named && scope.keyOf(goal, named, (key) => key in context.elements);
-    const current = (block as Block | null)?.id;
-    const ownerId = read.kind === 'element' && id ? id : current;
-    owner = ownerId && context.elements[ownerId] ? ownerId : undefined;
-    if (id && read.kind === 'element') {
+    // an element line: a word or an id starts it (in a dialect with runtime
+    // ids, a line with neither, `[G2]`, is no element's)
+    if (
+      read.kind === 'element' &&
+      (read.word || read.id !== null || !hasIds(definition))
+    ) {
       closeBlock();
       started = true;
-      const idSpan = read.idSpan ? at(read.idSpan) : at(read.textSpan);
+      owner = undefined;
+      const identity = identities.resolve(indent, read.id);
+      const id = identity && 'key' in identity ? identity.key : null;
+      if (id && context.elements[id]) owner = id;
+      const lineSpan = {
+        from: lineFrom + indent,
+        to: lineFrom + written.trimEnd().length,
+      };
+      const word = read.word;
+      const idSpan = read.idSpan
+        ? at(read.idSpan)
+        : word
+          ? at(word.span)
+          : at(read.textSpan);
+      if (!word)
+        push({
+          ...lineSpan,
+          severity: 'error',
+          message: `An element line starts with its kind: ${words.join(', ')}`,
+        });
+      else if (word.kind === null)
+        push({
+          ...at(word.span),
+          severity: 'error',
+          message: `${word.text} is no kind of ${definition.name}'s: ${words.join(', ')}`,
+        });
+      if (identity && 'ambiguous' in identity) {
+        push({
+          ...idSpan,
+          severity: 'error',
+          message: `${identity.ambiguous.length} elements show the id ${read.id}: give each its own`,
+        });
+        continue;
+      }
+      if (id === null || !context.elements[id]) {
+        // a new element: the line creates it (goal-controller#518); an
+        // engine's needs its runtime id first
+        const needed = word?.kind && definition.elements[word.kind]?.prefix;
+        if (needed && read.id === null) {
+          push({
+            ...lineSpan,
+            severity: 'error',
+            message: `A ${word!.text} needs an id ${needed}… in ${definition.name}`,
+          });
+          continue;
+        }
+        for (const d of unreadableParts(
+          read,
+          written,
+          !!(word?.kind && definition.elements[word.kind]?.declares),
+          true,
+        ))
+          push({ ...d, ...at(d) });
+        if (!word?.kind) continue;
+        const prefix = definition.elements[word.kind]?.prefix;
+        if (
+          prefix !== undefined &&
+          read.id !== null &&
+          kindOfId(definition, read.id) !== word.kind
+        )
+          push({
+            ...idSpan,
+            severity: 'error',
+            message: `A ${word.text} needs an id ${prefix}… in ${definition.name}: ${read.id} is not one`,
+          });
+        else if (read.id !== null && seen.has(read.id))
+          push({
+            ...idSpan,
+            severity: 'error',
+            message: `Duplicate id ${read.id}`,
+          });
+        if (read.id !== null) seen.add(read.id);
+        const owned = definition.elements[word.kind];
+        if (!owned || owned.declares) continue;
+        block = {
+          id: read.id ?? '',
+          element: { kind: word.kind, children: [], properties: {} },
+          lines: new Map(),
+          values: new Map(),
+          linkTargets: new Map(),
+          fresh: true,
+        };
+        blockIndent = indent;
+        continue;
+      }
       // a goal is unique in the model; under `ancestorGoal`, another element under its goal
-      const unique = goal !== null ? scopedKey(goal, named!) : id;
+      const goal = read.id !== null ? identities.goal() : null;
+      const unique = goal !== null ? scopedKey(goal, read.id!) : id;
       if (seen.has(unique)) {
         push({
           ...idSpan,
           severity: 'error',
           message:
             goal !== null
-              ? `Duplicate id ${written_id ?? named} under ${goal}`
-              : `Duplicate id ${written_id ?? id}`,
+              ? `Duplicate id ${read.id} under ${goal}`
+              : `Duplicate id ${read.id ?? id}`,
         });
         continue;
       }
       seen.add(unique);
-      const element = context.elements[id];
-      const foreign =
-        !element && written_id && foreignPrefix(definition, written_id);
-      if (foreign) {
-        push({ ...idSpan, severity: 'error', message: foreign });
+      elementLines.set(id, lineSpan);
+      const element = context.elements[id]!;
+      if (word?.kind && word.kind !== element.kind) {
+        push({
+          ...at(word.span),
+          severity: 'error',
+          message: `${read.id} is a ${kindWord(element.kind)}, not a ${word.text}`,
+        });
         continue;
       }
-      if (!element) {
-        push(problem(definition, 'notInDiagram', idSpan.from, idSpan.to));
-        continue;
-      }
+      // an engine's runtime id: one shown for an element without (its piStar id's) is none
+      const prefix = definition.elements[element.kind]?.prefix;
+      if (
+        prefix !== undefined &&
+        read.id !== null &&
+        kindOfId(definition, read.id) === undefined
+      )
+        push({
+          ...idSpan,
+          severity: 'error',
+          message: `A ${kindWord(element.kind)} needs an id ${prefix}… in ${definition.name}`,
+        });
       const owned = definition.elements[element.kind];
       const was = saved[id];
       const savedError = !!was?.error && was.line === read.text;
@@ -791,6 +847,8 @@ export const documentDiagnostics = (
       continue;
     }
     if (!written.trim()) continue;
+    const under = (block as Block | null)?.id;
+    owner = under && context.elements[under] ? under : undefined;
     const span = {
       from: lineFrom + indent,
       to: lineFrom + written.trimEnd().length,
@@ -856,7 +914,6 @@ export const documentDiagnostics = (
     // a line that reads as nothing, where an element line would be (not
     // under the element above): no element's
     if (
-      !order &&
       block &&
       indent <= blockIndent &&
       (read.kind !== 'property' || read.errors.length)
@@ -967,6 +1024,26 @@ export const documentDiagnostics = (
     block.values.set(read.key, read.value);
   }
   closeBlock();
+  // the links one of whose ends is gone (goal-controller#518): on the line of
+  // the end that remains, else the document's first
+  const first = { from: 0, to: lines[0]?.length ?? 0 };
+  for (const orphan of context.orphans ?? []) {
+    const end = [orphan.source, orphan.target].find(
+      (key): key is string => key !== null && elementLines.has(key),
+    );
+    const what = orphan.kind.slice(orphan.kind.lastIndexOf('.') + 1);
+    diagnostics.push({
+      ...(end ? elementLines.get(end)! : first),
+      severity: 'error',
+      message: `${what} ${shortId(orphan.iStarId)} has lost its ${
+        orphan.missing.length > 1 ? 'ends' : 'end'
+      } ${orphan.missing.map(shortId).join(', ')}: write ${
+        orphan.missing.length > 1 ? 'them' : 'it'
+      } back, or remove the link in the diagram`,
+      ...(end && { elementId: end }),
+      code: 'orphan',
+    });
+  }
   return diagnostics;
 };
 

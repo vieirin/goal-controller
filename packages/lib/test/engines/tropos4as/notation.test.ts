@@ -1,6 +1,8 @@
 /**
- * Tropos4AS in the Notation view: no ids, so an element's line is its name
- * as the figure draws it, its properties on lines under it (#138); both
+ * Tropos4AS in the Notation view: no id prefixes, so an element's line is
+ * its kind's word, its id (its piStar id's first characters, or one its
+ * text writes, #518) and its name as the figure draws it, its properties on
+ * lines under it (#138); both
  * seeds' documents read back to the same model, a renamed line renames its
  * element, and a property line sets its property.
  */
@@ -35,20 +37,22 @@ describe('Tropos4AS in the Notation view', () => {
   it("writes the Cleaner Agent's elements by their names, their properties under them", () => {
     assert.strictEqual(
       notationDocument(tropos4as, view('cleaner-agent')).text.trim(),
+      // each line its kind's word and its piStar id's first characters
+      // (goal-controller#518): they have no ids of their own
       [
-        'RoomClean',
+        'goal RC: RoomClean',
         '  achievement roomClean',
-        '  WetCleaning',
+        '  goal WC: WetCleaning',
         '    type perform',
-        '    mop',
-        '  DryCleaning',
+        '    task mop: mop',
+        '  goal DC: DryCleaning',
         '    type perform',
-        '    sweep',
-        'MaintainBattLoaded',
+        '    task sweep: sweep',
+        'goal MBL: MaintainBattLoaded',
         '  type maintain',
         '  maintain batteryLoaded',
-        '  load battery',
-        'efficiency',
+        '  task loadBatt: load battery',
+        'quality efficien: efficiency',
       ].join('\n'),
     );
   });
@@ -56,9 +60,11 @@ describe('Tropos4AS in the Notation view', () => {
   it("writes patient monitoring's errors, failures and artifacts with their properties", () => {
     const { text } = notationDocument(tropos4as, view('patient-monitoring'));
     for (const lines of [
-      'ERROR: no dinner until 8PM\n  condition hour >= 20 & mealSensor.meals < 2\n  take medicine without dinner\n    precondition mealSensor.meals >= 2',
-      'meal sensor\n  attributes meals:int',
-      'meals not eaten\nmedicine not taken',
+      // an error's name starts with ERROR: written after its own id, so
+      // that ERROR is not read as one (goal-controller#518)
+      'error errorNoDinner: ERROR: no dinner until 8PM\n  condition hour >= 20 & mealSensor.meals < 2\n  goal takeMedicineNoDinner: take medicine without dinner\n    precondition mealSensor.meals >= 2',
+      'artifact mealSens: meal sensor\n  attributes meals:int',
+      'failure mealsNot: meals not eaten\nfailure medicineNotTaken: medicine not taken',
     ])
       assert.ok(text.includes(lines), lines);
   });
@@ -84,7 +90,10 @@ describe('Tropos4AS in the Notation view', () => {
     assert.deepStrictEqual(
       notationEdits(
         tropos4as,
-        text.replace('\nMaintainBattLoaded\n', '\nMaintainBattery\n'),
+        text.replace(
+          '\ngoal MBL: MaintainBattLoaded\n',
+          '\ngoal MBL: MaintainBattery\n',
+        ),
         tree,
       ),
       [{ iStarId: 'MBL', text: 'MaintainBattery' }],

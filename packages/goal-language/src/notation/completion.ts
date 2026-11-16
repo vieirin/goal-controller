@@ -10,7 +10,7 @@ import {
   refListKinds,
   actorPropertiesOf,
   constructDefinition,
-  hasIds,
+  kindWordsOf,
   linkLinesOf,
   linkPropertiesOf,
   type PropertyDefinition,
@@ -39,11 +39,13 @@ import {
   LINK_LINE_KEY,
   linkOfLine,
   readLinkLine,
-  takesPosition,
   targetKey,
   writtenTarget,
 } from './linkLine.js';
 import { ACTOR_LINE_KEY, actorNames, readActorLine } from './actorLine.js';
+
+import { headWordAt } from './head.js';
+import { contextKeyOf } from './identity.js';
 
 export type Completion = {
   label: string;
@@ -177,9 +179,8 @@ const annotationCompletions = (
 };
 
 /**
- * The element a line belongs to (a link line's source): with ids, the id of
- * the element line above; without, the element of the nearest line above
- * that takes a position (`context.order`).
+ * The element a line belongs to (a link line's source): the key of the
+ * element the element line above names (by its id: goal-controller#518).
  */
 export const ownerOf = (
   definition: Definition,
@@ -187,22 +188,25 @@ export const ownerOf = (
   index: number,
   context: DefinitionContext,
 ): string | null => {
-  if (hasIds(definition)) {
-    for (let i = index - 1; i >= 0; i--) {
-      const id = lineId(definition, lines[i]!);
-      if (id) return id;
-    }
-    return null;
+  for (let i = index - 1; i >= 0; i--) {
+    const read = readLine(definition, lines[i]!);
+    if (read.kind !== 'element') continue;
+    return read.id === null
+      ? null
+      : (contextKeyOf(context, read.id) ?? read.id);
   }
-  for (let i = index - 1; i >= 0; i--)
-    if (takesPosition(definition, lines[i]!))
-      return (
-        context.order?.[
-          lines.slice(0, i).filter((l) => takesPosition(definition, l)).length
-        ] ?? null
-      );
   return null;
 };
+
+/** The kinds' words a line's head may start with (goal-controller#518), those starting with `typed`. */
+const kindWordOptions = (definition: Definition, typed: string): Completion[] =>
+  Object.entries(kindWordsOf(definition))
+    .filter(([word]) => word.startsWith(typed))
+    .map(([word, kind]) => ({
+      label: word,
+      type: 'keyword' as const,
+      detail: kind,
+    }));
 
 /** The keys a `{key = value}` list may still take: the declared ones it hasn't written. */
 const keyOptions = (
@@ -361,8 +365,29 @@ const ownLineCompletions = (
   };
 };
 
-/** Completions in a Notation view document at `pos`, if any apply there. */
+/**
+ * Completions in a Notation view document at `pos`, if any apply there; at
+ * a line's head, the kinds' words too (goal-controller#518).
+ */
 export const completionsAt = (
+  definition: Definition,
+  doc: string,
+  pos: number,
+  context: DefinitionContext,
+): CompletionResult | null => {
+  const found = completionsWithin(definition, doc, pos, context);
+  const lineStart = doc.lastIndexOf('\n', pos - 1) + 1;
+  const head = headWordAt(doc.slice(lineStart), pos - lineStart);
+  const kinds = head ? kindWordOptions(definition, head.typed) : [];
+  if (!kinds.length || !head) return found;
+  const from = lineStart + head.from;
+  if (!found) return { from, options: kinds };
+  return found.from === from
+    ? { ...found, options: [...kinds, ...found.options] }
+    : found;
+};
+
+const completionsWithin = (
   definition: Definition,
   doc: string,
   pos: number,
@@ -395,7 +420,7 @@ export const completionsAt = (
     if (!definition.notation) return null;
     const opened = before.lastIndexOf('[');
     if (opened < 0 || before.lastIndexOf(']') > opened) return null;
-    const element = context.elements[id];
+    const element = context.elements[contextKeyOf(context, id) ?? id];
     return {
       from,
       options: [
@@ -423,30 +448,16 @@ export const completionsAt = (
   const naming = /^\s*([A-Za-z][A-Za-z0-9_]*)\[([^\s[\]]*)$/.exec(before);
   const onKey = before.trim() === word;
   if (!onKey && !valued && !naming) return null;
-  // without ids (goal-controller#138), an element's line is one that takes a
-  // position: a key is typed on a line past the elements' (or a blank one)
-  const ids = hasIds(definition);
+  // an element's line starts with its kind's word (goal-controller#518)
   const isElementLine = (line: string) =>
-    ids ? lineId(definition, line) !== null : takesPosition(definition, line);
-  if (
-    !ids &&
-    onKey &&
-    takesPosition(definition, text) &&
-    lines.filter(isElementLine).length <= (context.order?.length ?? 0)
-  )
-    return null;
+    readLine(definition, line).kind === 'element';
   let above = index - 1;
   const set = new Set<string>();
   for (; above >= 0 && !isElementLine(lines[above]!); above--) {
     const property = readPropertyLine(definition, lines[above]!);
     if (property) set.add(property.key);
   }
-  const owner =
-    above < 0
-      ? null
-      : ids
-        ? lineId(definition, lines[above]!)
-        : ownerOf(definition, lines, index, context);
+  const owner = above < 0 ? null : ownerOf(definition, lines, index, context);
   for (const next of lines.slice(index + 1)) {
     if (isElementLine(next)) break;
     const property = readPropertyLine(definition, next);

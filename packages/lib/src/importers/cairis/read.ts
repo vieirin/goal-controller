@@ -44,7 +44,8 @@ import type {
 import { KAOS_OBSTACLES } from '@istar-ts/dsm3-kaos/metamodel';
 import type { ImportDiagnostic, ImportResult } from '../types';
 import { layOut, type LayoutNode } from '../layout';
-import { identifierOf } from '../kaos';
+import { importedIds } from '../ids';
+import { identifierOf, KAOS_ID_KEY } from '../kaos';
 import { KAOS_TYPES } from '../kaos/vocabulary';
 import { VOCABULARY_KEY } from '../../dialects/kaos/profiles';
 import {
@@ -125,8 +126,11 @@ const KIND: Readonly<
 /** A goal-like end: a goal or a requirement (D3), both `kaos.BehavioralGoal`. */
 const isGoalLike = (dim: string) => dim === 'goal' || dim === 'requirement';
 
-/** An element of the file, its id unique over the file (the same in every environment's model). */
-type Element = { dim: Dimension; name: string; id: string };
+/**
+ * An element of the file, its piStar id unique over the file (the same in
+ * every environment's model), and its identifier (`.kaos`'s, its name's).
+ */
+type Element = { dim: Dimension; name: string; id: string; identifier: string };
 
 /** A link an association is, or why it is none. */
 type Placed =
@@ -153,18 +157,29 @@ type Placed =
   | { kind: 'conflict'; a: Element; b: Element; association: CairisAssociation }
   | { kind: 'none'; why: string };
 
-/** The ids of the file's elements, by dimension and name: each name's identifier, unique over the file. */
-const idsOf = (document: CairisDocument) => {
+/**
+ * The ids of the file's elements, by dimension and name: a UUID, as any
+ * model's (goal-controller#518), of the element's dimension and name
+ * (CAIRIS's identity), and its name's identifier, unique over the file, kept
+ * beside it (`KAOS_ID_KEY`) as `.kaos`'s and naming its links.
+ */
+const idsOf = (
+  document: CairisDocument,
+  ids: ReturnType<typeof importedIds>,
+) => {
   const taken = new Set<string>();
-  const ids = new Map<string, string>();
+  const found = new Map<string, { id: string; identifier: string }>();
   const key = (dim: Dimension, name: string) => `${dim}\u0000${name}`;
   const add = (dim: Dimension, name: string) => {
-    if (ids.has(key(dim, name))) return;
+    if (found.has(key(dim, name))) return;
     const base = identifierOf(name, dim);
-    let id = base;
-    for (let n = 2; taken.has(id); n++) id = `${base}_${n}`;
-    taken.add(id);
-    ids.set(key(dim, name), id);
+    let identifier = base;
+    for (let n = 2; taken.has(identifier); n++) identifier = `${base}_${n}`;
+    taken.add(identifier);
+    found.set(key(dim, name), {
+      id: ids('element', key(dim, name)),
+      identifier,
+    });
   };
   for (const g of document.goals) add('goal', g.name);
   for (const r of document.requirements) add('requirement', r.name);
@@ -172,7 +187,7 @@ const idsOf = (document: CairisDocument) => {
   for (const o of document.obstacles) add('obstacle', o.name);
   for (const e of document.exceptions) add('obstacle', e.name);
   for (const r of document.roles) add('role', r.name);
-  return (dim: Dimension, name: string) => ids.get(key(dim, name));
+  return (dim: Dimension, name: string) => found.get(key(dim, name));
 };
 
 /**
@@ -261,7 +276,7 @@ const environmentModel = (
   document: CairisDocument,
   environment: string,
   name: string,
-  idOf: (dim: Dimension, name: string) => string | undefined,
+  idOf: ReturnType<typeof idsOf>,
   isIn: (dim: Dimension, name: string, environment: string) => boolean,
 ): ImportResult => {
   const diagnostics: ImportDiagnostic[] = [];
@@ -273,8 +288,8 @@ const environmentModel = (
     elementName: string,
     properties: Record<string, string>,
   ) => {
-    const id = idOf(dim, elementName)!;
-    const element: Element = { dim, name: elementName, id };
+    const { id, identifier } = idOf(dim, elementName)!;
+    const element: Element = { dim, name: elementName, id, identifier };
     present.set(`${dim}\u0000${elementName}`, element);
     nodes.push({
       id,
@@ -283,6 +298,7 @@ const environmentModel = (
       x: 0,
       y: 0,
       customProperties: properties,
+      [KAOS_ID_KEY]: identifier,
     });
   };
 
@@ -472,6 +488,8 @@ const environmentModel = (
     }
   };
 
+  // a link's id: by the identifiers of what it links, as before #518 (no
+  // notation line shows it)
   const linkIds = new Set<string>();
   const linkId = (base: string) => {
     let id = base;
@@ -534,7 +552,9 @@ const environmentModel = (
       }
       case 'obstruction':
         links.push({
-          id: linkId(`${placed.obstacle.id}-obstructs-${placed.target.id}`),
+          id: linkId(
+            `${placed.obstacle.identifier}-obstructs-${placed.target.identifier}`,
+          ),
           type: KAOS_TYPES.obstruction,
           source: placed.obstacle.id,
           target: placed.target.id,
@@ -544,7 +564,9 @@ const environmentModel = (
         break;
       case 'resolution':
         links.push({
-          id: linkId(`${placed.goal.id}-resolves-${placed.obstacle.id}`),
+          id: linkId(
+            `${placed.goal.identifier}-resolves-${placed.obstacle.identifier}`,
+          ),
           type: KAOS_TYPES.resolution,
           source: placed.goal.id,
           target: placed.obstacle.id,
@@ -561,7 +583,7 @@ const environmentModel = (
         break;
       case 'conflict':
         links.push({
-          id: linkId(`${placed.a.id}-conflicts-${placed.b.id}`),
+          id: linkId(`${placed.a.identifier}-conflicts-${placed.b.identifier}`),
           type: KAOS_TYPES.conflict,
           source: placed.a.id,
           target: placed.b.id,
@@ -582,7 +604,7 @@ const environmentModel = (
       continue;
     }
     links.push({
-      id: linkId(`${obstacle.id}-obstructs-${target.id}`),
+      id: linkId(`${obstacle.identifier}-obstructs-${target.identifier}`),
       type: KAOS_TYPES.obstruction,
       source: obstacle.id,
       target: target.id,
@@ -617,7 +639,7 @@ const environmentModel = (
   for (const hub of hubs) {
     const n = (counts.get(hub.parent.id) ?? 0) + 1;
     counts.set(hub.parent.id, n);
-    const hubId = linkId(`${hub.parent.id}-refinement-${n}`);
+    const hubId = linkId(`${hub.parent.identifier}-refinement-${n}`);
     const hubJson: PistarHubLinkJson['hub'] = {
       id: hubId,
       type: hub.obstacle
@@ -667,7 +689,7 @@ const environmentModel = (
     if (assigned.has(`${agent.id}\u0000${goal.id}`)) continue;
     assigned.add(`${agent.id}\u0000${goal.id}`);
     links.push({
-      id: linkId(`${agent.id}-assigned-${goal.id}`),
+      id: linkId(`${agent.identifier}-assigned-${goal.identifier}`),
       type: KAOS_TYPES.assignment,
       source: agent.id,
       target: goal.id,
@@ -778,7 +800,7 @@ export const readCairis = (
       severity: 'error',
       message: 'The model has no environment: there is no model to make',
     });
-  const idOf = idsOf(document);
+  const idOf = idsOf(document, importedIds('cairis'));
   return {
     models: document.environments.map(({ name: environment }) => {
       const name = `${modelName}-${environment}`;

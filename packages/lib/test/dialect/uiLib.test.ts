@@ -214,16 +214,22 @@ describe('ui dialects', () => {
     const definition = DIALECT_DEFINITIONS.pistarext;
     const tree = dialectTree(parseModel(text));
     const doc = [
-      '<<goal-based>> Robot',
-      '  {Id = G1} Deliver sample',
-      '  Plan delivery',
-      '  Delivery plan',
-      '  <<action>> {type = duty} Drive to lab',
+      '<<goal-based>> agent a1: Robot',
+      '  {Id = G1} goal g1: Deliver sample',
+      '  planning p1: Plan delivery',
+      '  plan x1: Delivery plan',
+      '  <<action>> {type = duty} task t1: Drive to lab',
     ].join('\n');
     expect(notationDocument(definition, tree).text).to.equal(doc);
     const edited = doc
-      .replace('<<goal-based>> Robot', '<<utility-based>> Robot')
-      .replace('Plan delivery', '{Status = done} Plan the delivery');
+      .replace(
+        '<<goal-based>> agent a1: Robot',
+        '<<utility-based>> agent a1: Robot',
+      )
+      .replace(
+        'planning p1: Plan delivery',
+        '{Status = done} planning p1: Plan the delivery',
+      );
     const edits = notationEdits(definition, edited, tree);
     expect(edits).to.deep.equal([
       { iStarId: 'a1', key: 'stereotype', value: 'utility-based' },
@@ -235,9 +241,10 @@ describe('ui dialects', () => {
     expect(
       notationDocument(definition, dialectTree(parseModel(next))).text,
     ).to.equal(edited);
-    // a line added or removed (an element is, in the diagram): nothing changes
+    // a line without a kind's word is no element's: it changes nothing more
+    // (and creates nothing, while being typed)
     expect(notationEdits(definition, `${edited}\n  Extra`, tree)).to.deep.equal(
-      [],
+      edits,
     );
   });
 
@@ -344,12 +351,12 @@ describe('ui piStar-ext examples', () => {
       ).text,
     ).to.equal(
       [
-        '<<utility-based>> Nurse',
-        '<<goal-based>> {Id = A1} Robot',
-        '  {Id = G1} Sample collected',
-        '  <<action>> {type = right} Collect sample',
-        '  {Reference to = KIT-12} Sample kit',
-        '  {Status = draft} Collected quickly',
+        '<<utility-based>> role a1: Nurse',
+        '<<goal-based>> {Id = A1} agent a2: Robot',
+        '  {Id = G1} goal g1: Sample collected',
+        '  <<action>> {type = right} task t1: Collect sample',
+        '  {Reference to = KIT-12} resource r1: Sample kit',
+        '  {Status = draft} quality q1: Collected quickly',
       ].join('\n'),
     );
   });

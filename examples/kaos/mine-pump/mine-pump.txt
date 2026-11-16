@@ -2,7 +2,7 @@
   "actors": [],
   "orphans": [
     {
-      "id": "miner_in_overflowed_mine",
+      "id": "a62a2c28-542a-5b83-b65d-37d4e87755d9",
       "text": "Avoid [MinerInOverflowedMine]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -16,11 +16,12 @@
         "Stability": "",
         "Description": "The objective function for this goal is the conditional probability that a miner is in the mine when the mine is overflowed (FSE'04 §3.2, H2). §4.3 names it Avoid [MinerInsideOverflowedMine]: PumpOnWhenHighWater and AlarmWhenMineOverflowed contribute to it."
       },
+      "kaosId": "miner_in_overflowed_mine",
       "x": 40,
       "y": 80
     },
     {
-      "id": "working_shift_lost",
+      "id": "ef204177-0af0-55f9-99e3-12d157b61eaf",
       "text": "Avoid [WorkingShiftLost]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -34,11 +35,12 @@
         "Stability": "",
         "Description": "The objective function for this goal is to minimize the probability of losing an 8-hour working shift in order not to lose more than one shift in a thousand (FSE'04 §3.2, H2)."
       },
+      "kaosId": "working_shift_lost",
       "x": 200,
       "y": 80
     },
     {
-      "id": "water_alarm_iff_critical_water_level",
+      "id": "5ae56edb-9ea4-5393-a7a7-34f70180f51d",
       "text": "Achieve [WaterAlarmIffCriticalWaterLevel]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -66,11 +68,12 @@
         "Modal[FalseAlarmRate]": "Min",
         "Target[FalseAlarmRate]": "0.001"
       },
+      "kaosId": "water_alarm_iff_critical_water_level",
       "x": 360,
       "y": 80
     },
     {
-      "id": "pump_on_when_high_water",
+      "id": "0bf8f943-2427-525a-9966-6a70d1a061a9",
       "text": "PumpOnWhenHighWater",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -84,11 +87,12 @@
         "Stability": "",
         "Description": "FSE'04 §4.3: its quality variables and AlarmWhenMineOverflowed's are not independent, because the design used the same water sensor to detect high water levels, that would trigger the pump, and water levels that would raise the alarm in case of pump failure."
       },
+      "kaosId": "pump_on_when_high_water",
       "x": 520,
       "y": 80
     },
     {
-      "id": "alarm_when_mine_overflowed",
+      "id": "c9c0ae6d-6208-596f-9915-85ec051421f0",
       "text": "AlarmWhenMineOverflowed",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -102,11 +106,12 @@
         "Stability": "",
         "Description": "FSE'04 §4.3: see PumpOnWhenHighWater."
       },
+      "kaosId": "alarm_when_mine_overflowed",
       "x": 680,
       "y": 80
     },
     {
-      "id": "pump_on_when_high_water_and_no_methane",
+      "id": "e1cf8fe7-1023-529b-bfc0-6ca074d47fe3",
       "text": "Maintain [PumpOnWhenHighWaterAndNoMethane]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -120,11 +125,12 @@
         "Stability": "",
         "Description": "If the water level is above high and there is no methane, then at the next time unit the pump must be on."
       },
+      "kaosId": "pump_on_when_high_water_and_no_methane",
       "x": 840,
       "y": 80
     },
     {
-      "id": "pump_off_when_methane",
+      "id": "ebf8ed34-2c9d-5d4f-9e69-977ba6eede5f",
       "text": "Maintain [PumpOffWhenMethane]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -138,11 +144,12 @@
         "Stability": "",
         "Description": "If there is methane in the mine, the pump must be off within the next time unit."
       },
+      "kaosId": "pump_off_when_methane",
       "x": 2760,
       "y": 80
     },
     {
-      "id": "pump_off_when_low_water",
+      "id": "e15203e2-d187-5db0-8afa-4b2899052a82",
       "text": "Maintain [PumpOffWhenLowWater]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -156,32 +163,35 @@
         "Stability": "",
         "Description": "If the water is below the low level, the pump must be off within the next time unit."
       },
+      "kaosId": "pump_off_when_low_water",
       "x": 2920,
       "y": 80
     },
     {
-      "id": "pump_controller",
+      "id": "abf5ba8c-71f8-5b7e-9da5-896640996b93",
       "text": "PumpController",
       "type": "kaos.Agent",
       "customProperties": {
         "Type": "",
         "Description": ""
       },
+      "kaosId": "pump_controller",
       "x": 1000,
       "y": 80
     },
     {
-      "id": "environment",
+      "id": "ff555884-5e19-5432-8629-0e793f2c2598",
       "text": "Environment",
       "type": "kaos.EnvironmentAgent",
       "customProperties": {
         "Description": ""
       },
+      "kaosId": "environment",
       "x": 2600,
       "y": 80
     },
     {
-      "id": "sump",
+      "id": "7a4b006a-1670-5059-ba18-78310d71269f",
       "text": "Sump",
       "type": "kaos.Entity",
       "customProperties": {
@@ -190,11 +200,12 @@
         "Attributes": "highWater:bool, lowWater:bool",
         "Initially": "lowWater:true"
       },
+      "kaosId": "sump",
       "x": 1160,
       "y": 80
     },
     {
-      "id": "mine",
+      "id": "45b12749-de48-5f93-a11e-6d295ac3ee9c",
       "text": "Mine",
       "type": "kaos.Entity",
       "customProperties": {
@@ -202,11 +213,12 @@
         "EntityType": "environment",
         "Attributes": "methane:bool"
       },
+      "kaosId": "mine",
       "x": 1320,
       "y": 80
     },
     {
-      "id": "pump",
+      "id": "399136d5-afc9-5e64-a680-366a98af2bdf",
       "text": "Pump",
       "type": "kaos.Entity",
       "customProperties": {
@@ -214,11 +226,12 @@
         "EntityType": "shared",
         "Attributes": "pumpOn:bool"
       },
+      "kaosId": "pump",
       "x": 1480,
       "y": 80
     },
     {
-      "id": "start_pump",
+      "id": "b6137593-51de-50ff-9bcf-e95bb86c7be5",
       "text": "startPump",
       "type": "kaos.Operation",
       "customProperties": {
@@ -226,11 +239,12 @@
         "DomPre": "not pump.pumpOn",
         "DomPost": "pump.pumpOn"
       },
+      "kaosId": "start_pump",
       "x": 1640,
       "y": 180
     },
     {
-      "id": "stop_pump",
+      "id": "88a6c75b-4329-57d2-9c95-f936987df9b0",
       "text": "stopPump",
       "type": "kaos.Operation",
       "customProperties": {
@@ -238,11 +252,12 @@
         "DomPre": "pump.pumpOn",
         "DomPost": "not pump.pumpOn"
       },
+      "kaosId": "stop_pump",
       "x": 1800,
       "y": 180
     },
     {
-      "id": "above_high",
+      "id": "3c5b4493-b545-5a20-979c-2dc8a56ed054",
       "text": "aboveHigh",
       "type": "kaos.Operation",
       "customProperties": {
@@ -250,11 +265,12 @@
         "DomPre": "not sump.highWater and not sump.lowWater",
         "DomPost": "sump.highWater"
       },
+      "kaosId": "above_high",
       "x": 1640,
       "y": 80
     },
     {
-      "id": "below_high",
+      "id": "95071c93-0807-5b52-94be-631629439cc8",
       "text": "belowHigh",
       "type": "kaos.Operation",
       "customProperties": {
@@ -262,11 +278,12 @@
         "DomPre": "sump.highWater",
         "DomPost": "not sump.highWater"
       },
+      "kaosId": "below_high",
       "x": 1800,
       "y": 80
     },
     {
-      "id": "above_low",
+      "id": "3d772e3c-02f1-5dc7-88a9-706864b011d8",
       "text": "aboveLow",
       "type": "kaos.Operation",
       "customProperties": {
@@ -274,11 +291,12 @@
         "DomPre": "sump.lowWater",
         "DomPost": "not sump.lowWater"
       },
+      "kaosId": "above_low",
       "x": 1960,
       "y": 80
     },
     {
-      "id": "below_low",
+      "id": "afd56285-4913-5130-b3f6-9be862b5a3a1",
       "text": "belowLow",
       "type": "kaos.Operation",
       "customProperties": {
@@ -286,11 +304,12 @@
         "DomPre": "not sump.highWater and not sump.lowWater",
         "DomPost": "sump.lowWater"
       },
+      "kaosId": "below_low",
       "x": 2120,
       "y": 80
     },
     {
-      "id": "methane_appears",
+      "id": "9a9716d5-b8a6-57ff-91a1-28c307e6b219",
       "text": "methaneAppears",
       "type": "kaos.Operation",
       "customProperties": {
@@ -298,11 +317,12 @@
         "DomPre": "not mine.methane",
         "DomPost": "mine.methane"
       },
+      "kaosId": "methane_appears",
       "x": 2280,
       "y": 80
     },
     {
-      "id": "methane_leaves",
+      "id": "21838f61-3121-551a-88bd-b2d768b678ae",
       "text": "methaneLeaves",
       "type": "kaos.Operation",
       "customProperties": {
@@ -310,6 +330,7 @@
         "DomPre": "mine.methane",
         "DomPost": "not mine.methane"
       },
+      "kaosId": "methane_leaves",
       "x": 2440,
       "y": 80
     }
@@ -319,26 +340,26 @@
     {
       "id": "pump_controller-assigned-pump_on_when_high_water_and_no_methane",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "pump_controller",
-      "target": "pump_on_when_high_water_and_no_methane"
+      "source": "abf5ba8c-71f8-5b7e-9da5-896640996b93",
+      "target": "e1cf8fe7-1023-529b-bfc0-6ca074d47fe3"
     },
     {
       "id": "pump_controller-assigned-pump_off_when_methane",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "pump_controller",
-      "target": "pump_off_when_methane"
+      "source": "abf5ba8c-71f8-5b7e-9da5-896640996b93",
+      "target": "ebf8ed34-2c9d-5d4f-9e69-977ba6eede5f"
     },
     {
       "id": "pump_controller-assigned-pump_off_when_low_water",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "pump_controller",
-      "target": "pump_off_when_low_water"
+      "source": "abf5ba8c-71f8-5b7e-9da5-896640996b93",
+      "target": "e15203e2-d187-5db0-8afa-4b2899052a82"
     },
     {
       "id": "pump_controller-monitors-sump",
       "type": "kaos.MonitoringLink",
-      "source": "pump_controller",
-      "target": "sump",
+      "source": "abf5ba8c-71f8-5b7e-9da5-896640996b93",
+      "target": "7a4b006a-1670-5059-ba18-78310d71269f",
       "customProperties": {
         "Monitors": "sump.highWater"
       }
@@ -346,8 +367,8 @@
     {
       "id": "pump_controller-monitors-sump-2",
       "type": "kaos.MonitoringLink",
-      "source": "pump_controller",
-      "target": "sump",
+      "source": "abf5ba8c-71f8-5b7e-9da5-896640996b93",
+      "target": "7a4b006a-1670-5059-ba18-78310d71269f",
       "customProperties": {
         "Monitors": "sump.lowWater"
       }
@@ -355,8 +376,8 @@
     {
       "id": "pump_controller-monitors-mine",
       "type": "kaos.MonitoringLink",
-      "source": "pump_controller",
-      "target": "mine",
+      "source": "abf5ba8c-71f8-5b7e-9da5-896640996b93",
+      "target": "45b12749-de48-5f93-a11e-6d295ac3ee9c",
       "customProperties": {
         "Monitors": "mine.methane"
       }
@@ -364,8 +385,8 @@
     {
       "id": "pump_controller-controls-pump",
       "type": "kaos.ControlLink",
-      "source": "pump_controller",
-      "target": "pump",
+      "source": "abf5ba8c-71f8-5b7e-9da5-896640996b93",
+      "target": "399136d5-afc9-5e64-a680-366a98af2bdf",
       "customProperties": {
         "Controls": "pump.pumpOn"
       }
@@ -373,8 +394,8 @@
     {
       "id": "environment-controls-sump",
       "type": "kaos.ControlLink",
-      "source": "environment",
-      "target": "sump",
+      "source": "ff555884-5e19-5432-8629-0e793f2c2598",
+      "target": "7a4b006a-1670-5059-ba18-78310d71269f",
       "customProperties": {
         "Controls": "sump.highWater"
       }
@@ -382,8 +403,8 @@
     {
       "id": "environment-controls-sump-2",
       "type": "kaos.ControlLink",
-      "source": "environment",
-      "target": "sump",
+      "source": "ff555884-5e19-5432-8629-0e793f2c2598",
+      "target": "7a4b006a-1670-5059-ba18-78310d71269f",
       "customProperties": {
         "Controls": "sump.lowWater"
       }
@@ -391,8 +412,8 @@
     {
       "id": "environment-controls-mine",
       "type": "kaos.ControlLink",
-      "source": "environment",
-      "target": "mine",
+      "source": "ff555884-5e19-5432-8629-0e793f2c2598",
+      "target": "45b12749-de48-5f93-a11e-6d295ac3ee9c",
       "customProperties": {
         "Controls": "mine.methane"
       }
@@ -400,14 +421,14 @@
     {
       "id": "pump_controller-performs-start_pump",
       "type": "kaos.PerformanceLink",
-      "source": "pump_controller",
-      "target": "start_pump"
+      "source": "abf5ba8c-71f8-5b7e-9da5-896640996b93",
+      "target": "b6137593-51de-50ff-9bcf-e95bb86c7be5"
     },
     {
       "id": "start_pump-operationalises-pump_on_when_high_water_and_no_methane",
       "type": "kaos.OperationalisationLink",
-      "source": "start_pump",
-      "target": "pump_on_when_high_water_and_no_methane",
+      "source": "b6137593-51de-50ff-9bcf-e95bb86c7be5",
+      "target": "e1cf8fe7-1023-529b-bfc0-6ca074d47fe3",
       "customProperties": {
         "ReqTrig": "sump.highWater and not mine.methane"
       }
@@ -415,8 +436,8 @@
     {
       "id": "start_pump-operationalises-pump_off_when_methane",
       "type": "kaos.OperationalisationLink",
-      "source": "start_pump",
-      "target": "pump_off_when_methane",
+      "source": "b6137593-51de-50ff-9bcf-e95bb86c7be5",
+      "target": "ebf8ed34-2c9d-5d4f-9e69-977ba6eede5f",
       "customProperties": {
         "ReqPre": "not mine.methane"
       }
@@ -424,8 +445,8 @@
     {
       "id": "start_pump-operationalises-pump_off_when_low_water",
       "type": "kaos.OperationalisationLink",
-      "source": "start_pump",
-      "target": "pump_off_when_low_water",
+      "source": "b6137593-51de-50ff-9bcf-e95bb86c7be5",
+      "target": "e15203e2-d187-5db0-8afa-4b2899052a82",
       "customProperties": {
         "ReqPre": "not sump.lowWater"
       }
@@ -433,32 +454,32 @@
     {
       "id": "sump-input-start_pump",
       "type": "kaos.InputLink",
-      "source": "sump",
-      "target": "start_pump"
+      "source": "7a4b006a-1670-5059-ba18-78310d71269f",
+      "target": "b6137593-51de-50ff-9bcf-e95bb86c7be5"
     },
     {
       "id": "mine-input-start_pump",
       "type": "kaos.InputLink",
-      "source": "mine",
-      "target": "start_pump"
+      "source": "45b12749-de48-5f93-a11e-6d295ac3ee9c",
+      "target": "b6137593-51de-50ff-9bcf-e95bb86c7be5"
     },
     {
       "id": "start_pump-output-pump",
       "type": "kaos.OutputLink",
-      "source": "start_pump",
-      "target": "pump"
+      "source": "b6137593-51de-50ff-9bcf-e95bb86c7be5",
+      "target": "399136d5-afc9-5e64-a680-366a98af2bdf"
     },
     {
       "id": "pump_controller-performs-stop_pump",
       "type": "kaos.PerformanceLink",
-      "source": "pump_controller",
-      "target": "stop_pump"
+      "source": "abf5ba8c-71f8-5b7e-9da5-896640996b93",
+      "target": "88a6c75b-4329-57d2-9c95-f936987df9b0"
     },
     {
       "id": "stop_pump-operationalises-pump_on_when_high_water_and_no_methane",
       "type": "kaos.OperationalisationLink",
-      "source": "stop_pump",
-      "target": "pump_on_when_high_water_and_no_methane",
+      "source": "88a6c75b-4329-57d2-9c95-f936987df9b0",
+      "target": "e1cf8fe7-1023-529b-bfc0-6ca074d47fe3",
       "customProperties": {
         "ReqPre": "not (sump.highWater and not mine.methane)"
       }
@@ -466,8 +487,8 @@
     {
       "id": "stop_pump-operationalises-pump_off_when_methane",
       "type": "kaos.OperationalisationLink",
-      "source": "stop_pump",
-      "target": "pump_off_when_methane",
+      "source": "88a6c75b-4329-57d2-9c95-f936987df9b0",
+      "target": "ebf8ed34-2c9d-5d4f-9e69-977ba6eede5f",
       "customProperties": {
         "ReqTrig": "mine.methane"
       }
@@ -475,8 +496,8 @@
     {
       "id": "stop_pump-operationalises-pump_off_when_low_water",
       "type": "kaos.OperationalisationLink",
-      "source": "stop_pump",
-      "target": "pump_off_when_low_water",
+      "source": "88a6c75b-4329-57d2-9c95-f936987df9b0",
+      "target": "e15203e2-d187-5db0-8afa-4b2899052a82",
       "customProperties": {
         "ReqTrig": "sump.lowWater"
       }
@@ -484,92 +505,92 @@
     {
       "id": "sump-input-stop_pump",
       "type": "kaos.InputLink",
-      "source": "sump",
-      "target": "stop_pump"
+      "source": "7a4b006a-1670-5059-ba18-78310d71269f",
+      "target": "88a6c75b-4329-57d2-9c95-f936987df9b0"
     },
     {
       "id": "mine-input-stop_pump",
       "type": "kaos.InputLink",
-      "source": "mine",
-      "target": "stop_pump"
+      "source": "45b12749-de48-5f93-a11e-6d295ac3ee9c",
+      "target": "88a6c75b-4329-57d2-9c95-f936987df9b0"
     },
     {
       "id": "stop_pump-output-pump",
       "type": "kaos.OutputLink",
-      "source": "stop_pump",
-      "target": "pump"
+      "source": "88a6c75b-4329-57d2-9c95-f936987df9b0",
+      "target": "399136d5-afc9-5e64-a680-366a98af2bdf"
     },
     {
       "id": "environment-performs-above_high",
       "type": "kaos.PerformanceLink",
-      "source": "environment",
-      "target": "above_high"
+      "source": "ff555884-5e19-5432-8629-0e793f2c2598",
+      "target": "3c5b4493-b545-5a20-979c-2dc8a56ed054"
     },
     {
       "id": "above_high-output-sump",
       "type": "kaos.OutputLink",
-      "source": "above_high",
-      "target": "sump"
+      "source": "3c5b4493-b545-5a20-979c-2dc8a56ed054",
+      "target": "7a4b006a-1670-5059-ba18-78310d71269f"
     },
     {
       "id": "environment-performs-below_high",
       "type": "kaos.PerformanceLink",
-      "source": "environment",
-      "target": "below_high"
+      "source": "ff555884-5e19-5432-8629-0e793f2c2598",
+      "target": "95071c93-0807-5b52-94be-631629439cc8"
     },
     {
       "id": "below_high-output-sump",
       "type": "kaos.OutputLink",
-      "source": "below_high",
-      "target": "sump"
+      "source": "95071c93-0807-5b52-94be-631629439cc8",
+      "target": "7a4b006a-1670-5059-ba18-78310d71269f"
     },
     {
       "id": "environment-performs-above_low",
       "type": "kaos.PerformanceLink",
-      "source": "environment",
-      "target": "above_low"
+      "source": "ff555884-5e19-5432-8629-0e793f2c2598",
+      "target": "3d772e3c-02f1-5dc7-88a9-706864b011d8"
     },
     {
       "id": "above_low-output-sump",
       "type": "kaos.OutputLink",
-      "source": "above_low",
-      "target": "sump"
+      "source": "3d772e3c-02f1-5dc7-88a9-706864b011d8",
+      "target": "7a4b006a-1670-5059-ba18-78310d71269f"
     },
     {
       "id": "environment-performs-below_low",
       "type": "kaos.PerformanceLink",
-      "source": "environment",
-      "target": "below_low"
+      "source": "ff555884-5e19-5432-8629-0e793f2c2598",
+      "target": "afd56285-4913-5130-b3f6-9be862b5a3a1"
     },
     {
       "id": "below_low-output-sump",
       "type": "kaos.OutputLink",
-      "source": "below_low",
-      "target": "sump"
+      "source": "afd56285-4913-5130-b3f6-9be862b5a3a1",
+      "target": "7a4b006a-1670-5059-ba18-78310d71269f"
     },
     {
       "id": "environment-performs-methane_appears",
       "type": "kaos.PerformanceLink",
-      "source": "environment",
-      "target": "methane_appears"
+      "source": "ff555884-5e19-5432-8629-0e793f2c2598",
+      "target": "9a9716d5-b8a6-57ff-91a1-28c307e6b219"
     },
     {
       "id": "methane_appears-output-mine",
       "type": "kaos.OutputLink",
-      "source": "methane_appears",
-      "target": "mine"
+      "source": "9a9716d5-b8a6-57ff-91a1-28c307e6b219",
+      "target": "45b12749-de48-5f93-a11e-6d295ac3ee9c"
     },
     {
       "id": "environment-performs-methane_leaves",
       "type": "kaos.PerformanceLink",
-      "source": "environment",
-      "target": "methane_leaves"
+      "source": "ff555884-5e19-5432-8629-0e793f2c2598",
+      "target": "21838f61-3121-551a-88bd-b2d768b678ae"
     },
     {
       "id": "methane_leaves-output-mine",
       "type": "kaos.OutputLink",
-      "source": "methane_leaves",
-      "target": "mine"
+      "source": "21838f61-3121-551a-88bd-b2d768b678ae",
+      "target": "45b12749-de48-5f93-a11e-6d295ac3ee9c"
     }
   ],
   "display": {},

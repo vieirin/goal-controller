@@ -127,10 +127,18 @@ describe("the notation's part, for edgeV2 and KAOS (goal-controller#415)", () =>
     assert.ok(help.assertion);
   });
 
-  it('KAOS: its own prefixes, no bracket notation', () => {
+  it('KAOS: its own kind words, no prefixes, no bracket notation', () => {
     const help = notationHelpOf(kaos);
     assert.strictEqual(help.refinement, null);
-    assert.ok(help.elementLine.prefixes.some(({ prefix }) => prefix === 'G'));
+    // its lines write any id, or none (goal-controller#518)
+    assert.deepStrictEqual(help.elementLine.prefixes, []);
+    assert.ok(
+      help.elementLine.words.some(
+        ({ word, kind }) =>
+          word === 'behavioral_goal' && kind === 'kaos.BehavioralGoal',
+      ),
+    );
+    assert.match(help.elementLine.example, /^behavioral_goal /);
     const read = readLine(kaos, help.elementLine.example);
     assert.strictEqual(read.kind, 'element');
   });

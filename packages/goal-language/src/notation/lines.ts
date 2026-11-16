@@ -40,6 +40,7 @@ import {
 } from '../parse.js';
 import { unquotedName, type DeclaredProperties } from '../print.js';
 import { isPlainActorLine, isPlainLinkLine } from './linkLine.js';
+import { readHead, type LineHead } from './head.js';
 
 /** Where something is, in the text read (offsets). */
 export type Span = { from: number; to: number };
@@ -62,6 +63,12 @@ export type MixedOperators = { span: Span; first: string; second: string };
 
 export type ElementReading = {
   kind: 'element';
+  /**
+   * the word its kind is written with (`goal`, `behavioral_goal`,
+   * goal-controller#518), and the kind it is (null: no kind of the
+   * definition's); null: the line starts with none
+   */
+  word: { text: string; kind: string | null; span: Span } | null;
   /** null on a line without an id */
   id: string | null;
   idSpan: Span | null;
@@ -395,6 +402,7 @@ const readElement = (
   const id = ownId ? (line.name ?? null) : null;
   return {
     kind: 'element',
+    word: null,
     id,
     idSpan: id === null ? null : idSpan,
     name: (line.label ?? '').trim(),
@@ -535,6 +543,9 @@ export const readLine = (
   text: string,
   wordNames = false,
 ): LineReading => {
+  // an element line's word and id (goal-controller#518), read before the grammar
+  const head = readHead(definition, text);
+  if (head) return withHead(definition, text, head, wordNames);
   // a document without ids: its link and actor lines (quoted), read here;
   // its property lines start with a declared key, which GoalLexer reads
   const plainKey = isPlainLinkLine(definition, text)
@@ -636,6 +647,138 @@ export const readLine = (
     name,
     text:
       read.text.slice(0, at) + name + read.text.slice(at + read.name.length),
+  };
+};
+
+/** Whether an id reads as the goal language's `ElementId` in a definition (`G1`, `T1.1`, an extension's `E1`). */
+const isElementId = (
+  definition: Pick<AnyDialect, 'elements'>,
+  id: string,
+): boolean =>
+  new RegExp(
+    `^(?:${['G', 'T', 'R', 'AT', ...idPrefixesOf(definition)].join('|')})(?:[0-9]+(?:\\.[0-9]+)*X?|X|[0-9][a-z])$`,
+  ).test(id);
+
+/**
+ * A line with a head (`readHead`), read: its word blanked (spaces, so the
+ * offsets stay), its id, when the grammar reads no such `ElementId`, a
+ * placeholder one of its length (`G1111111`; one character takes the blank
+ * before it), then read as any line and given back its word and id.
+ */
+const withHead = (
+  definition: Parameters<typeof readLine>[0],
+  text: string,
+  head: LineHead,
+  wordNames: boolean,
+): LineReading => {
+  const blank =
+    (from: number, to: number, by = ' '.repeat(to - from)) =>
+    (written: string) =>
+      written.slice(0, from) + by + written.slice(to);
+  let read = blank(head.wordSpan.from, head.wordSpan.to)(text);
+  let placeholder: Span | null = null;
+  // a line without an id in a dialect whose names are free text (KAOS's
+  // `behavioral_goal Achieve [Manual Backup]`): its word and the blank after
+  // it are a placeholder id, so the name is read as one after an id is
+  const wordAsId =
+    head.id === null &&
+    !wordNames &&
+    nameReading(definition) !== null &&
+    head.word.length >= 2 &&
+    /^[ \t]/.test(text.slice(head.wordSpan.to));
+  if (wordAsId)
+    read = blank(
+      head.wordSpan.from,
+      head.wordSpan.to + 1,
+      `${'G'.padEnd(head.word.length - 1, '1')}: `,
+    )(text);
+  if (head.id !== null && head.idSpan && !isElementId(definition, head.id)) {
+    const from = head.idSpan.from - (head.id.length < 2 ? 1 : 0);
+    placeholder = { from, to: head.idSpan.to };
+    read = blank(
+      from,
+      head.idSpan.to,
+      'G'.padEnd(head.idSpan.to - from, '1'),
+    )(read);
+  }
+  // an element without a name (`behavioral_goal 7857cb00: `, an imported
+  // `.kaos` goal that has none) is read with a stand-in one, which it then lacks
+  let emptyName: number | null = null;
+  if (head.id !== null && head.idSpan && nameReading(definition) === 'line') {
+    const colon = /^[ \t]*:[ \t]*$/.exec(text.slice(head.idSpan.to));
+    if (colon) {
+      emptyName = head.idSpan.to + colon[0].indexOf(':') + 1;
+      read = `${read.slice(0, emptyName)} _`;
+    }
+  }
+  const reading = readLine(definition, read, wordNames);
+  const word = {
+    text: head.word,
+    kind: head.kind,
+    span: head.wordSpan,
+  };
+  if (reading.kind !== 'element')
+    // a word no line reads as an element's (being typed): an element line still
+    return {
+      kind: 'element',
+      word,
+      id: head.id,
+      idSpan: head.idSpan,
+      name: '',
+      text: '',
+      textSpan: { from: head.wordSpan.to, to: head.wordSpan.to },
+      annotations: [],
+      notation: null,
+      cost: null,
+      declaration: null,
+      errors: reading.errors.length
+        ? reading.errors
+        : [
+            {
+              message: 'An element line: its kind, its id and its name',
+              line: 1,
+              column: head.wordSpan.from,
+              offset: head.wordSpan.from,
+              length: head.wordSpan.to - head.wordSpan.from,
+            } as GoalSyntaxError,
+          ],
+    };
+  if (head.id === null && wordAsId) {
+    // the name after the word, as written
+    const from = Math.min(
+      text.length - text.slice(head.wordSpan.to).trimStart().length,
+      reading.textSpan.to,
+    );
+    const to = Math.max(from, reading.textSpan.to);
+    return {
+      ...reading,
+      word,
+      id: null,
+      idSpan: null,
+      text: text.slice(from, to),
+      textSpan: { from, to },
+    };
+  }
+  if (head.id === null) return { ...reading, word, id: null, idSpan: null };
+  const textFrom = head.idSpan!.from;
+  if (emptyName !== null)
+    return {
+      ...reading,
+      word,
+      id: head.id,
+      idSpan: head.idSpan,
+      name: '',
+      text: text.slice(textFrom, emptyName),
+      textSpan: { from: textFrom, to: emptyName },
+    };
+  const replaced = placeholder ? placeholder.to - placeholder.from : 0;
+  return {
+    ...reading,
+    word,
+    id: head.id,
+    idSpan: head.idSpan,
+    text: placeholder ? head.id + reading.text.slice(replaced) : reading.text,
+    textSpan: { from: textFrom, to: Math.max(textFrom, reading.textSpan.to) },
   };
 };
 

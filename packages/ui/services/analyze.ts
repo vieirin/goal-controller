@@ -4,6 +4,7 @@ import { KNOWN_PROPERTIES } from '../lib/models/knownProperties';
 import { isPrismEngine, type TransformEngine } from '../lib/types';
 import {
   istardtAnalysisModel,
+  orphanMessage,
   istardtProblems,
   mutroseProblem,
   readIstardtModel,
@@ -17,6 +18,7 @@ import {
   type VariableInfo,
 } from '../lib/workbench/types';
 import { ENGINE_LABEL, generatesFiles } from '../lib/workbench/engineDialects';
+import { parseModel } from '../lib/workbench/dialects';
 
 type WithCondition = {
   id: string;
@@ -52,18 +54,39 @@ const parseFor = (modelJson: string, engine: TransformEngine) => {
   return GoalModel.parseForEdge(modelJson);
 };
 
+/** Why a model text is not generated from or analysed (`orphanMessage`); null: it can be, or does not read. */
+const orphanMessageOf = (modelJson: string, subject: string): string | null => {
+  try {
+    return orphanMessage(parseModel(modelJson), subject);
+  } catch {
+    return null;
+  }
+};
+
 export const analyze = (
   modelJson: string,
   engine: TransformEngine,
 ): AnalyzeResponse => {
-  const parsed = parseFor(modelJson, engine);
-
   const response: AnalyzeResponse = {
     success: true,
     variables: [],
     problems: [],
     knownProperties: KNOWN_PROPERTIES[engine],
   };
+
+  // a link that lost an end blocks every engine, analysis engines too: what
+  // they compute would miss the refinement (goal-controller#518)
+  const orphaned = orphanMessageOf(modelJson, ENGINE_LABEL[engine]);
+  if (orphaned !== null) {
+    response.problems.push({
+      severity: 'error',
+      source: ENGINE_LABEL[engine],
+      message: orphaned,
+    });
+    return response;
+  }
+
+  const parsed = parseFor(modelJson, engine);
 
   if (!parsed.success) {
     const problem: Problem = {

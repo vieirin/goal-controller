@@ -51,7 +51,9 @@ doesn't use it.
      extension's id prefixes (`ID_PREFIX`, `idPrefixesOf`) in element lines,
      and a document without ids' declared keys (`KEY`, `propertyKeysOf`) at a
      line's start (goal-controller#138). A dialect without them reads as
-     before.
+     before. Its kinds' words (`kindWordsOf`) start its element lines, but
+     are no tokens: `readHead` reads them before the lexer, and blanks them
+     (goal-controller#518; moving them into the grammar is goal-controller#526).
 
 ## Where a change goes
 

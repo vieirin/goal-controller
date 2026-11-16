@@ -46,10 +46,12 @@ describe('an engine with a dialect', () => {
     ]),
   };
 
-  it("writes the dialect's annotations before the ids, and reads them back", () => {
+  it("writes the dialect's annotations before the kind word, and reads them back", () => {
     const { text } = notationDocument(both, tree);
-    expect(text).to.equal('{Id = 7} G1: Go\n  <<urgent>> T1: Do\n    robot r2');
-    expect(lineId(both, '  <<urgent>> T1: Do')).to.equal('T1');
+    expect(text).to.equal(
+      '{Id = 7} goal G1: Go\n  <<urgent>> task T1: Do\n    robot r2',
+    );
+    expect(lineId(both, '  <<urgent>> task T1: Do')).to.equal('T1');
     expect(
       notationEdits(both, text.replace('<<urgent>>', '{kind = may}'), tree),
     ).to.deep.equal([
@@ -59,7 +61,7 @@ describe('an engine with a dialect', () => {
     ]);
     // the engine alone reads the same model without them
     expect(notationDocument(toy, tree).text).to.equal(
-      'G1: Go\n  T1: Do\n    robot r2',
+      'goal G1: Go\n  task T1: Do\n    robot r2',
     );
   });
 });
@@ -103,42 +105,53 @@ describe('a dialect of its own (no engine)', () => {
       ],
     ]),
   };
-  const doc = '<<smart>> Robot\n  {Id = G1} Deliver\n  Plan it';
+  // no id written: each line shows its element's piStar id's first characters
+  const doc =
+    '<<smart>> agent a1: Robot\n  {Id = G1} goal g1: Deliver\n  plan p1: Plan it';
 
-  it('writes its lines, and reads them by position', () => {
+  it('writes its lines, and reads them by the ids they show (goal-controller#518)', () => {
     expect(notationDocument(definition, tree).text).to.equal(doc);
-    expect(lineId(definition, 'Robot')).to.equal(null);
+    expect(lineId(definition, '<<smart>> agent a1: Robot')).to.equal('a1');
     expect(
       notationEdits(
         definition,
-        doc.replace('{Id = G1} Deliver', '{Id = G2} Delivered'),
+        doc.replace(
+          '{Id = G1} goal g1: Deliver',
+          '{Id = G2} goal g1: Delivered',
+        ),
         tree,
       ),
     ).to.deep.equal([
       { iStarId: 'g1', key: 'tagValue', value: 'G2' },
       { iStarId: 'g1', text: 'Delivered' },
     ]);
+    // lines in another order: each still its own element's
+    const moved =
+      '<<smart>> agent a1: Robot\n  plan p1: Planned\n  {Id = G1} goal g1: Deliver';
+    expect(notationEdits(definition, moved, tree)).to.deep.equal([
+      { iStarId: 'p1', text: 'Planned' },
+    ]);
   });
 
-  it('checks its lines against the elements, in order', () => {
+  it('checks its lines against the elements, by their ids', () => {
     const context = contextFromView(definition, tree, []);
-    expect(context.order).to.deep.equal(['a1', 'g1', 'p1']);
     expect(documentDiagnostics(definition, doc, context)).to.deep.equal([]);
+    // a line without its kind's word
     expect(
       documentDiagnostics(definition, `${doc}\n  Extra`, context),
     ).to.deep.equal([
       {
-        from: 0,
+        from: doc.length + 3,
         to: doc.length + 8,
         severity: 'error',
         message:
-          "4 lines for 3 elements: each line is an element's, in order (add or remove elements in the diagram)",
+          'An element line starts with its kind: actor, agent, role, goal, quality, resource, task, plan, box',
       },
     ]);
     expect(
       documentDiagnostics(
         definition,
-        doc.replace('<<smart>> Robot', '<<smart>> {} Robot'),
+        doc.replace('<<smart>> agent', '<<smart>> {} agent'),
         context,
       ),
     ).to.deep.equal([
@@ -147,7 +160,7 @@ describe('a dialect of its own (no engine)', () => {
         to: 12,
         severity: 'error',
         message: 'This annotation cannot be read',
-        // on the line of the element at its position
+        // on the line of the element its id names
         elementId: 'a1',
       },
     ]);
@@ -155,35 +168,37 @@ describe('a dialect of its own (no engine)', () => {
     expect(
       completionsAt(definition, doc, 3, context)!.options.map((o) => o.label),
     ).to.deep.equal(['smart', 'urgent']);
-    expect(completionsAt(definition, doc, 12, context)).to.equal(null);
+    expect(completionsAt(definition, doc, 22, context)).to.equal(null);
   });
 
   describe('lines with ids', () => {
-    // the same model, its goal and plan named with ids
+    // the same model, its goal and plan with ids their texts give them
     const withIds: DocumentTree = {
       roots: tree.roots,
       nodes: new Map(
         [...tree.nodes].map(([key, n]) => [
           key,
           key === 'g1'
-            ? { ...n, name: 'G1: Deliver' }
+            ? { ...n, id: 'G1', hasId: true }
             : key === 'p1'
-              ? { ...n, name: 'T1: Plan it' }
+              ? { ...n, id: 'T1', hasId: true }
               : n,
         ]),
       ),
     };
-    const doc = '<<smart>> Robot\n  {Id = G1} G1: Deliver\n  T1: Plan it';
+    const doc =
+      '<<smart>> agent a1: Robot\n  {Id = G1} goal G1: Deliver\n  plan T1: Plan it';
 
-    it('writes the id an element’s name starts with, and reads it back', () => {
+    it('writes the id an element’s text gives it, and reads it back', () => {
       expect(notationDocument(definition, withIds).text).to.equal(doc);
-      expect(lineId(definition, '  {Id = G1} G1: Deliver')).to.equal('G1');
+      expect(lineId(definition, '  {Id = G1} goal G1: Deliver')).to.equal('G1');
       expect(notationEdits(definition, doc, withIds)).to.deep.equal([]);
     });
 
-    it('maps a line with an id by its id, the others by position', () => {
+    it('maps every line by its id, wherever it is', () => {
       // the two id lines swapped: each still edits its own element
-      const swapped = '<<smart>> Robot\n  T1: Plan it now\n  G1: Deliver';
+      const swapped =
+        '<<smart>> agent a1: Robot\n  plan T1: Plan it now\n  goal G1: Deliver';
       expect(notationEdits(definition, swapped, withIds)).to.deep.equal([
         { iStarId: 'p1', text: 'T1: Plan it now' },
         { iStarId: 'g1', key: 'tag', value: null },
@@ -191,24 +206,50 @@ describe('a dialect of its own (no engine)', () => {
       ]);
     });
 
-    it('reports a duplicate id and an id that names no element', () => {
+    it('reports a duplicate id; an id that names no element creates one', () => {
       const context = contextFromView(definition, withIds, []);
-      expect(context.named).to.deep.equal({ G1: 'g1', T1: 'p1' });
       expect(documentDiagnostics(definition, doc, context)).to.deep.equal([]);
-      const bad = '<<smart>> Robot\n  G1: Deliver\n  G1: Again';
+      const bad =
+        '<<smart>> agent a1: Robot\n  goal G1: Deliver\n  goal G1: Again';
       expect(
         documentDiagnostics(definition, bad, context).map((d) => [
           bad.slice(d.from, d.to),
           d.message,
         ]),
       ).to.deep.equal([['G1', 'Duplicate id G1']]);
-      const unknown = '<<smart>> Robot\n  G7: Deliver\n  T1: Plan it';
+      const unknown =
+        '<<smart>> agent a1: Robot\n  goal G7: Deliver\n  plan T1: Plan it';
+      expect(documentDiagnostics(definition, unknown, context)).to.deep.equal(
+        [],
+      );
+      // its id alone differs, between the same lines: the element is renamed
+      // (its `{Id = G1}` annotation is gone from the line: its tags clear)
       expect(
-        documentDiagnostics(definition, unknown, context).map((d) => [
-          unknown.slice(d.from, d.to),
-          d.message,
-        ]),
-      ).to.deep.equal([['G7', 'Add this element in the diagram']]);
+        notationEdits(definition, unknown, withIds, { newId: () => 'n1' }),
+      ).to.deep.equal([
+        { iStarId: 'g1', key: 'tag', value: null },
+        { iStarId: 'g1', key: 'tagValue', value: null },
+        { iStarId: 'g1', text: 'Deliver' },
+        { iStarId: 'g1', key: 'writtenId', value: 'G7' },
+      ]);
+      // another kind of line is a new element
+      const added =
+        '<<smart>> agent a1: Robot\n  {Id = G1} goal G1: Deliver\n  goal G7: Again\n  plan T1: Plan it';
+      expect(
+        notationEdits(definition, added, withIds, { newId: () => 'n1' }),
+      ).to.deep.equal([
+        {
+          create: {
+            iStarId: 'n1',
+            kind: 'istar.Goal',
+            text: 'Again',
+            properties: { writtenId: 'G7' },
+            after: 'g1',
+            line: 2,
+            writeId: null,
+          },
+        },
+      ]);
     });
   });
 });

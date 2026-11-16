@@ -8,7 +8,10 @@ import {
   type KaosltsGoalModel,
   type OperationModel,
 } from '../../../src/engines/kaoslts';
-import { kaosNativeFile } from '../../../src/importers/kaos';
+import {
+  kaosNativeFile,
+  withKaosIdentifiers,
+} from '../../../src/importers/kaos';
 
 export const MINE_PUMP = '../../examples/kaos/mine-pump/mine-pump.kaos';
 export const minePumpText = () => readFileSync(MINE_PUMP, 'utf8');
@@ -27,7 +30,10 @@ export const edited = (
 export const goalModelOf = (kaos: string): KaosltsGoalModel => {
   const read = kaosNativeFile.read(kaos, { modelName: 'mine-pump' });
   assert.ok(read.model, read.diagnostics.map((d) => d.message).join('; '));
-  return kaosltsGoalModel(readKaosModel(JSON.stringify(read.model)));
+  // its elements by their KAOSTools identifiers (#518)
+  return kaosltsGoalModel(
+    readKaosModel(JSON.stringify(withKaosIdentifiers(read.model))),
+  );
 };
 
 /** A `.kaos` text's operation model. */

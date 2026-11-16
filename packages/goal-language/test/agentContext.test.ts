@@ -54,6 +54,13 @@ describe("the notation's part of an agent's context (goal-controller#415)", () =
     expect(help.propertyLine?.example).to.equal('priority <value>');
     expect(help.assertion?.comparators).to.include('>=');
     expect(notationHelpText(help)).to.contain(help.elementLine.example);
+    // a line starts with its kind's word (goal-controller#518)
+    expect(help.elementLine.words.map((w) => w.word)).to.include.members([
+      'goal',
+      'task',
+      'resource',
+    ]);
+    expect(help.elementLine.example).to.match(/^goal G1: /);
   });
 });
 
@@ -61,7 +68,8 @@ describe('validateNotation (goal-controller#415)', () => {
   const inputs = { tree, variables: [{ kind: 'context', name: 'speed' }] };
 
   it('reads the context variables the editor passes', () => {
-    const text = 'G1: Go [T1]\nT1: Do\n  guard speed > 1\nR1: Fuel';
+    const text =
+      'goal G1: Go [T1]\ntask T1: Do\n  guard speed > 1\nresource R1: Fuel';
     expect(validateNotation(toy, text, inputs)).to.deep.equal([]);
     expect(
       validateNotation(toy, text, { tree, variables: [] }).map((d) => d.key),
@@ -69,14 +77,17 @@ describe('validateNotation (goal-controller#415)', () => {
   });
 
   it('runs the named checks it is given', () => {
-    const found = validateNotation(toy, 'R1: Fuel {int 0..9 = 5}', inputs, {
-      'toy.resource.bounds': () => 'out of bounds',
-    });
+    const found = validateNotation(
+      toy,
+      'resource R1: Fuel {int 0..9 = 5}',
+      inputs,
+      { 'toy.resource.bounds': () => 'out of bounds' },
+    );
     expect(found.map((d) => d.message)).to.include('out of bounds');
   });
 
   it('reports what the language server reports with the same context', async () => {
-    const text = 'G1: Go [T1;T9]\n  priority urgent\nT1: Do';
+    const text = 'goal G1: Go [T1;T9]\n  priority urgent\ntask T1: Do';
     const { shared, store } = createGoalLspServices();
     store.set({
       dialect: toy,

@@ -13,8 +13,10 @@ import {
 } from '@istar-ts/core';
 import {
   DEFAULT_FRAMEWORK,
+  WRITTEN_ID_KEY,
   extensionKindsRead,
   type AnyDialect,
+  type DocumentOrphan,
 } from '@goal-controller/dialect';
 import {
   nameReading,
@@ -88,6 +90,12 @@ export type GoalViewNode = {
   properties: Record<string, string>;
   /** fill colour saved in the diagram, if any */
   color: string | null;
+  /**
+   * the other name a reference may call it by: its `extra`'s string under
+   * the dialect's `alias` key (an imported KAOS element's KAOSTools
+   * identifier, goal-controller#518)
+   */
+  alias?: string;
 };
 
 /** A link, with its ends as the view knows them (goal-controller#107). */
@@ -139,13 +147,29 @@ export type GoalView = {
   links: ViewLink[];
   /** every actor, in the model's order */
   actors: ViewActor[];
+  /**
+   * the links one of whose ends the model lacks (goal-controller#518:
+   * removing an element keeps its links), in the model's order
+   */
+  orphans: DocumentOrphan[];
 };
 
 /** `ID: name [notation]` as written (the fallback when the grammar cannot read it); `TX` is an id too. */
 const TEXT =
   /^\s*([A-Za-z]+(?:\d+[A-Za-z0-9.]*|X))\s*:\s*(.*?)\s*(?:\[(.*)\])?\s*$/s;
-/** `ID: name` in a framework's dialect: its brackets are its name's (`nameReading`). */
-const FRAMEWORK_TEXT = /^\s*([A-Za-z]+(?:\d+[A-Za-z0-9.]*|X))\s*:\s*(.*?)\s*$/s;
+/**
+ * `id: name` in a framework's dialect: its brackets are its name's
+ * (`nameReading`); its id any (goal-controller#518: `net_up`, `G1`), a name
+ * with a space before its first colon none.
+ */
+export const FRAMEWORK_TEXT =
+  /^\s*([A-Za-z0-9_][A-Za-z0-9_.-]*)\s*:\s*(.*?)\s*$/s;
+/**
+ * `id: name [notation]` in an iStar dialect without id prefixes (tropos4as,
+ * piStar-ext's): its id any too (goal-controller#518).
+ */
+const PLAIN_TEXT =
+  /^\s*([A-Za-z0-9_][A-Za-z0-9_.-]*)\s*:\s*(.*?)\s*(?:\[(.*)\])?\s*$/s;
 
 const KIND: Record<string, ViewKind | undefined> = {
   'istar.Goal': 'goal',
@@ -173,11 +197,24 @@ const listed = (dialect: ReadingDialect, text: string): string[] => [
 export function goalView(
   model: IstarModel<string, string>,
   dialect: ReadingDialect &
-    Partial<Pick<AnyDialect, 'framework' | 'refinements'>>,
+    Partial<Pick<AnyDialect, 'framework' | 'refinements' | 'alias'>>,
 ): GoalView {
   // a framework's refinements and hubs, by kind (not through core's registry)
   const refined = refinementsOf(model, dialect);
+  // the other name an element keeps in its extra (goal-controller#518)
+  const aliasOf = (element: {
+    extra?: Readonly<Record<string, unknown>>;
+  }): { alias?: string } => {
+    const alias = dialect.alias ? element.extra?.[dialect.alias] : undefined;
+    return typeof alias === 'string' && alias !== '' ? { alias } : {};
+  };
   const framework = (dialect.framework ?? DEFAULT_FRAMEWORK) !== 'istar-2.0';
+  // a dialect without id prefixes writes any id (goal-controller#518)
+  const withoutPrefixes =
+    dialect.elements !== undefined &&
+    !Object.values(dialect.elements).some(
+      (element) => element?.prefix !== undefined,
+    );
   // a node by the model's own root, not iStar's (goal-controller#185)
   const isNode = isNodeIn(metamodelOf(model));
   const byIStarId = new Map<string, GoalViewNode>();
@@ -195,9 +232,21 @@ export function goalView(
         ? (element.kind as ViewKind)
         : undefined);
     if (!kind || !isNode(element) || refined.hubs.has(element.id)) continue;
-    const text = element.name;
+    // where ids are any, an id the author wrote is kept apart from the name
+    // (`WRITTEN_ID_KEY`): the text is read as if it began with it
+    const keptId = element.customProperties?.[WRITTEN_ID_KEY];
+    const text =
+      (nameReading(dialect) === 'line' || withoutPrefixes) &&
+      typeof keptId === 'string' &&
+      keptId !== ''
+        ? `${keptId}: ${element.name}`
+        : element.name;
     const written = (
-      nameReading(dialect) === 'line' ? FRAMEWORK_TEXT : TEXT
+      nameReading(dialect) === 'line'
+        ? FRAMEWORK_TEXT
+        : withoutPrefixes
+          ? PLAIN_TEXT
+          : TEXT
     ).exec(text);
     const notation = written?.[3] !== undefined ? written[3].trim() : null;
     const errors: string[] = [];
@@ -244,6 +293,7 @@ export function goalView(
         typeof element.display?.backgroundColor === 'string'
           ? element.display.backgroundColor
           : null,
+      ...aliasOf(element),
     });
   }
 
@@ -267,6 +317,29 @@ export function goalView(
     if (!parent.relation && relation !== 'neededBy') parent.relation = relation;
     children.set(parentId, [...(children.get(parentId) ?? []), childId]);
     if (!parents.has(childId)) parents.set(childId, parentId);
+  }
+
+  // where any id may be written (KAOS, NFR, a dialect without prefixes), a
+  // name that starts as an earlier element's does (`ERROR: no dinner`,
+  // `ERROR: no medicine`) is read whole: its element keeps its own line
+  // (shown by its piStar id's start) instead of being merged into the other
+  if (nameReading(dialect) === 'line' || withoutPrefixes) {
+    const taken = new Set<string>();
+    for (const node of byIStarId.values()) {
+      if (!node.hasId) continue;
+      if (!taken.has(node.id)) {
+        taken.add(node.id);
+        continue;
+      }
+      Object.assign(node, {
+        id: node.iStarId,
+        hasId: false,
+        name: node.text.trim(),
+        notation: null,
+        construct: null,
+        order: [],
+      });
+    }
   }
 
   // an id another element repeats, in a dialect that scopes ids by their
@@ -401,6 +474,26 @@ export function goalView(
         .filter((key): key is string => !!key),
     }));
 
+  // an end is an element or a link (an NFR argument targets a link)
+  const has = (iStarId: string) =>
+    model.elements.has(iStarId) || model.links.has(iStarId);
+  const orphans = links.flatMap((link): DocumentOrphan[] => {
+    const missing = [link.ends.source.iStarId, link.ends.target.iStarId].filter(
+      (end) => !has(end),
+    );
+    return missing.length
+      ? [
+          {
+            iStarId: link.iStarId,
+            kind: link.kind,
+            source: link.source,
+            target: link.target,
+            missing,
+          },
+        ]
+      : [];
+  });
+
   return {
     nodes: byId,
     byIStarId,
@@ -408,5 +501,6 @@ export function goalView(
     dependums,
     links,
     actors,
+    orphans,
   };
 }

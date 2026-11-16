@@ -529,7 +529,8 @@ export class GoalLexer extends DefaultLexer {
           keys.length > 0 &&
           propertyKeyOf(keys, at(LINE_REST, text, offset) ?? '');
         if (key) {
-          push('KEY', key);
+          // its keyed name too (`Probability[e1]`, goal-controller#354)
+          pushKey(key);
           const space = at(AFTER_KEY, text, offset);
           if (space) push('WS', space);
           state = 'property';

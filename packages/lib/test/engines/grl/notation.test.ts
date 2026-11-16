@@ -37,7 +37,7 @@ describe('GRL in the Notation view', () => {
     const { text } = notationDocument(grl, view());
     assert.ok(
       text.includes(
-        '    Heat with the heat pump\n' +
+        '    task 4: Heat with the heat pump\n' +
           '      link "Low running cost" {contribution = Make} {quantitativeContribution = 100}\n' +
           '      link "Comfort" {contribution = Help} {quantitativeContribution = 25}\n',
       ),

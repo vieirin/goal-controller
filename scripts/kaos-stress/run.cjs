@@ -114,6 +114,10 @@
  * (`synthetic.xml`, hand-written, in lib's fixtures) is checked beside the
  * seeds.
  *
+ * A row names an element by its KAOSTools identifier (the model keeps it
+ * as `kaosId`; its piStar id is a UUID, goal-controller#518): each oracle
+ * reads the model under those identifiers (`withKaosIdentifiers`).
+ *
  * Writes SUMMARY.md and a JSON per seed to .cache/kaos/results/. Exits
  * non-zero only with `--strict`, on a failure.
  */
@@ -162,6 +166,13 @@ const cell = (text) => String(text ?? '').replace(/\|/g, '\\|');
 const errorText = (error) =>
   error instanceof Error ? error.message : String(error);
 const json = (value) => `${JSON.stringify(value, null, 2)}\n`;
+/**
+ * A model's text with its elements under their KAOSTools identifiers
+ * (`kaosId`), as the CSVs name them: an imported element's piStar id is a
+ * UUID (goal-controller#518).
+ */
+const named = (modelText) =>
+  json(lib.withKaosIdentifiers(JSON.parse(modelText)));
 /** kaosexpert's runs here: enough samples for the oracles' tolerances, a fixed seed */
 const RUN = { samples: 100000, seed: 1 };
 
@@ -949,7 +960,7 @@ const checkCairisSeed = (name, manifest) => {
       ...crossCheckOracle(
         seed.exemplar.file,
         seed.environment,
-        modelText,
+        named(modelText),
         readCsv(fs.readFileSync(path.join(dir, file), 'utf8')),
       ).map((r) => ({ file, ...r })),
     );
@@ -978,7 +989,7 @@ const checkCairisSynthetic = () => {
   const rows = crossCheckOracle(
     'synthetic.xml',
     environment,
-    json(read.model),
+    json(lib.withKaosIdentifiers(read.model)),
     readCsv(fs.readFileSync(path.join(CAIRIS_FIXTURES, file), 'utf8')),
   ).map((r) => ({ file, ...r }));
   const failing = rows.filter((r) => r.status === 'fail');
@@ -1009,7 +1020,7 @@ const ambulanceMeans = () => {
   const text = (f) => fs.readFileSync(path.join(dir, f), 'utf8');
   const analysis = lib.expertAnalysis(
     lib.kaosexpertAnalysisModel(
-      lib.readKaosObstacleModel(text('ambulance.txt')),
+      lib.readKaosObstacleModel(named(text('ambulance.txt'))),
     ),
     {
       resources: {
@@ -1040,7 +1051,7 @@ const checkCorpus = () => {
       files: Object.fromEntries(imports.map((f) => [f, fixture(f)])),
     });
     const modelOf = (estimates) => {
-      const json = JSON.parse(JSON.stringify(read.model));
+      const json = lib.withKaosIdentifiers(read.model);
       if (estimates === 'ambulance') {
         means ??= ambulanceMeans();
         for (const node of json.orphans)
@@ -1228,33 +1239,38 @@ const checkSeed = (name) => {
     .readdirSync(dir)
     .filter((f) => f.endsWith('.expected.csv'));
   const rows = [];
+  // the CSVs name elements by their KAOSTools identifiers
+  const oracleText = named(modelText);
   for (const file of oracleFiles) {
     const csv = readCsv(fs.readFileSync(path.join(dir, file), 'utf8'));
     if (!csv.length) continue;
     if ('zip' in csv[0])
-      rows.push(...ltsOracle(modelText, csv).map((r) => ({ file, ...r })));
+      rows.push(...ltsOracle(oracleText, csv).map((r) => ({ file, ...r })));
     else if ('objective' in csv[0])
       rows.push(
-        ...simOracle(modelText, committed, csv).map((r) => ({ file, ...r })),
+        ...simOracle(oracleText, committed, csv).map((r) => ({ file, ...r })),
       );
     else if ('structure' in csv[0])
       rows.push(
-        ...structureOracle(modelText, csv).map((r) => ({ file, ...r })),
+        ...structureOracle(oracleText, csv).map((r) => ({ file, ...r })),
       );
     else if ('selection' in csv[0])
       rows.push(
-        ...selectionOracle(() => kaosModelOf(JSON.parse(modelText)), csv).map(
+        ...selectionOracle(() => kaosModelOf(JSON.parse(oracleText)), csv).map(
           (r) => ({ file, ...r }),
         ),
       );
     else if ('probability' in csv[0]) {
       // las.expected.csv is RE'12's hand-drawn model's (its header says so)
       const text =
-        name === 'las' ? fs.readFileSync(LAS_FIXTURE, 'utf8') : modelText;
+        name === 'las' ? fs.readFileSync(LAS_FIXTURE, 'utf8') : oracleText;
       rows.push(...kaospropOracle(text, csv).map((r) => ({ file, ...r })));
     } else
       rows.push(
-        ...expertOracle(modelText, committed, csv).map((r) => ({ file, ...r })),
+        ...expertOracle(oracleText, committed, csv).map((r) => ({
+          file,
+          ...r,
+        })),
       );
   }
   if (rows.length) {

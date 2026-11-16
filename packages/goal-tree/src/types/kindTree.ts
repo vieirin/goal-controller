@@ -104,6 +104,12 @@ type ModelElementBase = {
   actor?: id;
   /** its custom properties, as written */
   properties: Record<string, string>;
+  /**
+   * the other name references and formulas call it by: its extra under the
+   * dialect's `alias` (an imported KAOS element's KAOSTools identifier,
+   * goal-controller#518)
+   */
+  alias?: string;
 };
 
 /**

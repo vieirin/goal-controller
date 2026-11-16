@@ -291,8 +291,10 @@ describe('a dialect of its own (no engine)', () => {
       ['p1', node('p1', 'rationalAgents.Planning', 'Plan delivery')],
     ]),
   };
+  // each line starts with its kind's word and shows its element's id: here
+  // its piStar id's first characters, the elements having no id of their own
   const doc =
-    '<<goal-based>> Robot\n  {Id = G1} Deliver sample\n  Plan delivery';
+    '<<goal-based>> agent a1: Robot\n  {Id = G1} goal g1: Deliver sample\n  planning p1: Plan delivery';
 
   it('has every iStar kind and its own, lines without ids, no notation', () => {
     expect(definition.id).to.equal('rationalAgents');
@@ -343,13 +345,16 @@ describe('a dialect of its own (no engine)', () => {
     expect(noted.propertyLineOrder).to.deep.equal(['note']);
   });
 
-  it('writes its lines, and reads them by position', () => {
+  it('writes its lines, and reads them by their ids', () => {
     expect(notationDocument(definition, tree).text).to.equal(doc);
     expect(lineId(definition, 'Robot')).to.equal(null);
     expect(
       notationEdits(
         definition,
-        doc.replace('{Id = G1} Deliver sample', '{Id = G2} Deliver samples'),
+        doc.replace(
+          '{Id = G1} goal g1: Deliver sample',
+          '{Id = G2} goal g1: Deliver samples',
+        ),
         tree,
       ),
     ).to.deep.equal([
@@ -358,25 +363,28 @@ describe('a dialect of its own (no engine)', () => {
     ]);
   });
 
-  it('checks its lines against the elements, in order', () => {
+  it('checks its lines against the elements, by their ids', () => {
     const context = contextFromView(definition, tree, []);
-    expect(context.order).to.deep.equal(['a1', 'g1', 'p1']);
     expect(documentDiagnostics(definition, doc, context)).to.deep.equal([]);
+    // a line without a kind's word is no element's
     expect(
       documentDiagnostics(definition, `${doc}\n  Extra`, context),
     ).to.deep.equal([
       {
-        from: 0,
+        from: doc.length + 3,
         to: doc.length + 8,
         severity: 'error',
         message:
-          "4 lines for 3 elements: each line is an element's, in order (add or remove elements in the diagram)",
+          'An element line starts with its kind: actor, agent, role, goal, quality, resource, task, planning, plan',
       },
     ]);
     // a group none of the kind's annotations reads
     const unread = documentDiagnostics(
       definition,
-      doc.replace('<<goal-based>> Robot', '<<goal-based>> {} Robot'),
+      doc.replace(
+        '<<goal-based>> agent a1: Robot',
+        '<<goal-based>> {} agent a1: Robot',
+      ),
       context,
     );
     expect(unread).to.deep.equal([
@@ -398,7 +406,9 @@ describe('a dialect of its own (no engine)', () => {
       'utility-based',
       'action',
     ]);
-    expect(completionsAt(definition, doc, 18, context)).to.equal(null);
+    expect(
+      completionsAt(definition, doc, doc.indexOf('Robot') + 2, context),
+    ).to.equal(null);
   });
 });
 

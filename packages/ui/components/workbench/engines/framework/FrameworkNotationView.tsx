@@ -8,22 +8,20 @@ import {
   FRAMEWORK_DIALECTS,
   type FrameworkMode,
 } from '@/lib/workbench/frameworkModes';
-import { frameworkIdEdits } from '@/lib/workbench/frameworkOpen';
 import { useWorkbench } from '../../WorkbenchContext';
-import { Button } from '../../ui';
 import NotationEditor from '../definition/NotationEditor';
-import { useEditModel } from '../shared/inspector';
 import { LanguageSupportContext } from '../definition/useLanguageSupport';
 import { useProfiledDefinition } from './useProfiledDefinition';
 
 /**
  * A KAOS or NFR model as its framework's lines (goal-controller#171): each
- * element by its id (KAOS `G1`, `A1`, `DP1`; NFR `S1`, `O1`, `C1`), its
- * name to the line's end, its properties under it, a refinement's children
- * under what they refine (a KAOS hub is an AND). Names and properties are
- * edited here, elements and links in the diagram; the shared goal language
- * checks the text (no engine: no named checks). A model whose elements have
- * no ids (DSM3's own files) is offered them, one undoable edit.
+ * element by its kind's word and its id (the one its name starts with, else
+ * its piStar id's first characters, goal-controller#518:
+ * `behavioral_goal 7857cb00: Achieve [Manual Backup]`), its name to the
+ * line's end, its properties under it, a refinement's children under what
+ * they refine (a KAOS hub is an AND). Elements are added, removed and edited
+ * here, links in the diagram; the shared goal language checks the text (no
+ * engine: no named checks).
  */
 export default function FrameworkNotationView({
   mode,
@@ -58,48 +56,8 @@ export default function FrameworkNotationView({
         ...(projectResources && { projectResources }),
       });
   }, [tree, support, definition, projectResources]);
-  // DSM3's own files name no element with an id: one click gives them theirs
-  const idEdits = useMemo(
-    () => frameworkIdEdits(model, definition),
-    [model, definition],
-  );
-  const edit = useEditModel();
-  const prefixes = [
-    ...new Set(
-      Object.values(definition.elements).flatMap((e) =>
-        e?.prefix ? [`${e.prefix}…`] : [],
-      ),
-    ),
-  ].join(', ');
   return (
     <div className='flex h-full flex-col'>
-      {idEdits && (
-        <div
-          role='status'
-          className='flex flex-wrap items-center gap-2 border-b border-line bg-panel px-3 py-1.5 text-[13px] text-ink-soft'
-        >
-          <span className='mr-auto'>
-            Some elements have no id, so no line can name them.
-          </span>
-          <Button
-            variant='outline'
-            onClick={() =>
-              void edit(
-                ...idEdits.map(
-                  ({ elementId, name }) =>
-                    ({
-                      kind: 'applyLabelEdit',
-                      labelId: elementId,
-                      text: name,
-                    }) as const,
-                ),
-              )
-            }
-          >
-            Give every element an id ({prefixes})
-          </Button>
-        </div>
-      )}
       <div className='min-h-0 flex-1'>
         <NotationEditor
           definition={definition}

@@ -5,12 +5,13 @@
  * workbench registers it. `defineEngine` checks at definition time what the
  * types cannot; `registerEngines` lists them, each id once.
  */
-import type {
-  AnyDialect,
-  CheckNameOf,
-  DefinitionContext,
-  OptionDefinition,
-  ProjectResourceKindOf,
+import {
+  shortId,
+  type AnyDialect,
+  type CheckNameOf,
+  type DefinitionContext,
+  type OptionDefinition,
+  type ProjectResourceKindOf,
 } from '@goal-controller/dialect';
 import {
   checkContextOf,
@@ -231,7 +232,8 @@ export type PropertyError = Diagnostic & { key: string };
  * an engine would generate as if it weren't written. Warnings, and the
  * properties it lists in `intendedDefaults`, are not errors here; an engine
  * without a dialect, or of another framework (whose models the panel reads
- * through the framework's own checks), has none.
+ * through the framework's own checks), has none. A link that lost an end is
+ * not a property error: `orphanLinks` lists those, for every engine.
  */
 export const propertyErrors = (
   engine: Engine,
@@ -273,28 +275,84 @@ export const propertyErrors = (
   );
 };
 
+/**
+ * A link one of whose ends the model lacks (goal-controller#518: removing an
+ * element in the Notation view keeps the links to it): its piStar id, kind,
+ * and the piStar ids of the ends that are neither an element nor a link of
+ * the model (an NFR argument's target is a link).
+ */
+export type OrphanLink = {
+  iStarId: string;
+  kind: string;
+  missing: string[];
+};
+
+/** The model's links that lost an end, in the model's order (`OrphanLink`). */
+export const orphanLinks = (model: AnyModel): OrphanLink[] => {
+  const has = (iStarId: string) =>
+    model.elements.has(iStarId) || model.links.has(iStarId);
+  return [...model.links.values()].flatMap((link): OrphanLink[] => {
+    const missing = [link.source, link.target].filter((end) => !has(end));
+    return missing.length
+      ? [{ iStarId: link.id, kind: link.kind, missing }]
+      : [];
+  });
+};
+
+/** An orphan link as one line, as the Notation view says it: `AndRefinementLink 1a2b3c4d has lost its end 7857cb00`. */
+const orphanLine = ({ iStarId, kind, missing }: OrphanLink): string =>
+  `${kind.slice(kind.lastIndexOf('.') + 1)} ${shortId(iStarId)} has lost its ${
+    missing.length > 1 ? 'ends' : 'end'
+  } ${missing.map(shortId).join(', ')}`;
+
 /** An error as one line: `G3 maxRetries: …`. */
 const errorLine = ({ elementId, key, message }: PropertyError): string =>
   `${elementId ? `${elementId} ` : ''}${key}: ${message}`;
 
 /**
- * Refuses to generate from a model with an error on a property the engine
- * reads (goal-controller#274, `propertyErrors`): throws, naming the first
- * (its element as `(node G3)`, as Problems marks it) and listing every one.
+ * Why a model with a link that lost an end (`orphanLinks`) is not generated
+ * from, or analysed (goal-controller#518): `verb` and the first orphan by
+ * its link and the missing end's short id, the others listed after it. Null:
+ * the model has none.
+ */
+export const orphanMessage = (
+  model: AnyModel,
+  subject: string,
+  verb = 'generate from',
+): string | null => {
+  const orphans = orphanLinks(model);
+  if (orphans.length === 0) return null;
+  const more =
+    orphans.length > 1 ? ` (and ${orphans.length - 1} more, in Problems)` : '';
+  return [
+    `${subject} does not ${verb} a model with a link that lost an end: ${orphanLine(orphans[0]!)}${more}`,
+    ...orphans.map((orphan) => `- ${orphanLine(orphan)}`),
+  ].join('\n');
+};
+
+/**
+ * Refuses to generate from a model with a link that lost an end
+ * (goal-controller#518, `orphanLinks`), whatever the engine and framework, or
+ * with an error on a property the engine reads (goal-controller#274,
+ * `propertyErrors`): throws, naming the first (an orphan by its link and the
+ * missing end's short id; a property error's element as `(node G3)`, as
+ * Problems marks it) and listing every one.
  */
 export const refuseOnPropertyErrors = (
   engine: Engine,
   model: AnyModel,
   projectResources?: DefinitionContext['projectResources'],
 ): void => {
+  const more = (count: number) =>
+    count > 1 ? ` (and ${count - 1} more, in Problems)` : '';
+  const orphaned = orphanMessage(model, engineLabel(engine));
+  if (orphaned !== null) throw new Error(orphaned);
   const errors = propertyErrors(engine, model, projectResources);
   const [first] = errors;
   if (!first) return;
-  const more =
-    errors.length > 1 ? ` (and ${errors.length - 1} more, in Problems)` : '';
   throw new Error(
     [
-      `${engineLabel(engine)} does not generate from a model with an error on a property it reads: ${errorLine(first)}${first.elementId ? ` (node ${first.elementId})` : ''}${more}`,
+      `${engineLabel(engine)} does not generate from a model with an error on a property it reads: ${errorLine(first)}${first.elementId ? ` (node ${first.elementId})` : ''}${more(errors.length)}`,
       ...errors.map((error) => `- ${errorLine(error)}`),
     ].join('\n'),
   );

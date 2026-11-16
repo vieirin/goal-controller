@@ -200,8 +200,9 @@ const keyPatterns = new Map<string, RegExp>();
 
 /**
  * The key a line of a document without ids starts with (indentation aside),
- * if it is one of `keys` followed by a space or the line's end: the line is
- * that key's property line, not an element's (null: it is an element's).
+ * if it is one of `keys` followed by a space, the line's end or a keyed
+ * name's bracket (`Probability[e1]`, goal-controller#354): the line is that
+ * key's property line, not an element's (null: it is an element's).
  */
 export const propertyKeyOf = (
   keys: readonly string[],
@@ -215,7 +216,7 @@ export const propertyKeyOf = (
       .sort((a, b) => b.length - a.length)
       .map((key) => key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
       .join('|');
-    pattern = new RegExp(`^[ \\t]*(${alternatives})(?=[ \\t\\r\\n]|$)`);
+    pattern = new RegExp(`^[ \\t]*(${alternatives})(?=[ \\t\\r\\n[]|$)`);
     keyPatterns.set(cacheKey, pattern);
   }
   return pattern.exec(line)?.[1] ?? null;

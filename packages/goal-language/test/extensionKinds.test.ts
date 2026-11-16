@@ -60,11 +60,11 @@ const tree: DocumentTree = {
 };
 
 const DOC = [
-  'G1: Go',
+  'goal G1: Go',
   '  when S1 > 3',
-  '  T1: Drive',
+  '  task T1: Drive',
   '    robot r2',
-  'S1: Probe',
+  'sensor S1: Probe',
   '  rate 0.5',
   '  feeds V1',
 ].join('\n');
@@ -85,7 +85,7 @@ describe('an extension’s kinds in the goal language (#132)', () => {
     });
     // a dialect that lists none writes the rest as before
     expect(notationDocument(toy, tree).text).to.equal(
-      'G1: Go\n  T1: Drive\n    robot r2',
+      'goal G1: Go\n  task T1: Drive\n    robot r2',
     );
   });
 
@@ -141,8 +141,11 @@ describe('an extension’s kinds in the goal language (#132)', () => {
     expect(messages(`${DOC}\n  level G1 * 2`)).to.include(
       'G1 is a goal, not a sensing.Sensor',
     );
-    // a listed kind's line names an element of the model
-    expect(messages(`${DOC}\nS9: Gauge`)).to.include('Not in the diagram');
+    // a listed kind's new line creates one (goal-controller#518), with its prefix
+    expect(messages(`${DOC}\nsensor S9: Gauge`)).to.deep.equal([]);
+    expect(messages(`${DOC}\nsensor T9: Gauge`)).to.deep.equal([
+      'A sensor needs an id S… in Sensed: T9 is not one',
+    ]);
   });
 
   it('reads any id in a refList, and leaves the catalog’s as before', () => {
@@ -176,8 +179,9 @@ describe('an extension’s kinds in the goal language (#132)', () => {
       'x',
     ]);
     expect(labels(when, when.indexOf('when ') + 5)).to.not.include('V1');
-    // a listed kind's keys, under its line
-    expect(labels(`${DOC.replace('\n  feeds V1', '')}\n  `)).to.deep.equal([
+    // a listed kind's keys, under its line (a key being typed: a blank
+    // line's head offers the kinds' words)
+    expect(labels(`${DOC.replace('\n  feeds V1', '')}\n  f`)).to.deep.equal([
       'feeds',
       'level',
     ]);

@@ -65,7 +65,8 @@ import type { DesignsFile } from '../../engines/kaossim/designs';
 import { keyedKeyOf } from '@goal-controller/goal-language';
 import { kaosLanguage } from '@goal-controller/goal-language/formats';
 import type { CountermeasureForm } from '../../engines/kaosres/definition';
-import { identifierOf, KAOS_UNSUPPORTED_KEY } from './read';
+import { isUuid } from '../ids';
+import { identifierOf, KAOS_ID_KEY, KAOS_UNSUPPORTED_KEY } from './read';
 import {
   CUSTOM_KEYS,
   KAOS_TYPES,
@@ -490,7 +491,9 @@ export const writeKaos = (
   for (const actor of json.actors ?? [])
     say(`${actor.text ?? actor.id}: KAOS has no actors, not written`);
 
-  // each element's identifier: its id, when it is a KAOSTools one; its name's otherwise
+  // each element's identifier: the one it was read with (`KAOS_ID_KEY`,
+  // goal-controller#518), else its id when that is a KAOSTools identifier
+  // and no UUID (a model whose ids are KAOSTools'), else its name's
   const nodes: Json[] = (json.orphans as Json[]).filter((node) => {
     if (WORDS[node.type]) return true;
     say(
@@ -498,23 +501,36 @@ export const writeKaos = (
     );
     return false;
   });
+  const ownIdentifier = (node: Json): string | null => {
+    const kept: unknown = node[KAOS_ID_KEY];
+    if (typeof kept === 'string' && isKaosIdentifier(kept)) return kept;
+    const id = String(node.id);
+    return isKaosIdentifier(id) && !isUuid(id) ? id : null;
+  };
   const identifier = new Map<string, string>();
   const taken = new Set(
-    nodes.map((n) => String(n.id)).filter((id) => isKaosIdentifier(id)),
+    nodes.flatMap((n) => {
+      const own = ownIdentifier(n);
+      return own === null ? [] : [own];
+    }),
   );
+  const used = new Set<string>();
   for (const node of nodes) {
     const id = String(node.id);
-    if (isKaosIdentifier(id) && !identifier.has(id)) {
-      identifier.set(id, id);
+    const own = ownIdentifier(node);
+    if (own !== null && !used.has(own)) {
+      identifier.set(id, own);
+      used.add(own);
       continue;
     }
     const base = identifierOf(String(node.text ?? ''), WORDS[node.type]!);
     let name = base;
     for (let n = 2; taken.has(name); n++) name = `${base}_${n}`;
     taken.add(name);
+    used.add(name);
     identifier.set(id, name);
     say(
-      `${node.text ?? id}: its id ${id} is no KAOSTools identifier, written as ${name}`,
+      `${node.text ?? id}: ${own === null ? `its id ${id} is no KAOSTools identifier` : `its identifier ${own} is another's`}, written as ${name}`,
       'info',
     );
   }

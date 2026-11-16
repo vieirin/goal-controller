@@ -1,0 +1,4 @@
+// las-radar: the system, its agents composed
+// kaoslts: KAOS2LTSA's derivation (Letier, Kramer, Magee and Uchitel, ASE'08 §4)
+
+// step 2: fluents, from the operations’ domain postconditions

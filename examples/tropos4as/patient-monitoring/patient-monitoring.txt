@@ -69,7 +69,7 @@
         },
         {
           "id": "medicineNotTaken",
-          "text": "medicine not taken",
+          "text": "medicineNotTaken: medicine not taken",
           "type": "tropos4as.Failure",
           "x": 765,
           "y": 195,
@@ -77,7 +77,7 @@
         },
         {
           "id": "errorNotEat",
-          "text": "ERROR: patient did not eat autonomously",
+          "text": "errorNotEat: ERROR: patient did not eat autonomously",
           "type": "tropos4as.Error",
           "x": 165,
           "y": 301,
@@ -87,7 +87,7 @@
         },
         {
           "id": "errorMedicine",
-          "text": "ERROR: medicine not taken autonomously",
+          "text": "errorMedicine: ERROR: medicine not taken autonomously",
           "type": "tropos4as.Error",
           "x": 879,
           "y": 308,
@@ -97,7 +97,7 @@
         },
         {
           "id": "errorNoDinner",
-          "text": "ERROR: no dinner until 8PM",
+          "text": "errorNoDinner: ERROR: no dinner until 8PM",
           "type": "tropos4as.Error",
           "x": 778,
           "y": 361,
@@ -107,7 +107,7 @@
         },
         {
           "id": "takeMedicineNoDinner",
-          "text": "take medicine without dinner",
+          "text": "takeMedicineNoDinner: take medicine without dinner",
           "type": "istar.Goal",
           "x": 806,
           "y": 468,

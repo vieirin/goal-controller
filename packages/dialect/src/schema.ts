@@ -753,6 +753,15 @@ export type DialectDefinition<K extends string = ElementKind> = {
    */
   idlessElements?: 'unlisted';
   /**
+   * The key of an element's `extra` (a top-level key of its piStar entry)
+   * that keeps another name a `reference` or a formula may call it by: an
+   * imported KAOS element's KAOSTools identifier (`kaosId`,
+   * goal-controller#518), as the tool's formulas and Monitors name it
+   * (`sump.highWater`). It names the element as its piStar id does; it is
+   * never the id its line shows.
+   */
+  alias?: string;
+  /**
    * Properties on links, by link kind: iStar's (`istar.ContributionLink`) or
    * one a dialect extension adds (`<namespace>.<Kind>`). Stored in the link's
    * `customProperties` in the piStar file, as an element's are; iStar's own
@@ -1054,11 +1063,86 @@ export type AnyDialect = DialectDefinition<string>;
 /** A definition with a notation (an engine's). */
 export type WithNotation = { notation: NotationDefinition };
 
-/** Whether a definition's lines name their elements (by id), or are theirs in order. */
+/**
+ * Whether a definition's ids are runtime-notation ids (`G1`, `T1.1`: its
+ * kinds have id prefixes). Every dialect's lines name their elements by id
+ * (goal-controller#518); one without prefixes writes any id, or the first
+ * characters of the element's piStar id (`shortId`).
+ */
 export const hasIds = (definition: Pick<AnyDialect, 'elements'>): boolean =>
   Object.values(definition.elements).some(
     (element) => element?.prefix !== undefined,
   );
+
+/**
+ * The word an element line starts with (goal-controller#518): its kind's
+ * local name (after the last `.`) in snake_case: `kaos.BehavioralGoal` is
+ * `behavioral_goal`, `nfr.NFR` is `nfr`, `goal` is `goal`.
+ */
+export const kindWord = (kind: string): string =>
+  kind
+    .slice(kind.lastIndexOf('.') + 1)
+    .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1_$2')
+    .toLowerCase();
+
+/** A definition's kinds by their words (`kindWord`): `{ behavioral_goal: 'kaos.BehavioralGoal' }`. */
+export const kindWordsOf = (
+  definition: Pick<AnyDialect, 'elements'>,
+): Readonly<Record<string, string>> => {
+  // no inherited keys: a word may be `constructor`
+  const words: Record<string, string> = Object.create(null);
+  for (const kind of Object.keys(definition.elements))
+    words[kindWord(kind)] ??= kind;
+  return words;
+};
+
+/** How many characters of its piStar id an element without an id of its own shows (`shortId`). */
+export const SHORT_ID_LENGTH = 8;
+
+/**
+ * The custom property an author-written id is kept in, where ids are not
+ * prefixes of a name's text (KAOS, NFR, a dialect without id prefixes,
+ * goal-controller#518): the element's name stays what its line says after
+ * the id. An engine dialect's runtime id stays in its name (`G1: Deliver`).
+ */
+export const WRITTEN_ID_KEY = 'writtenId';
+
+/**
+ * The custom properties a link keeps, while one of its ends is missing (an
+ * orphan, goal-controller#518), the id the author wrote for that end's
+ * element: writing its line again (`kind net_up: …`) brings that element
+ * back, under its piStar id, and they are cleared. An element without one
+ * is brought back by its short id (`shortId`), which needs nothing kept.
+ */
+export const MISSING_END_ID_KEYS = {
+  source: 'missingSourceId',
+  target: 'missingTargetId',
+} as const;
+
+/** The id a line shows for an element without one of its own: its piStar id's first characters. */
+export const shortId = (iStarId: string): string =>
+  iStarId.slice(0, SHORT_ID_LENGTH);
+
+/**
+ * What makes a dialect's element lines unreadable (goal-controller#518): two
+ * kinds written with one word. Null: none. (A word that is also a key a
+ * line starts with, a property's, `link`, `actor`, starts an element line
+ * only when an id and a colon follow it: the goal language's `readHead`.)
+ */
+export const kindWordProblem = (
+  definition: Pick<AnyDialect, 'elements'>,
+): string | null => {
+  const kinds = new Map<string, string>();
+  for (const kind of Object.keys(definition.elements)) {
+    const word = kindWord(kind);
+    const other = kinds.get(word);
+    if (other !== undefined)
+      return `${other} and ${kind} are both written ${word}`;
+    kinds.set(word, kind);
+  }
+  return null;
+};
 
 /**
  * What the views check the text against: the elements and the workbench's
@@ -1078,18 +1162,15 @@ export type DefinitionContextElement = {
   construct?: string | null;
   /** its horizontal position in the diagram: an engine may order siblings by it */
   x?: number;
+  /** its piStar id (none: its key): a line without an id of its own shows its first characters (`shortId`) */
+  iStarId?: string;
+  /** whether its text gave it an id (none: whether it has a piStar id other than its id) */
+  hasId?: boolean;
 };
 
 export type DefinitionContext = {
   elements: Readonly<Record<string, DefinitionContextElement>>;
   variables: readonly string[];
-  /** a definition whose lines name no element: the elements its lines are, in order */
-  order?: readonly string[];
-  /**
-   * and the elements whose names start with an id (`G1: Deliver`), by that
-   * id: a line written with one is that element's, wherever it is
-   */
-  named?: Readonly<Record<string, string>>;
   /**
    * a definition without ids that writes link lines: its elements' keys by
    * their lines' text, each list in the document's order (a link line names
@@ -1103,11 +1184,28 @@ export type DefinitionContext = {
   /** the model's actors, by piStar id, as checks read them (`readActor`, goal-controller#107) */
   actors?: Readonly<Record<string, DefinitionContextActor>>;
   /**
-   * the elements' keys by their piStar ids, where the dialect has
-   * `reference` values (goal-controller#181): a reference may name an
-   * element by either
+   * the elements' keys by their piStar ids, and by their aliases (the
+   * dialect's `alias`, goal-controller#518), where the dialect has
+   * `reference` or `formula` values (goal-controller#181): a reference may
+   * name an element by any of them
    */
   iStarIds?: Readonly<Record<string, string>>;
+  /** the links one of whose ends the model lacks (goal-controller#518): an error */
+  orphans?: readonly DocumentOrphan[];
+};
+
+/**
+ * A link one of whose ends the model lacks (goal-controller#518: removing an
+ * element keeps its links): `source` and `target` are the keys of its ends
+ * still listed (null: not listed, or gone), `missing` the piStar ids of the
+ * ends the model lacks (an end may be a link: an NFR argument's target).
+ */
+export type DocumentOrphan = {
+  iStarId: string;
+  kind: string;
+  source: string | null;
+  target: string | null;
+  missing: readonly string[];
 };
 
 /** A link as a check reads it: its kind, its ends' keys (null: not an element the view lists) and properties. */
@@ -1154,6 +1252,8 @@ export type DocumentNode = {
   children: readonly string[];
   relation?: Relation | null;
   construct?: string | null;
+  /** the other name a reference may call it by (its dialect's `alias`, goal-controller#518) */
+  alias?: string;
 };
 
 /** What the document reads of a view (goal-tree's `GoalView` is one). */
@@ -1173,6 +1273,8 @@ export type DocumentTree = {
    * dependency's link line names one (goal-tree's `GoalView` has them)
    */
   dependums?: ReadonlyMap<string, DocumentNode>;
+  /** the links one of whose ends the model lacks (goal-controller#518; goal-tree's `GoalView` has them) */
+  orphans?: readonly DocumentOrphan[];
 };
 
 /** What the document reads of an actor: its kind, name, properties and its elements' keys. */
@@ -1796,6 +1898,8 @@ export const defineDialect = <const D extends AnyDialect>(
     [...lineKeys].some((key) => !order.has(key))
   )
     fail('propertyLineOrder must list each listed kind key once');
+  const words = kindWordProblem(definition);
+  if (words) fail(`kind words: ${words}`);
   return deepFreeze(definition) as unknown as DeepReadonly<D>;
 };
 

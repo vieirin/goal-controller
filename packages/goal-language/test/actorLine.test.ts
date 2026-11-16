@@ -22,7 +22,6 @@ import {
   notationEdits,
   readActorLine,
   readLine,
-  takesPosition,
 } from '../src/index.js';
 import { node, toy } from '../../dialect/test/support/toy.js';
 
@@ -92,8 +91,8 @@ const DOC = [
   'actor "Ann" {importance = High}',
   'actor "Bob" {budget = 3}',
   'actor "Robot"#2 {importance = Low}',
-  'G1: Go',
-  '  T1: Drive',
+  'goal G1: Go',
+  '  task T1: Drive',
   '    link G1 {weight = 50}',
 ].join('\n');
 
@@ -137,7 +136,9 @@ describe('actor lines (#109)', () => {
       text: DOC,
       ids: ['G1', 'T1', 'T1'],
     });
-    expect(notationDocument(toy, TREE).text).to.equal('G1: Go\n  T1: Drive');
+    expect(notationDocument(toy, TREE).text).to.equal(
+      'goal G1: Go\n  task T1: Drive',
+    );
   });
 
   it('maps actor lines back to the actors’ properties, wherever the line is', () => {
@@ -238,7 +239,6 @@ describe('actor lines (#109)', () => {
       'actor',
       '"Ann" {importance = High}',
     ]);
-    expect(takesPosition(plain, line)).to.equal(false);
     const { text } = notationDocument(plain, TREE);
     expect(text.split('\n').slice(0, 3)).to.deep.equal([
       'actor "Ann" {importance = High}',
@@ -259,12 +259,12 @@ describe('completion and hover on link and actor lines (#109)', () => {
   const context = contextFromView(crew, TREE, []);
   const labels = (doc: string, pos = doc.length) =>
     completionsAt(crew, doc, pos, context)?.options.map((o) => o.label);
-  const head = 'G1: Go\n  T1: Drive\n    ';
+  const head = 'goal G1: Go\n  task T1: Drive\n    ';
 
   it('completes a link line’s target: what the source links to, of kinds with properties', () => {
     expect(labels(`${head}link `)).to.deep.equal(['G1']);
     // a goal links to nothing
-    expect(labels('G1: Go\n  link ')).to.deep.equal([]);
+    expect(labels('goal G1: Go\n  link ')).to.deep.equal([]);
   });
 
   it('completes the keys a link’s kind declares, inside { }', () => {

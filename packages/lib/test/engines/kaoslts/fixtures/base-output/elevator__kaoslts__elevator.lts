@@ -1,0 +1,15 @@
+// elevator: the system, its agents composed
+// kaoslts: KAOS2LTSA's derivation (Letier, Kramer, Magee and Uchitel, ASE'08 §4)
+
+// not translated:
+//   door.status : Open|Close is no Boolean attribute: bounding it as a parameterised fluent is the analyst's step 1, left out
+//   CloseDoor's DomPost defines no fluent (step 2 needs a conjunction of fluents): it has a comparison, not a fluent
+//   LeaveFloor's DomPost defines no fluent (step 2 needs a conjunction of fluents): it has a relationMembership, not a fluent
+//   Reschedule: no agent performs it, its constraints are the system's
+//   Push button: no agent performs it, its constraints are the system's
+//   CloseDoor: no agent performs it, its constraints are the system's
+//   DomPre_closeDoor: not translated, it has a comparison, not a fluent
+//   LeaveFloor: no agent performs it, its constraints are the system's
+//   DomPre_leaveFloor: not translated, it has a relationMembership, not a fluent
+
+// step 2: fluents, from the operations’ domain postconditions

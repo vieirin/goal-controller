@@ -234,7 +234,7 @@ describe('GODA: what the language reads for it', () => {
     expect(() => Model.validate(parsePistar(model), goda)).to.not.throw();
     const view = goalView(parsePistar(model), goda);
     const { text } = notationDocument(goda, view);
-    expect(text).to.equal('G1: Serve\n  selected true\n  T1: Pick');
+    expect(text).to.equal('goal G1: Serve\n  selected true\n  task T1: Pick');
     expect(
       documentDiagnostics(dialect, text, contextFromView(goda, view, [])),
     ).to.deep.equal([]);
@@ -263,10 +263,10 @@ describe('GODA: what the language reads for it', () => {
 
   it('reads the same task id under two goals, and one twice under a goal as a duplicate', () => {
     const doc = [
-      'G3: Collect',
-      '  T1.1: Read',
-      'G4: Report',
-      '  T1.1: Read',
+      'goal G3: Collect',
+      '  task T1.1: Read',
+      'goal G4: Report',
+      '  task T1.1: Read',
     ].join('\n');
     const context = {
       elements: {
@@ -278,7 +278,7 @@ describe('GODA: what the language reads for it', () => {
     };
     expect(documentDiagnostics(dialect, doc, context)).to.deep.equal([]);
     expect(
-      documentDiagnostics(dialect, `${doc}\n  T1.1: Again`, context).map(
+      documentDiagnostics(dialect, `${doc}\n  task T1.1: Again`, context).map(
         (d) => d.message,
       ),
     ).to.deep.equal(['Duplicate id T1.1 under G4']);
@@ -432,7 +432,7 @@ describe('What the language grew for GODA, in Edge', () => {
         `1:9 A cost is not part of ${definition.name}`,
       ]);
       // and in its editors
-      const doc = 'T1: Pick [W = 1]';
+      const doc = 'task T1: Pick [W = 1]';
       expect(
         documentDiagnostics(definition as AnyDialect, doc, {
           elements: { T1: { kind: 'task', children: [], properties: {} } },

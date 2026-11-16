@@ -200,19 +200,72 @@ G1: Deliver [G2#G3] ⇒ interleaved(G2, G3)
 
 ## The Notation view
 
+A Notation document's element line is `kind id: name …`
+(goal-controller#518): its kind's word, the id it shows and its text. Its
+id names its element, never its position; a line naming no element creates
+one, an element no line names is removed (its links stay: orphans).
+
 | Export | Signature | What it does |
 | --- | --- | --- |
-| `notationDocument` | `(D, tree: DocumentTree) => { text, ids }` | writes the model as a document, one id per line (without ids, per element line: link, actor and property lines take no position) |
-| `notationEdits` | `(D, text, tree) => NotationEdit[]` | what a document changes: element texts, and properties set or removed |
-| `contextFromView` | `(D, tree, variables) => DefinitionContext` | what the text is checked against; for a definition without ids, `order` (the elements by position) and `named` (the elements whose names start with an id, by that id) |
-| `writtenIds` | `(tree) => Record<id, key>` | the elements whose names start with an id (`G1: Deliver`), by that id |
-| `readLine` | `(D, line) => LineReading` | one line: an element (with spans for the id, annotations, notation refs and operators, declaration) or a property |
+| `notationDocument` | `(D, tree: DocumentTree) => { text, ids }` | writes the model as a document (`documentLine` per element); `ids`: the key of the element each line is or is under, for every element, property and link line (actor lines, at the top, have none) |
+| `notationEdits` | `(D, text, tree, { newId?, base? }) => NotationEdit[]` | what a document changes: element texts, properties set or removed, elements created and removed (below), read from a line diff between `base` (default: the document written from `tree`) and `text`; `newId` gives a new element's piStar id (default: a random UUID) |
+| `notationReading` | `(D, text, tree, { newId?, base? }) => { edits, base }` | `notationEdits`, and the text the model has once they are made (`DocumentBase`: its lines, each line's element by piStar id, each line's role): an editor that keeps what is typed reads its next text against it |
+| `documentBase` | `(D, tree) => DocumentBase` | the document written from a tree, as a base |
+| `contextFromView` | `(D, tree, variables) => DefinitionContext` | what the text is checked against: each element with its `iStarId` and `hasId` (whether its text gave it an id), and the tree's `orphans` when it has any |
+| `readLine` | `(D, line) => LineReading` | one line: an element (with spans for the word, id, annotations, notation refs and operators, declaration) or a property |
+| `readHead` | `(D, line) => { word, wordSpan, kind, id, idSpan } \| null` | an element line's head: its kind word (`kind` null: no kind's), and the id before its colon (null: none); null: no head ([reference.md](reference.md#the-kind-word)) |
+| `headWordAt` | `(line, offset) => { from, typed } \| null` | where a kind word is being typed: the cursor at a line's head, after its indentation and annotations |
+| `lineKeyWords` | `(D) => Set<string>` | the words a line may start with that are no kind's: its property keys, `link`, `actor` |
+| `lineIdentities` | `(D, Identified[]) => { resolve(indent, id), element(key) }` | which element each element line names, read in order: `{ key }`, `{ ambiguous: keys }` (several show that id) or null (none: a new element) |
+| `identifiedOfContext`, `contextKeyOf` | `(context) => Identified[]`, `(context, id) => key \| null` | a context's elements as lines name them; the key of the element an id names in a context (its key, or the one element that shows it) |
 | `lineId`, `readPropertyLine` | `(D, line) => …` | a line's id; a property line's key and value |
 | `annotatedProperties` | `(reading) => DeclaredProperties` | what a line's annotations set (the first of each kind) |
-| `nodeLine` | `(D, node) => string` | a node's element text |
+| `nodeLine` | `(D, node) => string` | a node's element text, as its name stores it (no word, no short id) |
 | `writtenName`, `unquotedName` | `(D, name) => string`, `(written) => string \| null` | a name as a line without ids writes it: quoted where it would read as a property line, or is quoted (goal-controller#138); the name in a quoted one |
 | `isValidName` | `(D, kind, name) => boolean` | whether a name can be written on that kind's line |
 | `operatorsFor` | `(D & WithNotation) => { constructs, arguments }` | the inspector's operator buttons, for the enabled operators only |
+
+`ElementReading` (an element `LineReading`) has a `word`, `{ text, kind,
+span }`: the word as written and the kind it is (null: no kind's), or null
+for a line without one; `id` and `idSpan` are the written id, any
+`[A-Za-z0-9_][A-Za-z0-9_.-]*`, and `text` runs from the id to the
+declaration (`7857cb00: Achieve [Manual Backup]`).
+
+A `NotationEdit` is one of:
+
+- `{ iStarId, text }`: an element's text (a line showing its short id
+  stores none);
+- `{ iStarId, key, value }`, `{ link, key, value }`, `{ actor, key, value }`:
+  a property set, or removed (`value` null);
+- `{ create: { iStarId, kind, text, properties, after, line, writeId } }`: an
+  element a line adds, of the iStar kind its word says (`istarKindOf`: an
+  engine's `task` is `istar.Task`), its annotations', declaration's and
+  property lines' properties, `after` the key of the element line above it
+  (its container is that one's), `line` its index (from 0), and `writeId`
+  the short id the editor writes on a line that had no id (null: it had);
+- `{ remove: iStarId, writtenId? }`: an element no line names any more;
+  `writtenId` the id its author wrote, which the workbench keeps on its
+  orphan links (`MISSING_END_ID_KEYS`) so that writing its line again
+  repairs them (a `create` with its piStar id, and `{ link, key, value:
+  null }` clearing what was kept).
+
+What an edit means is decided by six rules, read from the line diff and
+stated in `notation/document.ts`'s header: an unchanged line keeps its
+element; a new property line is the element line's above it, by
+indentation; a property line removed unsets, one changed in place sets; an
+element line replaced in place (same kind, the id alone or the name alone
+changed) is a rename or relabel of its element; a line only added creates,
+an element no line names is removed; a line being typed or in error (no
+word or no kind's, a second line with an element's id, another kind's word
+on an element's line, in an engine dialect a new id not its word's kind's)
+edits nothing, changes what no other line means, and holds the lines it
+replaces.
+
+`DefinitionContext.orphans` (the dialect package's `DocumentOrphan[]`, from
+`DocumentTree.orphans`) are the links missing an end: `{ iStarId, kind,
+source, target, missing }`, `source` and `target` the keys of the ends
+still listed (or null), `missing` the piStar ids of those the model lacks.
+The validator reports each (code `orphan`).
 
 ## Validation and completion
 
@@ -224,7 +277,7 @@ G1: Deliver [G2#G3] ⇒ interleaved(G2, G3)
 | `checkInputOf` | `(D, owner, stored) => AnyCheckInput` | what every check on an element (`{ element: 'goal' }`), an actor or a link is given: `readProperties`'s `props` and `raw`, and its `kind` (goal-controller#222) |
 | `parses` | `(input, key) => boolean` | whether a key's value reads as its type (unset reads): a check is run on a key only then |
 | `valueProblem` | `(config: ValueConfig, text, context?) => string \| null` | whether a value fits its type, options, bounds and element kind |
-| `completionsAt` | `(D, text, pos, context) => CompletionResult \| null` | in a notation: children, `skip` and the enabled operators; on a property line: the keys not set yet |
+| `completionsAt` | `(D, text, pos, context) => CompletionResult \| null` | at a line's head: the kinds' words (`keyword`, the kind as `detail`); in a notation: children, `skip` and the enabled operators; on a property line: the keys not set yet |
 | `fieldCompletionsAt` | `(D, config, text, pos, context, elementId?) => CompletionResult \| null` | ids (`refList`), names and declared functions (`assertion`, `expression`), and in an `ocl` value the operations after `->` and the names in scope of the element (see [reference.md](reference.md#ocl)) |
 | `fieldHover` | `(D, context, id, key, text, pos) => Hover \| null` | in an inspector field: the element an id or a name is (`**R1**: heater (a resource of this model)`), a variable, a declared function |
 | `constructHint` | `(D, construct) => string \| null` | `Sequence — does every child, one after another` |
@@ -241,7 +294,7 @@ value check says what is wrong).
 
 | Export | Signature | What it does |
 | --- | --- | --- |
-| `highlightLine` | `(D, line) => Highlight[]` | one document line, from the lexer's tokens; a property value is highlighted by its type |
+| `highlightLine` | `(D, line) => Highlight[]` | one document line, from the lexer's tokens; an element line's kind word is a `keyword`; a property value is highlighted by its type |
 | `highlightValue` | `(config, text, offset?) => Highlight[]` | one value |
 
 A `Highlight` is `{ from, to, style }`, where `style` is one of
@@ -255,7 +308,9 @@ These are also in `/light`.
 
 | Export | Signature | Example |
 | --- | --- | --- |
-| `elementLine` | `(D, { id, name, notation }, declaration?, annotations?) => string` | `G1: Deliver [G2;G3]` |
+| `elementLine` | `(D, { id, name, notation, hasId? }, declaration?, annotations?) => string` | an element's text as its name stores it: `G1: Deliver [G2;G3]`; without runtime ids, `Deliver`, or `net_up: Deliver` with `hasId` |
+| `documentLine` | `(D, { kind, id, iStarId, hasId?, name, notation }, declaration?, annotations?) => string` | an element's line in a document: `goal G1: Deliver [G2;G3]`, `behavioral_goal 7857cb00: Achieve [Manual Backup]`, annotations first |
+| `shownId`, `hasWrittenId` | `({ id, iStarId, hasId? }) => string`, `=> boolean` | the id a line shows: its written one, else `shortId(iStarId)`; whether it has a written one (`hasId`, else an id other than its piStar id) |
 | `writeAnnotations` | `(properties) => string \| null` | `<<action>> {type = duty}` |
 | `writeDeclaration` | `(properties) => string \| null` | `{int 0..100 = 80}` |
 | `propertyLine` | `(key, value) => string` | `maintain battery > 20` |

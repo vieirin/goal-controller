@@ -299,10 +299,10 @@ describe('Contextual goal models in the Notation view', () => {
   it("writes the Fig. 13 fragment's elements, costs and contexts as lines", () => {
     const { text } = notationDocument(cgm, seedView('museum-guide-costs'));
     for (const lines of [
-      'G1: visitor (v) gets informed about a piece of art (p) in museum (m)\n  G2: (v) gets info via his/her PDA\n    link G1 {context = C5}',
-      '      T3: (p) info is presented to (v) via video\n        cost 60\n        link T4 {amount = 40}\n        link T5 {amount = 20}',
-      '    G10: (s) gives (p) info to (v) in person\n      link SG2 {context = C14} {opposite = !C14}',
-      'C14: the visitor is close to the staff member\n  description the visitor is close to the staff member',
+      'goal G1: visitor (v) gets informed about a piece of art (p) in museum (m)\n  goal G2: (v) gets info via his/her PDA\n    link G1 {context = C5}',
+      '      task T3: (p) info is presented to (v) via video\n        cost 60\n        link T4 {amount = 40}\n        link T5 {amount = 20}',
+      '    goal G10: (s) gives (p) info to (v) in person\n      link SG2 {context = C14} {opposite = !C14}',
+      'context C14: the visitor is close to the staff member\n  description the visitor is close to the staff member',
     ])
       assert.ok(text.includes(lines), lines);
   });
@@ -310,12 +310,12 @@ describe('Contextual goal models in the Notation view', () => {
   it("writes C1's context analysis (Fig. 4) as lines", () => {
     const { text } = notationDocument(cgm, seedView('museum-guide'));
     for (const lines of [
-      'C1: the visitor is still inside the gallery building and is interested in the piece of art\n  formula F1.1 & ST1.2',
-      'ST1.2: visitor (v) is interested in getting explanation of piece of art (p) in museum (m)\n  supportedBy ST1 & ST2 & ST3 & ST4',
-      'F1.1: visitor is inside the gallery building',
-      '        T17: alert (v) via PDA vibration and SMS\n          link G17 {context = !C9}',
+      'context C1: the visitor is still inside the gallery building and is interested in the piece of art\n  formula F1.1 & ST1.2',
+      'statement ST1.2: visitor (v) is interested in getting explanation of piece of art (p) in museum (m)\n  supportedBy ST1 & ST2 & ST3 & ST4',
+      'fact F1.1: visitor is inside the gallery building',
+      '        task T17: alert (v) via PDA vibration and SMS\n          link G17 {context = !C9}',
       // a dependency's context, on its depender's line (#152 item 4)
-      '    G3: (v) gets info through (m) staff (s)\n      link G1 {context = C6}\n      link G3.1 {context = C10}',
+      '    goal G3: (v) gets info through (m) staff (s)\n      link G1 {context = C6}\n      link G3.1 {context = C10}',
     ])
       assert.ok(text.includes(lines), lines);
   });

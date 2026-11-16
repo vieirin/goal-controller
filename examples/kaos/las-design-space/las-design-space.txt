@@ -2,7 +2,7 @@
   "actors": [],
   "orphans": [
     {
-      "id": "ambulance_intervention",
+      "id": "f675bb39-9055-5737-b070-07649abd7895",
       "text": "Achieve [Ambulance Intervention]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -28,11 +28,12 @@
         "Modal[8MinResponseRate]": "Max",
         "Target[8MinResponseRate]": "50%"
       },
+      "kaosId": "ambulance_intervention",
       "x": 1960,
       "y": 80
     },
     {
-      "id": "ambulance_mobilised",
+      "id": "c1a3defb-f96c-551d-b195-0f61c2ba5f56",
       "text": "Achieve [Ambulance Mobilised]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -52,11 +53,12 @@
         "QualityVariable[NoAmbulanceMobilised]": "Boolean",
         "QualityVariable[WrongMobilisationDestination]": "Boolean"
       },
+      "kaosId": "ambulance_mobilised",
       "x": 1800,
       "y": 180
     },
     {
-      "id": "mobilised_ambulance_intervention",
+      "id": "909e6229-d035-54d3-8c6f-a391ac294250",
       "text": "Achieve [Mobilised Ambulance Intervention]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -74,11 +76,12 @@
         "Distribution[AmbulanceDelay]": "normal[0, 120]",
         "QualityVariable[AmbulanceInterventionFailure]": "Boolean"
       },
+      "kaosId": "mobilised_ambulance_intervention",
       "x": 3880,
       "y": 180
     },
     {
-      "id": "incident_form_encoded",
+      "id": "a64e6b94-c2dc-51d8-bdb8-85d352c058b7",
       "text": "Achieve [Incident Form Encoded]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -94,11 +97,12 @@
         "QualityVariable[CallTakingTime]": "Time",
         "QualityDefinition[CallTakingTime]": "the time it takes to fill in the incident form after the start of the first call"
       },
+      "kaosId": "incident_form_encoded",
       "x": 40,
       "y": 280
     },
     {
-      "id": "ambulance_mobilised_based_on_incident_form",
+      "id": "17eaf3ff-9a5a-5feb-93c5-fc9a4e5a9a18",
       "text": "Achieve [Ambulance Mobilised Based on Incident Form]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -114,11 +118,12 @@
         "QualityVariable[AmbulanceMobilisationTimeAfterFormEncoding]": "Time",
         "QualityVariable[DistanceMobilisedAmbulance]": "Time"
       },
+      "kaosId": "ambulance_mobilised_based_on_incident_form",
       "x": 2280,
       "y": 280
     },
     {
-      "id": "ambulance_allocated_based_on_incident_form",
+      "id": "f6958d88-67e2-54ea-a822-26b48393ffd4",
       "text": "Achieve [Ambulance Allocated Based on Incident Form]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -135,11 +140,12 @@
         "QualityVariable[DistanceAllocatedAmbulance]": "Time",
         "QualityDefinition[DistanceAllocatedAmbulance]": "the time-distance between the incident location and the ambulance allocated to the incident"
       },
+      "kaosId": "ambulance_allocated_based_on_incident_form",
       "x": 1960,
       "y": 380
     },
     {
-      "id": "allocated_on_form_and_info",
+      "id": "9c267106-5e5e-501b-8a1d-95a57e8960cd",
       "text": "Achieve [Ambulance Allocated Based on Incident Form and Ambulance Info]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -153,11 +159,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "allocated_on_form_and_info",
       "x": 840,
       "y": 480
     },
     {
-      "id": "accurate_ambulance_info",
+      "id": "2ca0cece-0b50-50d8-ae0b-dc56c9028b3d",
       "text": "Achieve [Accurate Ambulance Info]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -171,11 +178,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "accurate_ambulance_info",
       "x": 1480,
       "y": 480
     },
     {
-      "id": "allocated_ambulance_mobilised",
+      "id": "4fcad94a-8a2d-5950-ae98-67dee177184d",
       "text": "Achieve [Allocated Ambulance Mobilised]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -190,11 +198,12 @@
         "Description": "",
         "QualityVariable[MobilisationCommunicationTime]": "Time"
       },
+      "kaosId": "allocated_ambulance_mobilised",
       "x": 3240,
       "y": 380
     },
     {
-      "id": "ambulances_deployed",
+      "id": "872c4c65-72a3-5403-8e51-0ad4895c3c8a",
       "text": "Ambulances deployed (RE'11 §IV.D's fifth decision point)",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -209,215 +218,235 @@
         "Description": "",
         "QualityVariable[NbAmbulances]": "Number"
       },
+      "kaosId": "ambulances_deployed",
       "x": 2120,
       "y": 480
     },
     {
-      "id": "option_1_1",
+      "id": "3d2e5de5-c4d8-5130-abbf-2a536a19757a",
       "text": "Option 1.1. Current paper-based",
       "type": "kaos.Agent",
       "customProperties": {
         "Type": "",
         "Description": ""
       },
+      "kaosId": "option_1_1",
       "x": 200,
       "y": 280
     },
     {
-      "id": "option_1_2",
+      "id": "5ff1ce1e-c3f7-5661-869b-6e3ff5e7c94a",
       "text": "Option 1.2. Computer-based call taking",
       "type": "kaos.Agent",
       "customProperties": {
         "Type": "",
         "Description": ""
       },
+      "kaosId": "option_1_2",
       "x": 360,
       "y": 280
     },
     {
-      "id": "option_1_3",
+      "id": "7a90b767-1abd-5120-9a70-dc1ee7a813f8",
       "text": "Option 1.3. Automated Call Location",
       "type": "kaos.Agent",
       "customProperties": {
         "Type": "",
         "Description": ""
       },
+      "kaosId": "option_1_3",
       "x": 520,
       "y": 280
     },
     {
-      "id": "option_1_4",
+      "id": "7d6996ae-a3c2-5bdc-936c-17396c15c167",
       "text": "Option 1.4. Computer-based + automated location",
       "type": "kaos.Agent",
       "customProperties": {
         "Type": "",
         "Description": ""
       },
+      "kaosId": "option_1_4",
       "x": 680,
       "y": 280
     },
     {
-      "id": "option_2_1",
+      "id": "90416150-fce6-54f3-a2c5-bdad17bdec9e",
       "text": "Option 2.1. Current Radio-based",
       "type": "kaos.Agent",
       "customProperties": {
         "Type": "",
         "Description": ""
       },
+      "kaosId": "option_2_1",
       "x": 3400,
       "y": 380
     },
     {
-      "id": "option_2_2",
+      "id": "8975cbf7-b25e-5b72-9048-283b93a3b372",
       "text": "Option 2.2. MDT- System A",
       "type": "kaos.Agent",
       "customProperties": {
         "Type": "",
         "Description": ""
       },
+      "kaosId": "option_2_2",
       "x": 3560,
       "y": 380
     },
     {
-      "id": "option_2_3",
+      "id": "a15cd697-f656-587d-b057-543bf16b6d27",
       "text": "Option 2.3. MDT- System B",
       "type": "kaos.Agent",
       "customProperties": {
         "Type": "",
         "Description": ""
       },
+      "kaosId": "option_2_3",
       "x": 3720,
       "y": 380
     },
     {
-      "id": "option_3_1",
+      "id": "4cbe99e4-a126-5daa-a5d5-5b16b700980c",
       "text": "Option 3.1. Current radio and paper-based",
       "type": "kaos.Agent",
       "customProperties": {
         "Type": "",
         "Description": ""
       },
+      "kaosId": "option_3_1",
       "x": 1640,
       "y": 480
     },
     {
-      "id": "option_3_2",
+      "id": "40262871-4cd7-5767-817a-054edcc5aa91",
       "text": "Option 3.2. Automated Vehicle Location (A)",
       "type": "kaos.Agent",
       "customProperties": {
         "Type": "",
         "Description": ""
       },
+      "kaosId": "option_3_2",
       "x": 1800,
       "y": 480
     },
     {
-      "id": "option_3_3",
+      "id": "33fae809-15c6-5803-99e9-3ae77498fb11",
       "text": "Option 3.3. Automated Vehicle Location (B)",
       "type": "kaos.Agent",
       "customProperties": {
         "Type": "",
         "Description": ""
       },
+      "kaosId": "option_3_3",
       "x": 1960,
       "y": 480
     },
     {
-      "id": "option_4_1",
+      "id": "6b13a7aa-d15f-56ca-9405-8d49f8eb9f61",
       "text": "Option 4.1. Current paper-based",
       "type": "kaos.Agent",
       "customProperties": {
         "Type": "",
         "Description": ""
       },
+      "kaosId": "option_4_1",
       "x": 1000,
       "y": 480
     },
     {
-      "id": "option_4_2",
+      "id": "d2041e1c-de02-5541-bf59-7bd4f5693cad",
       "text": "Option 4.2. Interactive Allocation",
       "type": "kaos.Agent",
       "customProperties": {
         "Type": "",
         "Description": ""
       },
+      "kaosId": "option_4_2",
       "x": 1160,
       "y": 480
     },
     {
-      "id": "option_4_3",
+      "id": "75eef983-8a84-56a8-bbb8-dc138d83d1e8",
       "text": "Option 4.3. Fully Automated Allocation",
       "type": "kaos.Agent",
       "customProperties": {
         "Type": "",
         "Description": ""
       },
+      "kaosId": "option_4_3",
       "x": 1320,
       "y": 480
     },
     {
-      "id": "option_5_1",
+      "id": "6c8d5d2e-0489-5a7f-9643-cefac24b2353",
       "text": "100 ambulances",
       "type": "kaos.Agent",
       "customProperties": {
         "Type": "",
         "Description": ""
       },
+      "kaosId": "option_5_1",
       "x": 2280,
       "y": 480
     },
     {
-      "id": "option_5_2",
+      "id": "ed6309d4-b842-5391-a9a6-db9157de9637",
       "text": "120 ambulances",
       "type": "kaos.Agent",
       "customProperties": {
         "Type": "",
         "Description": ""
       },
+      "kaosId": "option_5_2",
       "x": 2440,
       "y": 480
     },
     {
-      "id": "option_5_3",
+      "id": "80558b29-2363-5618-a274-e505726e688b",
       "text": "140 ambulances",
       "type": "kaos.Agent",
       "customProperties": {
         "Type": "",
         "Description": ""
       },
+      "kaosId": "option_5_3",
       "x": 2600,
       "y": 480
     },
     {
-      "id": "option_5_4",
+      "id": "eaf8bc6e-3f91-5327-9ea0-96452c45f2b7",
       "text": "160 ambulances",
       "type": "kaos.Agent",
       "customProperties": {
         "Type": "",
         "Description": ""
       },
+      "kaosId": "option_5_4",
       "x": 2760,
       "y": 480
     },
     {
-      "id": "option_5_5",
+      "id": "263d651f-31d6-5f5c-89dc-9e8fe319dbee",
       "text": "180 ambulances",
       "type": "kaos.Agent",
       "customProperties": {
         "Type": "",
         "Description": ""
       },
+      "kaosId": "option_5_5",
       "x": 2920,
       "y": 480
     },
     {
-      "id": "option_5_6",
+      "id": "7fe13b72-30d3-5bc0-baca-239f78f6518f",
       "text": "200 ambulances",
       "type": "kaos.Agent",
       "customProperties": {
         "Type": "",
         "Description": ""
       },
+      "kaosId": "option_5_6",
       "x": 3080,
       "y": 480
     }
@@ -442,13 +471,13 @@
         {
           "id": "ambulance_intervention-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "ambulance_mobilised",
+          "source": "c1a3defb-f96c-551d-b195-0f61c2ba5f56",
           "target": "ambulance_intervention-refinement-1"
         },
         {
           "id": "ambulance_intervention-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "mobilised_ambulance_intervention",
+          "source": "909e6229-d035-54d3-8c6f-a391ac294250",
           "target": "ambulance_intervention-refinement-1"
         }
       ],
@@ -456,7 +485,7 @@
         "id": "ambulance_intervention-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "ambulance_intervention-refinement-1",
-        "target": "ambulance_intervention"
+        "target": "f675bb39-9055-5737-b070-07649abd7895"
       }
     },
     {
@@ -475,13 +504,13 @@
         {
           "id": "ambulance_mobilised-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "incident_form_encoded",
+          "source": "a64e6b94-c2dc-51d8-bdb8-85d352c058b7",
           "target": "ambulance_mobilised-refinement-1"
         },
         {
           "id": "ambulance_mobilised-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "ambulance_mobilised_based_on_incident_form",
+          "source": "17eaf3ff-9a5a-5feb-93c5-fc9a4e5a9a18",
           "target": "ambulance_mobilised-refinement-1"
         }
       ],
@@ -489,7 +518,7 @@
         "id": "ambulance_mobilised-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "ambulance_mobilised-refinement-1",
-        "target": "ambulance_mobilised"
+        "target": "c1a3defb-f96c-551d-b195-0f61c2ba5f56"
       }
     },
     {
@@ -508,13 +537,13 @@
         {
           "id": "ambulance_mobilised_based_on_incident_form-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "ambulance_allocated_based_on_incident_form",
+          "source": "f6958d88-67e2-54ea-a822-26b48393ffd4",
           "target": "ambulance_mobilised_based_on_incident_form-refinement-1"
         },
         {
           "id": "ambulance_mobilised_based_on_incident_form-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "allocated_ambulance_mobilised",
+          "source": "4fcad94a-8a2d-5950-ae98-67dee177184d",
           "target": "ambulance_mobilised_based_on_incident_form-refinement-1"
         }
       ],
@@ -522,7 +551,7 @@
         "id": "ambulance_mobilised_based_on_incident_form-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "ambulance_mobilised_based_on_incident_form-refinement-1",
-        "target": "ambulance_mobilised_based_on_incident_form"
+        "target": "17eaf3ff-9a5a-5feb-93c5-fc9a4e5a9a18"
       }
     },
     {
@@ -541,19 +570,19 @@
         {
           "id": "ambulance_allocated_based_on_incident_form-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "allocated_on_form_and_info",
+          "source": "9c267106-5e5e-501b-8a1d-95a57e8960cd",
           "target": "ambulance_allocated_based_on_incident_form-refinement-1"
         },
         {
           "id": "ambulance_allocated_based_on_incident_form-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "accurate_ambulance_info",
+          "source": "2ca0cece-0b50-50d8-ae0b-dc56c9028b3d",
           "target": "ambulance_allocated_based_on_incident_form-refinement-1"
         },
         {
           "id": "ambulance_allocated_based_on_incident_form-refinement-1-3",
           "type": "kaos.RefinementLinkStart",
-          "source": "ambulances_deployed",
+          "source": "872c4c65-72a3-5403-8e51-0ad4895c3c8a",
           "target": "ambulance_allocated_based_on_incident_form-refinement-1"
         }
       ],
@@ -561,14 +590,14 @@
         "id": "ambulance_allocated_based_on_incident_form-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "ambulance_allocated_based_on_incident_form-refinement-1",
-        "target": "ambulance_allocated_based_on_incident_form"
+        "target": "f6958d88-67e2-54ea-a822-26b48393ffd4"
       }
     },
     {
       "id": "option_1_1-assigned-incident_form_encoded",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "option_1_1",
-      "target": "incident_form_encoded",
+      "source": "3d2e5de5-c4d8-5130-abbf-2a536a19757a",
+      "target": "a64e6b94-c2dc-51d8-bdb8-85d352c058b7",
       "customProperties": {
         "SysRef": "1.1",
         "Distribution[CallTakingTime]": "exponential[60]"
@@ -577,8 +606,8 @@
     {
       "id": "option_1_2-assigned-incident_form_encoded",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "option_1_2",
-      "target": "incident_form_encoded",
+      "source": "5ff1ce1e-c3f7-5661-869b-6e3ff5e7c94a",
+      "target": "a64e6b94-c2dc-51d8-bdb8-85d352c058b7",
       "customProperties": {
         "SysRef": "1.2",
         "Distribution[CallTakingTime]": "exponential[40]"
@@ -587,8 +616,8 @@
     {
       "id": "option_1_3-assigned-incident_form_encoded",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "option_1_3",
-      "target": "incident_form_encoded",
+      "source": "7a90b767-1abd-5120-9a70-dc1ee7a813f8",
+      "target": "a64e6b94-c2dc-51d8-bdb8-85d352c058b7",
       "customProperties": {
         "SysRef": "1.3",
         "Distribution[CallTakingTime]": "exponential[45]"
@@ -597,8 +626,8 @@
     {
       "id": "option_1_4-assigned-incident_form_encoded",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "option_1_4",
-      "target": "incident_form_encoded",
+      "source": "7d6996ae-a3c2-5bdc-936c-17396c15c167",
+      "target": "a64e6b94-c2dc-51d8-bdb8-85d352c058b7",
       "customProperties": {
         "SysRef": "1.4",
         "Distribution[CallTakingTime]": "exponential[30]"
@@ -607,8 +636,8 @@
     {
       "id": "option_4_1-assigned-allocated_on_form_and_info",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "option_4_1",
-      "target": "allocated_on_form_and_info",
+      "source": "6b13a7aa-d15f-56ca-9405-8d49f8eb9f61",
+      "target": "9c267106-5e5e-501b-8a1d-95a57e8960cd",
       "customProperties": {
         "SysRef": "4.1",
         "Distribution[AllocationTime]": "exponential[60]"
@@ -617,8 +646,8 @@
     {
       "id": "option_4_2-assigned-allocated_on_form_and_info",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "option_4_2",
-      "target": "allocated_on_form_and_info",
+      "source": "d2041e1c-de02-5541-bf59-7bd4f5693cad",
+      "target": "9c267106-5e5e-501b-8a1d-95a57e8960cd",
       "customProperties": {
         "SysRef": "4.2"
       }
@@ -626,8 +655,8 @@
     {
       "id": "option_4_3-assigned-allocated_on_form_and_info",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "option_4_3",
-      "target": "allocated_on_form_and_info",
+      "source": "75eef983-8a84-56a8-bbb8-dc138d83d1e8",
+      "target": "9c267106-5e5e-501b-8a1d-95a57e8960cd",
       "customProperties": {
         "SysRef": "4.3"
       }
@@ -635,8 +664,8 @@
     {
       "id": "option_3_1-assigned-accurate_ambulance_info",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "option_3_1",
-      "target": "accurate_ambulance_info",
+      "source": "4cbe99e4-a126-5daa-a5d5-5b16b700980c",
+      "target": "2ca0cece-0b50-50d8-ae0b-dc56c9028b3d",
       "customProperties": {
         "SysRef": "3.1"
       }
@@ -644,8 +673,8 @@
     {
       "id": "option_3_2-assigned-accurate_ambulance_info",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "option_3_2",
-      "target": "accurate_ambulance_info",
+      "source": "40262871-4cd7-5767-817a-054edcc5aa91",
+      "target": "2ca0cece-0b50-50d8-ae0b-dc56c9028b3d",
       "customProperties": {
         "SysRef": "3.2"
       }
@@ -653,8 +682,8 @@
     {
       "id": "option_3_3-assigned-accurate_ambulance_info",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "option_3_3",
-      "target": "accurate_ambulance_info",
+      "source": "33fae809-15c6-5803-99e9-3ae77498fb11",
+      "target": "2ca0cece-0b50-50d8-ae0b-dc56c9028b3d",
       "customProperties": {
         "SysRef": "3.3"
       }
@@ -662,8 +691,8 @@
     {
       "id": "option_2_1-assigned-allocated_ambulance_mobilised",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "option_2_1",
-      "target": "allocated_ambulance_mobilised",
+      "source": "90416150-fce6-54f3-a2c5-bdad17bdec9e",
+      "target": "4fcad94a-8a2d-5950-ae98-67dee177184d",
       "customProperties": {
         "SysRef": "2.1",
         "Distribution[MobilisationCommunicationTime]": "exponential[60]"
@@ -672,8 +701,8 @@
     {
       "id": "option_2_2-assigned-allocated_ambulance_mobilised",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "option_2_2",
-      "target": "allocated_ambulance_mobilised",
+      "source": "8975cbf7-b25e-5b72-9048-283b93a3b372",
+      "target": "4fcad94a-8a2d-5950-ae98-67dee177184d",
       "customProperties": {
         "SysRef": "2.2"
       }
@@ -681,8 +710,8 @@
     {
       "id": "option_2_3-assigned-allocated_ambulance_mobilised",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "option_2_3",
-      "target": "allocated_ambulance_mobilised",
+      "source": "a15cd697-f656-587d-b057-543bf16b6d27",
+      "target": "4fcad94a-8a2d-5950-ae98-67dee177184d",
       "customProperties": {
         "SysRef": "2.3"
       }
@@ -690,8 +719,8 @@
     {
       "id": "option_5_1-assigned-ambulances_deployed",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "option_5_1",
-      "target": "ambulances_deployed",
+      "source": "6c8d5d2e-0489-5a7f-9643-cefac24b2353",
+      "target": "872c4c65-72a3-5403-8e51-0ad4895c3c8a",
       "customProperties": {
         "SysRef": "5.1",
         "Distribution[NbAmbulances]": "100"
@@ -700,8 +729,8 @@
     {
       "id": "option_5_2-assigned-ambulances_deployed",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "option_5_2",
-      "target": "ambulances_deployed",
+      "source": "ed6309d4-b842-5391-a9a6-db9157de9637",
+      "target": "872c4c65-72a3-5403-8e51-0ad4895c3c8a",
       "customProperties": {
         "SysRef": "5.2",
         "Distribution[NbAmbulances]": "120"
@@ -710,8 +739,8 @@
     {
       "id": "option_5_3-assigned-ambulances_deployed",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "option_5_3",
-      "target": "ambulances_deployed",
+      "source": "80558b29-2363-5618-a274-e505726e688b",
+      "target": "872c4c65-72a3-5403-8e51-0ad4895c3c8a",
       "customProperties": {
         "SysRef": "5.3",
         "Distribution[NbAmbulances]": "140"
@@ -720,8 +749,8 @@
     {
       "id": "option_5_4-assigned-ambulances_deployed",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "option_5_4",
-      "target": "ambulances_deployed",
+      "source": "eaf8bc6e-3f91-5327-9ea0-96452c45f2b7",
+      "target": "872c4c65-72a3-5403-8e51-0ad4895c3c8a",
       "customProperties": {
         "SysRef": "5.4",
         "Distribution[NbAmbulances]": "160"
@@ -730,8 +759,8 @@
     {
       "id": "option_5_5-assigned-ambulances_deployed",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "option_5_5",
-      "target": "ambulances_deployed",
+      "source": "263d651f-31d6-5f5c-89dc-9e8fe319dbee",
+      "target": "872c4c65-72a3-5403-8e51-0ad4895c3c8a",
       "customProperties": {
         "SysRef": "5.5",
         "Distribution[NbAmbulances]": "180"
@@ -740,8 +769,8 @@
     {
       "id": "option_5_6-assigned-ambulances_deployed",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "option_5_6",
-      "target": "ambulances_deployed",
+      "source": "7fe13b72-30d3-5bc0-baca-239f78f6518f",
+      "target": "872c4c65-72a3-5403-8e51-0ad4895c3c8a",
       "customProperties": {
         "SysRef": "5.6",
         "Distribution[NbAmbulances]": "200"

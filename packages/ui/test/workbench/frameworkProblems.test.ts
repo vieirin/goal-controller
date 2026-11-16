@@ -70,7 +70,11 @@ declare operation [ op ] name "Op" performedby a operationalizes g end`;
 
   it('reads a model of these kinds, its block applied, in the kaos mode', () => {
     const model = modelOf(MODEL);
-    expect(model.elements.get('op')?.kind).toBe('kaosOperations.Operation');
+    // by its KAOSTools identifier (its piStar id is a UUID, #518)
+    const op = [...model.elements.values()].find(
+      (e) => e.extra?.kaosId === 'op',
+    );
+    expect(op?.kind).toBe('kaosOperations.Operation');
   });
 
   it('flags a member its object doesn’t declare, and the open triangle', () => {

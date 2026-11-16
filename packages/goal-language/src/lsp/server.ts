@@ -27,7 +27,6 @@ import {
   DefaultDefinitionProvider,
   DefaultDocumentUpdateHandler,
   AstNodeHoverProvider,
-  type CodeActionProvider,
   type DefaultSharedModuleContext,
   type LangiumServices,
   type LangiumSharedServices,
@@ -35,14 +34,12 @@ import {
   type PartialLangiumSharedServices,
 } from 'langium/lsp';
 import {
-  CodeActionKind,
   CompletionItemKind,
   DiagnosticSeverity,
   InsertTextFormat,
   LocationLink,
   type CancellationToken,
   type CodeAction,
-  type CodeActionParams,
   type CompletionList,
   type CompletionParams,
   type DefinitionParams,
@@ -54,8 +51,6 @@ import {
 import type { TextDocument } from 'langium';
 import {
   hasIds,
-  istarKindOf,
-  kindLabel,
   type AnyDialect,
   type DefinitionContext,
 } from '@goal-controller/dialect';
@@ -82,8 +77,6 @@ import {
 import { definitionAt, fieldHover, hoverAt } from '../notation/navigation.js';
 import { START } from '../notation/highlight.js';
 import { fieldPropertyOf } from '../notation/values.js';
-import { readLine } from '../notation/lines.js';
-import { kindOfId, lineScope } from '../notation/scope.js';
 import {
   readFieldUri,
   GOAL_CONTEXT_NOTIFICATION,
@@ -381,108 +374,6 @@ export const createGoalLspServices = (
     }
   }
 
-  const capitalize = (text: string): string =>
-    text.charAt(0).toUpperCase() + text.slice(1);
-
-  /** A line's indentation: its leading whitespace, in characters. */
-  const indentOf = (line: string): number =>
-    line.length - line.trimStart().length;
-
-  /**
-   * The key of the element a line at `index` nests under in the printed
-   * document: the nearest one above it, at less indentation (`notation/document.ts`
-   * prints a parent's line, then its children's, each indented a level deeper).
-   * None: the line is at the top, or its enclosing lines are all new themselves.
-   */
-  const enclosingElementKey = (
-    dialect: AnyDialect,
-    context: DefinitionContext,
-    lines: readonly string[],
-    index: number,
-  ): string | undefined => {
-    const scope = lineScope(dialect);
-    const stack: { indent: number; key: string }[] = [];
-    for (let i = 0; i < index; i++) {
-      const written = lines[i]!;
-      if (!written.trim()) continue;
-      const indent = indentOf(written);
-      const read = readLine(dialect, written);
-      const writtenId = read.kind === 'element' ? read.id : null;
-      const goal = writtenId ? scope.enter(indent, writtenId) : null;
-      while (stack.length && stack.at(-1)!.indent >= indent) stack.pop();
-      if (writtenId) {
-        const key = scope.keyOf(goal, writtenId, (k) => k in context.elements);
-        if (key in context.elements) stack.push({ indent, key });
-      }
-    }
-    const targetIndent = indentOf(lines[index]!);
-    while (stack.length && stack.at(-1)!.indent >= targetIndent) stack.pop();
-    return stack.at(-1)?.key;
-  };
-
-  /** The actor that owns `key` (none: the dialect has no actors, or none does). */
-  const actorOwning = (
-    context: DefinitionContext,
-    key: string,
-  ): string | undefined =>
-    Object.entries(context.actors ?? {}).find(([, actor]) =>
-      actor.elements.includes(key),
-    )?.[0];
-
-  /**
-   * A quick fix for a diagnostic the client's range overlaps: one action per
-   * code this provider knows (goal-controller#416). `notInDiagram`'s names
-   * the missing element's kind, mapped through the dialect (`istarKindOf`,
-   * goal-controller#440: KAOS and NFR kinds too, not just iStar's), and the
-   * actor it nests under in the document, when it has one (the client maps
-   * that to the model's actor id, and resolves `location`, since only it
-   * holds the model `suggestPosition` reads).
-   */
-  class GoalCodeActionProvider implements CodeActionProvider {
-    getCodeActions(
-      document: LangiumDocument,
-      params: CodeActionParams,
-    ): CodeAction[] | undefined {
-      const found = store.for(document.uri);
-      if (!found) return undefined;
-      const text = document.textDocument.getText();
-      const lines = text.split('\n');
-      const from = document.textDocument.offsetAt(params.range.start);
-      const to = document.textDocument.offsetAt(params.range.end);
-      const actions: CodeAction[] = [];
-      for (const diagnostic of diagnose(document)) {
-        if (diagnostic.code !== 'notInDiagram') continue;
-        const dFrom = document.textDocument.offsetAt(diagnostic.range.start);
-        const dTo = document.textDocument.offsetAt(diagnostic.range.end);
-        if (dTo <= from || dFrom >= to) continue;
-        const writtenId = text.slice(dFrom, dTo);
-        const kind = kindOfId(found.dialect, writtenId);
-        if (kind === undefined) continue;
-        const elementTypeId = istarKindOf(kind);
-        const line = document.textDocument.positionAt(dFrom).line;
-        const parent = enclosingElementKey(
-          found.dialect,
-          found.context,
-          lines,
-          line,
-        );
-        const containerId = parent && actorOwning(found.context, parent);
-        actions.push({
-          title: `Add ${writtenId} in the diagram`,
-          kind: CodeActionKind.QuickFix,
-          diagnostics: [diagnostic],
-          data: {
-            kind: 'createNode',
-            elementTypeId,
-            ...(containerId !== undefined && { containerId }),
-            args: { name: `${writtenId}: ${capitalize(kindLabel(kind))}` },
-          } satisfies GoalCodeActionData,
-        });
-      }
-      return actions;
-    }
-  }
-
   const shared = inject(
     createDefaultSharedModule(context),
     GoalGeneratedSharedModule,
@@ -511,7 +402,6 @@ export const createGoalLspServices = (
         CompletionProvider: (services) => new GoalCompletionProvider(services),
         HoverProvider: (services) => new GoalHoverProvider(services),
         DefinitionProvider: (services) => new GoalDefinitionProvider(services),
-        CodeActionProvider: () => new GoalCodeActionProvider(),
       },
     } as Module<GoalLspServices, PartialLangiumServices>,
   );

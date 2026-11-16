@@ -143,7 +143,7 @@ describe('link lines (#107)', () => {
   it('writes a link line under its source, after its properties; a link without properties has none', () => {
     // its actor's budget is an actor line at the top (#109), which is no element's
     expect(notationDocument(linked, WEIGHTED)).to.deep.equal({
-      text: 'actor "Ann" {budget = 5}\nG1: Go\n  T1: Drive\n    robot r2\n    link G1 {weight = 50} {note = cheap}\n  T2: Fly',
+      text: 'actor "Ann" {budget = 5}\ngoal G1: Go\n  task T1: Drive\n    robot r2\n    link G1 {weight = 50} {note = cheap}\n  task T2: Fly',
       ids: ['G1', 'T1', 'T1', 'T1', 'T2'],
     });
   });
@@ -159,7 +159,7 @@ describe('link lines (#107)', () => {
     expect(notationEdits(linked, text, WEIGHTED)).to.deep.equal([]);
     const changed = text
       .replace('{weight = 50} {note = cheap}', '{weight = 60}')
-      .replace('  T2: Fly', '  T2: Fly\n    link G1 {weight = 7}')
+      .replace('  task T2: Fly', '  task T2: Fly\n    link G1 {weight = 7}')
       .replace('robot r2', 'robot r3');
     expect(notationEdits(linked, changed, WEIGHTED)).to.deep.equal([
       { link: 'l1', key: 'weight', value: '60' },
@@ -206,7 +206,7 @@ describe('link lines (#107)', () => {
         d.message,
       ]);
     const under = (line: string) =>
-      `G1: Go\n  T1: Drive\n    ${line}\n  T2: Fly`;
+      `goal G1: Go\n  task T1: Drive\n    ${line}\n  task T2: Fly`;
 
     it('says nothing of a line that names its link and sets what its kind declares', () => {
       expect(
@@ -311,7 +311,7 @@ const plainLinked = defineDialect({
   },
 });
 
-/** Go, two tasks named Heat, and one whose name has quotes: no ids, keys are piStar's. */
+/** Go, two tasks named Heat, and one whose name has quotes: no written ids (each line shows its piStar id's start). */
 const plainTree = (links: DocumentLink[]): DocumentTree => ({
   nodes: new Map([
     [
@@ -321,11 +321,12 @@ const plainTree = (links: DocumentLink[]): DocumentTree => ({
         kind: 'goal',
         name: 'Go',
         children: ['h1', 'h2', 'q'],
+        hasId: false,
       }),
     ],
-    ['h1', node({ id: 'h1', kind: 'task', name: 'Heat' })],
-    ['h2', node({ id: 'h2', kind: 'task', name: 'Heat' })],
-    ['q', node({ id: 'q', kind: 'task', name: 'Say "hi"' })],
+    ['h1', node({ id: 'h1', kind: 'task', name: 'Heat', hasId: false })],
+    ['h2', node({ id: 'h2', kind: 'task', name: 'Heat', hasId: false })],
+    ['q', node({ id: 'q', kind: 'task', name: 'Say "hi"', hasId: false })],
   ]),
   roots: ['g'],
   links,
@@ -338,19 +339,19 @@ const PLAIN = plainTree([
 ]);
 
 const PLAIN_TEXT = [
-  'Go',
-  '  Heat',
+  'goal i-g: Go',
+  '  task i-h1: Heat',
   '    link "Go" {weight = 50}',
-  '  Heat',
-  '  Say "hi"',
+  '  task i-h2: Heat',
+  '  task i-q: Say "hi"',
   '    link "Heat"#2 {weight = 1} {kind = soft}',
 ].join('\n');
 
 describe('link lines without ids (linkLines)', () => {
-  it('writes the target by its text, quoted, #n among elements so named; the line takes no place in the order', () => {
+  it('writes the target by its text, quoted, #n among elements so named; the line is its source’s', () => {
     expect(notationDocument(plainLinked, PLAIN)).to.deep.equal({
       text: PLAIN_TEXT,
-      ids: ['g', 'h1', 'h2', 'q'],
+      ids: ['g', 'h1', 'h1', 'h2', 'q', 'q'],
     });
     expect(
       notationDocument(
@@ -363,7 +364,9 @@ describe('link lines without ids (linkLines)', () => {
   it('writes none, and leaves the links be, where the dialect without ids doesn’t turn them on', () => {
     const off = { ...plainLinked, linkLines: undefined };
     const { text } = notationDocument(off, PLAIN);
-    expect(text).to.equal('Go\n  Heat\n  Heat\n  Say "hi"');
+    expect(text).to.equal(
+      'goal i-g: Go\n  task i-h1: Heat\n  task i-h2: Heat\n  task i-q: Say "hi"',
+    );
     expect(notationEdits(off, text, PLAIN)).to.deep.equal([]);
     // and a dialect with ids may turn them off
     expect(
@@ -421,8 +424,8 @@ describe('link lines without ids (linkLines)', () => {
       notationEdits(
         plainLinked,
         PLAIN_TEXT.replace(
-          '  Heat\n  Say',
-          '  Heat\n    link "Say \\"hi\\"" {weight = 3}\n  Say',
+          '  task i-h2: Heat\n  task',
+          '  task i-h2: Heat\n    link "Say \\"hi\\"" {weight = 3}\n  task',
         ),
         PLAIN,
       ),

@@ -103,11 +103,11 @@ describe('piStar-ext annotations', () => {
     ]),
   };
   const expected = [
-    '{Id = G1} G1: Accommodation booked [T1;T2]',
-    '  <<action>> {type = duty} T1: Book a room',
+    '{Id = G1} goal G1: Accommodation booked [T1;T2]',
+    '  <<action>> {type = duty} task T1: Book a room',
     '    cost 2',
-    '  T2: Pay',
-    '  {Status} R1: Budget {int 0..100 = 80}',
+    '  task T2: Pay',
+    '  {Status} resource R1: Budget {int 0..100 = 80}',
   ].join('\n');
 
   describe('the definition', () => {
@@ -223,7 +223,7 @@ describe('piStar-ext annotations', () => {
       const edited = expected
         .replace('<<action>> {type = duty}', '<<action>> {type=right}')
         .replace('{Id = G1} ', '')
-        .replace('  T2: Pay', '  <<action>> T2: Pay')
+        .replace('  task T2: Pay', '  <<action>> task T2: Pay')
         .replace('{Status}', '{Status = done}');
       expect(notationEdits(ra, edited, tree)).to.deep.equal([
         { iStarId: 'i-G1', key: 'tag', value: null },
@@ -241,13 +241,19 @@ describe('piStar-ext annotations', () => {
     it('round-trips: doc → edits → model → doc', () => {
       const edited = expected
         .replace('{type = duty}', '{type=right}')
-        .replace('  T2: Pay', '  <<action>> {Logic = A and B} T2: Pay');
+        .replace(
+          '  task T2: Pay',
+          '  <<action>> {Logic = A and B} task T2: Pay',
+        );
       const next = applied(tree, edited);
       const doc = notationDocument(ra, next).text;
       expect(doc).to.equal(
         expected
           .replace('{type = duty}', '{type = right}')
-          .replace('  T2: Pay', '  <<action>> {Logic = A and B} T2: Pay'),
+          .replace(
+            '  task T2: Pay',
+            '  <<action>> {Logic = A and B} task T2: Pay',
+          ),
       );
       expect(notationEdits(ra, doc, next)).to.deep.equal([]);
     });
@@ -319,14 +325,15 @@ describe('piStar-ext annotations', () => {
     const context = contextFromView(ra, tree, []);
 
     it('points at the id after the annotations', () => {
-      const doc = '{Id = G9} G9: Missing';
+      // after the annotations and the kind's word: an id of the kind's prefix
+      const doc = '{Id = G9} goal g9: Missing';
       expect(documentDiagnostics(ra, doc, context)).to.deep.equal([
         {
-          from: 10,
-          to: 12,
+          from: 15,
+          to: 17,
           severity: 'error',
-          message: 'Add this element in the diagram',
-          code: 'notInDiagram',
+          message:
+            'A goal needs an id G… in EdgeV2 + iStar4RationalAgents: g9 is not one',
         },
       ]);
     });
@@ -377,7 +384,7 @@ describe('piStar-ext annotations', () => {
           ),
         },
       } as AnyDialect);
-      const doc = '{Id = bad} T1: Book a room';
+      const doc = '{Id = bad} task T1: Book a room';
       const found = documentDiagnostics(
         withCheck,
         doc,
@@ -403,7 +410,7 @@ describe('piStar-ext annotations', () => {
     });
 
     it('completes children inside an annotated notation', () => {
-      const doc = '{Id = G1} G1: Accommodation booked [T';
+      const doc = '{Id = G1} goal G1: Accommodation booked [T';
       expect(
         completionsAt(ra, doc, doc.length, context)?.options.map(
           (o) => o.label,

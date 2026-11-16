@@ -12,7 +12,7 @@ import * as assert from 'assert';
 import { describe, it } from 'mocha';
 import { parsePistar, validateModel } from '@istar-ts/core';
 import { KAOS_OBSTACLES } from '@istar-ts/dsm3-kaos/metamodel';
-import { readKaos } from '../../../src/importers/kaos';
+import { readKaos, withKaosIdentifiers } from '../../../src/importers/kaos';
 import { propagateProbabilities } from '../../../src/engines/kaosprop';
 import {
   applyCountermeasures,
@@ -40,7 +40,10 @@ const modelOf = (resolution: string, more = ''): KaosModel => {
     `${BASE}override obstacle [ lost ] ${resolution} end\n${more}`,
   );
   assert.ok(model, JSON.stringify(diagnostics));
-  return parsePistar(model, { metamodel: KAOS_OBSTACLES });
+  // its elements by their KAOSTools identifiers (#518)
+  return parsePistar(withKaosIdentifiers(model), {
+    metamodel: KAOS_OBSTACLES,
+  });
 };
 
 /** Every countermeasure of the model, applied. */
@@ -111,7 +114,10 @@ describe('kaosres: the hand-written model, as it is', () => {
       BASE.replace('probability 1', 'probability 0.2'),
     );
     near(
-      eps(parsePistar(base!, { metamodel: KAOS_OBSTACLES }), 'root'),
+      eps(
+        parsePistar(withKaosIdentifiers(base!), { metamodel: KAOS_OBSTACLES }),
+        'root',
+      ),
       0.504,
       'Root, Lost at .2',
     );

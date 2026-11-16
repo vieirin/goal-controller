@@ -2,7 +2,7 @@
   "actors": [],
   "orphans": [
     {
-      "id": "locals_warned_when_risk_imminent",
+      "id": "9cffb7a6-5ea9-528f-89c1-d2eeca78f983",
       "text": "Achieve [LocalsWarnedWhenRiskImminent]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -17,11 +17,12 @@
         "Description": "",
         "RSR": ".65"
       },
+      "kaosId": "locals_warned_when_risk_imminent",
       "x": 1000,
       "y": 80
     },
     {
-      "id": "avoid_false_warning",
+      "id": "af62744a-58e9-55a2-ad89-f4e52d5531f8",
       "text": "Avoid [FalseWarning]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -35,11 +36,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "avoid_false_warning",
       "x": 2280,
       "y": 80
     },
     {
-      "id": "radar_depth_acquired_every_5_seconds",
+      "id": "3e632038-a209-5fcd-a131-f7028515d95e",
       "text": "Achieve [DepthAcquiredEvery5SecondsByRadar]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -53,11 +55,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "radar_depth_acquired_every_5_seconds",
       "x": 40,
       "y": 180
     },
     {
-      "id": "acquired_radar_depth_accurate",
+      "id": "387f709f-7a7a-5dec-8f7a-4ac93bbb832e",
       "text": "Maintain [AcquiredRadarDepthAccurate]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -71,11 +74,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "acquired_radar_depth_accurate",
       "x": 2120,
       "y": 180
     },
     {
-      "id": "speed_acquired_every_5_seconds",
+      "id": "bfdcd2dc-932b-5709-99ec-176afb9ba08e",
       "text": "Achieve [SpeedAcquiredEvery5SecondsByUltrasound]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -89,11 +93,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "speed_acquired_every_5_seconds",
       "x": 360,
       "y": 180
     },
     {
-      "id": "acquired_ultrasound_speed_accurate",
+      "id": "ebc82dd4-a3ba-5dab-a03c-84234a526f73",
       "text": "Maintain [UltrasoundSpeedAccurate]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -107,11 +112,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "acquired_ultrasound_speed_accurate",
       "x": 2440,
       "y": 180
     },
     {
-      "id": "locals_warned",
+      "id": "3c4224b9-93ed-5adc-ae4a-296d2f0438a7",
       "text": "Achieve [LocalsWarnedByPhoneWhenLevelsCritical]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -125,11 +131,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "locals_warned",
       "x": 1480,
       "y": 180
     },
     {
-      "id": "critical_detected",
+      "id": "73aee8ce-c64d-5ee9-993a-8184fb532244",
       "text": "Achieve [LevelsCriticalDetectedWhenDataAcquired]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -143,11 +150,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "critical_detected",
       "x": 1000,
       "y": 180
     },
     {
-      "id": "depth_not_acquired",
+      "id": "d918fe95-55b3-5940-a29c-b3514f398328",
       "text": "Depth Not Acquired",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -155,11 +163,12 @@
         "FormalSpec": "",
         "Category": ""
       },
+      "kaosId": "depth_not_acquired",
       "x": 40,
       "y": 280
     },
     {
-      "id": "acquired_depth_not_accurate",
+      "id": "91eb228d-3644-5ee3-80b4-d071ec709a3d",
       "text": "Acquired Depth Not Accurate",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -167,11 +176,12 @@
         "FormalSpec": "",
         "Category": ""
       },
+      "kaosId": "acquired_depth_not_accurate",
       "x": 2120,
       "y": 280
     },
     {
-      "id": "speed_not_acquired",
+      "id": "1aba4aad-5a1c-5fd7-bf76-9895e221bd19",
       "text": "Speed Not Acquired",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -179,11 +189,12 @@
         "FormalSpec": "",
         "Category": ""
       },
+      "kaosId": "speed_not_acquired",
       "x": 520,
       "y": 280
     },
     {
-      "id": "acquired_speed_not_accurate",
+      "id": "46e98418-7694-5d9d-9aaa-ed2f62c04fcc",
       "text": "Acquired Speed Not Accurate",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -191,11 +202,12 @@
         "FormalSpec": "",
         "Category": ""
       },
+      "kaosId": "acquired_speed_not_accurate",
       "x": 2440,
       "y": 280
     },
     {
-      "id": "locals_not_warned",
+      "id": "c2e58b91-dfb4-5b6e-a05b-49921c8efcad",
       "text": "Locals Not Warned In Time",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -203,11 +215,12 @@
         "FormalSpec": "",
         "Category": ""
       },
+      "kaosId": "locals_not_warned",
       "x": 1640,
       "y": 280
     },
     {
-      "id": "dusty_environment",
+      "id": "d03008bd-a2ce-560c-a680-8178bb17532c",
       "text": "Dusty Environment",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -216,11 +229,12 @@
         "Category": "",
         "Probability": ".1"
       },
+      "kaosId": "dusty_environment",
       "x": 2120,
       "y": 380
     },
     {
-      "id": "echo",
+      "id": "160ed1f2-68c5-5fe2-8393-51fd0254e524",
       "text": "False Echo",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -229,11 +243,12 @@
         "Category": "",
         "Probability": ".08"
       },
+      "kaosId": "echo",
       "x": 2280,
       "y": 380
     },
     {
-      "id": "depth_broken",
+      "id": "4aaa8819-8b8c-50b3-a298-56e92a8ec564",
       "text": "Radar Sensor Broken",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -242,11 +257,12 @@
         "Category": "",
         "Probability": ".2"
       },
+      "kaosId": "depth_broken",
       "x": 40,
       "y": 380
     },
     {
-      "id": "ultrasound_broken",
+      "id": "e73a45cd-fc33-5d24-b1b4-3fde6e0fdb97",
       "text": "Ultrasound Sensor Broken",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -255,11 +271,12 @@
         "Category": "",
         "Probability": ".4"
       },
+      "kaosId": "ultrasound_broken",
       "x": 520,
       "y": 380
     },
     {
-      "id": "ultrasound_distortion",
+      "id": "567efa2d-bbe1-546f-8de1-3ea0ea6e746a",
       "text": "Distortion in Ultrasound Measure",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -267,11 +284,12 @@
         "FormalSpec": "sooner-or-later (always, for more than 6 seconds, ultrasoundDistortion())",
         "Category": ""
       },
+      "kaosId": "ultrasound_distortion",
       "x": 2440,
       "y": 380
     },
     {
-      "id": "noisy_image",
+      "id": "83bee3a1-ed8c-5a65-9ee1-8002a08a2087",
       "text": "Noisy Image",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -280,11 +298,12 @@
         "Category": "",
         "Probability": ".05"
       },
+      "kaosId": "noisy_image",
       "x": 680,
       "y": 680
     },
     {
-      "id": "voice_down",
+      "id": "e30b3b5d-40c7-5ed0-8736-1e009310c0d4",
       "text": "Voice Network Overloaded",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -293,11 +312,12 @@
         "Category": "",
         "Probability": ".15"
       },
+      "kaosId": "voice_down",
       "x": 1480,
       "y": 380
     },
     {
-      "id": "gsm_down",
+      "id": "99586bc7-0bb8-515a-bf9e-9c9e24313b22",
       "text": "GSM Network Down",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -305,11 +325,12 @@
         "FormalSpec": "sooner-or-later (acquiredDepthCritical() and acquiredSpeedCritical() and always, for more than 5 seconds, gsmNetworkDown())",
         "Category": ""
       },
+      "kaosId": "gsm_down",
       "x": 1960,
       "y": 380
     },
     {
-      "id": "speed_acquired_every_10_seconds",
+      "id": "58d3092c-df0a-5f35-8730-37f4a349b322",
       "text": "Achieve [SpeedAcquiredEvery10SecondsByUltrasound]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -323,11 +344,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "speed_acquired_every_10_seconds",
       "x": 680,
       "y": 180
     },
     {
-      "id": "speed_acquired_by_camera",
+      "id": "55a5c343-65f8-52a0-92dc-2773fcd2ff41",
       "text": "Achieve [SpeedAcquiredEvery5SecondsByCamera]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -341,11 +363,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "speed_acquired_by_camera",
       "x": 520,
       "y": 480
     },
     {
-      "id": "images_acquired",
+      "id": "9a132158-a1e4-5fd9-88b7-2f268c609a8c",
       "text": "Achieve [ImagesAcquiredEvery5Seconds]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -359,11 +382,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "images_acquired",
       "x": 360,
       "y": 580
     },
     {
-      "id": "speed_acquired_from_images",
+      "id": "7c2d0907-a136-5335-86b4-471fda1eb645",
       "text": "Achieve [SpeedAcquiredFromImages]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -377,11 +401,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "speed_acquired_from_images",
       "x": 680,
       "y": 580
     },
     {
-      "id": "acquired_camera_speed_accurate",
+      "id": "1aafba2c-782c-5a9c-8d1c-884dedb1e682",
       "text": "Maintain [CameraSpeedAccurate]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -395,11 +420,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "acquired_camera_speed_accurate",
       "x": 2440,
       "y": 480
     },
     {
-      "id": "locals_warned_by_sms",
+      "id": "91a6457d-f9cd-55f1-9b62-cd7fbb297891",
       "text": "Achieve [LocalsWarnedBySMSWhenLevelsCritical]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -413,11 +439,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "locals_warned_by_sms",
       "x": 1320,
       "y": 480
     },
     {
-      "id": "locals_warned_by_email",
+      "id": "ae89e46d-b854-522e-81f9-5c32cb8a8b53",
       "text": "  ",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -431,274 +458,301 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "locals_warned_by_email",
       "x": 1640,
       "y": 480
     },
     {
-      "id": "radarDepthAcquired",
+      "id": "e9db2e0f-d578-50e6-9c72-a3ddb8c38e0d",
       "text": "RadarDepthAcquired",
       "type": "kaos.Predicate",
       "customProperties": {
         "Description": ""
       },
+      "kaosId": "radarDepthAcquired",
       "x": 40,
       "y": 780
     },
     {
-      "id": "depthAccurate",
+      "id": "900fbac0-5049-5eed-9c68-aad5ba2429ac",
       "text": "DepthAccurate",
       "type": "kaos.Predicate",
       "customProperties": {
         "Description": ""
       },
+      "kaosId": "depthAccurate",
       "x": 200,
       "y": 780
     },
     {
-      "id": "speedAcquiredByUltrasound",
+      "id": "41078d73-5922-59ea-86f4-07706cadeff1",
       "text": "SpeedAcquiredByUltraSound",
       "type": "kaos.Predicate",
       "customProperties": {
         "Description": ""
       },
+      "kaosId": "speedAcquiredByUltrasound",
       "x": 360,
       "y": 780
     },
     {
-      "id": "speedAcquiredByCamera",
+      "id": "9b7768ad-23a9-51be-ab96-36bc85be07ea",
       "text": "SpeedAcquiredByCamera",
       "type": "kaos.Predicate",
       "customProperties": {
         "Description": ""
       },
+      "kaosId": "speedAcquiredByCamera",
       "x": 520,
       "y": 780
     },
     {
-      "id": "speedAccurate",
+      "id": "83c0a426-9210-557e-9aed-fa8f7fd8a957",
       "text": "SpeedAccurate",
       "type": "kaos.Predicate",
       "customProperties": {
         "Description": ""
       },
+      "kaosId": "speedAccurate",
       "x": 680,
       "y": 780
     },
     {
-      "id": "acquiredDepthCritical",
+      "id": "73b35dc4-381b-52bd-af7c-ebfe19ed33ce",
       "text": "AcquiredDepthCritical",
       "type": "kaos.Predicate",
       "customProperties": {
         "Description": ""
       },
+      "kaosId": "acquiredDepthCritical",
       "x": 840,
       "y": 780
     },
     {
-      "id": "acquiredSpeedCritical",
+      "id": "015b7b79-3625-52cf-b2b2-65cbbe3d9469",
       "text": "AcquiredSpeedCritical",
       "type": "kaos.Predicate",
       "customProperties": {
         "Description": ""
       },
+      "kaosId": "acquiredSpeedCritical",
       "x": 1000,
       "y": 780
     },
     {
-      "id": "localsWarnedByPhone",
+      "id": "14740512-7e17-5292-ab5a-1cb1247a9805",
       "text": "LocalsWarnedByPhone",
       "type": "kaos.Predicate",
       "customProperties": {
         "Description": ""
       },
+      "kaosId": "localsWarnedByPhone",
       "x": 1160,
       "y": 780
     },
     {
-      "id": "localsWarnedBySMS",
+      "id": "c72e8545-3388-555d-8db5-17b1c3a5c99d",
       "text": "LocalsWarnedBySMS",
       "type": "kaos.Predicate",
       "customProperties": {
         "Description": ""
       },
+      "kaosId": "localsWarnedBySMS",
       "x": 1320,
       "y": 780
     },
     {
-      "id": "localsWarnedByEmail",
+      "id": "b32dc05e-1cf8-5e53-8b06-21947c0a9853",
       "text": "LocalsWarnedByEmail",
       "type": "kaos.Predicate",
       "customProperties": {
         "Description": ""
       },
+      "kaosId": "localsWarnedByEmail",
       "x": 1480,
       "y": 780
     },
     {
-      "id": "DustyEnvironment",
+      "id": "51463fd4-ada7-554b-9295-de1677bdef02",
       "text": "DustyEnvironment",
       "type": "kaos.Predicate",
       "customProperties": {
         "Description": ""
       },
+      "kaosId": "DustyEnvironment",
       "x": 1640,
       "y": 780
     },
     {
-      "id": "falseEcho",
+      "id": "6905a440-ea7f-54cd-a00b-eeadadfd73f0",
       "text": "FalseEcho",
       "type": "kaos.Predicate",
       "customProperties": {
         "Description": ""
       },
+      "kaosId": "falseEcho",
       "x": 1800,
       "y": 780
     },
     {
-      "id": "radarDepthSensorBroken",
+      "id": "0d1dc540-98c4-542d-b550-af26d193cf12",
       "text": "DepthSensorBroken",
       "type": "kaos.Predicate",
       "customProperties": {
         "Description": ""
       },
+      "kaosId": "radarDepthSensorBroken",
       "x": 1960,
       "y": 780
     },
     {
-      "id": "ultrasoundSensorBroken",
+      "id": "ce64f6e3-4fd2-52f8-aa41-6c8d28231a75",
       "text": "UltrasoundSensorBroken",
       "type": "kaos.Predicate",
       "customProperties": {
         "Description": ""
       },
+      "kaosId": "ultrasoundSensorBroken",
       "x": 2120,
       "y": 780
     },
     {
-      "id": "ultrasoundDistortion",
+      "id": "7872e1d5-4211-5687-8fb1-bb70772d1986",
       "text": "UltrasoundDistortion",
       "type": "kaos.Predicate",
       "customProperties": {
         "Description": ""
       },
+      "kaosId": "ultrasoundDistortion",
       "x": 2280,
       "y": 780
     },
     {
-      "id": "noisyImage",
+      "id": "627c89b8-9b3c-5d81-9cee-afdfd106e6bc",
       "text": "NoisyImage",
       "type": "kaos.Predicate",
       "customProperties": {
         "Description": ""
       },
+      "kaosId": "noisyImage",
       "x": 2440,
       "y": 780
     },
     {
-      "id": "gsmNetworkDown",
+      "id": "d2af1fcd-4fb6-5329-90b0-d4590971a4c8",
       "text": "GSMNetworkDown",
       "type": "kaos.Predicate",
       "customProperties": {
         "Description": ""
       },
+      "kaosId": "gsmNetworkDown",
       "x": 40,
       "y": 880
     },
     {
-      "id": "voiceNetworkOverloaded",
+      "id": "d2805b97-118d-5c19-a19b-73f128413e11",
       "text": "VoiceNetworkOveloaded",
       "type": "kaos.Predicate",
       "customProperties": {
         "Description": ""
       },
+      "kaosId": "voiceNetworkOverloaded",
       "x": 200,
       "y": 880
     },
     {
-      "id": "radarDepthSensor",
+      "id": "2eb4f19e-0ec4-59a7-b771-f93f50ddcfba",
       "text": "Depth Sensor",
       "type": "kaos.Agent",
       "customProperties": {
         "Type": "",
         "Description": ""
       },
+      "kaosId": "radarDepthSensor",
       "x": 200,
       "y": 180
     },
     {
-      "id": "ultrasoundSensor",
+      "id": "2ba00eb0-3978-5cb9-9b57-7664a9a04afb",
       "text": "Ultrasound Sensor",
       "type": "kaos.Agent",
       "customProperties": {
         "Type": "",
         "Description": ""
       },
+      "kaosId": "ultrasoundSensor",
       "x": 520,
       "y": 180
     },
     {
-      "id": "voiceWarner",
+      "id": "bc892753-6fbf-5e4e-8cf4-638cd38d777c",
       "text": "VoiceWarner",
       "type": "kaos.Agent",
       "customProperties": {
         "Type": "",
         "Description": ""
       },
+      "kaosId": "voiceWarner",
       "x": 1640,
       "y": 180
     },
     {
-      "id": "fds",
+      "id": "c9d81886-0eff-53e8-909a-e6141b820718",
       "text": "Flooding Detection System",
       "type": "kaos.Agent",
       "customProperties": {
         "Type": "",
         "Description": ""
       },
+      "kaosId": "fds",
       "x": 1160,
       "y": 180
     },
     {
-      "id": "camera",
+      "id": "504ab96a-8228-5866-bec8-3b7bcaa5232e",
       "text": "camera",
       "type": "kaos.Agent",
       "customProperties": {
         "Type": "",
         "Description": ""
       },
+      "kaosId": "camera",
       "x": 520,
       "y": 580
     },
     {
-      "id": "cameraSpeedModule",
+      "id": "293530d2-f524-529c-a2fd-27f0545c10a6",
       "text": "cameraSpeedModule",
       "type": "kaos.Agent",
       "customProperties": {
         "Type": "",
         "Description": ""
       },
+      "kaosId": "cameraSpeedModule",
       "x": 840,
       "y": 580
     },
     {
-      "id": "SMSWarner",
+      "id": "6b3e0923-1e5d-5344-8cfc-f8f2d5bb4318",
       "text": "SMSWarner",
       "type": "kaos.Agent",
       "customProperties": {
         "Type": "",
         "Description": ""
       },
+      "kaosId": "SMSWarner",
       "x": 1480,
       "y": 480
     },
     {
-      "id": "EmailWarner",
+      "id": "cfa04757-681d-5d43-9f50-7cc95f235708",
       "text": "EmailWarner",
       "type": "kaos.Agent",
       "customProperties": {
         "Type": "",
         "Description": ""
       },
+      "kaosId": "EmailWarner",
       "x": 1800,
       "y": 480
     }
@@ -721,25 +775,25 @@
         {
           "id": "locals_warned_when_risk_imminent-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "radar_depth_acquired_every_5_seconds",
+          "source": "3e632038-a209-5fcd-a131-f7028515d95e",
           "target": "locals_warned_when_risk_imminent-refinement-1"
         },
         {
           "id": "locals_warned_when_risk_imminent-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "speed_acquired_every_5_seconds",
+          "source": "bfdcd2dc-932b-5709-99ec-176afb9ba08e",
           "target": "locals_warned_when_risk_imminent-refinement-1"
         },
         {
           "id": "locals_warned_when_risk_imminent-refinement-1-3",
           "type": "kaos.RefinementLinkStart",
-          "source": "critical_detected",
+          "source": "73aee8ce-c64d-5ee9-993a-8184fb532244",
           "target": "locals_warned_when_risk_imminent-refinement-1"
         },
         {
           "id": "locals_warned_when_risk_imminent-refinement-1-4",
           "type": "kaos.RefinementLinkStart",
-          "source": "locals_warned",
+          "source": "3c4224b9-93ed-5adc-ae4a-296d2f0438a7",
           "target": "locals_warned_when_risk_imminent-refinement-1"
         }
       ],
@@ -747,7 +801,7 @@
         "id": "locals_warned_when_risk_imminent-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "locals_warned_when_risk_imminent-refinement-1",
-        "target": "locals_warned_when_risk_imminent"
+        "target": "9cffb7a6-5ea9-528f-89c1-d2eeca78f983"
       }
     },
     {
@@ -766,13 +820,13 @@
         {
           "id": "avoid_false_warning-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "acquired_radar_depth_accurate",
+          "source": "387f709f-7a7a-5dec-8f7a-4ac93bbb832e",
           "target": "avoid_false_warning-refinement-1"
         },
         {
           "id": "avoid_false_warning-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "acquired_ultrasound_speed_accurate",
+          "source": "ebc82dd4-a3ba-5dab-a03c-84234a526f73",
           "target": "avoid_false_warning-refinement-1"
         }
       ],
@@ -780,7 +834,7 @@
         "id": "avoid_false_warning-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "avoid_false_warning-refinement-1",
-        "target": "avoid_false_warning"
+        "target": "af62744a-58e9-55a2-ad89-f4e52d5531f8"
       }
     },
     {
@@ -794,7 +848,7 @@
         {
           "id": "depth_not_acquired-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "depth_broken",
+          "source": "4aaa8819-8b8c-50b3-a298-56e92a8ec564",
           "target": "depth_not_acquired-refinement-1"
         }
       ],
@@ -802,7 +856,7 @@
         "id": "depth_not_acquired-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "depth_not_acquired-refinement-1",
-        "target": "depth_not_acquired"
+        "target": "d918fe95-55b3-5940-a29c-b3514f398328"
       }
     },
     {
@@ -816,7 +870,7 @@
         {
           "id": "acquired_depth_not_accurate-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "dusty_environment",
+          "source": "d03008bd-a2ce-560c-a680-8178bb17532c",
           "target": "acquired_depth_not_accurate-refinement-1"
         }
       ],
@@ -824,7 +878,7 @@
         "id": "acquired_depth_not_accurate-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "acquired_depth_not_accurate-refinement-1",
-        "target": "acquired_depth_not_accurate"
+        "target": "91eb228d-3644-5ee3-80b4-d071ec709a3d"
       }
     },
     {
@@ -838,7 +892,7 @@
         {
           "id": "acquired_depth_not_accurate-refinement-2-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "echo",
+          "source": "160ed1f2-68c5-5fe2-8393-51fd0254e524",
           "target": "acquired_depth_not_accurate-refinement-2"
         }
       ],
@@ -846,7 +900,7 @@
         "id": "acquired_depth_not_accurate-refinement-2-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "acquired_depth_not_accurate-refinement-2",
-        "target": "acquired_depth_not_accurate"
+        "target": "91eb228d-3644-5ee3-80b4-d071ec709a3d"
       }
     },
     {
@@ -860,7 +914,7 @@
         {
           "id": "speed_not_acquired-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "ultrasound_broken",
+          "source": "e73a45cd-fc33-5d24-b1b4-3fde6e0fdb97",
           "target": "speed_not_acquired-refinement-1"
         }
       ],
@@ -868,7 +922,7 @@
         "id": "speed_not_acquired-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "speed_not_acquired-refinement-1",
-        "target": "speed_not_acquired"
+        "target": "1aba4aad-5a1c-5fd7-bf76-9895e221bd19"
       }
     },
     {
@@ -882,7 +936,7 @@
         {
           "id": "acquired_speed_not_accurate-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "ultrasound_distortion",
+          "source": "567efa2d-bbe1-546f-8de1-3ea0ea6e746a",
           "target": "acquired_speed_not_accurate-refinement-1"
         }
       ],
@@ -890,7 +944,7 @@
         "id": "acquired_speed_not_accurate-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "acquired_speed_not_accurate-refinement-1",
-        "target": "acquired_speed_not_accurate"
+        "target": "46e98418-7694-5d9d-9aaa-ed2f62c04fcc"
       }
     },
     {
@@ -904,7 +958,7 @@
         {
           "id": "locals_not_warned-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "voice_down",
+          "source": "e30b3b5d-40c7-5ed0-8736-1e009310c0d4",
           "target": "locals_not_warned-refinement-1"
         }
       ],
@@ -912,7 +966,7 @@
         "id": "locals_not_warned-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "locals_not_warned-refinement-1",
-        "target": "locals_not_warned"
+        "target": "c2e58b91-dfb4-5b6e-a05b-49921c8efcad"
       }
     },
     {
@@ -926,7 +980,7 @@
         {
           "id": "locals_not_warned-refinement-2-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "gsm_down",
+          "source": "99586bc7-0bb8-515a-bf9e-9c9e24313b22",
           "target": "locals_not_warned-refinement-2"
         }
       ],
@@ -934,7 +988,7 @@
         "id": "locals_not_warned-refinement-2-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "locals_not_warned-refinement-2",
-        "target": "locals_not_warned"
+        "target": "c2e58b91-dfb4-5b6e-a05b-49921c8efcad"
       }
     },
     {
@@ -953,13 +1007,13 @@
         {
           "id": "speed_acquired_by_camera-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "images_acquired",
+          "source": "9a132158-a1e4-5fd9-88b7-2f268c609a8c",
           "target": "speed_acquired_by_camera-refinement-1"
         },
         {
           "id": "speed_acquired_by_camera-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "speed_acquired_from_images",
+          "source": "7c2d0907-a136-5335-86b4-471fda1eb645",
           "target": "speed_acquired_by_camera-refinement-1"
         }
       ],
@@ -967,190 +1021,190 @@
         "id": "speed_acquired_by_camera-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "speed_acquired_by_camera-refinement-1",
-        "target": "speed_acquired_by_camera"
+        "target": "55a5c343-65f8-52a0-92dc-2773fcd2ff41"
       }
     },
     {
       "id": "depth_not_acquired-obstructs-radar_depth_acquired_every_5_seconds",
       "type": "kaos.ObstructionLink",
-      "source": "depth_not_acquired",
-      "target": "radar_depth_acquired_every_5_seconds"
+      "source": "d918fe95-55b3-5940-a29c-b3514f398328",
+      "target": "3e632038-a209-5fcd-a131-f7028515d95e"
     },
     {
       "id": "acquired_depth_not_accurate-obstructs-acquired_radar_depth_accurate",
       "type": "kaos.ObstructionLink",
-      "source": "acquired_depth_not_accurate",
-      "target": "acquired_radar_depth_accurate"
+      "source": "91eb228d-3644-5ee3-80b4-d071ec709a3d",
+      "target": "387f709f-7a7a-5dec-8f7a-4ac93bbb832e"
     },
     {
       "id": "speed_not_acquired-obstructs-speed_acquired_every_5_seconds",
       "type": "kaos.ObstructionLink",
-      "source": "speed_not_acquired",
-      "target": "speed_acquired_every_5_seconds"
+      "source": "1aba4aad-5a1c-5fd7-bf76-9895e221bd19",
+      "target": "bfdcd2dc-932b-5709-99ec-176afb9ba08e"
     },
     {
       "id": "acquired_speed_not_accurate-obstructs-acquired_ultrasound_speed_accurate",
       "type": "kaos.ObstructionLink",
-      "source": "acquired_speed_not_accurate",
-      "target": "acquired_ultrasound_speed_accurate"
+      "source": "46e98418-7694-5d9d-9aaa-ed2f62c04fcc",
+      "target": "ebc82dd4-a3ba-5dab-a03c-84234a526f73"
     },
     {
       "id": "locals_not_warned-obstructs-locals_warned",
       "type": "kaos.ObstructionLink",
-      "source": "locals_not_warned",
-      "target": "locals_warned"
+      "source": "c2e58b91-dfb4-5b6e-a05b-49921c8efcad",
+      "target": "3c4224b9-93ed-5adc-ae4a-296d2f0438a7"
     },
     {
       "id": "noisy_image-obstructs-speed_acquired_from_images",
       "type": "kaos.ObstructionLink",
-      "source": "noisy_image",
-      "target": "speed_acquired_from_images"
+      "source": "83bee3a1-ed8c-5a65-9ee1-8002a08a2087",
+      "target": "7c2d0907-a136-5335-86b4-471fda1eb645"
     },
     {
       "id": "noisy_image-obstructs-acquired_camera_speed_accurate",
       "type": "kaos.ObstructionLink",
-      "source": "noisy_image",
-      "target": "acquired_camera_speed_accurate"
+      "source": "83bee3a1-ed8c-5a65-9ee1-8002a08a2087",
+      "target": "1aafba2c-782c-5a9c-8d1c-884dedb1e682"
     },
     {
       "id": "gsm_down-obstructs-locals_warned_by_sms",
       "type": "kaos.ObstructionLink",
-      "source": "gsm_down",
-      "target": "locals_warned_by_sms"
+      "source": "99586bc7-0bb8-515a-bf9e-9c9e24313b22",
+      "target": "91a6457d-f9cd-55f1-9b62-cd7fbb297891"
     },
     {
       "id": "speed_acquired_by_camera-resolves-ultrasound_broken",
       "type": "kaos.ResolutionLink",
-      "source": "speed_acquired_by_camera",
-      "target": "ultrasound_broken",
+      "source": "55a5c343-65f8-52a0-92dc-2773fcd2ff41",
+      "target": "e73a45cd-fc33-5d24-b1b4-3fde6e0fdb97",
       "customProperties": {
         "ResolutionType": "goal substitution",
-        "Anchor": "locals_warned_when_risk_imminent"
+        "Anchor": "9cffb7a6-5ea9-528f-89c1-d2eeca78f983"
       }
     },
     {
       "id": "acquired_camera_speed_accurate-resolves-ultrasound_distortion",
       "type": "kaos.ResolutionLink",
-      "source": "acquired_camera_speed_accurate",
-      "target": "ultrasound_distortion",
+      "source": "1aafba2c-782c-5a9c-8d1c-884dedb1e682",
+      "target": "567efa2d-bbe1-546f-8de1-3ea0ea6e746a",
       "customProperties": {
         "ResolutionType": "goal substitution",
-        "Anchor": "avoid_false_warning"
+        "Anchor": "af62744a-58e9-55a2-ad89-f4e52d5531f8"
       }
     },
     {
       "id": "locals_warned_by_sms-resolves-voice_down",
       "type": "kaos.ResolutionLink",
-      "source": "locals_warned_by_sms",
-      "target": "voice_down",
+      "source": "91a6457d-f9cd-55f1-9b62-cd7fbb297891",
+      "target": "e30b3b5d-40c7-5ed0-8736-1e009310c0d4",
       "customProperties": {
         "ResolutionType": "goal substitution",
-        "Anchor": "locals_warned_when_risk_imminent"
+        "Anchor": "9cffb7a6-5ea9-528f-89c1-d2eeca78f983"
       }
     },
     {
       "id": "locals_warned_by_email-resolves-voice_down",
       "type": "kaos.ResolutionLink",
-      "source": "locals_warned_by_email",
-      "target": "voice_down",
+      "source": "ae89e46d-b854-522e-81f9-5c32cb8a8b53",
+      "target": "e30b3b5d-40c7-5ed0-8736-1e009310c0d4",
       "customProperties": {
         "ResolutionType": "goal substitution",
-        "Anchor": "locals_warned_when_risk_imminent"
+        "Anchor": "9cffb7a6-5ea9-528f-89c1-d2eeca78f983"
       }
     },
     {
       "id": "locals_warned_by_email-resolves-gsm_down",
       "type": "kaos.ResolutionLink",
-      "source": "locals_warned_by_email",
-      "target": "gsm_down",
+      "source": "ae89e46d-b854-522e-81f9-5c32cb8a8b53",
+      "target": "99586bc7-0bb8-515a-bf9e-9c9e24313b22",
       "customProperties": {
         "ResolutionType": "goal substitution",
-        "Anchor": "locals_warned_when_risk_imminent"
+        "Anchor": "9cffb7a6-5ea9-528f-89c1-d2eeca78f983"
       }
     },
     {
       "id": "radarDepthSensor-assigned-radar_depth_acquired_every_5_seconds",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "radarDepthSensor",
-      "target": "radar_depth_acquired_every_5_seconds"
+      "source": "2eb4f19e-0ec4-59a7-b771-f93f50ddcfba",
+      "target": "3e632038-a209-5fcd-a131-f7028515d95e"
     },
     {
       "id": "radarDepthSensor-assigned-acquired_radar_depth_accurate",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "radarDepthSensor",
-      "target": "acquired_radar_depth_accurate"
+      "source": "2eb4f19e-0ec4-59a7-b771-f93f50ddcfba",
+      "target": "387f709f-7a7a-5dec-8f7a-4ac93bbb832e"
     },
     {
       "id": "ultrasoundSensor-assigned-speed_acquired_every_5_seconds",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "ultrasoundSensor",
-      "target": "speed_acquired_every_5_seconds"
+      "source": "2ba00eb0-3978-5cb9-9b57-7664a9a04afb",
+      "target": "bfdcd2dc-932b-5709-99ec-176afb9ba08e"
     },
     {
       "id": "ultrasoundSensor-assigned-acquired_ultrasound_speed_accurate",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "ultrasoundSensor",
-      "target": "acquired_ultrasound_speed_accurate"
+      "source": "2ba00eb0-3978-5cb9-9b57-7664a9a04afb",
+      "target": "ebc82dd4-a3ba-5dab-a03c-84234a526f73"
     },
     {
       "id": "voiceWarner-assigned-locals_warned",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "voiceWarner",
-      "target": "locals_warned"
+      "source": "bc892753-6fbf-5e4e-8cf4-638cd38d777c",
+      "target": "3c4224b9-93ed-5adc-ae4a-296d2f0438a7"
     },
     {
       "id": "fds-assigned-critical_detected",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "fds",
-      "target": "critical_detected"
+      "source": "c9d81886-0eff-53e8-909a-e6141b820718",
+      "target": "73aee8ce-c64d-5ee9-993a-8184fb532244"
     },
     {
       "id": "ultrasoundSensor-assigned-speed_acquired_every_10_seconds",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "ultrasoundSensor",
-      "target": "speed_acquired_every_10_seconds"
+      "source": "2ba00eb0-3978-5cb9-9b57-7664a9a04afb",
+      "target": "58d3092c-df0a-5f35-8730-37f4a349b322"
     },
     {
       "id": "camera-assigned-images_acquired",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "camera",
-      "target": "images_acquired"
+      "source": "504ab96a-8228-5866-bec8-3b7bcaa5232e",
+      "target": "9a132158-a1e4-5fd9-88b7-2f268c609a8c"
     },
     {
       "id": "cameraSpeedModule-assigned-speed_acquired_from_images",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "cameraSpeedModule",
-      "target": "speed_acquired_from_images"
+      "source": "293530d2-f524-529c-a2fd-27f0545c10a6",
+      "target": "7c2d0907-a136-5335-86b4-471fda1eb645"
     },
     {
       "id": "cameraSpeedModule-assigned-acquired_camera_speed_accurate",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "cameraSpeedModule",
-      "target": "acquired_camera_speed_accurate"
+      "source": "293530d2-f524-529c-a2fd-27f0545c10a6",
+      "target": "1aafba2c-782c-5a9c-8d1c-884dedb1e682"
     },
     {
       "id": "SMSWarner-assigned-locals_warned_by_sms",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "SMSWarner",
-      "target": "locals_warned_by_sms"
+      "source": "6b3e0923-1e5d-5344-8cfc-f8f2d5bb4318",
+      "target": "91a6457d-f9cd-55f1-9b62-cd7fbb297891"
     },
     {
       "id": "EmailWarner-assigned-locals_warned_by_email",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "EmailWarner",
-      "target": "locals_warned_by_email"
+      "source": "cfa04757-681d-5d43-9f50-7cc95f235708",
+      "target": "ae89e46d-b854-522e-81f9-5c32cb8a8b53"
     },
     {
       "id": "speed_acquired_by_camera-conflicts-acquired_ultrasound_speed_accurate",
       "type": "kaos.Conflict",
-      "source": "speed_acquired_by_camera",
-      "target": "acquired_ultrasound_speed_accurate"
+      "source": "55a5c343-65f8-52a0-92dc-2773fcd2ff41",
+      "target": "ebc82dd4-a3ba-5dab-a03c-84234a526f73"
     },
     {
       "id": "speed_acquired_every_5_seconds-conflicts-acquired_camera_speed_accurate",
       "type": "kaos.Conflict",
-      "source": "speed_acquired_every_5_seconds",
-      "target": "acquired_camera_speed_accurate"
+      "source": "bfdcd2dc-932b-5709-99ec-176afb9ba08e",
+      "target": "1aafba2c-782c-5a9c-8d1c-884dedb1e682"
     }
   ],
   "display": {},

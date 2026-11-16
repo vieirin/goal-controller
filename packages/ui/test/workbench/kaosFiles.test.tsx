@@ -28,6 +28,7 @@ import {
 } from '@/lib/workbench/analysis';
 import { nativeFileOf } from '@/lib/workbench/nativeFiles';
 import { mockReactFlowDom } from './reactFlowDom';
+import { KAOS_ID_KEY, readKaos } from '@goal-controller/lib';
 
 const ROOT = join(__dirname, '../../../..');
 const read = (path: string) => readFileSync(join(ROOT, path), 'utf8');
@@ -35,6 +36,14 @@ const LAS = read('examples/kaos/las/las.kaos');
 const AMBULANCE = read('examples/kaos/ambulance/ambulance.kaos');
 const FLOOD = read('examples/kaos/flood/flood.kaos');
 const ISTAR = read('examples/edge/simpleChoice.txt');
+/** An element's piStar id (a UUID, #518) in a `.kaos` read, by its KAOSTools identifier. */
+const idIn = (kaos: string, identifier: string) =>
+  (
+    readKaos(kaos).model as unknown as {
+      orphans: { id: string; [KAOS_ID_KEY]?: string }[];
+    }
+  ).orphans.find((n) => n[KAOS_ID_KEY] === identifier)!.id;
+const RESOLVED = idIn(AMBULANCE, 'achieve_incident_resolved');
 
 beforeAll(mockReactFlowDom);
 
@@ -129,9 +138,7 @@ describe('a .kaos file in the workbench (#181)', () => {
       act(() => wb().setOptions({ samples: 2000 }));
       act(() => wb().runAnalysis('uncertainty'));
       await waitFor(() => expect(wb().analysisRun).not.toBeNull());
-      const value = shownCase(wb().analysisRun)?.values[
-        'achieve_incident_resolved'
-      ];
+      const value = shownCase(wb().analysisRun)?.values[RESOLVED];
       // ADS's five experts (#198): violated for certain, as RE'15
       expect(value?.label).toMatch(/^P [0-9.]+% · VU 1 · US 0\.94[0-9]*$/);
       expect(value?.distribution?.samples).toBe(2000);
@@ -140,12 +147,11 @@ describe('a .kaos file in the workbench (#181)', () => {
       await waitFor(() =>
         expect(
           container.querySelector(
-            '[data-id="achieve_incident_resolved"] .istar-issues-badge',
+            `[data-id="${RESOLVED}"] .istar-issues-badge`,
           ),
         ).not.toBeNull(),
       );
-    },
-    // a 117-element model opened, laid out and 2000-sample analysed: that
+    }, // a 117-element model opened, laid out and 2000-sample analysed: that
     // work is synchronous inside act(), not a DOM wait, so it is genuinely
     // CPU-bound; under four concurrent full `pnpm test` runs on a 10-core
     // machine it measured up to 27 s (#473), hence the headroom here
@@ -166,28 +172,26 @@ describe('a .kaos file in the workbench (#181)', () => {
       expect(Object.keys(wb().analyses ?? {})).toContain('probabilities');
       act(() => wb().runAnalysis('probabilities'));
       await waitFor(() => expect(wb().analysisRun).not.toBeNull());
-      expect(
-        shownCase(wb().analysisRun)?.values['achieve_incident_resolved'],
-      ).toEqual({ value: 1, label: 'EPS 100.00% · SV -5.00%' });
+      expect(shownCase(wb().analysisRun)?.values[RESOLVED]).toEqual({
+        value: 1,
+        label: 'EPS 100.00% · SV -5.00%',
+      });
       // its step is the last (the root's): stepped to, its badge is the canvas's
       act(() => wb().stepAnalysis(10_000));
       const run = wb().analysisRun;
       const badges = analysisDiagnostics(shownCase(run), shownStep(run)?.index);
-      expect(
-        badges.find((b) => b.elementId === 'achieve_incident_resolved'),
-      ).toMatchObject({
+      expect(badges.find((b) => b.elementId === RESOLVED)).toMatchObject({
         message: expect.stringContaining('EPS 100.00% · SV -5.00%'),
       });
       // drawn on its node
       await waitFor(() =>
         expect(
           container.querySelector(
-            '[data-id="achieve_incident_resolved"] .istar-issues-badge',
+            `[data-id="${RESOLVED}"] .istar-issues-badge`,
           ),
         ).not.toBeNull(),
       );
-    },
-    // the same 117-element ambulance model, opened and laid out again under
+    }, // the same 117-element ambulance model, opened and laid out again under
     // a second engine: the same CPU-bound cost as the case above (#473)
     45_000,
   );
@@ -208,13 +212,17 @@ describe('a .kaos file in the workbench (#181)', () => {
     expect(chosen?.label).toBe(
       'Chosen: Achieve [SpeedAcquiredEvery5SecondsByCamera] + Maintain [CameraSpeedAccurate] + Achieve [LocalsWarnedBySMSWhenLevelsCritical]',
     );
-    expect(chosen?.values['locals_warned_when_risk_imminent']).toEqual({
+    expect(
+      chosen?.values[idIn(FLOOD, 'locals_warned_when_risk_imminent')],
+    ).toEqual({
       value: 0.76,
       label: 'EPS 76.00% · SV -11.00%',
     });
     // the phone warning it substitutes is dimmed, the SMS warning kept
     const style = selectionStyle(chosen)!;
-    expect(style).toContain('[data-id="locals_warned_by_sms"]');
-    expect(style).not.toContain('[data-id="locals_warned"]');
+    expect(style).toContain(
+      `[data-id="${idIn(FLOOD, 'locals_warned_by_sms')}"]`,
+    );
+    expect(style).not.toContain(`[data-id="${idIn(FLOOD, 'locals_warned')}"]`);
   });
 });

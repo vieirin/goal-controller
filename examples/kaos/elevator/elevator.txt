@@ -2,7 +2,7 @@
   "actors": [],
   "orphans": [
     {
-      "id": "passengers_informed_of_direction",
+      "id": "7fd506a6-79d4-5663-bc9f-c54faeefd9d6",
       "text": "Passengers informed of elevator direction",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -16,11 +16,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "passengers_informed_of_direction",
       "x": 200,
       "y": 80
     },
     {
-      "id": "direction_updated_before_next_stop",
+      "id": "f88d8a3b-0f00-5269-8dbb-8a271044dc40",
       "text": "Elevator direction updated few seconds before next stop",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -34,11 +35,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "direction_updated_before_next_stop",
       "x": 200,
       "y": 180
     },
     {
-      "id": "direction_unreadable",
+      "id": "b9f89e0a-7c0a-5421-9860-a563b7c3b95f",
       "text": "Elevator direction unreadable",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -46,11 +48,12 @@
         "FormalSpec": "",
         "Category": ""
       },
+      "kaosId": "direction_unreadable",
       "x": 200,
       "y": 280
     },
     {
-      "id": "inadequate_led_size",
+      "id": "264711c8-eea3-5ebd-9019-7f7f12d7b3c5",
       "text": "Inadequate LED size",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -58,11 +61,12 @@
         "FormalSpec": "",
         "Category": ""
       },
+      "kaosId": "inadequate_led_size",
       "x": 40,
       "y": 380
     },
     {
-      "id": "unreadable_by_blind_people",
+      "id": "02257a76-2a92-5c13-8450-388b3638c9f5",
       "text": "Elevator direction unreadable by blind people",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -70,11 +74,12 @@
         "FormalSpec": "",
         "Category": ""
       },
+      "kaosId": "unreadable_by_blind_people",
       "x": 200,
       "y": 380
     },
     {
-      "id": "insufficient_display_contrast",
+      "id": "b41b1ef7-b5aa-55dc-b5a5-8eed30d11ff5",
       "text": "Insufficient display contrast",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -82,11 +87,12 @@
         "FormalSpec": "",
         "Category": ""
       },
+      "kaosId": "insufficient_display_contrast",
       "x": 360,
       "y": 380
     },
     {
-      "id": "leds_at_least_2in_high",
+      "id": "e667f00c-55b8-513a-8a7d-66b1f2853529",
       "text": "LEDs at least 2in high",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -100,11 +106,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "leds_at_least_2in_high",
       "x": 40,
       "y": 480
     },
     {
-      "id": "direction_announced_by_voice",
+      "id": "84c322e3-0431-5d66-a5b7-761ef754446f",
       "text": "Elevator direction announced by voice",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -118,11 +125,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "direction_announced_by_voice",
       "x": 200,
       "y": 480
     },
     {
-      "id": "robust_and_reliable",
+      "id": "7ddf9ed4-3b2e-52a3-9f17-24a66a971657",
       "text": "Robust and reliable elevator system",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -136,11 +144,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "robust_and_reliable",
       "x": 1000,
       "y": 80
     },
     {
-      "id": "service_interrupted",
+      "id": "5035a849-8029-50db-b7e7-b546eaafb922",
       "text": "Service interrupted",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -148,11 +157,12 @@
         "FormalSpec": "",
         "Category": ""
       },
+      "kaosId": "service_interrupted",
       "x": 1000,
       "y": 180
     },
     {
-      "id": "self_reconfigurable_on_partial_failure",
+      "id": "59388947-7865-5b4c-9b78-c052fef530bb",
       "text": "Self-reconfigurable system in case of partial failure",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -166,11 +176,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "self_reconfigurable_on_partial_failure",
       "x": 520,
       "y": 280
     },
     {
-      "id": "repair_delay_enforced",
+      "id": "56e83d07-a7bb-5470-b9b1-ead18c6de1b3",
       "text": "Maximum permitted time delay for repairing failure enforced",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -184,11 +195,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "repair_delay_enforced",
       "x": 680,
       "y": 280
     },
     {
-      "id": "worn_out_components_replaced_in_time",
+      "id": "17eca631-fdb1-54f8-9e62-91e44b817a0e",
       "text": "Worn-out components replaced in time",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -202,11 +214,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "worn_out_components_replaced_in_time",
       "x": 1160,
       "y": 280
     },
     {
-      "id": "maintenance_program_provided",
+      "id": "f739b595-139a-5f8f-9da5-e744a17dbbc3",
       "text": "Maintenance program provided",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -220,11 +233,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "maintenance_program_provided",
       "x": 1000,
       "y": 380
     },
     {
-      "id": "worn_out_components_replaced",
+      "id": "d42972de-fd34-5df4-9afa-10dbcc0dc9b0",
       "text": "Worn-out components replaced",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -238,11 +252,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "worn_out_components_replaced",
       "x": 1320,
       "y": 380
     },
     {
-      "id": "elevator_system_monitored",
+      "id": "fd6daf03-c5a9-5fa4-b7cf-3adb0a540706",
       "text": "Elevator system monitored",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -256,11 +271,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "elevator_system_monitored",
       "x": 1480,
       "y": 380
     },
     {
-      "id": "mtbf_requirements_specified",
+      "id": "b4e2ed91-f4f6-55dd-809b-0c33df900ef0",
       "text": "MTBF requirements specified",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -274,11 +290,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "mtbf_requirements_specified",
       "x": 840,
       "y": 480
     },
     {
-      "id": "maintenance_program_defined",
+      "id": "ea7e1031-f246-5f42-aae5-8d394bb5f13a",
       "text": "Maintenance program defined",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -292,11 +309,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "maintenance_program_defined",
       "x": 1000,
       "y": 480
     },
     {
-      "id": "maintenance_program_executed",
+      "id": "d32d1b43-d37c-565d-badc-ae379c851e14",
       "text": "Maintenance program executed",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -310,11 +328,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "maintenance_program_executed",
       "x": 1160,
       "y": 480
     },
     {
-      "id": "component_wear_detected",
+      "id": "7a40beeb-0ea8-517d-ad64-dca174cc348d",
       "text": "Component wear detected",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -328,11 +347,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "component_wear_detected",
       "x": 1480,
       "y": 480
     },
     {
-      "id": "component_wear_reported",
+      "id": "66fbdb67-f998-5d07-9475-c43f5c0a7360",
       "text": "Component wear reported",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -346,11 +366,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "component_wear_reported",
       "x": 1640,
       "y": 480
     },
     {
-      "id": "system_protected_against_fire",
+      "id": "609bc36d-1441-5eea-90cd-06f45a652835",
       "text": "System protected against fire",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -364,11 +385,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "system_protected_against_fire",
       "x": 1800,
       "y": 80
     },
     {
-      "id": "doors_locked_open_on_fire_alarm",
+      "id": "783c8282-0c2f-59d9-b50a-3a79476a2e85",
       "text": "Doors locked open when fire alarm is set",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -382,11 +404,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "doors_locked_open_on_fire_alarm",
       "x": 3400,
       "y": 80
     },
     {
-      "id": "elevators_stopped_at_nearest_floor_on_fire",
+      "id": "4b7f3b79-3ee1-560a-b0e9-9fee6f885e6e",
       "text": "All moving elevators stopped as soon as they reach any floor, when a fire alarm is set",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -400,11 +423,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "elevators_stopped_at_nearest_floor_on_fire",
       "x": 3560,
       "y": 80
     },
     {
-      "id": "fireproof_cage_provided",
+      "id": "66219ec8-e282-50fe-8620-340b0411a4c2",
       "text": "Fireproof cage provided",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -418,11 +442,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "fireproof_cage_provided",
       "x": 1960,
       "y": 80
     },
     {
-      "id": "fireproof_equipment_provided",
+      "id": "241396fc-6fdd-574f-9ede-a73b516e1e49",
       "text": "Fireproof equipment provided",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -436,11 +461,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "fireproof_equipment_provided",
       "x": 2120,
       "y": 80
     },
     {
-      "id": "efficient_elevator_system",
+      "id": "95e8aabb-c48a-5b66-b32e-6f3623538b07",
       "text": "Efficient elevator system",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -454,11 +480,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "efficient_elevator_system",
       "x": 2440,
       "y": 80
     },
     {
-      "id": "moving_elevator_stopped_next_floor_on_fire_signal",
+      "id": "1ca300a1-11fe-5337-aa7b-2bb6afdee105",
       "text": "Moving elevator stopped next floor in case of fire signal",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -472,11 +499,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "moving_elevator_stopped_next_floor_on_fire_signal",
       "x": 2280,
       "y": 180
     },
     {
-      "id": "elevator_stopped",
+      "id": "a6b2191e-ff3e-59f9-be62-115563a1ec6c",
       "text": "Elevator stopped",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -490,11 +518,12 @@
         "Stability": "",
         "Description": "Contributes to Emergency stop available inside the cage (Fig. 16), which this seed does not otherwise model"
       },
+      "kaosId": "elevator_stopped",
       "x": 2440,
       "y": 180
     },
     {
-      "id": "minimize_elevator_moves",
+      "id": "fc6b16f8-ca49-5224-827c-dad78d215557",
       "text": "Minimize elevator moves",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -508,11 +537,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "minimize_elevator_moves",
       "x": 2600,
       "y": 180
     },
     {
-      "id": "minimize_average_waiting_time",
+      "id": "5f504bdc-a8f3-536d-a19b-7c2d69b3b8ad",
       "text": "Minimize average waiting time",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -526,11 +556,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "minimize_average_waiting_time",
       "x": 2760,
       "y": 180
     },
     {
-      "id": "elevator_stopped_on_calling_floor",
+      "id": "826ef0b2-d540-5210-b4d1-17d3443155a6",
       "text": "Elevator stopped on calling floor",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -544,11 +575,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "elevator_stopped_on_calling_floor",
       "x": 2920,
       "y": 80
     },
     {
-      "id": "stop_button_used",
+      "id": "dacbf533-0600-56b5-8282-a2b57a259fff",
       "text": "Stop button used",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -562,283 +594,311 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "stop_button_used",
       "x": 5320,
       "y": 80
     },
     {
-      "id": "elevator_controller",
+      "id": "85ede338-d804-5501-ae4d-f9dce083b3fc",
       "text": "Elevator Controller",
       "type": "kaos.Agent",
       "customProperties": {
         "Type": "",
         "Description": ""
       },
+      "kaosId": "elevator_controller",
       "x": 3080,
       "y": 80
     },
     {
-      "id": "elevator_company",
+      "id": "c01a75e9-ab32-5301-93ab-fc014764c5fe",
       "text": "Elevator company",
       "type": "kaos.EnvironmentAgent",
       "customProperties": {
         "Description": ""
       },
+      "kaosId": "elevator_company",
       "x": 5480,
       "y": 80
     },
     {
-      "id": "passenger",
+      "id": "c1cbb889-64e4-5eff-aae4-9580d7e8fc61",
       "text": "Passenger",
       "type": "kaos.EnvironmentAgent",
       "customProperties": {
         "Description": ""
       },
+      "kaosId": "passenger",
       "x": 5640,
       "y": 80
     },
     {
-      "id": "elevator_system",
+      "id": "631fb3ff-9942-5bb9-90e7-4aa35df3eb10",
       "text": "Elevator System",
       "type": "kaos.Entity",
       "customProperties": {
         "Description": ""
       },
+      "kaosId": "elevator_system",
       "x": 3720,
       "y": 80
     },
     {
-      "id": "cage",
+      "id": "f846b787-e277-5e1f-9f5d-132e646ae08b",
       "text": "Cage",
       "type": "kaos.Entity",
       "customProperties": {
         "Description": ""
       },
+      "kaosId": "cage",
       "x": 4520,
       "y": 80
     },
     {
-      "id": "floor",
+      "id": "b67213c1-fd1a-5402-8e97-51a2aa511ba2",
       "text": "Floor",
       "type": "kaos.Entity",
       "customProperties": {
         "Description": ""
       },
+      "kaosId": "floor",
       "x": 4680,
       "y": 80
     },
     {
-      "id": "alarm_device",
+      "id": "b9ed6d93-f626-584c-97b2-16bffa653d7d",
       "text": "Alarm device",
       "type": "kaos.Entity",
       "customProperties": {
         "Description": ""
       },
+      "kaosId": "alarm_device",
       "x": 5800,
       "y": 80
     },
     {
-      "id": "alarm_bell",
+      "id": "45332be2-c0f8-5000-b9a3-21327ff09d31",
       "text": "Alarm bell",
       "type": "kaos.Entity",
       "customProperties": {
         "Description": "A component of the Elevator System, specialising Alarm device (Fig. 23)"
       },
+      "kaosId": "alarm_bell",
       "x": 4840,
       "y": 80
     },
     {
-      "id": "power_supply",
+      "id": "8b1ef91b-7477-5834-91e2-471b4925a6b0",
       "text": "Power supply",
       "type": "kaos.Entity",
       "customProperties": {
         "Description": ""
       },
+      "kaosId": "power_supply",
       "x": 5000,
       "y": 80
     },
     {
-      "id": "door",
+      "id": "aab1442f-78c8-5fbb-afa8-1513c26d5c82",
       "text": "Door",
       "type": "kaos.Entity",
       "customProperties": {
         "Description": "",
         "Attributes": "status:Open|Close"
       },
+      "kaosId": "door",
       "x": 5960,
       "y": 80
     },
     {
-      "id": "schedule",
+      "id": "14fa5e29-d1dd-5f63-adca-b10bf6f9ca6e",
       "text": "Schedule",
       "type": "kaos.Entity",
       "customProperties": {
         "Description": "The sequence of commands the elevator controller has to execute"
       },
+      "kaosId": "schedule",
       "x": 3560,
       "y": 180
     },
     {
-      "id": "button",
+      "id": "d5203b54-9ba3-5053-96f8-60eba84841ab",
       "text": "Button",
       "type": "kaos.Entity",
       "customProperties": {
         "Description": ""
       },
+      "kaosId": "button",
       "x": 6120,
       "y": 80
     },
     {
-      "id": "has_cage",
+      "id": "dfedd13a-44bc-5579-958e-fb13ab414620",
       "text": "ElevatorSystemHasCage",
       "type": "kaos.Association",
       "customProperties": {
         "Description": ""
       },
+      "kaosId": "has_cage",
       "x": 3880,
       "y": 80
     },
     {
-      "id": "has_floor",
+      "id": "bd4f7af6-ff18-53b4-a5c9-313add3dc939",
       "text": "ElevatorSystemHasFloor",
       "type": "kaos.Association",
       "customProperties": {
         "Description": ""
       },
+      "kaosId": "has_floor",
       "x": 4040,
       "y": 80
     },
     {
-      "id": "has_alarm_bell",
+      "id": "4e9cc138-6da4-55b8-b03f-c4c6c961d679",
       "text": "ElevatorSystemHasAlarmBell",
       "type": "kaos.Association",
       "customProperties": {
         "Description": ""
       },
+      "kaosId": "has_alarm_bell",
       "x": 4200,
       "y": 80
     },
     {
-      "id": "has_controller",
+      "id": "c56eee10-f493-568b-a55c-fd2badda4d53",
       "text": "ElevatorSystemHasController",
       "type": "kaos.Association",
       "customProperties": {
         "Description": ""
       },
+      "kaosId": "has_controller",
       "x": 3240,
       "y": 80
     },
     {
-      "id": "has_power_supply",
+      "id": "daddea94-1923-55b4-8f4d-22157df58c80",
       "text": "ElevatorSystemHasPowerSupply",
       "type": "kaos.Association",
       "customProperties": {
         "Description": ""
       },
+      "kaosId": "has_power_supply",
       "x": 4360,
       "y": 80
     },
     {
-      "id": "at",
+      "id": "e55196b8-e992-5921-a1af-e2ab6a93bfb1",
       "text": "At",
       "type": "kaos.Association",
       "customProperties": {
         "Description": ""
       },
+      "kaosId": "at",
       "x": 5160,
       "y": 80
     },
     {
-      "id": "refresh",
+      "id": "ae546d2b-6883-5a18-bcfa-1709e221e07e",
       "text": "Refresh",
       "type": "kaos.Event",
       "customProperties": {
         "Description": ""
       },
+      "kaosId": "refresh",
       "x": 3720,
       "y": 180
     },
     {
-      "id": "elevator_state_change",
+      "id": "ebd76049-7e96-54f9-994a-3f96d3641650",
       "text": "Elevator state change",
       "type": "kaos.Event",
       "customProperties": {
         "Description": ""
       },
+      "kaosId": "elevator_state_change",
       "x": 3880,
       "y": 180
     },
     {
-      "id": "floor_call_button_pushed",
+      "id": "15a7599e-16b3-566b-903b-55ec0d11b962",
       "text": "Floor call button pushed",
       "type": "kaos.Event",
       "customProperties": {
         "Description": ""
       },
+      "kaosId": "floor_call_button_pushed",
       "x": 4520,
       "y": 180
     },
     {
-      "id": "arrival_on_floor",
+      "id": "2cde8eaa-0191-509c-9418-95758c7f342d",
       "text": "Arrival on floor",
       "type": "kaos.Event",
       "customProperties": {
         "Description": ""
       },
+      "kaosId": "arrival_on_floor",
       "x": 6280,
       "y": 80
     },
     {
-      "id": "button_light_on_command",
+      "id": "8b63733c-4438-54d2-be23-ddc9bb173529",
       "text": "Button light on command",
       "type": "kaos.Event",
       "customProperties": {
         "Description": ""
       },
+      "kaosId": "button_light_on_command",
       "x": 4040,
       "y": 180
     },
     {
-      "id": "stop_cage_command",
+      "id": "d887747f-7dad-5ca4-948f-32f80dae951e",
       "text": "Stop cage command",
       "type": "kaos.Event",
       "customProperties": {
         "Description": ""
       },
+      "kaosId": "stop_cage_command",
       "x": 4200,
       "y": 180
     },
     {
-      "id": "reschedule",
+      "id": "77e65377-798f-5f33-8214-639f2f7a07b8",
       "text": "Reschedule",
       "type": "kaos.Operation",
       "customProperties": {
         "Description": ""
       },
+      "kaosId": "reschedule",
       "x": 4360,
       "y": 180
     },
     {
-      "id": "execute_schedule",
+      "id": "062d2f28-9e07-5b48-af20-505884641e72",
       "text": "Execute schedule",
       "type": "kaos.Operation",
       "customProperties": {
         "Description": ""
       },
+      "kaosId": "execute_schedule",
       "x": 3400,
       "y": 180
     },
     {
-      "id": "push_button",
+      "id": "1929cc19-37f6-5ccb-9546-dc9def8b3e79",
       "text": "Push button",
       "type": "kaos.Operation",
       "customProperties": {
         "Description": ""
       },
+      "kaosId": "push_button",
       "x": 5320,
       "y": 180
     },
     {
-      "id": "close_door",
+      "id": "70259da7-74ee-5a2c-8352-10d7c996fa2f",
       "text": "CloseDoor",
       "type": "kaos.Operation",
       "customProperties": {
@@ -846,11 +906,12 @@
         "DomPre": "door.status == \"Open\"",
         "DomPost": "door.status == \"Close\""
       },
+      "kaosId": "close_door",
       "x": 6440,
       "y": 80
     },
     {
-      "id": "leave_floor",
+      "id": "4eb0cfdc-2e88-5a48-a33b-500c34508bc7",
       "text": "LeaveFloor",
       "type": "kaos.Operation",
       "customProperties": {
@@ -858,6 +919,7 @@
         "DomPre": "(c, f) in at",
         "DomPost": "not (c, f) in at"
       },
+      "kaosId": "leave_floor",
       "x": 6600,
       "y": 80
     }
@@ -880,7 +942,7 @@
         {
           "id": "passengers_informed_of_direction-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "direction_updated_before_next_stop",
+          "source": "f88d8a3b-0f00-5269-8dbb-8a271044dc40",
           "target": "passengers_informed_of_direction-refinement-1"
         }
       ],
@@ -888,7 +950,7 @@
         "id": "passengers_informed_of_direction-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "passengers_informed_of_direction-refinement-1",
-        "target": "passengers_informed_of_direction"
+        "target": "7fd506a6-79d4-5663-bc9f-c54faeefd9d6"
       }
     },
     {
@@ -902,7 +964,7 @@
         {
           "id": "direction_unreadable-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "inadequate_led_size",
+          "source": "264711c8-eea3-5ebd-9019-7f7f12d7b3c5",
           "target": "direction_unreadable-refinement-1"
         }
       ],
@@ -910,7 +972,7 @@
         "id": "direction_unreadable-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "direction_unreadable-refinement-1",
-        "target": "direction_unreadable"
+        "target": "b9f89e0a-7c0a-5421-9860-a563b7c3b95f"
       }
     },
     {
@@ -924,7 +986,7 @@
         {
           "id": "direction_unreadable-refinement-2-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "unreadable_by_blind_people",
+          "source": "02257a76-2a92-5c13-8450-388b3638c9f5",
           "target": "direction_unreadable-refinement-2"
         }
       ],
@@ -932,7 +994,7 @@
         "id": "direction_unreadable-refinement-2-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "direction_unreadable-refinement-2",
-        "target": "direction_unreadable"
+        "target": "b9f89e0a-7c0a-5421-9860-a563b7c3b95f"
       }
     },
     {
@@ -946,7 +1008,7 @@
         {
           "id": "direction_unreadable-refinement-3-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "insufficient_display_contrast",
+          "source": "b41b1ef7-b5aa-55dc-b5a5-8eed30d11ff5",
           "target": "direction_unreadable-refinement-3"
         }
       ],
@@ -954,7 +1016,7 @@
         "id": "direction_unreadable-refinement-3-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "direction_unreadable-refinement-3",
-        "target": "direction_unreadable"
+        "target": "b9f89e0a-7c0a-5421-9860-a563b7c3b95f"
       }
     },
     {
@@ -973,13 +1035,13 @@
         {
           "id": "worn_out_components_replaced_in_time-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "maintenance_program_provided",
+          "source": "f739b595-139a-5f8f-9da5-e744a17dbbc3",
           "target": "worn_out_components_replaced_in_time-refinement-1"
         },
         {
           "id": "worn_out_components_replaced_in_time-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "worn_out_components_replaced",
+          "source": "d42972de-fd34-5df4-9afa-10dbcc0dc9b0",
           "target": "worn_out_components_replaced_in_time-refinement-1"
         }
       ],
@@ -987,7 +1049,7 @@
         "id": "worn_out_components_replaced_in_time-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "worn_out_components_replaced_in_time-refinement-1",
-        "target": "worn_out_components_replaced_in_time"
+        "target": "17eca631-fdb1-54f8-9e62-91e44b817a0e"
       }
     },
     {
@@ -1006,13 +1068,13 @@
         {
           "id": "worn_out_components_replaced_in_time-refinement-2-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "worn_out_components_replaced",
+          "source": "d42972de-fd34-5df4-9afa-10dbcc0dc9b0",
           "target": "worn_out_components_replaced_in_time-refinement-2"
         },
         {
           "id": "worn_out_components_replaced_in_time-refinement-2-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "elevator_system_monitored",
+          "source": "fd6daf03-c5a9-5fa4-b7cf-3adb0a540706",
           "target": "worn_out_components_replaced_in_time-refinement-2"
         }
       ],
@@ -1020,7 +1082,7 @@
         "id": "worn_out_components_replaced_in_time-refinement-2-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "worn_out_components_replaced_in_time-refinement-2",
-        "target": "worn_out_components_replaced_in_time"
+        "target": "17eca631-fdb1-54f8-9e62-91e44b817a0e"
       }
     },
     {
@@ -1039,19 +1101,19 @@
         {
           "id": "maintenance_program_provided-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "mtbf_requirements_specified",
+          "source": "b4e2ed91-f4f6-55dd-809b-0c33df900ef0",
           "target": "maintenance_program_provided-refinement-1"
         },
         {
           "id": "maintenance_program_provided-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "maintenance_program_defined",
+          "source": "ea7e1031-f246-5f42-aae5-8d394bb5f13a",
           "target": "maintenance_program_provided-refinement-1"
         },
         {
           "id": "maintenance_program_provided-refinement-1-3",
           "type": "kaos.RefinementLinkStart",
-          "source": "maintenance_program_executed",
+          "source": "d32d1b43-d37c-565d-badc-ae379c851e14",
           "target": "maintenance_program_provided-refinement-1"
         }
       ],
@@ -1059,7 +1121,7 @@
         "id": "maintenance_program_provided-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "maintenance_program_provided-refinement-1",
-        "target": "maintenance_program_provided"
+        "target": "f739b595-139a-5f8f-9da5-e744a17dbbc3"
       }
     },
     {
@@ -1078,13 +1140,13 @@
         {
           "id": "elevator_system_monitored-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "component_wear_detected",
+          "source": "7a40beeb-0ea8-517d-ad64-dca174cc348d",
           "target": "elevator_system_monitored-refinement-1"
         },
         {
           "id": "elevator_system_monitored-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "component_wear_reported",
+          "source": "66fbdb67-f998-5d07-9475-c43f5c0a7360",
           "target": "elevator_system_monitored-refinement-1"
         }
       ],
@@ -1092,7 +1154,7 @@
         "id": "elevator_system_monitored-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "elevator_system_monitored-refinement-1",
-        "target": "elevator_system_monitored"
+        "target": "fd6daf03-c5a9-5fa4-b7cf-3adb0a540706"
       }
     },
     {
@@ -1111,25 +1173,25 @@
         {
           "id": "efficient_elevator_system-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "moving_elevator_stopped_next_floor_on_fire_signal",
+          "source": "1ca300a1-11fe-5337-aa7b-2bb6afdee105",
           "target": "efficient_elevator_system-refinement-1"
         },
         {
           "id": "efficient_elevator_system-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "elevator_stopped",
+          "source": "a6b2191e-ff3e-59f9-be62-115563a1ec6c",
           "target": "efficient_elevator_system-refinement-1"
         },
         {
           "id": "efficient_elevator_system-refinement-1-3",
           "type": "kaos.RefinementLinkStart",
-          "source": "minimize_elevator_moves",
+          "source": "fc6b16f8-ca49-5224-827c-dad78d215557",
           "target": "efficient_elevator_system-refinement-1"
         },
         {
           "id": "efficient_elevator_system-refinement-1-4",
           "type": "kaos.RefinementLinkStart",
-          "source": "minimize_average_waiting_time",
+          "source": "5f504bdc-a8f3-536d-a19b-7c2d69b3b8ad",
           "target": "efficient_elevator_system-refinement-1"
         }
       ],
@@ -1137,26 +1199,26 @@
         "id": "efficient_elevator_system-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "efficient_elevator_system-refinement-1",
-        "target": "efficient_elevator_system"
+        "target": "95e8aabb-c48a-5b66-b32e-6f3623538b07"
       }
     },
     {
       "id": "direction_unreadable-obstructs-direction_updated_before_next_stop",
       "type": "kaos.ObstructionLink",
-      "source": "direction_unreadable",
-      "target": "direction_updated_before_next_stop"
+      "source": "b9f89e0a-7c0a-5421-9860-a563b7c3b95f",
+      "target": "f88d8a3b-0f00-5269-8dbb-8a271044dc40"
     },
     {
       "id": "service_interrupted-obstructs-robust_and_reliable",
       "type": "kaos.ObstructionLink",
-      "source": "service_interrupted",
-      "target": "robust_and_reliable"
+      "source": "5035a849-8029-50db-b7e7-b546eaafb922",
+      "target": "7ddf9ed4-3b2e-52a3-9f17-24a66a971657"
     },
     {
       "id": "leds_at_least_2in_high-resolves-inadequate_led_size",
       "type": "kaos.ResolutionLink",
-      "source": "leds_at_least_2in_high",
-      "target": "inadequate_led_size",
+      "source": "e667f00c-55b8-513a-8a7d-66b1f2853529",
+      "target": "264711c8-eea3-5ebd-9019-7f7f12d7b3c5",
       "customProperties": {
         "ResolutionType": "obstacle prevention",
         "Anchor": ""
@@ -1165,8 +1227,8 @@
     {
       "id": "direction_announced_by_voice-resolves-unreadable_by_blind_people",
       "type": "kaos.ResolutionLink",
-      "source": "direction_announced_by_voice",
-      "target": "unreadable_by_blind_people",
+      "source": "84c322e3-0431-5d66-a5b7-761ef754446f",
+      "target": "02257a76-2a92-5c13-8450-388b3638c9f5",
       "customProperties": {
         "ResolutionType": "obstacle prevention",
         "Anchor": ""
@@ -1175,8 +1237,8 @@
     {
       "id": "self_reconfigurable_on_partial_failure-resolves-service_interrupted",
       "type": "kaos.ResolutionLink",
-      "source": "self_reconfigurable_on_partial_failure",
-      "target": "service_interrupted",
+      "source": "59388947-7865-5b4c-9b78-c052fef530bb",
+      "target": "5035a849-8029-50db-b7e7-b546eaafb922",
       "customProperties": {
         "ResolutionType": "obstacle mitigation",
         "Anchor": ""
@@ -1185,8 +1247,8 @@
     {
       "id": "repair_delay_enforced-resolves-service_interrupted",
       "type": "kaos.ResolutionLink",
-      "source": "repair_delay_enforced",
-      "target": "service_interrupted",
+      "source": "56e83d07-a7bb-5470-b9b1-ead18c6de1b3",
+      "target": "5035a849-8029-50db-b7e7-b546eaafb922",
       "customProperties": {
         "ResolutionType": "goal restoration",
         "Anchor": ""
@@ -1195,8 +1257,8 @@
     {
       "id": "worn_out_components_replaced_in_time-resolves-service_interrupted",
       "type": "kaos.ResolutionLink",
-      "source": "worn_out_components_replaced_in_time",
-      "target": "service_interrupted",
+      "source": "17eca631-fdb1-54f8-9e62-91e44b817a0e",
+      "target": "5035a849-8029-50db-b7e7-b546eaafb922",
       "customProperties": {
         "ResolutionType": "obstacle prevention",
         "Anchor": ""
@@ -1205,38 +1267,38 @@
     {
       "id": "elevator_controller-assigned-doors_locked_open_on_fire_alarm",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "elevator_controller",
-      "target": "doors_locked_open_on_fire_alarm"
+      "source": "85ede338-d804-5501-ae4d-f9dce083b3fc",
+      "target": "783c8282-0c2f-59d9-b50a-3a79476a2e85"
     },
     {
       "id": "elevator_controller-assigned-elevators_stopped_at_nearest_floor_on_fire",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "elevator_controller",
-      "target": "elevators_stopped_at_nearest_floor_on_fire"
+      "source": "85ede338-d804-5501-ae4d-f9dce083b3fc",
+      "target": "4b7f3b79-3ee1-560a-b0e9-9fee6f885e6e"
     },
     {
       "id": "elevator_company-assigned-fireproof_cage_provided",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "elevator_company",
-      "target": "fireproof_cage_provided"
+      "source": "c01a75e9-ab32-5301-93ab-fc014764c5fe",
+      "target": "66219ec8-e282-50fe-8620-340b0411a4c2"
     },
     {
       "id": "elevator_company-assigned-fireproof_equipment_provided",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "elevator_company",
-      "target": "fireproof_equipment_provided"
+      "source": "c01a75e9-ab32-5301-93ab-fc014764c5fe",
+      "target": "241396fc-6fdd-574f-9ede-a73b516e1e49"
     },
     {
       "id": "elevator_controller-assigned-elevator_stopped_on_calling_floor",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "elevator_controller",
-      "target": "elevator_stopped_on_calling_floor"
+      "source": "85ede338-d804-5501-ae4d-f9dce083b3fc",
+      "target": "826ef0b2-d540-5210-b4d1-17d3443155a6"
     },
     {
       "id": "has_cage-links-elevator_system",
       "type": "kaos.AssociationLink",
-      "source": "has_cage",
-      "target": "elevator_system",
+      "source": "dfedd13a-44bc-5579-958e-fb13ab414620",
+      "target": "631fb3ff-9942-5bb9-90e7-4aa35df3eb10",
       "customProperties": {
         "Multiplicity": "1",
         "Role": "elevatorSystem"
@@ -1245,8 +1307,8 @@
     {
       "id": "has_cage-links-cage",
       "type": "kaos.AssociationLink",
-      "source": "has_cage",
-      "target": "cage",
+      "source": "dfedd13a-44bc-5579-958e-fb13ab414620",
+      "target": "f846b787-e277-5e1f-9f5d-132e646ae08b",
       "customProperties": {
         "Multiplicity": "1..*",
         "Role": "cage"
@@ -1255,8 +1317,8 @@
     {
       "id": "has_floor-links-elevator_system",
       "type": "kaos.AssociationLink",
-      "source": "has_floor",
-      "target": "elevator_system",
+      "source": "bd4f7af6-ff18-53b4-a5c9-313add3dc939",
+      "target": "631fb3ff-9942-5bb9-90e7-4aa35df3eb10",
       "customProperties": {
         "Multiplicity": "1",
         "Role": "elevatorSystem"
@@ -1265,8 +1327,8 @@
     {
       "id": "has_floor-links-floor",
       "type": "kaos.AssociationLink",
-      "source": "has_floor",
-      "target": "floor",
+      "source": "bd4f7af6-ff18-53b4-a5c9-313add3dc939",
+      "target": "b67213c1-fd1a-5402-8e97-51a2aa511ba2",
       "customProperties": {
         "Multiplicity": "2..*",
         "Role": "floor"
@@ -1275,8 +1337,8 @@
     {
       "id": "has_alarm_bell-links-elevator_system",
       "type": "kaos.AssociationLink",
-      "source": "has_alarm_bell",
-      "target": "elevator_system",
+      "source": "4e9cc138-6da4-55b8-b03f-c4c6c961d679",
+      "target": "631fb3ff-9942-5bb9-90e7-4aa35df3eb10",
       "customProperties": {
         "Multiplicity": "1",
         "Role": "elevatorSystem"
@@ -1285,8 +1347,8 @@
     {
       "id": "has_alarm_bell-links-alarm_bell",
       "type": "kaos.AssociationLink",
-      "source": "has_alarm_bell",
-      "target": "alarm_bell",
+      "source": "4e9cc138-6da4-55b8-b03f-c4c6c961d679",
+      "target": "45332be2-c0f8-5000-b9a3-21327ff09d31",
       "customProperties": {
         "Multiplicity": "1",
         "Role": "alarmBell"
@@ -1295,8 +1357,8 @@
     {
       "id": "has_controller-links-elevator_system",
       "type": "kaos.AssociationLink",
-      "source": "has_controller",
-      "target": "elevator_system",
+      "source": "c56eee10-f493-568b-a55c-fd2badda4d53",
+      "target": "631fb3ff-9942-5bb9-90e7-4aa35df3eb10",
       "customProperties": {
         "Multiplicity": "1",
         "Role": "elevatorSystem"
@@ -1305,8 +1367,8 @@
     {
       "id": "has_controller-links-elevator_controller",
       "type": "kaos.AssociationLink",
-      "source": "has_controller",
-      "target": "elevator_controller",
+      "source": "c56eee10-f493-568b-a55c-fd2badda4d53",
+      "target": "85ede338-d804-5501-ae4d-f9dce083b3fc",
       "customProperties": {
         "Multiplicity": "1",
         "Role": "controller"
@@ -1315,8 +1377,8 @@
     {
       "id": "has_power_supply-links-elevator_system",
       "type": "kaos.AssociationLink",
-      "source": "has_power_supply",
-      "target": "elevator_system",
+      "source": "daddea94-1923-55b4-8f4d-22157df58c80",
+      "target": "631fb3ff-9942-5bb9-90e7-4aa35df3eb10",
       "customProperties": {
         "Multiplicity": "1",
         "Role": "elevatorSystem"
@@ -1325,8 +1387,8 @@
     {
       "id": "has_power_supply-links-power_supply",
       "type": "kaos.AssociationLink",
-      "source": "has_power_supply",
-      "target": "power_supply",
+      "source": "daddea94-1923-55b4-8f4d-22157df58c80",
+      "target": "8b1ef91b-7477-5834-91e2-471b4925a6b0",
       "customProperties": {
         "Multiplicity": "1",
         "Role": "powerSupply"
@@ -1335,8 +1397,8 @@
     {
       "id": "at-links-cage",
       "type": "kaos.AssociationLink",
-      "source": "at",
-      "target": "cage",
+      "source": "e55196b8-e992-5921-a1af-e2ab6a93bfb1",
+      "target": "f846b787-e277-5e1f-9f5d-132e646ae08b",
       "customProperties": {
         "Role": "cage"
       }
@@ -1344,8 +1406,8 @@
     {
       "id": "at-links-floor",
       "type": "kaos.AssociationLink",
-      "source": "at",
-      "target": "floor",
+      "source": "e55196b8-e992-5921-a1af-e2ab6a93bfb1",
+      "target": "b67213c1-fd1a-5402-8e97-51a2aa511ba2",
       "customProperties": {
         "Role": "floor"
       }
@@ -1353,62 +1415,62 @@
     {
       "id": "floor_call_button_pushed-causes-reschedule",
       "type": "kaos.CauseLink",
-      "source": "floor_call_button_pushed",
-      "target": "reschedule"
+      "source": "15a7599e-16b3-566b-903b-55ec0d11b962",
+      "target": "77e65377-798f-5f33-8214-639f2f7a07b8"
     },
     {
       "id": "reschedule-output-refresh",
       "type": "kaos.OutputLink",
-      "source": "reschedule",
-      "target": "refresh"
+      "source": "77e65377-798f-5f33-8214-639f2f7a07b8",
+      "target": "ae546d2b-6883-5a18-bcfa-1709e221e07e"
     },
     {
       "id": "elevator_controller-performs-execute_schedule",
       "type": "kaos.PerformanceLink",
-      "source": "elevator_controller",
-      "target": "execute_schedule"
+      "source": "85ede338-d804-5501-ae4d-f9dce083b3fc",
+      "target": "062d2f28-9e07-5b48-af20-505884641e72"
     },
     {
       "id": "execute_schedule-operationalises-elevator_stopped_on_calling_floor",
       "type": "kaos.OperationalisationLink",
-      "source": "execute_schedule",
-      "target": "elevator_stopped_on_calling_floor"
+      "source": "062d2f28-9e07-5b48-af20-505884641e72",
+      "target": "826ef0b2-d540-5210-b4d1-17d3443155a6"
     },
     {
       "id": "refresh-causes-execute_schedule",
       "type": "kaos.CauseLink",
-      "source": "refresh",
-      "target": "execute_schedule"
+      "source": "ae546d2b-6883-5a18-bcfa-1709e221e07e",
+      "target": "062d2f28-9e07-5b48-af20-505884641e72"
     },
     {
       "id": "elevator_state_change-causes-execute_schedule",
       "type": "kaos.CauseLink",
-      "source": "elevator_state_change",
-      "target": "execute_schedule"
+      "source": "ebd76049-7e96-54f9-994a-3f96d3641650",
+      "target": "062d2f28-9e07-5b48-af20-505884641e72"
     },
     {
       "id": "schedule-input-execute_schedule",
       "type": "kaos.InputLink",
-      "source": "schedule",
-      "target": "execute_schedule"
+      "source": "14fa5e29-d1dd-5f63-adca-b10bf6f9ca6e",
+      "target": "062d2f28-9e07-5b48-af20-505884641e72"
     },
     {
       "id": "execute_schedule-output-button_light_on_command",
       "type": "kaos.OutputLink",
-      "source": "execute_schedule",
-      "target": "button_light_on_command"
+      "source": "062d2f28-9e07-5b48-af20-505884641e72",
+      "target": "8b63733c-4438-54d2-be23-ddc9bb173529"
     },
     {
       "id": "execute_schedule-output-stop_cage_command",
       "type": "kaos.OutputLink",
-      "source": "execute_schedule",
-      "target": "stop_cage_command"
+      "source": "062d2f28-9e07-5b48-af20-505884641e72",
+      "target": "d887747f-7dad-5ca4-948f-32f80dae951e"
     },
     {
       "id": "push_button-operationalises-stop_button_used",
       "type": "kaos.OperationalisationLink",
-      "source": "push_button",
-      "target": "stop_button_used"
+      "source": "1929cc19-37f6-5ccb-9546-dc9def8b3e79",
+      "target": "dacbf533-0600-56b5-8282-a2b57a259fff"
     }
   ],
   "display": {},

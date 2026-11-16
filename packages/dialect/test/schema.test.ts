@@ -3,8 +3,14 @@ import { expect } from 'chai';
 import {
   defineDialect,
   defineExtension,
+  dialectDefinition,
   hasIds,
   danglingName,
+  kindWord,
+  kindWordProblem,
+  kindWordsOf,
+  shortId,
+  SHORT_ID_LENGTH,
   keyedKey,
   probabilityOf,
   targetId,
@@ -1174,5 +1180,65 @@ describe('defineExtension', () => {
         toyDialect as ExtensionDefinition,
       ),
     ).to.not.throw();
+  });
+});
+
+describe('kindWord (#518)', () => {
+  it('writes a kind as its local name in snake_case', () => {
+    expect(kindWord('kaos.BehavioralGoal')).to.equal('behavioral_goal');
+    expect(kindWord('nfr.NFR')).to.equal('nfr');
+    expect(kindWord('goal')).to.equal('goal');
+    expect(kindWord('istar.Actor')).to.equal('actor');
+    expect(kindWord('rationalAgents.Planning')).to.equal('planning');
+    expect(kindWord('kaos.EnvironmentAgent')).to.equal('environment_agent');
+    expect(kindWord('nfr.Operationalization')).to.equal('operationalization');
+    expect(kindWord('toy.HTTPServer')).to.equal('http_server');
+  });
+
+  it("reads a definition's kinds by their words", () => {
+    expect({
+      ...kindWordsOf({
+        elements: {
+          goal: { prefix: 'G', fill: '' },
+          'kaos.BehavioralGoal': { fill: '' },
+        },
+      }),
+    }).to.deep.equal({ goal: 'goal', behavioral_goal: 'kaos.BehavioralGoal' });
+  });
+
+  it('shows the first 8 characters of a piStar id', () => {
+    expect(SHORT_ID_LENGTH).to.equal(8);
+    expect(shortId('7857cb00-1234-5678')).to.equal('7857cb00');
+    expect(shortId('G1')).to.equal('G1');
+  });
+
+  it('rejects two kinds written with one word', () => {
+    // a dialect's own definition lists iStar's goal and its extension's
+    expect(() =>
+      dialectDefinition(
+        defineExtension({
+          ...toyDialect,
+          name: 'clash',
+          elements: [{ kind: 'clash.Goal', category: 'node' }],
+          links: [],
+          groupers: {},
+          stereotypes: [],
+          taggedValues: [],
+        } as ExtensionDefinition),
+      ),
+    ).to.throw(
+      /clash: kind words: istar\.Goal and clash\.Goal are both written goal/,
+    );
+    expect(
+      kindWordProblem({
+        elements: { goal: { prefix: 'G', fill: '' }, 'x.Goal': { fill: '' } },
+      }),
+    ).to.equal('goal and x.Goal are both written goal');
+  });
+
+  it("accepts a word that is a property line's key, or link's or actor's", () => {
+    expect(
+      kindWordProblem({ elements: { 'x.Weight': { fill: '' } } }),
+    ).to.equal(null);
   });
 });

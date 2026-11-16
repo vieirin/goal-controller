@@ -14,7 +14,7 @@ import { parsePistar } from '@istar-ts/core';
 import type { DefinitionContext } from '@goal-controller/dialect';
 import { goalView } from '@goal-controller/goal-tree';
 import { contextFromView, valueProblem } from '@goal-controller/goal-language';
-import { readKaos } from '../../src/importers/kaos';
+import { readKaos, withKaosIdentifiers } from '../../src/importers/kaos';
 import { kaos } from '../../src/dialects/kaos';
 import { KAOS_MODEL } from '../../src/dialects/kaos/metamodel';
 
@@ -27,7 +27,10 @@ const FIXTURE = readFileSync(
 const formulaProblemsOf = (text: string): Record<string, string> => {
   const { model: json } = readKaos(text, { modelName: 'm' });
   if (!json) throw new Error('readKaos failed');
-  const model = parsePistar(json, { metamodel: KAOS_MODEL });
+  // keyed by the elements' KAOSTools identifiers (their ids are UUIDs, #518)
+  const model = parsePistar(withKaosIdentifiers(json), {
+    metamodel: KAOS_MODEL,
+  });
   const tree = goalView(model, kaos);
   const context: DefinitionContext = contextFromView(kaos, tree, []);
   const problems: Record<string, string> = {};

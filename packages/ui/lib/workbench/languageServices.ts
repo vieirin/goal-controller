@@ -14,6 +14,7 @@ import type { LSPClient } from '@codemirror/lsp-client';
 import type { AnyDialect, DefinitionContext } from '@goal-controller/dialect';
 import { fieldUri } from '@goal-controller/goal-language/light';
 import { serverProblems } from './diagnostics';
+import type { LineElements } from './notationDocument';
 import { forgetDocument, publishDiagnostics } from './diagnosticsStore';
 import {
   ENGINE_CHECKS,
@@ -177,8 +178,8 @@ const listen = (
   client: LSPClient,
   service: LanguageService,
   definition: AnyDialect,
-  // the elements the model has, by key: a Notation line's element under its goal
-  has: (key: string) => boolean,
+  // the model's elements, by key: the one a Notation line's id names
+  known: LineElements,
 ) =>
   onClientDiagnostics(client, (params) =>
     publishDiagnostics(
@@ -189,7 +190,7 @@ const listen = (
         service,
         definition,
         client.workspace.getFile(params.uri)?.doc.toString(),
-        has,
+        known,
       ),
     ),
   );
@@ -199,10 +200,10 @@ const supportOf = (
   service: LanguageService,
   definition: AnyDialect,
   transport: LSPClient | LanguageSupport,
-  has: (key: string) => boolean,
+  known: LineElements,
 ): LanguageSupport => {
   if (!isClient(transport)) return transport;
-  listen(transport, service, definition, has);
+  listen(transport, service, definition, known);
   return service === GOAL_LANGUAGE
     ? serverLanguageSupport(definition, transport)
     : engineServerSupport(transport, service.languageId ?? service.id);
@@ -254,7 +255,11 @@ export const multiplexSupport = (
 ): LanguageSupport => {
   // the context last given: its elements are the model's, by key
   let elements: DefinitionContext['elements'] = {};
-  const has = (key: string) => key in elements;
+  const known: LineElements = {
+    get elements() {
+      return elements;
+    },
+  };
   const served = services.flatMap((service) => {
     const transport = service.transport(definition);
     return transport
@@ -262,7 +267,7 @@ export const multiplexSupport = (
           {
             service,
             transport,
-            support: supportOf(service, definition, transport, has),
+            support: supportOf(service, definition, transport, known),
           },
         ]
       : [];

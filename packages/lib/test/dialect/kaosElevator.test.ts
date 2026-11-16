@@ -12,7 +12,7 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 import { openClosures } from '@goal-controller/goal-tree';
 import { kaos } from '../../src';
-import { kaosNativeFile } from '../../src/importers/kaos';
+import { KAOS_ID_KEY, kaosNativeFile } from '../../src/importers/kaos';
 import { parseModel } from '../../../ui/lib/workbench/dialects';
 import { frameworkProblems } from '../../../ui/lib/workbench/frameworkProblems';
 
@@ -55,8 +55,14 @@ describe('examples/kaos/elevator: the operations side (#210)', () => {
           '"Elevator Controller" performs "Execute schedule", which operationalises "Elevator stopped on calling floor", but is not responsible for it: assign "Elevator stopped on calling floor" to "Elevator Controller"',
       },
     ]);
-    const open = openClosures(modelOf(jsonOf(broken)), kaos);
-    expect(open.map(({ start, via, end }) => [start, via, end])).to.deep.equal([
+    // the elements by their KAOSTools identifiers (their ids are UUIDs, #518)
+    const json = jsonOf(broken);
+    const identifierOf = (id: string) =>
+      json.orphans.find((n: Json) => n.id === id)?.[KAOS_ID_KEY];
+    const open = openClosures(modelOf(json), kaos);
+    expect(
+      open.map(({ start, via, end }) => [start, via, end].map(identifierOf)),
+    ).to.deep.equal([
       [
         'elevator_controller',
         'execute_schedule',

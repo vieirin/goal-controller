@@ -36,11 +36,11 @@ export const nfr = defineDialect({
   id: 'nfr',
   name: 'NFR Framework',
   framework: 'nfr',
-  // every NFR node kind, with its prefix
+  // every NFR node kind: no id prefix (goal-controller#518)
   elements: {
-    'nfr.NFR': element('S', { fill: FILL }),
-    'nfr.Operationalization': element('O', { fill: FILL }),
-    'nfr.Claim': element('C', { fill: FILL }),
+    'nfr.NFR': element({ fill: FILL }),
+    'nfr.Operationalization': element({ fill: FILL }),
+    'nfr.Claim': element({ fill: FILL }),
   } satisfies Record<NfrElementKind, ElementDefinition>,
   defaultFill: FILL,
   properties: {

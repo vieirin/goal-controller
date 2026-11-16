@@ -2,7 +2,7 @@
   "actors": [],
   "orphans": [
     {
-      "id": "ensure_business_continuity",
+      "id": "03ca54c8-ba94-57bf-b40c-1786af51e0c5",
       "text": "Ensure business continuity",
       "type": "kaos.BehavioralGoal",
       "x": 1000,
@@ -17,10 +17,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "To ensure the business continuity of Balkan Rail, the risk of damage by preventing security incidents and reducing their potential effects on Balkan Rail shall be minimised."
-      }
+      },
+      "kaosId": "ensure_business_continuity"
     },
     {
-      "id": "protect_information_assets",
+      "id": "199ecb78-80e4-53d2-aa59-9a9c12bc1fe3",
       "text": "Protect information assets",
       "type": "kaos.BehavioralGoal",
       "x": 360,
@@ -35,10 +36,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "Balkan Rail information assets shall be protected against all internal, external, intentional or unintentional threats."
-      }
+      },
+      "kaosId": "protect_information_assets"
     },
     {
-      "id": "protect_from_unauthorised_access",
+      "id": "847daaa4-3a6d-5c21-9df1-373595126647",
       "text": "Protect from unauthorised access",
       "type": "kaos.BehavioralGoal",
       "x": 40,
@@ -53,10 +55,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "Balkan Rail information shall be protected from unauthorized access."
-      }
+      },
+      "kaosId": "protect_from_unauthorised_access"
     },
     {
-      "id": "protect_balkan_rail_information_confidentiality",
+      "id": "fef7f149-512b-5099-bb84-a1c147fc6b4f",
       "text": "Protect Balkan Rail information confidentiality",
       "type": "kaos.BehavioralGoal",
       "x": 200,
@@ -71,10 +74,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "The confidentiality of Balkan Rail information shall be protected."
-      }
+      },
+      "kaosId": "protect_balkan_rail_information_confidentiality"
     },
     {
-      "id": "protect_balkan_rail_customer_information_confidentiality",
+      "id": "3d69caef-dcb0-5d6c-8ff4-37193c70be03",
       "text": "Protect Balkan Rail customer information confidentiality",
       "type": "kaos.BehavioralGoal",
       "x": 2120,
@@ -89,10 +93,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "The confidentiality of Balkan Rail customer information shall be protected."
-      }
+      },
+      "kaosId": "protect_balkan_rail_customer_information_confidentiality"
     },
     {
-      "id": "protect_balkan_rail_information_integrity",
+      "id": "2aad17c9-452c-5807-ab1a-7063e911ec2d",
       "text": "Protect Balkan Rail information integrity",
       "type": "kaos.BehavioralGoal",
       "x": 360,
@@ -107,10 +112,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "The information integrity of Balkan Rail shall be protected."
-      }
+      },
+      "kaosId": "protect_balkan_rail_information_integrity"
     },
     {
-      "id": "protect_balkan_rail_customer_information_integrity",
+      "id": "4bee7d7d-a9b0-5966-80be-30ea779566f2",
       "text": "Protect Balkan Rail customer information integrity",
       "type": "kaos.BehavioralGoal",
       "x": 520,
@@ -125,10 +131,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "The information integrity of Balkan Rail customers shall be protected."
-      }
+      },
+      "kaosId": "protect_balkan_rail_customer_information_integrity"
     },
     {
-      "id": "protect_operational_procedures_availability",
+      "id": "160203f2-ad7c-5346-a4bc-d3e5f98ea79f",
       "text": "Protect operational procedures availability",
       "type": "kaos.BehavioralGoal",
       "x": 680,
@@ -143,10 +150,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "The availability of information of operational procedures in Balkan Rail shall be protected."
-      }
+      },
+      "kaosId": "protect_operational_procedures_availability"
     },
     {
-      "id": "monitoring_isms",
+      "id": "84d608d8-8d7d-5ea4-8763-96d0c860539a",
       "text": "Monitoring ISMS",
       "type": "kaos.BehavioralGoal",
       "x": 1320,
@@ -161,10 +169,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "Balkan Rail Management shall ensure continuous monitoring of the implementation of Information Security Management System."
-      }
+      },
+      "kaosId": "monitoring_isms"
     },
     {
-      "id": "legal_and_standards_compliance",
+      "id": "3111a07d-22fc-52c0-ae90-78de757f53c7",
       "text": "Legal and Standards Compliance",
       "type": "kaos.BehavioralGoal",
       "x": 840,
@@ -179,10 +188,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "Balkan Rail Management shall ensure continuous compliance with the law and the requirements of ISO standard 27001: 2013."
-      }
+      },
+      "kaosId": "legal_and_standards_compliance"
     },
     {
-      "id": "staff_compliance",
+      "id": "838f7c45-19c5-542c-8e34-8f1691037fd8",
       "text": "Staff Compliance",
       "type": "kaos.BehavioralGoal",
       "x": 1480,
@@ -197,10 +207,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "Compliance with the Information Security Policy is mandatory for everyone working or cooperating with Balkan Rail."
-      }
+      },
+      "kaosId": "staff_compliance"
     },
     {
-      "id": "compliance_responsibility",
+      "id": "b2bcd943-752d-5918-87a6-31d549955f23",
       "text": "Compliance Responsibility",
       "type": "kaos.BehavioralGoal",
       "x": 1320,
@@ -215,10 +226,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "The Information Security Officer shall be responsible for compliance with the policy."
-      }
+      },
+      "kaosId": "compliance_responsibility"
     },
     {
-      "id": "policy_support",
+      "id": "5123d81c-824a-5314-bb96-16dacca8239d",
       "text": "Policy Support",
       "type": "kaos.BehavioralGoal",
       "x": 1480,
@@ -233,10 +245,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "The Information Security Officer shall provide support and advice when applying the policy."
-      }
+      },
+      "kaosId": "policy_support"
     },
     {
-      "id": "implementation_responsibility",
+      "id": "6b32984d-bd60-568b-abf3-e464bbcb6395",
       "text": "Implementation Responsibility",
       "type": "kaos.BehavioralGoal",
       "x": 1640,
@@ -251,10 +264,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "All holders of positions of responsibility shall be directly responsible for implementing the Policy."
-      }
+      },
+      "kaosId": "implementation_responsibility"
     },
     {
-      "id": "compliance_supervision_responsibility",
+      "id": "cfbbbd6d-3283-533e-bf2a-076fc08a6da2",
       "text": "Compliance Supervision Responsibility",
       "type": "kaos.BehavioralGoal",
       "x": 1800,
@@ -269,10 +283,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "All holders of positions of responsibility shall ensuring staff supervising compliance."
-      }
+      },
+      "kaosId": "compliance_supervision_responsibility"
     },
     {
-      "id": "bcp_maintenance",
+      "id": "d7b33325-e43a-5f00-a80d-e3e792c3ab25",
       "text": "BCP Maintenance",
       "type": "kaos.BehavioralGoal",
       "x": 1000,
@@ -287,10 +302,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "The Business Continuity Plan shall be maintained and checked for effectiveness."
-      }
+      },
+      "kaosId": "bcp_maintenance"
     },
     {
-      "id": "continuous_isms_training",
+      "id": "038d1434-e4f9-51fa-8d7f-de9abe99de51",
       "text": "Continuous ISMS Training",
       "type": "kaos.BehavioralGoal",
       "x": 1160,
@@ -305,10 +321,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "Continuous training in the Information Security Management System shall be available to all Balkan Rail employees."
-      }
+      },
+      "kaosId": "continuous_isms_training"
     },
     {
-      "id": "security_breaches_investigated",
+      "id": "d673f478-4d15-51d9-9207-7fe186d02108",
       "text": "Security Breaches Investigated",
       "type": "kaos.BehavioralGoal",
       "x": 1960,
@@ -323,10 +340,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "Confirmed or presumed information security breaches reported to the Information Security Officer shall be thoroughly investigated and dealt with promptly and effectively."
-      }
+      },
+      "kaosId": "security_breaches_investigated"
     },
     {
-      "id": "violators_disciplined",
+      "id": "a733f669-c502-537b-be21-a2fbd1852949",
       "text": "Violators Disciplined",
       "type": "kaos.BehavioralGoal",
       "x": 1960,
@@ -341,10 +359,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "Violations of Security Policy shall be subject to disciplinary action."
-      }
+      },
+      "kaosId": "violators_disciplined"
     },
     {
-      "id": "violation_penalties",
+      "id": "1ac9fe87-3769-5d20-9853-aa6bfeef3ce7",
       "text": "Violation Penalties",
       "type": "kaos.BehavioralGoal",
       "x": 1960,
@@ -359,10 +378,11 @@
         "FitCriterion": "None",
         "Stability": "",
         "Description": "Penalties for security policy violation shall depend on the nature of the offence, and the impact of the infringement on Balkan Rail, IT, goods, and facilities."
-      }
+      },
+      "kaosId": "violation_penalties"
     },
     {
-      "id": "data_handling_policy",
+      "id": "efc49994-45c7-56a1-90e5-b1df02067cec",
       "text": "Data handling policy",
       "type": "kaos.BehavioralGoal",
       "x": 2280,
@@ -383,10 +403,11 @@
         "Reference": "Medical Certificate",
         "ReferenceType": "asset",
         "Rationale": "To provide documented procedures which are to be followed when transmitting confidential data internally within the company."
-      }
+      },
+      "kaosId": "data_handling_policy"
     },
     {
-      "id": "data_classification_policy",
+      "id": "d190cd16-f742-58ff-9254-5db59d4bed7b",
       "text": "Data classification policy",
       "type": "kaos.BehavioralGoal",
       "x": 2440,
@@ -407,10 +428,11 @@
         "Reference": "Medical Certificate",
         "ReferenceType": "asset",
         "Rationale": "Reduce the probability of mishandling of data"
-      }
+      },
+      "kaosId": "data_classification_policy"
     },
     {
-      "id": "accounting",
+      "id": "112f1f96-0093-58da-87e4-acc2d1a627b3",
       "text": "Accounting",
       "type": "kaos.Agent",
       "x": 2600,
@@ -419,10 +441,11 @@
         "Description": "Member of Financial Services department",
         "RoleType": "Stakeholder",
         "ShortCode": "ACC"
-      }
+      },
+      "kaosId": "accounting"
     },
     {
-      "id": "human_resources",
+      "id": "c43e64ae-ee28-5a54-a382-4eebad7d4b5c",
       "text": "Human Resources",
       "type": "kaos.Agent",
       "x": 2760,
@@ -431,10 +454,11 @@
         "Description": "Human Resources",
         "RoleType": "Stakeholder",
         "ShortCode": "HR"
-      }
+      },
+      "kaosId": "human_resources"
     },
     {
-      "id": "it_administrator",
+      "id": "cd781aa8-75bb-5fa5-92fa-c2626e97eaf0",
       "text": "IT administrator",
       "type": "kaos.Agent",
       "x": 2920,
@@ -443,10 +467,11 @@
         "Description": "IT staff",
         "RoleType": "Stakeholder",
         "ShortCode": "ADMIN"
-      }
+      },
+      "kaosId": "it_administrator"
     },
     {
-      "id": "purchasing",
+      "id": "952b7932-6bfd-570e-8475-d1f0811b6229",
       "text": "Purchasing",
       "type": "kaos.Agent",
       "x": 3080,
@@ -455,10 +480,11 @@
         "Description": "Member of Purchasing and Supply department",
         "RoleType": "Stakeholder",
         "ShortCode": "PURCH"
-      }
+      },
+      "kaosId": "purchasing"
     },
     {
-      "id": "ex_employee",
+      "id": "fb6a3e2a-3bb7-552e-9e75-c63d4e6a9337",
       "text": "Ex-employee",
       "type": "kaos.Agent",
       "x": 3240,
@@ -467,10 +493,11 @@
         "Description": "Ex-employee",
         "RoleType": "Attacker",
         "ShortCode": "EXE"
-      }
+      },
+      "kaosId": "ex_employee"
     },
     {
-      "id": "criminal",
+      "id": "973e1bb0-5844-5216-aa25-89bbc5f48bab",
       "text": "Criminal",
       "type": "kaos.Agent",
       "x": 3400,
@@ -479,7 +506,8 @@
         "Description": "An indervidual who commits a specific crime.",
         "RoleType": "Attacker",
         "ShortCode": "Criminal"
-      }
+      },
+      "kaosId": "criminal"
     }
   ],
   "dependencies": [],
@@ -500,19 +528,19 @@
         {
           "id": "ensure_business_continuity-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "protect_information_assets",
+          "source": "199ecb78-80e4-53d2-aa59-9a9c12bc1fe3",
           "target": "ensure_business_continuity-refinement-1"
         },
         {
           "id": "ensure_business_continuity-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "monitoring_isms",
+          "source": "84d608d8-8d7d-5ea4-8763-96d0c860539a",
           "target": "ensure_business_continuity-refinement-1"
         },
         {
           "id": "ensure_business_continuity-refinement-1-3",
           "type": "kaos.RefinementLinkStart",
-          "source": "security_breaches_investigated",
+          "source": "d673f478-4d15-51d9-9207-7fe186d02108",
           "target": "ensure_business_continuity-refinement-1"
         }
       ],
@@ -520,7 +548,7 @@
         "id": "ensure_business_continuity-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "ensure_business_continuity-refinement-1",
-        "target": "ensure_business_continuity"
+        "target": "03ca54c8-ba94-57bf-b40c-1786af51e0c5"
       }
     },
     {
@@ -539,31 +567,31 @@
         {
           "id": "protect_information_assets-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "protect_from_unauthorised_access",
+          "source": "847daaa4-3a6d-5c21-9df1-373595126647",
           "target": "protect_information_assets-refinement-1"
         },
         {
           "id": "protect_information_assets-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "protect_balkan_rail_information_confidentiality",
+          "source": "fef7f149-512b-5099-bb84-a1c147fc6b4f",
           "target": "protect_information_assets-refinement-1"
         },
         {
           "id": "protect_information_assets-refinement-1-3",
           "type": "kaos.RefinementLinkStart",
-          "source": "protect_balkan_rail_information_integrity",
+          "source": "2aad17c9-452c-5807-ab1a-7063e911ec2d",
           "target": "protect_information_assets-refinement-1"
         },
         {
           "id": "protect_information_assets-refinement-1-4",
           "type": "kaos.RefinementLinkStart",
-          "source": "protect_balkan_rail_customer_information_integrity",
+          "source": "4bee7d7d-a9b0-5966-80be-30ea779566f2",
           "target": "protect_information_assets-refinement-1"
         },
         {
           "id": "protect_information_assets-refinement-1-5",
           "type": "kaos.RefinementLinkStart",
-          "source": "protect_operational_procedures_availability",
+          "source": "160203f2-ad7c-5346-a4bc-d3e5f98ea79f",
           "target": "protect_information_assets-refinement-1"
         }
       ],
@@ -571,7 +599,7 @@
         "id": "protect_information_assets-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "protect_information_assets-refinement-1",
-        "target": "protect_information_assets"
+        "target": "199ecb78-80e4-53d2-aa59-9a9c12bc1fe3"
       }
     },
     {
@@ -590,25 +618,25 @@
         {
           "id": "monitoring_isms-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "legal_and_standards_compliance",
+          "source": "3111a07d-22fc-52c0-ae90-78de757f53c7",
           "target": "monitoring_isms-refinement-1"
         },
         {
           "id": "monitoring_isms-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "bcp_maintenance",
+          "source": "d7b33325-e43a-5f00-a80d-e3e792c3ab25",
           "target": "monitoring_isms-refinement-1"
         },
         {
           "id": "monitoring_isms-refinement-1-3",
           "type": "kaos.RefinementLinkStart",
-          "source": "continuous_isms_training",
+          "source": "038d1434-e4f9-51fa-8d7f-de9abe99de51",
           "target": "monitoring_isms-refinement-1"
         },
         {
           "id": "monitoring_isms-refinement-1-4",
           "type": "kaos.RefinementLinkStart",
-          "source": "staff_compliance",
+          "source": "838f7c45-19c5-542c-8e34-8f1691037fd8",
           "target": "monitoring_isms-refinement-1"
         }
       ],
@@ -616,7 +644,7 @@
         "id": "monitoring_isms-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "monitoring_isms-refinement-1",
-        "target": "monitoring_isms"
+        "target": "84d608d8-8d7d-5ea4-8763-96d0c860539a"
       }
     },
     {
@@ -635,25 +663,25 @@
         {
           "id": "staff_compliance-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "compliance_responsibility",
+          "source": "b2bcd943-752d-5918-87a6-31d549955f23",
           "target": "staff_compliance-refinement-1"
         },
         {
           "id": "staff_compliance-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "policy_support",
+          "source": "5123d81c-824a-5314-bb96-16dacca8239d",
           "target": "staff_compliance-refinement-1"
         },
         {
           "id": "staff_compliance-refinement-1-3",
           "type": "kaos.RefinementLinkStart",
-          "source": "implementation_responsibility",
+          "source": "6b32984d-bd60-568b-abf3-e464bbcb6395",
           "target": "staff_compliance-refinement-1"
         },
         {
           "id": "staff_compliance-refinement-1-4",
           "type": "kaos.RefinementLinkStart",
-          "source": "compliance_supervision_responsibility",
+          "source": "cfbbbd6d-3283-533e-bf2a-076fc08a6da2",
           "target": "staff_compliance-refinement-1"
         }
       ],
@@ -661,7 +689,7 @@
         "id": "staff_compliance-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "staff_compliance-refinement-1",
-        "target": "staff_compliance"
+        "target": "838f7c45-19c5-542c-8e34-8f1691037fd8"
       }
     },
     {
@@ -680,7 +708,7 @@
         {
           "id": "security_breaches_investigated-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "violators_disciplined",
+          "source": "a733f669-c502-537b-be21-a2fbd1852949",
           "target": "security_breaches_investigated-refinement-1"
         }
       ],
@@ -688,7 +716,7 @@
         "id": "security_breaches_investigated-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "security_breaches_investigated-refinement-1",
-        "target": "security_breaches_investigated"
+        "target": "d673f478-4d15-51d9-9207-7fe186d02108"
       }
     },
     {
@@ -707,7 +735,7 @@
         {
           "id": "violators_disciplined-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "violation_penalties",
+          "source": "1ac9fe87-3769-5d20-9853-aa6bfeef3ce7",
           "target": "violators_disciplined-refinement-1"
         }
       ],
@@ -715,7 +743,7 @@
         "id": "violators_disciplined-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "violators_disciplined-refinement-1",
-        "target": "violators_disciplined"
+        "target": "a733f669-c502-537b-be21-a2fbd1852949"
       }
     }
   ],

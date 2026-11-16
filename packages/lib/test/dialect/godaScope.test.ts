@@ -108,7 +108,10 @@ describe('GODA: a task id repeated under two goals', () => {
     const { text, ids } = notationDocument(goda, tree);
     expect(
       text.split('\n').filter((line) => /T1\.1:/.test(line)),
-    ).to.deep.equal(['      T1.1: Collect data', '      T1.1: Fuse data']);
+    ).to.deep.equal([
+      '      task T1.1: Collect data',
+      '      task T1.1: Fuse data',
+    ]);
     expect(ids).to.include.members(['G3/T1.1', 'G4/T1.1']);
     expect(notationEdits(goda, text, tree)).to.deep.equal([]);
     // an edit names the element under its goal

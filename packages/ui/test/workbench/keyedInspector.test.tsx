@@ -40,6 +40,10 @@ const MODEL = parseModel(
     'utf8',
   ),
 );
+/** Its goal Ambulance Intervention's piStar id (a UUID, #518), by its KAOSTools identifier. */
+const INTERVENTION = [...MODEL.elements.values()].find(
+  (e) => e.extra?.kaosId === 'ambulance_intervention',
+)!.id;
 const BASE = kaosExtension as unknown as IstarExtension;
 const EXTENSIONS: readonly IstarExtension<string, string>[] = [
   BASE,
@@ -67,7 +71,7 @@ afterEach(cleanup);
 
 describe('fields for properties keyed by written names (#376)', () => {
   it('shows a typed field per name the goal writes, and none of another goal’s', () => {
-    render(<Inspected id='ambulance_intervention' />);
+    render(<Inspected id={INTERVENTION} />);
     const sort = screen.getByLabelText('QualityVariable[ResponseTime]');
     expect(sort.tagName).toBe('SELECT');
     expect((sort as HTMLSelectElement).value).toBe('Time');
@@ -78,7 +82,7 @@ describe('fields for properties keyed by written names (#376)', () => {
   });
 
   it('adds a name: its key, unset', async () => {
-    render(<Inspected id='ambulance_intervention' />);
+    render(<Inspected id={INTERVENTION} />);
     fireEvent.change(screen.getByLabelText('Keyed property'), {
       target: { value: 'QualityVariable' },
     });

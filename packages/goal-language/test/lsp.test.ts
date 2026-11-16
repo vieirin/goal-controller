@@ -22,7 +22,8 @@ const context: DefinitionContext = {
   },
   variables: [],
 };
-const doc = 'G1: Go [G2;T9]\n  priority urgent\nG2: Wait\nT1: Do';
+const doc =
+  'goal G1: Go [G2;T9]\n  priority urgent\ngoal G2: Wait\ntask T1: Do';
 
 describe('the language server', () => {
   it('reports syntax errors only, without a context', async () => {
@@ -30,6 +31,7 @@ describe('the language server', () => {
     const found = await serverDiagnostics(
       shared,
       'file:///notation.goal',
+      // no dialect: no kind words, the element part alone
       'G1: Go [G2;;T1]',
     );
     expect(found.map((d) => d.severity)).to.deep.equal(['error']);
@@ -45,6 +47,7 @@ describe('the language server', () => {
 
   it('shows the engine’s error on a line while it reads as saved', async () => {
     const { shared, store } = createGoalLspServices();
+    // the line as its element's text stores it
     const saved = { G2: { line: 'G2: Wait', error: 'no such goal' } };
     store.set({ dialect: toy, context, saved });
     const found = await serverDiagnostics(shared, 'file:///notation.goal', doc);
@@ -64,7 +67,7 @@ describe('the language server', () => {
     const found = await serverDiagnostics(
       shared,
       'file:///notation.goal',
-      'R1: Fuel {int 0..9 = 5}',
+      'resource R1: Fuel {int 0..9 = 5}',
     );
     expect(found.map((d) => d.message)).to.deep.equal(['out of bounds']);
   });
@@ -92,7 +95,7 @@ describe('the language server', () => {
     await serverDiagnostics(
       shared,
       'file:///notation.goal',
-      'R1: Fuel {int 0..9 = 5}',
+      'resource R1: Fuel {int 0..9 = 5}',
     );
     expect(seen.length).to.be.greaterThan(0);
     const [check] = seen;
@@ -137,44 +140,26 @@ describe('the language server', () => {
     await serverDiagnostics(
       shared,
       'file:///notation.goal',
-      'R1: Fuel {int 0..9 = 5}',
+      'resource R1: Fuel {int 0..9 = 5}',
     );
     expect(seen[0]!.projectResources).to.deep.equal(projectResources);
   });
 
-  // T9 is its own element line, naming no element of the context: notInDiagram
-  const notInDiagramDoc = 'G1: Go [G2;T1]\nG2: Wait\nT1: Do\nT9: Lift';
-
-  it('offers a createNode quick fix for a notInDiagram diagnostic (goal-controller#416)', async () => {
+  it('offers no quick fix for a line naming no element: the line creates it (goal-controller#518)', async () => {
+    const created =
+      'goal G1: Go [G2;T1]\ngoal G2: Wait\ntask T1: Do\ntask T9: Lift';
     const { shared, store } = createGoalLspServices();
     store.set({ dialect: toy, context });
-    const from = notInDiagramDoc.indexOf('T9');
-    const to = from + 'T9'.length;
-    const actions = await serverCodeActions(
-      shared,
-      'file:///notation.goal',
-      notInDiagramDoc,
-      { from, to },
-    );
-    expect(actions).to.have.length(1);
-    expect(actions[0]!.title).to.include('T9');
-    expect(actions[0]!.data).to.deep.equal({
-      kind: 'createNode',
-      elementTypeId: 'istar.Task',
-      args: { name: 'T9: Task' },
-    });
-  });
-
-  it('offers no quick fix away from the diagnostic, or for a diagnostic without one', async () => {
-    const { shared, store } = createGoalLspServices();
-    store.set({ dialect: toy, context });
-    const elsewhere = await serverCodeActions(
-      shared,
-      'file:///notation.goal',
-      notInDiagramDoc,
-      { from: 0, to: 2 },
-    );
-    expect(elsewhere).to.deep.equal([]);
+    expect(
+      await serverDiagnostics(shared, 'file:///notation.goal', created),
+    ).to.deep.equal([]);
+    const from = created.indexOf('T9');
+    expect(
+      await serverCodeActions(shared, 'file:///notation.goal', created, {
+        from,
+        to: from + 'T9'.length,
+      }),
+    ).to.deep.equal([]);
   });
 
   it('reads an inspector field with its property’s value type', async () => {

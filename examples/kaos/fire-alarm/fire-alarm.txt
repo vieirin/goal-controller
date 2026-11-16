@@ -2,7 +2,7 @@
   "actors": [],
   "orphans": [
     {
-      "id": "building_evacuated_when_fire",
+      "id": "59c6c2ec-4770-5e67-8f25-85e819e9c696",
       "text": "Achieve [BuildingEvacuatedWhenFire]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -17,11 +17,12 @@
         "Description": "",
         "RSR": "98%"
       },
+      "kaosId": "building_evacuated_when_fire",
       "x": 1480,
       "y": 80
     },
     {
-      "id": "fire_detected_in_time",
+      "id": "aa681c98-120e-5ca6-8016-4d47fe621a0a",
       "text": "Achieve [FireDetectedInTime]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -35,11 +36,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "fire_detected_in_time",
       "x": 680,
       "y": 180
     },
     {
-      "id": "fire_noticed_in_time_when_smoke",
+      "id": "c9ef950b-dc10-5d01-acaa-fb8546b23790",
       "text": "Achieve [FireNoticedInTimeWhenSmoke]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -53,11 +55,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "fire_noticed_in_time_when_smoke",
       "x": 40,
       "y": 280
     },
     {
-      "id": "fire_noticed_in_time_when_heat",
+      "id": "9ec9d452-6f59-5aab-830d-39ca0f44bad4",
       "text": "Achieve [FireNoticedInTimeWhenHeat]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -71,11 +74,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "fire_noticed_in_time_when_heat",
       "x": 680,
       "y": 280
     },
     {
-      "id": "fire_detected_when_noticed_in_time",
+      "id": "657b76a1-03d6-5ab0-8dd0-a39b66bd03ba",
       "text": "Maintain [FireDetectedWhenNoticedInTime]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -89,11 +93,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "fire_detected_when_noticed_in_time",
       "x": 1160,
       "y": 280
     },
     {
-      "id": "building_evacuated_when_fire_detected",
+      "id": "38b89f06-caa9-5e58-89ac-1fbdad68f49f",
       "text": "Achieve [BuildingEvacuatedWhenFireDetected]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -107,11 +112,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "building_evacuated_when_fire_detected",
       "x": 2280,
       "y": 180
     },
     {
-      "id": "building_evacuated_when_alarm_raised",
+      "id": "e32f70ec-596e-5008-804d-a219c232d305",
       "text": "Achieve [BuildingEvacuatedWhenAlarmRaised]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -125,11 +131,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "building_evacuated_when_alarm_raised",
       "x": 2760,
       "y": 280
     },
     {
-      "id": "alarm_raised_when_fire_detected",
+      "id": "2741ca21-d5ae-53fd-a0b6-8c5aa00cbb65",
       "text": "Achieve [AlarmRaisedWhenFireDetected]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -143,11 +150,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "alarm_raised_when_fire_detected",
       "x": 2120,
       "y": 280
     },
     {
-      "id": "alarm_beep_30_seconds_unless_disabled",
+      "id": "f73f2e6e-e1c4-5913-b661-f08226c8ef1b",
       "text": "Achieve [AlarmBeep30SecondsUnlessDisabled]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -161,11 +169,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "alarm_beep_30_seconds_unless_disabled",
       "x": 2440,
       "y": 380
     },
     {
-      "id": "alarm_raised_after_30_seconds_when_fire_detected_unless_disabled",
+      "id": "3796d715-ebf7-51b6-b47b-2e4dc73a70a1",
       "text": "Achieve [AlarmRaisedAfter30SecondsWhenFireDetectedUnlessDisabled]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -179,11 +188,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "alarm_raised_after_30_seconds_when_fire_detected_unless_disabled",
       "x": 1960,
       "y": 380
     },
     {
-      "id": "alarm_signal_after_30_seconds_when_fire_detected_unless_disabled",
+      "id": "41c2dee4-7fab-5def-ac59-70611d6a2df9",
       "text": "Achieve [AlarmSignalAfter30SecondsWhenFireDetectedUnlessDisabled]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -197,11 +207,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "alarm_signal_after_30_seconds_when_fire_detected_unless_disabled",
       "x": 1640,
       "y": 480
     },
     {
-      "id": "alarm_activated_when_signal",
+      "id": "6fde90a4-fced-50ec-84fc-98fd76f4b7bb",
       "text": "Achieve [AlarmActivatedWhenSignal]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -215,11 +226,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "alarm_activated_when_signal",
       "x": 1800,
       "y": 480
     },
     {
-      "id": "fire_central_notified_when_signal",
+      "id": "015ca60e-2571-53f9-a53d-93e758460c33",
       "text": "Achieve [FireCentralNotifiedWhenSignal]",
       "type": "kaos.BehavioralGoal",
       "customProperties": {
@@ -233,11 +245,12 @@
         "Stability": "",
         "Description": ""
       },
+      "kaosId": "fire_central_notified_when_signal",
       "x": 2120,
       "y": 480
     },
     {
-      "id": "no_heat_detection",
+      "id": "b9190479-4d98-5a54-9548-5b27fe30c710",
       "text": "NoHeatDetection",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -245,11 +258,12 @@
         "FormalSpec": "",
         "Category": ""
       },
+      "kaosId": "no_heat_detection",
       "x": 680,
       "y": 380
     },
     {
-      "id": "no_smoke_detection",
+      "id": "39734d5f-174d-5b06-9963-add8ee7adf4d",
       "text": "NoSmokeDetection",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -257,11 +271,12 @@
         "FormalSpec": "",
         "Category": ""
       },
+      "kaosId": "no_smoke_detection",
       "x": 200,
       "y": 380
     },
     {
-      "id": "fire_noticed_in_time_and_not_detected",
+      "id": "0c6ff19a-f2fd-553a-ac75-1bbb131c32f7",
       "text": "FireNoticedInTimeAndNotDetected",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -269,11 +284,12 @@
         "FormalSpec": "",
         "Category": ""
       },
+      "kaosId": "fire_noticed_in_time_and_not_detected",
       "x": 1320,
       "y": 380
     },
     {
-      "id": "no_alarm_signal",
+      "id": "ffb5c4ab-ffa0-5f93-943b-31fdc55611a6",
       "text": "NoAlarmSignalAndFireDetected",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -281,11 +297,12 @@
         "FormalSpec": "",
         "Category": ""
       },
+      "kaosId": "no_alarm_signal",
       "x": 1640,
       "y": 580
     },
     {
-      "id": "alarm_not_activated",
+      "id": "dc6b0b6e-b011-524c-9818-7457555de885",
       "text": "AlarmNotActivatedAndSignal",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -293,11 +310,12 @@
         "FormalSpec": "",
         "Category": ""
       },
+      "kaosId": "alarm_not_activated",
       "x": 1800,
       "y": 580
     },
     {
-      "id": "fire_central_not_notified",
+      "id": "dfde6525-ab31-5a4f-886f-12afe675dc89",
       "text": "FireCentralNotNotifiedAndSignal",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -305,33 +323,36 @@
         "FormalSpec": "",
         "Category": ""
       },
+      "kaosId": "fire_central_not_notified",
       "x": 2120,
       "y": 580
     },
     {
-      "id": "no_detection_when_heat_detector_broken",
+      "id": "794ee45e-345e-57ed-8499-cdd5114348ff",
       "text": "NoDetectionWhenHeatDetectorBroken",
       "type": "kaos.DomainProperty",
       "customProperties": {
         "Kind": "hypothesis",
         "Description": ""
       },
+      "kaosId": "no_detection_when_heat_detector_broken",
       "x": 1000,
       "y": 480
     },
     {
-      "id": "no_detection_when_smoke_detector_broken",
+      "id": "7b37f24c-b70b-5f19-9a95-cf616298e372",
       "text": "NoDetectionWhenSmokeDetectorBroken",
       "type": "kaos.DomainProperty",
       "customProperties": {
         "Kind": "hypothesis",
         "Description": ""
       },
+      "kaosId": "no_detection_when_smoke_detector_broken",
       "x": 360,
       "y": 480
     },
     {
-      "id": "smoke_detector_broken",
+      "id": "559a6b95-7d69-5a9d-8c29-58ef12c9049b",
       "text": "SmokeDetectorBroken",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -341,11 +362,12 @@
         "Probability[expert1]": "(2.46%, 2.76%, 3.07%)",
         "Probability[expert2]": "(2.16%, 2.42%, 2.69%)"
       },
+      "kaosId": "smoke_detector_broken",
       "x": 200,
       "y": 480
     },
     {
-      "id": "fire_noticed_too_late_by_smoke",
+      "id": "cb108d8b-4dbe-515f-9732-f8df945e4fe9",
       "text": "FireNoticedTooLateBySmoke",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -355,11 +377,12 @@
         "Probability[expert1]": "(1.46%, 1.83%, 2.04%)",
         "Probability[expert2]": "(1.26%, 1.42%, 2.24%)"
       },
+      "kaosId": "fire_noticed_too_late_by_smoke",
       "x": 40,
       "y": 480
     },
     {
-      "id": "heat_detector_broken",
+      "id": "2c8d26b8-b52d-5cd1-afe8-7dcfa3f19fba",
       "text": "HeatDetectorBroken",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -369,11 +392,12 @@
         "Probability[expert1]": "(0.41%, 0.46%, 0.51%)",
         "Probability[expert2]": "(0.50%, 0.56%, 0.62%)"
       },
+      "kaosId": "heat_detector_broken",
       "x": 840,
       "y": 480
     },
     {
-      "id": "fire_noticed_too_late_by_heat",
+      "id": "8477400f-2652-532b-8a31-fcc85d356486",
       "text": "FireNoticedTooLateByHeat",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -383,11 +407,12 @@
         "Probability[expert1]": "(0.38%, 0.56%, 0.78%)",
         "Probability[expert2]": "(0.89%, 0.92%, 0.99%)"
       },
+      "kaosId": "fire_noticed_too_late_by_heat",
       "x": 520,
       "y": 480
     },
     {
-      "id": "fire_too_distant_from_detector",
+      "id": "7b8a8f8f-ecfc-5a30-b691-c7a77a7d9f10",
       "text": "FireTooDistantFromDetector",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -397,11 +422,12 @@
         "Probability[expert1]": "(0.41%, 0.46%, 0.51%)",
         "Probability[expert2]": "(0.50%, 0.56%, 0.62%)"
       },
+      "kaosId": "fire_too_distant_from_detector",
       "x": 680,
       "y": 480
     },
     {
-      "id": "fire_detection_delayed",
+      "id": "68126012-01ca-56d4-969a-bd1347942abe",
       "text": "FireDetectionDelayed",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -411,11 +437,12 @@
         "Probability[expert1]": "(1.29%, 2.48%, 3.20%)",
         "Probability[expert2]": "(1.30%, 2.98%, 3.48%)"
       },
+      "kaosId": "fire_detection_delayed",
       "x": 1480,
       "y": 480
     },
     {
-      "id": "wrong_smoke_notification",
+      "id": "baa1863d-6797-5b34-8d1e-c874fff90dc5",
       "text": "WrongSmokeNotification",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -425,11 +452,12 @@
         "Probability[expert1]": "(3.49%, 3.92%, 4.35%)",
         "Probability[expert2]": "(3.91%, 4.40%, 4.89%)"
       },
+      "kaosId": "wrong_smoke_notification",
       "x": 1320,
       "y": 480
     },
     {
-      "id": "wrong_heat_notification",
+      "id": "f880ae72-7282-53c2-ac76-c2d38a292bfe",
       "text": "WrongHeatNotification",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -439,11 +467,12 @@
         "Probability[expert1]": "(0.47%, 0.53%, 0.59%)",
         "Probability[expert2]": "(0.38%, 0.43%, 0.48%)"
       },
+      "kaosId": "wrong_heat_notification",
       "x": 1160,
       "y": 480
     },
     {
-      "id": "battery_out_of_service",
+      "id": "271f5108-5be1-5011-9f42-962e499da80a",
       "text": "BatteryOutofService",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -453,11 +482,12 @@
         "Probability[expert1]": "(2.31%, 2.59%, 2.88%)",
         "Probability[expert2]": "(0%, 0.1%, 0.2%)"
       },
+      "kaosId": "battery_out_of_service",
       "x": 1640,
       "y": 680
     },
     {
-      "id": "light_strobe_broken",
+      "id": "f9c2cbde-342a-59e4-812f-a385503946f2",
       "text": "LightStrobeBroken",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -467,11 +497,12 @@
         "Probability[expert1]": "(0.93%, 1.05%, 1.16%)",
         "Probability[expert2]": "(0.85%, 0.96%, 1.06%)"
       },
+      "kaosId": "light_strobe_broken",
       "x": 1800,
       "y": 680
     },
     {
-      "id": "bell_broken",
+      "id": "cf2164fc-47ab-5d54-951c-09b7af58355f",
       "text": "BellBroken",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -481,11 +512,12 @@
         "Probability[expert1]": "(1.47%, 1.65%, 1.83%)",
         "Probability[expert2]": "(1.70%, 1.91%, 2.12%)"
       },
+      "kaosId": "bell_broken",
       "x": 1960,
       "y": 680
     },
     {
-      "id": "network_down",
+      "id": "e93700ad-c795-567d-8611-b6706ac862d1",
       "text": "NetworkDown",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -495,11 +527,12 @@
         "Probability[expert1]": "(0.95%, 2.31%, 3.67%)",
         "Probability[expert2]": "(1.46%, 2.39%, 3.31%)"
       },
+      "kaosId": "network_down",
       "x": 2120,
       "y": 680
     },
     {
-      "id": "fire_central_notification_delayed",
+      "id": "65aac3eb-e28b-5852-a896-728ada276901",
       "text": "FireCentralNotificationDelayed",
       "type": "kaos.Obstacle",
       "customProperties": {
@@ -509,71 +542,78 @@
         "Probability[expert1]": "(1.29%, 2.48%, 3.20%)",
         "Probability[expert2]": "(1.30%, 2.98%, 3.48%)"
       },
+      "kaosId": "fire_central_notification_delayed",
       "x": 2280,
       "y": 680
     },
     {
-      "id": "smoke_sensor",
+      "id": "08bf494a-264a-59c8-8cf3-29a3c3c5c9ef",
       "text": "SmokeSensor",
       "type": "kaos.Agent",
       "customProperties": {
         "Type": "",
         "Description": ""
       },
+      "kaosId": "smoke_sensor",
       "x": 200,
       "y": 280
     },
     {
-      "id": "heat_sensor",
+      "id": "6c150ab3-f684-55a1-bd1a-48cd6706f9fd",
       "text": "HeatSensor",
       "type": "kaos.Agent",
       "customProperties": {
         "Type": "",
         "Description": ""
       },
+      "kaosId": "heat_sensor",
       "x": 840,
       "y": 280
     },
     {
-      "id": "detection_system",
+      "id": "3716e2a6-40c3-5cf1-8dc8-9e2fc1e2b9e2",
       "text": "DetectionSystem",
       "type": "kaos.Agent",
       "customProperties": {
         "Type": "",
         "Description": ""
       },
+      "kaosId": "detection_system",
       "x": 1320,
       "y": 280
     },
     {
-      "id": "occupants",
+      "id": "fb9c5dd9-75da-5890-becb-cfd755804ca1",
       "text": "Occupants",
       "type": "kaos.EnvironmentAgent",
       "customProperties": {
         "Description": ""
       },
+      "kaosId": "occupants",
       "x": 2920,
       "y": 280
     },
     {
-      "id": "fire_control_unit",
+      "id": "cb6bb229-2df9-5bcc-a554-b3de06c01dfd",
       "text": "FireControlUnit",
       "type": "kaos.Agent",
       "customProperties": {
         "Type": "",
         "Description": ""
       },
+      "kaosId": "fire_control_unit",
       "x": 2600,
       "y": 380
     },
     {
-      "id": "notification_system",
+      "id": "7faaab5b-2d74-54d6-811e-afc36fe59a0d",
       "text": "NotificationSystem",
       "type": "kaos.Agent",
       "customProperties": {
         "Type": "",
         "Description": ""
       },
+      "kaosId": "notification_system",
       "x": 2280,
       "y": 480
     }
@@ -596,13 +636,13 @@
         {
           "id": "building_evacuated_when_fire-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "fire_detected_in_time",
+          "source": "aa681c98-120e-5ca6-8016-4d47fe621a0a",
           "target": "building_evacuated_when_fire-refinement-1"
         },
         {
           "id": "building_evacuated_when_fire-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "building_evacuated_when_fire_detected",
+          "source": "38b89f06-caa9-5e58-89ac-1fbdad68f49f",
           "target": "building_evacuated_when_fire-refinement-1"
         }
       ],
@@ -610,7 +650,7 @@
         "id": "building_evacuated_when_fire-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "building_evacuated_when_fire-refinement-1",
-        "target": "building_evacuated_when_fire"
+        "target": "59c6c2ec-4770-5e67-8f25-85e819e9c696"
       }
     },
     {
@@ -629,19 +669,19 @@
         {
           "id": "fire_detected_in_time-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "fire_noticed_in_time_when_smoke",
+          "source": "c9ef950b-dc10-5d01-acaa-fb8546b23790",
           "target": "fire_detected_in_time-refinement-1"
         },
         {
           "id": "fire_detected_in_time-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "fire_noticed_in_time_when_heat",
+          "source": "9ec9d452-6f59-5aab-830d-39ca0f44bad4",
           "target": "fire_detected_in_time-refinement-1"
         },
         {
           "id": "fire_detected_in_time-refinement-1-3",
           "type": "kaos.RefinementLinkStart",
-          "source": "fire_detected_when_noticed_in_time",
+          "source": "657b76a1-03d6-5ab0-8dd0-a39b66bd03ba",
           "target": "fire_detected_in_time-refinement-1"
         }
       ],
@@ -649,7 +689,7 @@
         "id": "fire_detected_in_time-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "fire_detected_in_time-refinement-1",
-        "target": "fire_detected_in_time"
+        "target": "aa681c98-120e-5ca6-8016-4d47fe621a0a"
       }
     },
     {
@@ -668,13 +708,13 @@
         {
           "id": "building_evacuated_when_fire_detected-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "alarm_raised_when_fire_detected",
+          "source": "2741ca21-d5ae-53fd-a0b6-8c5aa00cbb65",
           "target": "building_evacuated_when_fire_detected-refinement-1"
         },
         {
           "id": "building_evacuated_when_fire_detected-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "building_evacuated_when_alarm_raised",
+          "source": "e32f70ec-596e-5008-804d-a219c232d305",
           "target": "building_evacuated_when_fire_detected-refinement-1"
         }
       ],
@@ -682,7 +722,7 @@
         "id": "building_evacuated_when_fire_detected-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "building_evacuated_when_fire_detected-refinement-1",
-        "target": "building_evacuated_when_fire_detected"
+        "target": "38b89f06-caa9-5e58-89ac-1fbdad68f49f"
       }
     },
     {
@@ -701,13 +741,13 @@
         {
           "id": "alarm_raised_when_fire_detected-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "alarm_raised_after_30_seconds_when_fire_detected_unless_disabled",
+          "source": "3796d715-ebf7-51b6-b47b-2e4dc73a70a1",
           "target": "alarm_raised_when_fire_detected-refinement-1"
         },
         {
           "id": "alarm_raised_when_fire_detected-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "alarm_beep_30_seconds_unless_disabled",
+          "source": "f73f2e6e-e1c4-5913-b661-f08226c8ef1b",
           "target": "alarm_raised_when_fire_detected-refinement-1"
         }
       ],
@@ -715,7 +755,7 @@
         "id": "alarm_raised_when_fire_detected-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "alarm_raised_when_fire_detected-refinement-1",
-        "target": "alarm_raised_when_fire_detected"
+        "target": "2741ca21-d5ae-53fd-a0b6-8c5aa00cbb65"
       }
     },
     {
@@ -734,19 +774,19 @@
         {
           "id": "alarm_raised_after_30_seconds_when_fire_detected_unless_disabled-refinement-1-1",
           "type": "kaos.RefinementLinkStart",
-          "source": "alarm_signal_after_30_seconds_when_fire_detected_unless_disabled",
+          "source": "41c2dee4-7fab-5def-ac59-70611d6a2df9",
           "target": "alarm_raised_after_30_seconds_when_fire_detected_unless_disabled-refinement-1"
         },
         {
           "id": "alarm_raised_after_30_seconds_when_fire_detected_unless_disabled-refinement-1-2",
           "type": "kaos.RefinementLinkStart",
-          "source": "alarm_activated_when_signal",
+          "source": "6fde90a4-fced-50ec-84fc-98fd76f4b7bb",
           "target": "alarm_raised_after_30_seconds_when_fire_detected_unless_disabled-refinement-1"
         },
         {
           "id": "alarm_raised_after_30_seconds_when_fire_detected_unless_disabled-refinement-1-3",
           "type": "kaos.RefinementLinkStart",
-          "source": "fire_central_notified_when_signal",
+          "source": "015ca60e-2571-53f9-a53d-93e758460c33",
           "target": "alarm_raised_after_30_seconds_when_fire_detected_unless_disabled-refinement-1"
         }
       ],
@@ -754,7 +794,7 @@
         "id": "alarm_raised_after_30_seconds_when_fire_detected_unless_disabled-refinement-1-end",
         "type": "kaos.RefinementLinkEnd",
         "source": "alarm_raised_after_30_seconds_when_fire_detected_unless_disabled-refinement-1",
-        "target": "alarm_raised_after_30_seconds_when_fire_detected_unless_disabled"
+        "target": "3796d715-ebf7-51b6-b47b-2e4dc73a70a1"
       }
     },
     {
@@ -768,7 +808,7 @@
         {
           "id": "no_heat_detection-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "fire_noticed_too_late_by_heat",
+          "source": "8477400f-2652-532b-8a31-fcc85d356486",
           "target": "no_heat_detection-refinement-1"
         }
       ],
@@ -776,7 +816,7 @@
         "id": "no_heat_detection-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "no_heat_detection-refinement-1",
-        "target": "no_heat_detection"
+        "target": "b9190479-4d98-5a54-9548-5b27fe30c710"
       }
     },
     {
@@ -790,7 +830,7 @@
         {
           "id": "no_heat_detection-refinement-2-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "fire_too_distant_from_detector",
+          "source": "7b8a8f8f-ecfc-5a30-b691-c7a77a7d9f10",
           "target": "no_heat_detection-refinement-2"
         }
       ],
@@ -798,7 +838,7 @@
         "id": "no_heat_detection-refinement-2-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "no_heat_detection-refinement-2",
-        "target": "no_heat_detection"
+        "target": "b9190479-4d98-5a54-9548-5b27fe30c710"
       }
     },
     {
@@ -812,13 +852,13 @@
         {
           "id": "no_heat_detection-refinement-3-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "heat_detector_broken",
+          "source": "2c8d26b8-b52d-5cd1-afe8-7dcfa3f19fba",
           "target": "no_heat_detection-refinement-3"
         },
         {
           "id": "no_heat_detection-refinement-3-2",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "no_detection_when_heat_detector_broken",
+          "source": "794ee45e-345e-57ed-8499-cdd5114348ff",
           "target": "no_heat_detection-refinement-3"
         }
       ],
@@ -826,7 +866,7 @@
         "id": "no_heat_detection-refinement-3-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "no_heat_detection-refinement-3",
-        "target": "no_heat_detection"
+        "target": "b9190479-4d98-5a54-9548-5b27fe30c710"
       }
     },
     {
@@ -840,7 +880,7 @@
         {
           "id": "no_smoke_detection-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "fire_noticed_too_late_by_smoke",
+          "source": "cb108d8b-4dbe-515f-9732-f8df945e4fe9",
           "target": "no_smoke_detection-refinement-1"
         }
       ],
@@ -848,7 +888,7 @@
         "id": "no_smoke_detection-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "no_smoke_detection-refinement-1",
-        "target": "no_smoke_detection"
+        "target": "39734d5f-174d-5b06-9963-add8ee7adf4d"
       }
     },
     {
@@ -862,7 +902,7 @@
         {
           "id": "no_smoke_detection-refinement-2-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "fire_too_distant_from_detector",
+          "source": "7b8a8f8f-ecfc-5a30-b691-c7a77a7d9f10",
           "target": "no_smoke_detection-refinement-2"
         }
       ],
@@ -870,7 +910,7 @@
         "id": "no_smoke_detection-refinement-2-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "no_smoke_detection-refinement-2",
-        "target": "no_smoke_detection"
+        "target": "39734d5f-174d-5b06-9963-add8ee7adf4d"
       }
     },
     {
@@ -884,13 +924,13 @@
         {
           "id": "no_smoke_detection-refinement-3-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "smoke_detector_broken",
+          "source": "559a6b95-7d69-5a9d-8c29-58ef12c9049b",
           "target": "no_smoke_detection-refinement-3"
         },
         {
           "id": "no_smoke_detection-refinement-3-2",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "no_detection_when_smoke_detector_broken",
+          "source": "7b37f24c-b70b-5f19-9a95-cf616298e372",
           "target": "no_smoke_detection-refinement-3"
         }
       ],
@@ -898,7 +938,7 @@
         "id": "no_smoke_detection-refinement-3-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "no_smoke_detection-refinement-3",
-        "target": "no_smoke_detection"
+        "target": "39734d5f-174d-5b06-9963-add8ee7adf4d"
       }
     },
     {
@@ -912,7 +952,7 @@
         {
           "id": "fire_noticed_in_time_and_not_detected-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "wrong_heat_notification",
+          "source": "f880ae72-7282-53c2-ac76-c2d38a292bfe",
           "target": "fire_noticed_in_time_and_not_detected-refinement-1"
         }
       ],
@@ -920,7 +960,7 @@
         "id": "fire_noticed_in_time_and_not_detected-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "fire_noticed_in_time_and_not_detected-refinement-1",
-        "target": "fire_noticed_in_time_and_not_detected"
+        "target": "0c6ff19a-f2fd-553a-ac75-1bbb131c32f7"
       }
     },
     {
@@ -934,7 +974,7 @@
         {
           "id": "fire_noticed_in_time_and_not_detected-refinement-2-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "wrong_smoke_notification",
+          "source": "baa1863d-6797-5b34-8d1e-c874fff90dc5",
           "target": "fire_noticed_in_time_and_not_detected-refinement-2"
         }
       ],
@@ -942,7 +982,7 @@
         "id": "fire_noticed_in_time_and_not_detected-refinement-2-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "fire_noticed_in_time_and_not_detected-refinement-2",
-        "target": "fire_noticed_in_time_and_not_detected"
+        "target": "0c6ff19a-f2fd-553a-ac75-1bbb131c32f7"
       }
     },
     {
@@ -956,7 +996,7 @@
         {
           "id": "fire_noticed_in_time_and_not_detected-refinement-3-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "fire_detection_delayed",
+          "source": "68126012-01ca-56d4-969a-bd1347942abe",
           "target": "fire_noticed_in_time_and_not_detected-refinement-3"
         }
       ],
@@ -964,7 +1004,7 @@
         "id": "fire_noticed_in_time_and_not_detected-refinement-3-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "fire_noticed_in_time_and_not_detected-refinement-3",
-        "target": "fire_noticed_in_time_and_not_detected"
+        "target": "0c6ff19a-f2fd-553a-ac75-1bbb131c32f7"
       }
     },
     {
@@ -978,7 +1018,7 @@
         {
           "id": "no_alarm_signal-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "battery_out_of_service",
+          "source": "271f5108-5be1-5011-9f42-962e499da80a",
           "target": "no_alarm_signal-refinement-1"
         }
       ],
@@ -986,7 +1026,7 @@
         "id": "no_alarm_signal-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "no_alarm_signal-refinement-1",
-        "target": "no_alarm_signal"
+        "target": "ffb5c4ab-ffa0-5f93-943b-31fdc55611a6"
       }
     },
     {
@@ -1000,13 +1040,13 @@
         {
           "id": "alarm_not_activated-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "light_strobe_broken",
+          "source": "f9c2cbde-342a-59e4-812f-a385503946f2",
           "target": "alarm_not_activated-refinement-1"
         },
         {
           "id": "alarm_not_activated-refinement-1-2",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "bell_broken",
+          "source": "cf2164fc-47ab-5d54-951c-09b7af58355f",
           "target": "alarm_not_activated-refinement-1"
         }
       ],
@@ -1014,7 +1054,7 @@
         "id": "alarm_not_activated-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "alarm_not_activated-refinement-1",
-        "target": "alarm_not_activated"
+        "target": "dc6b0b6e-b011-524c-9818-7457555de885"
       }
     },
     {
@@ -1028,7 +1068,7 @@
         {
           "id": "fire_central_not_notified-refinement-1-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "network_down",
+          "source": "e93700ad-c795-567d-8611-b6706ac862d1",
           "target": "fire_central_not_notified-refinement-1"
         }
       ],
@@ -1036,7 +1076,7 @@
         "id": "fire_central_not_notified-refinement-1-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "fire_central_not_notified-refinement-1",
-        "target": "fire_central_not_notified"
+        "target": "dfde6525-ab31-5a4f-886f-12afe675dc89"
       }
     },
     {
@@ -1050,7 +1090,7 @@
         {
           "id": "fire_central_not_notified-refinement-2-1",
           "type": "kaos.ObstacleRefinementLinkStart",
-          "source": "fire_central_notification_delayed",
+          "source": "65aac3eb-e28b-5852-a896-728ada276901",
           "target": "fire_central_not_notified-refinement-2"
         }
       ],
@@ -1058,92 +1098,92 @@
         "id": "fire_central_not_notified-refinement-2-end",
         "type": "kaos.ObstacleRefinementLinkEnd",
         "source": "fire_central_not_notified-refinement-2",
-        "target": "fire_central_not_notified"
+        "target": "dfde6525-ab31-5a4f-886f-12afe675dc89"
       }
     },
     {
       "id": "no_smoke_detection-obstructs-fire_noticed_in_time_when_smoke",
       "type": "kaos.ObstructionLink",
-      "source": "no_smoke_detection",
-      "target": "fire_noticed_in_time_when_smoke"
+      "source": "39734d5f-174d-5b06-9963-add8ee7adf4d",
+      "target": "c9ef950b-dc10-5d01-acaa-fb8546b23790"
     },
     {
       "id": "no_heat_detection-obstructs-fire_noticed_in_time_when_heat",
       "type": "kaos.ObstructionLink",
-      "source": "no_heat_detection",
-      "target": "fire_noticed_in_time_when_heat"
+      "source": "b9190479-4d98-5a54-9548-5b27fe30c710",
+      "target": "9ec9d452-6f59-5aab-830d-39ca0f44bad4"
     },
     {
       "id": "fire_noticed_in_time_and_not_detected-obstructs-fire_detected_when_noticed_in_time",
       "type": "kaos.ObstructionLink",
-      "source": "fire_noticed_in_time_and_not_detected",
-      "target": "fire_detected_when_noticed_in_time"
+      "source": "0c6ff19a-f2fd-553a-ac75-1bbb131c32f7",
+      "target": "657b76a1-03d6-5ab0-8dd0-a39b66bd03ba"
     },
     {
       "id": "no_alarm_signal-obstructs-alarm_signal_after_30_seconds_when_fire_detected_unless_disabled",
       "type": "kaos.ObstructionLink",
-      "source": "no_alarm_signal",
-      "target": "alarm_signal_after_30_seconds_when_fire_detected_unless_disabled"
+      "source": "ffb5c4ab-ffa0-5f93-943b-31fdc55611a6",
+      "target": "41c2dee4-7fab-5def-ac59-70611d6a2df9"
     },
     {
       "id": "alarm_not_activated-obstructs-alarm_activated_when_signal",
       "type": "kaos.ObstructionLink",
-      "source": "alarm_not_activated",
-      "target": "alarm_activated_when_signal"
+      "source": "dc6b0b6e-b011-524c-9818-7457555de885",
+      "target": "6fde90a4-fced-50ec-84fc-98fd76f4b7bb"
     },
     {
       "id": "fire_central_not_notified-obstructs-fire_central_notified_when_signal",
       "type": "kaos.ObstructionLink",
-      "source": "fire_central_not_notified",
-      "target": "fire_central_notified_when_signal"
+      "source": "dfde6525-ab31-5a4f-886f-12afe675dc89",
+      "target": "015ca60e-2571-53f9-a53d-93e758460c33"
     },
     {
       "id": "smoke_sensor-assigned-fire_noticed_in_time_when_smoke",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "smoke_sensor",
-      "target": "fire_noticed_in_time_when_smoke"
+      "source": "08bf494a-264a-59c8-8cf3-29a3c3c5c9ef",
+      "target": "c9ef950b-dc10-5d01-acaa-fb8546b23790"
     },
     {
       "id": "heat_sensor-assigned-fire_noticed_in_time_when_heat",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "heat_sensor",
-      "target": "fire_noticed_in_time_when_heat"
+      "source": "6c150ab3-f684-55a1-bd1a-48cd6706f9fd",
+      "target": "9ec9d452-6f59-5aab-830d-39ca0f44bad4"
     },
     {
       "id": "detection_system-assigned-fire_detected_when_noticed_in_time",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "detection_system",
-      "target": "fire_detected_when_noticed_in_time"
+      "source": "3716e2a6-40c3-5cf1-8dc8-9e2fc1e2b9e2",
+      "target": "657b76a1-03d6-5ab0-8dd0-a39b66bd03ba"
     },
     {
       "id": "occupants-assigned-building_evacuated_when_alarm_raised",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "occupants",
-      "target": "building_evacuated_when_alarm_raised"
+      "source": "fb9c5dd9-75da-5890-becb-cfd755804ca1",
+      "target": "e32f70ec-596e-5008-804d-a219c232d305"
     },
     {
       "id": "fire_control_unit-assigned-alarm_beep_30_seconds_unless_disabled",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "fire_control_unit",
-      "target": "alarm_beep_30_seconds_unless_disabled"
+      "source": "cb6bb229-2df9-5bcc-a554-b3de06c01dfd",
+      "target": "f73f2e6e-e1c4-5913-b661-f08226c8ef1b"
     },
     {
       "id": "fire_control_unit-assigned-alarm_signal_after_30_seconds_when_fire_detected_unless_disabled",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "fire_control_unit",
-      "target": "alarm_signal_after_30_seconds_when_fire_detected_unless_disabled"
+      "source": "cb6bb229-2df9-5bcc-a554-b3de06c01dfd",
+      "target": "41c2dee4-7fab-5def-ac59-70611d6a2df9"
     },
     {
       "id": "fire_control_unit-assigned-alarm_activated_when_signal",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "fire_control_unit",
-      "target": "alarm_activated_when_signal"
+      "source": "cb6bb229-2df9-5bcc-a554-b3de06c01dfd",
+      "target": "6fde90a4-fced-50ec-84fc-98fd76f4b7bb"
     },
     {
       "id": "notification_system-assigned-fire_central_notified_when_signal",
       "type": "kaos.ResponsibilityAssignment",
-      "source": "notification_system",
-      "target": "fire_central_notified_when_signal"
+      "source": "7faaab5b-2d74-54d6-811e-afc36fe59a0d",
+      "target": "015ca60e-2571-53f9-a53d-93e758460c33"
     }
   ],
   "display": {},
