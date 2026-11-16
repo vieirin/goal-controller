@@ -1108,6 +1108,18 @@ export const SHORT_ID_LENGTH = 8;
  */
 export const WRITTEN_ID_KEY = 'writtenId';
 
+/**
+ * The custom properties a link keeps, while one of its ends is missing (an
+ * orphan, goal-controller#518), the id the author wrote for that end's
+ * element: writing its line again (`kind net_up: …`) brings that element
+ * back, under its piStar id, and they are cleared. An element without one
+ * is brought back by its short id (`shortId`), which needs nothing kept.
+ */
+export const MISSING_END_ID_KEYS = {
+  source: 'missingSourceId',
+  target: 'missingTargetId',
+} as const;
+
 /** The id a line shows for an element without one of its own: its piStar id's first characters. */
 export const shortId = (iStarId: string): string =>
   iStarId.slice(0, SHORT_ID_LENGTH);

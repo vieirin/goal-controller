@@ -77,10 +77,16 @@ piStar id (`behavioral_goal 7857cb00: Achieve [Manual Backup]`), never
 stored in its text.
 
 **Identity is the id, in every dialect.** A line names the element its id
-names, wherever the line is. A line whose id names no element (or that has
-no id) creates an element of its word's kind, with its name, its
-annotations or declaration, and the property lines under it; removing a
-line removes its element (`notationEdits`' `create` and `remove`). The
+names, wherever the line is; a line whose id or name alone is changed where
+it is renames or relabels its element. A line whose id names no element (or
+that has no id) creates an element of its word's kind, with its name, its
+annotations or declaration, and the property lines indented under it;
+removing a line removes its element (`notationEdits`' `create` and
+`remove`). What an edit means is read from a line diff between the text the
+model has and the text as typed (the rules are in
+`src/notation/document.ts`'s header): an unchanged property line stays its
+element's whatever is typed around it, and a line being typed edits
+nothing. The
 element's links stay: a link that loses an end is an orphan, an error that
 blocks generation until the line is written back or the link removed. A
 model can be written from an empty document. In an engine's dialect the id

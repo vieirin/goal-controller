@@ -132,16 +132,20 @@ describe('typing in a document (#518 review)', () => {
     expect(edits[0]).to.deep.include({});
     const created = (edits[0] as { create: { properties: unknown } }).create;
     expect(created.properties).to.deep.equal({});
-    // a new element's own property lines are its own
+    // a new element's own property lines are its own: the element above
+    // keeps its own (N1 of the second review)
     const own = notationEdits(
       plain,
-      insertAfter(0, '  behavioral_goal Archive\n  priority urgent'),
+      insertAfter(0, '  behavioral_goal Archive\n    priority urgent'),
       tree,
       { newId: ids() },
     );
-    expect(own.filter((edit) => !('create' in edit))).to.deep.equal([
-      { iStarId: 'aaaaaaaa-0001', key: 'priority', value: 'urgent' },
-    ]);
+    expect(own.filter((edit) => !('create' in edit))).to.deep.equal([]);
+    expect(own).to.have.length(1);
+    expect(own[0]).to.have.nested.property('create.text', 'Archive');
+    expect(
+      (own[0] as { create: { properties: unknown } }).create.properties,
+    ).to.deep.equal({ priority: 'urgent' });
   });
 
   it('edits nothing for a line that repeats another’s id', () => {
@@ -224,17 +228,25 @@ describe('typing in a document (#518 review)', () => {
       ).to.deep.equal([
         { iStarId: 'bbbbbbbb-0002', key: WRITTEN_ID_KEY, value: 'zzz' },
       ]);
-      // and the name with it
+      // the name alone: a relabel
       expect(
         notationEdits(
           plain,
-          doc.replace('bbbbbbbb: Restore', 'zzz: Bring back'),
+          doc.replace('bbbbbbbb: Restore', 'bbbbbbbb: Bring back'),
           tree,
           { newId: ids() },
         ),
-      ).to.deep.equal([
-        { iStarId: 'bbbbbbbb-0002', text: 'Bring back' },
-        { iStarId: 'bbbbbbbb-0002', key: WRITTEN_ID_KEY, value: 'zzz' },
+      ).to.deep.equal([{ iStarId: 'bbbbbbbb-0002', text: 'Bring back' }]);
+      // the id and the name: another element (created, the old one removed)
+      const both = notationEdits(
+        plain,
+        doc.replace('bbbbbbbb: Restore', 'zzz: Bring back'),
+        tree,
+        { newId: ids() },
+      );
+      expect(both.filter((e) => 'create' in e)).to.have.length(1);
+      expect(both.filter((e) => 'remove' in e)).to.deep.equal([
+        { remove: 'bbbbbbbb-0002' },
       ]);
     });
 
@@ -257,8 +269,8 @@ describe('typing in a document (#518 review)', () => {
       ).to.deep.equal([{ iStarId: 'i-G1', text: 'G9: Go' }]);
     });
 
-    it('is a new element when the line’s place is not the old one’s', () => {
-      // two ids changed at once: which is which is not told
+    it('renames each of two lines changed in place; another kind’s line is a new element', () => {
+      // two ids changed at once, each in its own line's place: two renames
       const edits = notationEdits(
         plain,
         doc
@@ -267,7 +279,10 @@ describe('typing in a document (#518 review)', () => {
         tree,
         { newId: ids() },
       );
-      expect(edits.filter((e) => 'create' in e)).to.have.length(2);
+      expect(edits).to.deep.equal([
+        { iStarId: 'aaaaaaaa-0001', key: WRITTEN_ID_KEY, value: 'x1' },
+        { iStarId: 'bbbbbbbb-0002', key: WRITTEN_ID_KEY, value: 'x2' },
+      ]);
       // a line of another kind
       const other = notationEdits(
         plain,

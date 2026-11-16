@@ -366,7 +366,7 @@ describe('element lines `kind id: name` (#518)', () => {
       const { text } = notationDocument(toy, tree);
       expect(
         notationEdits(toy, text.replace('\n  task T1: Drive', ''), tree),
-      ).to.deep.equal([{ remove: 'i-T1' }]);
+      ).to.deep.equal([{ remove: 'i-T1', writtenId: 'T1' }]);
       // moved elsewhere, it is the same element
       expect(
         notationEdits(toy, 'task T1: Drive\ngoal G1: Go', tree),
@@ -438,11 +438,25 @@ describe('element lines `kind id: name` (#518)', () => {
           tree,
         ),
       ).to.deep.equal([]);
+      // a line being typed changes what no other line means: a complete
+      // element line after it creates its element
       expect(
         notationEdits(toy, `${text}\n  nonsense here\ngoal G9: New`, tree, {
           newId: ids(),
         }),
-      ).to.deep.equal([]);
+      ).to.deep.equal([
+        {
+          create: {
+            iStarId: '7857cb00-1111-2222',
+            kind: 'istar.Goal',
+            text: 'G9: New',
+            properties: {},
+            after: 'T1',
+            line: 3,
+            writeId: null,
+          },
+        },
+      ]);
       // its own property line is no hindrance
       expect(
         notationEdits(
@@ -452,7 +466,7 @@ describe('element lines `kind id: name` (#518)', () => {
         ),
       ).to.deep.equal([
         { iStarId: 'i-G1', key: 'priority', value: 'high' },
-        { remove: 'i-T1' },
+        { remove: 'i-T1', writtenId: 'T1' },
       ]);
     });
 

@@ -259,7 +259,9 @@ describe('an element removed from the text keeps its links: orphans (#518)', () 
       /^\s*task T5: /,
     );
     const t5 = tree.nodes.get('T5')!.iStarId;
-    expect(edits).to.deep.equal([{ remove: t5 } satisfies NotationEdit]);
+    expect(edits).to.deep.equal([
+      { remove: t5, writtenId: 'T5' } satisfies NotationEdit,
+    ]);
     expect(next.elements.has(t5)).to.equal(false);
     // its links stay, one end gone
     const lost = [...model.links.values()].filter(

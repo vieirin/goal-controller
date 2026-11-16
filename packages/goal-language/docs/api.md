@@ -208,7 +208,9 @@ one, an element no line names is removed (its links stay: orphans).
 | Export | Signature | What it does |
 | --- | --- | --- |
 | `notationDocument` | `(D, tree: DocumentTree) => { text, ids }` | writes the model as a document (`documentLine` per element); `ids`: the key of the element each line is or is under, for every element, property and link line (actor lines, at the top, have none) |
-| `notationEdits` | `(D, text, tree, { newId? }) => NotationEdit[]` | what a document changes: element texts, properties set or removed, elements created and removed (below); `newId` gives a new element's piStar id (default: a random UUID) |
+| `notationEdits` | `(D, text, tree, { newId?, base? }) => NotationEdit[]` | what a document changes: element texts, properties set or removed, elements created and removed (below), read from a line diff between `base` (default: the document written from `tree`) and `text`; `newId` gives a new element's piStar id (default: a random UUID) |
+| `notationReading` | `(D, text, tree, { newId?, base? }) => { edits, base }` | `notationEdits`, and the text the model has once they are made (`DocumentBase`: its lines, each line's element by piStar id, each line's role): an editor that keeps what is typed reads its next text against it |
+| `documentBase` | `(D, tree) => DocumentBase` | the document written from a tree, as a base |
 | `contextFromView` | `(D, tree, variables) => DefinitionContext` | what the text is checked against: each element with its `iStarId` and `hasId` (whether its text gave it an id), and the tree's `orphans` when it has any |
 | `readLine` | `(D, line) => LineReading` | one line: an element (with spans for the word, id, annotations, notation refs and operators, declaration) or a property |
 | `readHead` | `(D, line) => { word, wordSpan, kind, id, idSpan } \| null` | an element line's head: its kind word (`kind` null: no kind's), and the id before its colon (null: none); null: no head ([reference.md](reference.md#the-kind-word)) |
@@ -241,12 +243,23 @@ A `NotationEdit` is one of:
   property lines' properties, `after` the key of the element line above it
   (its container is that one's), `line` its index (from 0), and `writeId`
   the short id the editor writes on a line that had no id (null: it had);
-- `{ remove: iStarId }`: an element no line names any more.
+- `{ remove: iStarId, writtenId? }`: an element no line names any more;
+  `writtenId` the id its author wrote, which the workbench keeps on its
+  orphan links (`MISSING_END_ID_KEYS`) so that writing its line again
+  repairs them (a `create` with its piStar id, and `{ link, key, value:
+  null }` clearing what was kept).
 
-Nothing is created or removed while any element line can't be read, has no
-word or no kind's (being typed), or, in an engine dialect, a new line's id
-isn't its word's kind's; a line whose word is another kind than its
-element's changes nothing.
+What an edit means is decided by six rules, read from the line diff and
+stated in `notation/document.ts`'s header: an unchanged line keeps its
+element; a new property line is the element line's above it, by
+indentation; a property line removed unsets, one changed in place sets; an
+element line replaced in place (same kind, the id alone or the name alone
+changed) is a rename or relabel of its element; a line only added creates,
+an element no line names is removed; a line being typed or in error (no
+word or no kind's, a second line with an element's id, another kind's word
+on an element's line, in an engine dialect a new id not its word's kind's)
+edits nothing, changes what no other line means, and holds the lines it
+replaces.
 
 `DefinitionContext.orphans` (the dialect package's `DocumentOrphan[]`, from
 `DocumentTree.orphans`) are the links missing an end: `{ iStarId, kind,
