@@ -5,6 +5,7 @@
  */
 import {
   hasIds,
+  MISSING_END_ID_KEYS,
   type DefinitionContext,
   type DialectDefinition,
   type DocumentTree,
@@ -32,6 +33,8 @@ import {
   toPistarObject,
   type PistarElementJson,
   type PistarFile,
+  type PistarHubLinkJson,
+  type PistarLinkJson,
   type Point,
   type Size,
 } from '@istar-ts/core';
@@ -47,6 +50,7 @@ export {
   contextFromView,
   notationDocument,
   notationEdits,
+  notationReading,
   type NotationEdit,
 } from '@goal-controller/goal-language';
 
@@ -64,11 +68,14 @@ const isElementEdit = (edit: NotationEdit): edit is ElementEdit =>
  * link kept, one whose end is gone an orphan (`parsePistar` reads it, and
  * the document reports it); an inner element of a removed actor that stays
  * goes on the paper; the file's metamodel block, extra keys and layout as
- * the model has them.
+ * the model has them. `writtenIds`: the id an author wrote for a removed
+ * element, kept on each of its orphans (`MISSING_END_ID_KEYS`) so that
+ * writing its line again repairs them (`notationEdits` clears it then).
  */
 export const withoutElements = (
   model: AnyModel,
   removed: ReadonlySet<string>,
+  writtenIds: ReadonlyMap<string, string> = new Map(),
 ): PistarFile => {
   const file = toPistarObject(model);
   const kept = (element: { id: string }) => !removed.has(element.id);
@@ -78,12 +85,38 @@ export const withoutElements = (
     freed.push(...actor.nodes.filter(kept));
     return false;
   });
+  const recorded = (link: PistarLinkJson): PistarLinkJson => {
+    const ids = Object.fromEntries(
+      (['source', 'target'] as const).flatMap((side) => {
+        const id = writtenIds.get(link[side]);
+        return id === undefined ? [] : [[MISSING_END_ID_KEYS[side], id]];
+      }),
+    );
+    return Object.keys(ids).length
+      ? {
+          ...link,
+          customProperties: { ...link.customProperties, ...ids },
+        }
+      : link;
+  };
   return {
     ...file,
     actors: actors.map((actor) => ({
       ...actor,
       nodes: actor.nodes.filter(kept),
     })),
+    ...(writtenIds.size > 0 &&
+      file.links && {
+        links: file.links.map((entry) => {
+          if (!('hub' in entry)) return recorded(entry as PistarLinkJson);
+          const hub = entry as PistarHubLinkJson;
+          return {
+            ...hub,
+            starts: hub.starts.map(recorded),
+            ...(hub.end && { end: recorded(hub.end) }),
+          };
+        }),
+      }),
     ...(file.orphans && {
       orphans: [...file.orphans.filter(kept), ...freed],
     }),
@@ -192,6 +225,16 @@ const createsOf = (edits: readonly NotationEdit[]): CreatedElement[] =>
 const removedOf = (edits: readonly NotationEdit[]): Set<string> =>
   new Set(edits.flatMap((edit) => ('remove' in edit ? [edit.remove] : [])));
 
+/** The ids the authors wrote for the elements the edits remove, by piStar id. */
+const writtenIdsOf = (edits: readonly NotationEdit[]): Map<string, string> =>
+  new Map(
+    edits.flatMap((edit) =>
+      'remove' in edit && edit.writtenId !== undefined
+        ? [[edit.remove, edit.writtenId] as const]
+        : [],
+    ),
+  );
+
 /** An element or property edit made in a model's text. */
 const applyElementEdit = (text: string, edit: ElementEdit): string =>
   'link' in edit
@@ -220,7 +263,11 @@ export const applyNotationEdits = (
   const removed = removedOf(edits);
   let next = text;
   if (removed.size) {
-    const file = withoutElements(parseModel(next), removed);
+    const file = withoutElements(
+      parseModel(next),
+      removed,
+      writtenIdsOf(edits),
+    );
     next = serializeModel(parseModel(JSON.stringify(file)), next);
   }
   next = edits.filter(isElementEdit).reduce(applyElementEdit, next);
@@ -298,7 +345,7 @@ export const notationEditOperations = (
   if (removed.size && target)
     operations.push({
       kind: 'istar.replaceModel',
-      model: withoutElements(target.model, removed),
+      model: withoutElements(target.model, removed, writtenIdsOf(edits)),
       fileMetamodel: fileMetamodelOf(target.model) !== undefined,
     });
   operations.push(...edits.filter(isElementEdit).map(elementOperation));

@@ -11,11 +11,12 @@ import {
   lineKeys,
   lineOwners,
   notationDocument,
-  notationEdits,
+  notationReading,
   notationEditOperations,
   writtenIdChanges,
 } from '@/lib/workbench/notationDocument';
 import { type AnyDialect, type DocumentTree } from '@goal-controller/dialect';
+import type { DocumentBase } from '@goal-controller/goal-language';
 import AgentChangeLegend from './AgentChangeLegend';
 import CodeEditor from '../../CodeEditor';
 import { useSelection, useWorkbench } from '../../WorkbenchContext';
@@ -74,11 +75,17 @@ export default function NotationEditor({
   // doesn't fight the user's typing; cleared once the model change it
   // caused (or its rejection) is seen
   const ownEdit = useRef(false);
+  // the text the model has, line by line, once this editor's last edits are
+  // made (null: the one written from the tree): what is typed next is read
+  // against it, so a line keeps the element it had there; the text isn't
+  // written over with the model's own after this editor's edits
+  const base = useRef<DocumentBase | null>(null);
   useEffect(() => {
     if (ownEdit.current) {
       ownEdit.current = false;
       return;
     }
+    base.current = null;
     setDoc(canonical.text);
     // same text as before (e.g. undo after typing an unknown id): still reset the editor
     const shown = view?.state.doc.toString();
@@ -124,9 +131,11 @@ export default function NotationEditor({
       return;
     }
     staleTree.current = null;
-    const edits = notationEdits(definition, value, current, {
+    const reading = notationReading(definition, value, current, {
       newId: () => crypto.randomUUID(),
+      ...(base.current && { base: base.current }),
     });
+    const { edits } = reading;
     if (edits.length === 0) return;
     const operations = notationEditOperations(edits, {
       model: latest.current.session.store.getModel(),
@@ -141,6 +150,7 @@ export default function NotationEditor({
           ownEdit.current = false;
           return;
         }
+        base.current = reading.base;
         staleTree.current = current;
         // a model change no tree follows (none should): read on anyway
         setTimeout(() => {
