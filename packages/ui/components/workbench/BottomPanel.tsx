@@ -17,6 +17,8 @@ import type { GoalViewNode } from '@goal-controller/goal-tree';
 import { baseName, downloadText } from '@/lib/workbench/download';
 import { constructDefinition } from '@goal-controller/dialect';
 import {
+  dialectOf,
+  ENGINE_LABEL,
   isPrismEngine,
   notationDefinitionOf,
 } from '@/lib/workbench/engineDialects';
@@ -297,9 +299,10 @@ export function ModelDataView() {
           ))}
         </ul>
       )}
-      {engine === 'sleec' && (
+      {!dialectOf(engine) && (
+        // an engine without a definition (SLEEC) reads no notation
         <p className='mt-3 text-ink-muted'>
-          SLEEC ignores the execution notation.
+          {ENGINE_LABEL[engine]} ignores the execution notation.
         </p>
       )}
     </div>

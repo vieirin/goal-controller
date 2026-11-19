@@ -35,13 +35,10 @@ type Specs = Record<NodeKindKey, readonly PropertySpec[]> &
 const specsOf = <E extends DialectEngine>(engine: E): Specs =>
   specsFromDefinition(ENGINE_DIALECTS[engine], ENGINE_CHECKS[engine]);
 
-export const PROPERTY_SPECS: Record<DialectEngine, Specs> = {
-  edge: specsOf('edge'),
-  edgev2: specsOf('edgev2'),
-  mutrose: specsOf('mutrose'),
-  goda: specsOf('goda'),
-  grl: specsOf('grl'),
-  istardt: specsOf('istardt'),
-  tropos4as: specsOf('tropos4as'),
-  cgm: specsOf('cgm'),
-};
+/** Each iStar engine's specs, by engine (every one in ENGINE_DIALECTS). */
+export const PROPERTY_SPECS = Object.fromEntries(
+  (Object.keys(ENGINE_DIALECTS) as DialectEngine[]).map((engine) => [
+    engine,
+    specsOf(engine),
+  ]),
+) as Record<DialectEngine, Specs>;

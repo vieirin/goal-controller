@@ -8,7 +8,6 @@ import {
   type IstarExtension,
 } from '@istar-ts/react';
 import type { ReactElement } from 'react';
-import WorkbenchCanvas from '../shared/WorkbenchCanvas';
 
 const { mutrose } = ENGINE_DIALECTS;
 
@@ -98,11 +97,10 @@ const mutrosePalette: IstarExtension = {
   },
 };
 
-const MUTROSE_EXTENSIONS: readonly IstarExtension[] = [mutrosePalette];
+/**
+ * MutRoSe's canvas extensions (the registry's `palette`): its diagram's, and
+ * what piStar mode's palette toggle adds for a file recorded for it.
+ */
+const MUTROSE_PALETTE: readonly IstarExtension[] = [mutrosePalette];
 
-/** What piStar mode's palette toggle adds for a file recorded for MutRoSe. */
-export const MUTROSE_PALETTE: readonly IstarExtension[] = [mutrosePalette];
-
-export default function MutroseDiagram() {
-  return <WorkbenchCanvas extensions={MUTROSE_EXTENSIONS} />;
-}
+export default MUTROSE_PALETTE;

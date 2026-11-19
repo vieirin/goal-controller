@@ -34,8 +34,10 @@ import { optionKeysOf } from './projectSettings';
 import {
   dialectOf,
   ENGINE_DIALECTS,
+  ENGINE_IDS,
   ENGINE_LABEL,
   isDialectEngine,
+  viewOf,
 } from './engineDialects';
 import {
   DIALECT_DEFINITIONS,
@@ -303,26 +305,11 @@ export type ModelMode =
   | FrameworkMode
   | 'pistar';
 
+/** Every mode: the engines' (in the order the UI offers them), the modelling dialects', the frameworks', piStar's. */
 const MODES: readonly ModelMode[] = [
-  'edgev2',
-  'edge',
-  'sleec',
-  'mutrose',
-  'goda',
-  'grl',
-  'istardt',
-  'tropos4as',
-  'cgm',
-  'pistarext',
-  'kaos',
-  'nfr',
-  'kaosdoc',
-  'kaoslts',
-  'kaosprop',
-  'kaosexpert',
-  'kaosres',
-  'kaossim',
-  'nfrprop',
+  ...ENGINE_IDS,
+  ...(Object.keys(DIALECT_DEFINITIONS) as DialectMode[]),
+  ...(Object.keys(FRAMEWORK_DIALECTS) as FrameworkMode[]),
   'pistar',
 ];
 
@@ -401,39 +388,22 @@ export type Conversion = {
   blockers: string[];
 };
 
-/** What an engine reads of an iStar model: the kinds a model converted to it may have. */
-type Reads = { elements: ReadonlySet<string>; links: ReadonlySet<string> };
-const EDGE_READS: Reads = {
-  elements: new Set([
-    'istar.Actor',
-    'istar.Goal',
-    'istar.Task',
-    'istar.Resource',
-  ]),
-  links: new Set([
-    'istar.AndRefinementLink',
-    'istar.OrRefinementLink',
-    'istar.NeededByLink',
-  ]),
+/** What an engine reads of an iStar model: the kinds a model converted to it may have (its registration's `converts`). */
+type Reads = {
+  elements: ReadonlySet<string>;
+  links: ReadonlySet<string>;
+  /** a resource without a type becomes a Boolean one (the Edge engines') */
+  typesResources: boolean;
 };
-const ENGINE_READS: Partial<Record<TransformEngine, Reads>> = {
-  edge: EDGE_READS,
-  edgev2: EDGE_READS,
-  // the decomposer reads one actor's goals and tasks, refined by AND/OR links
-  mutrose: {
-    elements: new Set(['istar.Actor', 'istar.Goal', 'istar.Task']),
-    links: new Set(['istar.AndRefinementLink', 'istar.OrRefinementLink']),
-  },
-  // goals, tasks and resources (read and left out), refined by AND/OR links
-  goda: {
-    elements: new Set([
-      'istar.Actor',
-      'istar.Goal',
-      'istar.Task',
-      'istar.Resource',
-    ]),
-    links: new Set(['istar.AndRefinementLink', 'istar.OrRefinementLink']),
-  },
+const readsOf = (target: ModelMode): Reads | undefined => {
+  const converts = isEngineMode(target) ? viewOf(target).converts : undefined;
+  return (
+    converts && {
+      elements: new Set(converts.elements),
+      links: new Set(converts.links),
+      typesResources: converts.typesResources === true,
+    }
+  );
 };
 
 /** The id prefix a target gives a kind: its definition's, else the Edge engines'. */
@@ -454,9 +424,7 @@ const MODE_LABEL = (mode: ModelMode): string =>
       ? FRAMEWORK_MODE_LABEL[mode]
       : mode === 'pistar'
         ? 'piStar'
-        : mode === 'edge' || mode === 'edgev2'
-          ? 'the Edge engines'
-          : ENGINE_LABEL[mode];
+        : (viewOf(mode).group ?? ENGINE_LABEL[mode]);
 /** The framework a mode's models are in (goal-controller#171): its dialect's; piStar's is iStar 2.0. */
 export const frameworkOfMode = (mode: ModelMode): Framework =>
   (isDialectMode(mode)
@@ -492,7 +460,8 @@ export const frameworkMismatch = (
 
 /** What a target engine reads, as its messages say it ("the Edge engines read …"). */
 const engineSays = (target: ModelMode) => {
-  const many = target === 'edge' || target === 'edgev2';
+  // an engine spoken of with others ('the Edge engines') is plural
+  const many = isEngineMode(target) && viewOf(target).group !== undefined;
   const name = MODE_LABEL(target);
   return {
     reads: `${name} ${many ? 'read' : 'reads'}`,
@@ -538,7 +507,7 @@ export const planConversion = (text: string, target: ModelMode): Conversion => {
       );
     }
   }
-  const reads = isEngineMode(target) ? ENGINE_READS[target] : undefined;
+  const reads = readsOf(target);
   if (!reads) {
     // the kinds the target's metamodel doesn't have (a dialect's, in another mode)
     const known = metamodelOfMode(target, text);
@@ -567,7 +536,7 @@ export const planConversion = (text: string, target: ModelMode): Conversion => {
         );
       }
       if (
-        reads === EDGE_READS &&
+        reads.typesResources &&
         element.kind === 'istar.Resource' &&
         !element.customProperties?.type
       ) {

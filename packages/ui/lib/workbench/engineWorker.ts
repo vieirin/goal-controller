@@ -37,6 +37,7 @@ import { analyze } from '@/services/analyze';
 import { transform } from '@/services/transform';
 import type { TransformEngine } from '@/lib/types';
 import { metamodelFor } from './dialects';
+import { DEFAULT_ENGINE } from './engineDialects';
 import { analysisKey, modelSignature } from './signature';
 import type {
   AnalysisWorkerRequest,
@@ -57,7 +58,7 @@ const post = (message: EngineWorkerResponse): void =>
   scope.postMessage(message);
 
 let mirror: MirrorStore<string, string> | null = null;
-let engine: TransformEngine = 'edgev2';
+let engine: TransformEngine = DEFAULT_ENGINE;
 let pistar = false;
 let analysisTimer: ReturnType<typeof setTimeout> | null = null;
 

@@ -1,8 +1,20 @@
 /**
- * The engines the workbench is built from (each one object, defined with
- * `defineEngine` beside its engine in @goal-controller/lib), in the order
- * the UI offers them: the one place an engine is registered. Every map
- * below is derived from it.
+ * The engines the workbench is built from, in the order the UI offers them:
+ * the one place an engine is registered. Each is its lib engine object
+ * (`defineEngine`, beside its engine in @goal-controller/lib: what it reads,
+ * generates and analyses) with what only the workbench knows of it (its
+ * `EngineView`: palette, conversion, examples, editing rules),
+ * every part of which has a default. Every map below, `TransformEngine`
+ * (lib/types.ts), the diagrams and inspectors (engines/engineViews.tsx), the
+ * services' dispatch, the examples' folders and the modes' rules are derived
+ * from it.
+ *
+ * Data only: a palette is referenced by a lazy import, loaded on the client
+ * (engines/engineViews.tsx), so the workers and services that read this
+ * module never load React. A lazy import must not reach the workbench's
+ * context (WorkbenchContext.tsx, which starts the workers that read this
+ * module): Turbopack's dev compile hangs on that cycle; an engine's inspector is
+ * therefore not registered here but follows from its dialect.
  */
 import {
   edgeEngine,
@@ -40,26 +52,130 @@ import type {
   ExtensionDefinition,
   OptionDefinition,
 } from '@goal-controller/dialect';
+import type { ActionGuard, ActionPostGuard } from '@istar-ts/actions';
+import type { IstarExtension } from '@istar-ts/react';
 import type { TransformEngine } from '@/lib/types';
+import { oneActorOnly, resourceBoundsGuard } from './guards';
+
+/**
+ * What only the workbench knows of an engine, beside its lib object. Every
+ * field has a default, so an engine with nothing special gives none: its
+ * diagram is the whole iStar palette, a model converted to it may have what
+ * its metamodel has, and its examples are `examples/<id>/`. (Its inspector
+ * follows from its dialect, engines/engineViews.tsx.)
+ */
+export type EngineView = {
+  /**
+   * the extensions its canvas adds (its palette, numbering, drawing), a
+   * module whose default export they are, loaded on the client; the same in
+   * piStar mode's toggle (none: the whole iStar palette, nothing taken out)
+   */
+  palette?: () => Promise<{ default: readonly IstarExtension[] }>;
+  /** piStar mode's toggle offers nothing for it (SLEEC reads the whole iStar palette) */
+  noPistarPalette?: true;
+  /**
+   * what a model converted to it may have, which conversion lists and checks
+   * (one actor); `typesResources`: a resource without a type becomes a
+   * Boolean one (default: the kinds its metamodel has)
+   */
+  converts?: {
+    elements: readonly string[];
+    links: readonly string[];
+    typesResources?: true;
+  };
+  /** how conversion's messages name it with the engines that read models as it does: 'the Edge engines' (they read) */
+  group?: string;
+  /** its examples' folder, `examples/<folder>/` (default: its id) */
+  examples?: string;
+  /** its own editing rules (lib/workbench/modeGuards.ts), with one sentence per rule for the agent */
+  rules?: {
+    guards?: readonly ActionGuard<string, string>[];
+    postGuards?: readonly ActionPostGuard<string, string>[];
+    describe: readonly string[];
+  };
+};
+
+/** An engine as the workbench registers it: its lib object and its view. */
+const workbench = <const E extends Engine>(
+  engine: E,
+  view: EngineView = {},
+): Readonly<E & { view: EngineView }> => Object.freeze({ ...engine, view });
+
+/** What the Edge engines share: one actor's goals, tasks and resources, named after their RT ids. */
+const EDGE_ACTOR =
+  'The Edge engines read a single actor: add goals, tasks and resources inside the existing one.';
+const edgeView = (
+  rules: EngineView['rules'] = { describe: [] },
+): EngineView => ({
+  palette: () => import('@/components/workbench/engines/edgeFamily/palette'),
+  converts: {
+    elements: ['istar.Actor', 'istar.Goal', 'istar.Task', 'istar.Resource'],
+    links: [
+      'istar.AndRefinementLink',
+      'istar.OrRefinementLink',
+      'istar.NeededByLink',
+    ],
+    typesResources: true,
+  },
+  group: 'the Edge engines',
+  rules: {
+    postGuards: [oneActorOnly(EDGE_ACTOR), ...(rules.postGuards ?? [])],
+    describe: [EDGE_ACTOR, ...rules.describe],
+  },
+});
+
+const MUTROSE_ACTOR =
+  'MutRoSe reads a single actor (its mission): add goals and tasks inside the existing one.';
 
 export const ENGINE_LIST = registerEngines(
-  edgeV2Engine,
-  edgeEngine,
-  sleecEngine,
-  mutroseEngine,
-  godaEngine,
-  grlEngine,
-  istardtEngine,
-  tropos4asEngine,
-  cgmEngine,
+  workbench(edgeV2Engine, {
+    ...edgeView({
+      postGuards: [resourceBoundsGuard(edgeV2Engine.id)],
+      describe: [
+        "A resource's bounds must stay consistent: an int resource needs lowerBound <= initialValue <= upperBound, and a bool resource's initialValue must be true or false.",
+      ],
+    }),
+    examples: 'edgeV2',
+  }),
+  workbench(edgeEngine, edgeView()),
+  workbench(sleecEngine, {
+    palette: () => import('@/components/workbench/engines/sleec/palette'),
+    noPistarPalette: true,
+  }),
+  workbench(mutroseEngine, {
+    palette: () => import('@/components/workbench/engines/mutrose/palette'),
+    // the decomposer reads one actor's goals and tasks, refined by AND/OR links
+    converts: {
+      elements: ['istar.Actor', 'istar.Goal', 'istar.Task'],
+      links: ['istar.AndRefinementLink', 'istar.OrRefinementLink'],
+    },
+    rules: {
+      postGuards: [oneActorOnly(MUTROSE_ACTOR)],
+      describe: [MUTROSE_ACTOR],
+    },
+  }),
+  workbench(godaEngine, {
+    palette: () => import('@/components/workbench/engines/goda/palette'),
+    // goals, tasks and resources (read and left out), refined by AND/OR links
+    converts: {
+      elements: ['istar.Actor', 'istar.Goal', 'istar.Task', 'istar.Resource'],
+      links: ['istar.AndRefinementLink', 'istar.OrRefinementLink'],
+    },
+  }),
+  workbench(grlEngine),
+  workbench(istardtEngine, {
+    palette: () => import('@/components/workbench/engines/istardt/palette'),
+  }),
+  workbench(tropos4asEngine),
+  workbench(cgmEngine),
   // the frameworks' (goal-controller#171): offered under KAOS and NFR
-  kaosdocEngine,
-  kaosltsEngine,
-  kaospropEngine,
-  kaosexpertEngine,
-  kaosresEngine,
-  kaossimEngine,
-  nfrpropEngine,
+  workbench(kaosdocEngine),
+  workbench(kaosltsEngine),
+  workbench(kaospropEngine),
+  workbench(kaosexpertEngine),
+  workbench(kaosresEngine),
+  workbench(kaossimEngine),
+  workbench(nfrpropEngine),
 );
 
 type Registered = (typeof ENGINE_LIST)[number];
@@ -80,10 +196,18 @@ type WithDialect = Exclude<
 const ofFramework = (dialect?: AnyDialect): boolean =>
   (dialect?.framework ?? 'istar-2.0') !== 'istar-2.0';
 
-/** Every registered id is a TransformEngine, and every TransformEngine is registered. */
-type Same<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
-const registersEveryEngine: Same<Registered['id'], TransformEngine> = true;
-void registersEveryEngine;
+/** The registered engines' ids, in their order. */
+export const ENGINE_IDS: readonly TransformEngine[] = ENGINE_LIST.map(
+  ({ id }) => id,
+);
+
+/** Whether a value names a registered engine. */
+export const isTransformEngine = (value: unknown): value is TransformEngine =>
+  typeof value === 'string' &&
+  (ENGINE_IDS as readonly string[]).includes(value);
+
+/** The engine a model is for when nothing says which: the first the UI offers. */
+export const DEFAULT_ENGINE: TransformEngine = ENGINE_IDS[0]!;
 
 /** `pick` of each registered engine that has one, by engine id. */
 const byEngine = <T>(pick: (engine: Engine) => T | undefined) =>
@@ -274,7 +398,7 @@ export const isDialectEngine = (
  * and its view reads goal texts in Edge's dialect (services/tree.ts).
  */
 export const notationDefinitionOf = (engine: TransformEngine) =>
-  ENGINE_DIALECTS[isDialectEngine(engine) ? engine : 'edge'];
+  ENGINE_DIALECTS[isDialectEngine(engine) ? engine : edgeEngine.id];
 
 /** An engine's own dialect, when it has one (none: SLEEC), a framework engine's too. */
 export const dialectOf = (engine: TransformEngine): AnyDialect | null =>
@@ -311,3 +435,26 @@ export const ENGINE_FILE_KINDS: Readonly<
 > = byEngine((engine) =>
   engine.fileKinds ? engine.dialect?.extension : undefined,
 );
+
+/** What only the workbench knows of an engine (its registration's view). */
+export const viewOf = (engine: TransformEngine): EngineView =>
+  ENGINE_LIST.find(({ id }) => id === engine)!.view;
+
+/**
+ * Whether piStar mode's toggle offers an engine's palette for a file recorded
+ * for it: an iStar engine's (its own, or the whole iStar palette), unless it
+ * says otherwise (SLEEC); a framework's engine has none (goal-controller#171).
+ */
+export const hasPistarPalette = (engine: TransformEngine): boolean =>
+  !isFrameworkEngine(engine) && !viewOf(engine).noPistarPalette;
+
+/** Each engine's own editing rules, by engine (lib/workbench/modeGuards.ts). */
+export const ENGINE_RULES: Readonly<
+  Partial<Record<TransformEngine, NonNullable<EngineView['rules']>>>
+> = byEngine((engine) => (engine as Registered).view.rules);
+
+/** examples/<folder>/: the engine its models are for, by folder. */
+export const ENGINE_EXAMPLES: Readonly<Record<string, TransformEngine>> =
+  Object.fromEntries(
+    ENGINE_LIST.map(({ id, view }) => [view.examples ?? id, id]),
+  );
