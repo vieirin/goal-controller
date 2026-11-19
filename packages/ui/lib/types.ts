@@ -78,6 +78,3 @@ export const normalizeEngineMode = (
   }
   return isTransformEngine(mode) ? mode : null;
 };
-
-export const isPrismEngine = (engine: TransformEngine): boolean =>
-  engine === 'edge' || engine === 'edgev2';

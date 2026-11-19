@@ -1,29 +1,10 @@
-import {
-  GoalTree,
-  Model,
-  type KindEngineMapper,
-  type NodeOf,
-  type RootReading,
-} from '@goal-controller/goal-tree';
+import { Model, type RootReading } from '@goal-controller/goal-tree';
 import { parsePistar, type IstarModel } from '@istar-ts/core';
 import type { Framework } from '@goal-controller/dialect';
 import { recordedMode } from '../lib/project';
 import { declaresKinds } from '../lib/workbench/dialects';
 import { FRAMEWORK_ROOTS, frameworkOfModel } from '../lib/workbench/frameworks';
-import {
-  edgeEngineMapper,
-  edgeV2EngineMapper,
-  godaEngineMapper,
-  kaosdocEngineMapper,
-  kaosdocGoalModel,
-  kaosltsEngineMapper,
-  kaosltsGoalModel,
-  mutroseEngineMapper,
-  sleecEngineMapper,
-  type KaosdocGoalModel,
-  type KaosltsGoalModel,
-  type AnyModel,
-} from '@goal-controller/lib';
+import { runOf, type AnyModel, type Engine } from '@goal-controller/lib';
 
 export interface ParseError {
   success: false;
@@ -38,15 +19,9 @@ export interface ParseOptions {
   framework?: Framework;
 }
 
-/** The tree an engine's mapper reads a model into, its nodes typed by kind (goal-controller#215). */
-type TreeOf<M> =
-  M extends KindEngineMapper<any, any, any, any, any, any>
-    ? NodeOf<M>[]
-    : never;
-
-/** A model parsed, validated and read by an engine's mapper into its tree. */
-export type ParseModelResult<TTree> =
-  | { success: true; model: AnyModel; tree: TTree }
+/** A model parsed and read as an engine reads it (its tree, its IR, or the model as parsed). */
+export type ParseModelResult<TReading> =
+  | { success: true; model: AnyModel; reading: TReading }
   | ParseError;
 
 /**
@@ -98,94 +73,32 @@ export const GoalModel = {
     return { success: true, model };
   },
 
-  /** Parse model JSON, validate it, and read it into an engine's tree. */
-  parseWith<M extends { dialect?: RootReading }>(
+  /**
+   * A model as an engine reads it (its `run`, lib's `runOf`): as parsed, for
+   * one that reads a graph; else validated, its roots as its mapper's dialect
+   * reads them, and made into the engine's reading (its mapper's tree, or
+   * its own IR), a failure there being the engine's.
+   */
+  parseFor(
+    engine: Engine,
     modelJson: string,
-    mapper: M,
     options: ParseOptions = {},
-  ): ParseModelResult<TreeOf<M>> {
-    const parseResult = this.parseModel(modelJson, options, mapper.dialect);
-    if (!parseResult.success) return parseResult;
-    try {
-      const tree = GoalTree.fromModel(parseResult.model, mapper as never)
-        .nodes as TreeOf<M>;
-      return { success: true, model: parseResult.model, tree };
-    } catch (error) {
-      return {
-        success: false,
-        error: `Tree conversion failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        stage: 'tree',
-      };
+  ): ParseModelResult<unknown> {
+    const run = runOf(engine);
+    if (run.reads === 'graph') {
+      const graph = this.parseAsGraph(modelJson);
+      return graph.success
+        ? { success: true, model: graph.model, reading: graph.model }
+        : graph;
     }
-  },
-
-  parseForEdge(modelJson: string, options: ParseOptions = {}) {
-    return this.parseWith(modelJson, edgeEngineMapper, options);
-  },
-
-  parseForEdgeV2(modelJson: string, options: ParseOptions = {}) {
-    return this.parseWith(modelJson, edgeV2EngineMapper, options);
-  },
-
-  parseForSleec(modelJson: string, options: ParseOptions = {}) {
-    return this.parseWith(modelJson, sleecEngineMapper, options);
-  },
-
-  parseForMutrose(modelJson: string, options: ParseOptions = {}) {
-    return this.parseWith(modelJson, mutroseEngineMapper, options);
-  },
-
-  /**
-   * A KAOS model as kaoslts reads it (goal-controller#209): parsed in its
-   * framework, its IR (goals, agents, operations, objects, links) built.
-   */
-  parseForKaoslts(modelJson: string):
-    | {
-        success: true;
-        model: AnyModel;
-        tree: null;
-        goalModel: KaosltsGoalModel;
-      }
-    | ParseError {
     const parseResult = this.parseModel(
       modelJson,
-      {},
-      kaosltsEngineMapper.dialect,
+      options,
+      engine.mapper.dialect,
     );
     if (!parseResult.success) return parseResult;
     try {
-      const goalModel = kaosltsGoalModel(parseResult.model);
-      return { ...parseResult, tree: null, goalModel };
-    } catch (error) {
-      return {
-        success: false,
-        error: `Tree conversion failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        stage: 'tree',
-      };
-    }
-  },
-
-  /**
-   * A KAOS model as kaosdoc reads it (goal-controller#171): parsed in its
-   * framework, its IR (trees on the paper, links, elements) built.
-   */
-  parseForKaosdoc(modelJson: string):
-    | {
-        success: true;
-        model: AnyModel;
-        tree: null;
-        goalModel: KaosdocGoalModel;
-      }
-    | ParseError {
-    const parseResult = this.parseModel(
-      modelJson,
-      {},
-      kaosdocEngineMapper.dialect,
-    );
-    if (!parseResult.success) return parseResult;
-    try {
-      const goalModel = kaosdocGoalModel(parseResult.model);
-      return { ...parseResult, tree: null, goalModel };
+      return { ...parseResult, reading: run.read(parseResult.model) };
     } catch (error) {
       return {
         success: false,
@@ -218,9 +131,5 @@ export const GoalModel = {
         stage: 'parse',
       };
     }
-  },
-
-  parseForGoda(modelJson: string, options: ParseOptions = {}) {
-    return this.parseWith(modelJson, godaEngineMapper, options);
   },
 };

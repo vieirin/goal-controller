@@ -1,3 +1,5 @@
+import { onTree } from '../run';
+import { mutroseOutput, mutroseProblem } from './template';
 import { defineEngine } from '../engine';
 import { mutroseCheckRegistry } from './checks';
 import { mutrose } from './definition';
@@ -12,7 +14,24 @@ export const mutroseEngine = defineEngine({
   dialect: mutrose,
   checks: mutroseCheckRegistry,
   mapper: mutroseEngineMapper,
+  // the model as written: no single-child goals removed
+  run: onTree(mutroseEngineMapper, {
+    generate: (tree, { modelName }) => mutroseOutput(tree, { modelName }),
+    // what the decomposer checks across goals (variables' scope, query types)
+    problems: (tree) => {
+      const problem = mutroseProblem(tree);
+      return problem
+        ? [{ severity: 'error', message: problem, elementInMessage: true }]
+        : [];
+    },
+  }),
   // the runtime annotation its decomposer prints with -v
+  // where its keys are declared and read (the inspector's hint)
+  keysAt: {
+    file: 'packages/lib/src/engines/mutrose/definition.ts',
+    lists: { goal: 'goalProperties', task: 'taskProperties' },
+    mapper: 'packages/lib/src/engines/mutrose/mapper.ts',
+  },
   output: {
     label: 'Runtime annotation',
     extension: 'rannot',

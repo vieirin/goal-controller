@@ -2,7 +2,7 @@ import { defineEngine } from '../engine';
 import { grlCheckRegistry } from './checks';
 import { grl } from './definition';
 import { grlAnalyses, grlProjectResourceParsers } from './index';
-import { grlAnalysisModel, grlEngineMapper } from './mapper';
+import { GRL_ELEMENT_KEYS, grlAnalysisModel, grlEngineMapper } from './mapper';
 
 /**
  * GRL, as the workbench registers it: an analysis engine (its values are
@@ -15,6 +15,24 @@ export const grlEngine = defineEngine({
   dialect: grl,
   checks: grlCheckRegistry,
   mapper: grlEngineMapper,
+  // its element properties are read but not declarable yet (#105); it
+  // ignores resources
+  readKeys: {
+    goal: GRL_ELEMENT_KEYS,
+    task: GRL_ELEMENT_KEYS,
+    resource: [],
+    quality: GRL_ELEMENT_KEYS,
+  },
+  // where its keys are declared and read (the inspector's hint)
+  keysAt: {
+    file: 'packages/lib/src/engines/grl/mapper.ts',
+    lists: {
+      goal: 'GRL_ELEMENT_KEYS',
+      task: 'GRL_ELEMENT_KEYS',
+      quality: 'GRL_ELEMENT_KEYS',
+    },
+    mapper: 'packages/lib/src/engines/grl/mapper.ts',
+  },
   output: { label: 'Evaluation', extension: 'json', language: 'text' },
   analyses: grlAnalyses,
   // a model of any framework, as the workbench parses it: the function at

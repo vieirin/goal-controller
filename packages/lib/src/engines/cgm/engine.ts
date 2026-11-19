@@ -17,6 +17,16 @@ export const cgmEngine = defineEngine({
   dialect: cgm,
   checks: cgmCheckRegistry,
   mapper: cgmEngineMapper,
+  // where its keys are declared and read (the inspector's hint)
+  keysAt: {
+    file: 'packages/lib/src/engines/cgm/definition.ts',
+    lists: {
+      goal: 'properties.goal',
+      task: 'properties.task',
+      quality: 'properties.quality',
+    },
+    mapper: 'packages/lib/src/engines/cgm/mapper.ts',
+  },
   output: { label: 'Variants', extension: 'txt', language: 'text' },
   analyses: cgmAnalyses,
   // a model of any framework, as the workbench parses it: the function at
