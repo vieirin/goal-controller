@@ -10,6 +10,10 @@
     // the dialect tests run the UI's React-free workbench modules (lib/workbench)
     "baseUrl": ".",
     "paths": {
+      // the workbench's components: the UI modules the tests read reference
+      // them by lazy import only (the engine registry's palettes and
+      // inspectors), never loaded here, so their types are a stub
+      "@/components/*": ["./test/support/uiComponents.d.ts"],
       "@/*": ["../ui/*"],
       "langium": ["../goal-language/node_modules/langium/lib/index.d.ts"]
     }

@@ -9,7 +9,6 @@ import {
   type IstarExtension,
 } from '@istar-ts/react';
 import type { ReactElement } from 'react';
-import WorkbenchCanvas from '../shared/WorkbenchCanvas';
 
 const { istardt } = ENGINE_DIALECTS;
 
@@ -81,14 +80,15 @@ const istardtColours: IstarExtension<string, string> = {
   },
 };
 
-/** What piStar mode's palette toggle adds for a file recorded for iStar-DT. */
-export const ISTARDT_PALETTE: readonly IstarExtension[] = [
+/**
+ * iStar-DT's canvas extensions (the registry's `palette`): its diagram's, and
+ * what piStar mode's palette toggle adds for a file recorded for it.
+ */
+const ISTARDT_PALETTE: readonly IstarExtension[] = [
   istardtPalette,
   // the canvas takes iStar's kinds' overrides; istar-ts applies these by
   // kind, to the kinds the model's metamodel block declares
   istardtColours as unknown as IstarExtension,
 ];
 
-export default function IstardtDiagram() {
-  return <WorkbenchCanvas extensions={ISTARDT_PALETTE} />;
-}
+export default ISTARDT_PALETTE;

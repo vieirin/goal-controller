@@ -325,7 +325,7 @@ From `~/vieirin/istar-ts` @ `cb0ab99`. Nothing there was changed.
   (`ActionGuard`) can reject an operation before it applies, a post-guard
   (`ActionPostGuard`) runs after and reports a diagnostic — a warning rather
   than an error when the Inspector can only reach a valid state one field
-  at a time, as `edgeV2ResourceBoundsGuard` does. The session installs a
+  at a time, as edgeV2's `resourceBoundsGuard` does. The session installs a
   mode's guards on itself, so they apply uniformly across the canvas, the
   Inspector, the Source tab, MCP tool calls and the agent, not per
   component.

@@ -40,6 +40,7 @@ import {
   ENGINE_OPTIONS,
   generatesFiles,
   hasOptions,
+  hasPistarPalette,
   outputExtensionOf,
 } from '@/lib/workbench/engineDialects';
 import { baseName, downloadText } from '@/lib/workbench/download';
@@ -68,7 +69,6 @@ import {
   shownStep,
 } from '@/lib/workbench/analysis';
 import type { AnalysisCase } from '@goal-controller/lib';
-import { pistarPaletteFor } from './engines/pistar/PistarDiagram';
 import { useShell } from './shell';
 import { useWorkbench } from './WorkbenchContext';
 import {
@@ -454,7 +454,7 @@ export default function TopBar() {
           {wb.hasModel &&
             shell.pistarMode &&
             wb.recordedEngine &&
-            pistarPaletteFor(wb.recordedEngine) && (
+            hasPistarPalette(wb.recordedEngine) && (
               // the file is for an engine with a palette of its own: model with it, still in piStar mode
               <Switch
                 checked={shell.enginePalette}

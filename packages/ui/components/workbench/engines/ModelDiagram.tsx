@@ -1,63 +1,31 @@
 'use client';
 
 import { useWorkbench } from '../WorkbenchContext';
-import EdgeDiagram from './edge/EdgeDiagram';
-import EdgeV2Diagram from './edgeV2/EdgeV2Diagram';
-import GodaDiagram from './goda/GodaDiagram';
-import GrlDiagram from './grl/GrlDiagram';
-import IstardtDiagram from './istardt/IstardtDiagram';
-import MutroseDiagram from './mutrose/MutroseDiagram';
 import PistarDiagram from './pistar/PistarDiagram';
 import PistarExtDiagram from './pistarExt/PistarExtDiagram';
-import SleecDiagram from './sleec/SleecDiagram';
-import Tropos4asDiagram from './tropos4as/Tropos4asDiagram';
-import CgmDiagram from './cgm/CgmDiagram';
 import FrameworkDiagram from './framework/FrameworkDiagram';
+import { EngineDiagram } from './engineViews';
 import { frameworkEditorOf } from '@/lib/workbench/frameworkModes';
+import { isEngineMode } from '@/lib/workbench/pistar';
 import { resourceEntries } from '@/lib/workbench/projectResources';
 
 /** The goal model's diagram for the mode the model is in. */
 export default function ModelDiagram() {
   const wb = useWorkbench();
-  switch (wb.mode) {
-    case 'pistar':
-      return <PistarDiagram />;
-    case 'pistarext':
-      return <PistarExtDiagram />;
-    // the frameworks' engines draw their framework's model, typed with the
-    // engine's own dialect (nfrprop's `initialLabel`, goal-controller#327)
-    case 'kaos':
-    case 'nfr':
-    case 'kaosdoc':
-    case 'kaoslts':
-    case 'kaosprop':
-    case 'kaosexpert':
-    case 'kaosres':
-    case 'kaossim':
-    case 'nfrprop':
-      return (
-        <FrameworkDiagram
-          {...frameworkEditorOf(wb.mode)!}
-          entries={resourceEntries(wb.parsedResources)}
-        />
-      );
-    case 'edge':
-      return <EdgeDiagram />;
-    case 'edgev2':
-      return <EdgeV2Diagram />;
-    case 'sleec':
-      return <SleecDiagram />;
-    case 'mutrose':
-      return <MutroseDiagram />;
-    case 'goda':
-      return <GodaDiagram />;
-    case 'grl':
-      return <GrlDiagram />;
-    case 'istardt':
-      return <IstardtDiagram />;
-    case 'tropos4as':
-      return <Tropos4asDiagram />;
-    case 'cgm':
-      return <CgmDiagram />;
-  }
+  if (wb.mode === 'pistar') return <PistarDiagram />;
+  if (wb.mode === 'pistarext') return <PistarExtDiagram />;
+  // a framework's modes and its engines draw their framework's model, typed
+  // with the engine's own dialect (nfrprop's `initialLabel`, goal-controller#327)
+  const framework = frameworkEditorOf(wb.mode);
+  if (framework)
+    return (
+      <FrameworkDiagram
+        {...framework}
+        entries={resourceEntries(wb.parsedResources)}
+      />
+    );
+  // an engine's own canvas: remounted when the engine changes
+  return isEngineMode(wb.mode) ? (
+    <EngineDiagram key={wb.mode} engine={wb.mode} />
+  ) : null;
 }

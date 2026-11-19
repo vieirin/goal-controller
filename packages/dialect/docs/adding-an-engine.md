@@ -780,19 +780,37 @@ Everything the workbench needs to know about an engine goes in one object, in `e
 
 ```ts
 import { defineEngine } from '../engine';
+import { onTree, optionOr } from '../run';
 import { missionCheckRegistry } from './checks';
 import { mission } from './definition';
 import { missionEngineMapper } from './mapper';
+import { missionOutput } from './template';
 
 export const missionEngine = defineEngine({
-  id: 'mission', // the workbench's id (TransformEngine)
+  id: 'mission', // the workbench's id (TransformEngine is derived from the registered ids)
   // label: defaults to the definition's name
   help: 'A YAML mission plan for the robots',
   dialect: mission,
   checks: missionCheckRegistry, // every name the definition gives: one missing doesn't compile
   mapper: missionEngineMapper,
+  // what the workbench does with a model for it: read it into the mapper's tree, generate from it
+  run: onTree(missionEngineMapper, {
+    generate: (tree, { modelName, options }) =>
+      missionOutput(tree, {
+        modelName,
+        verbose: optionOr(options, 'verbose', false),
+      }),
+    // problems: (tree) => [...],  what it finds wrong across elements (MutRoSe's variable scoping)
+    // variables: (tree) => [...], the variables its output leaves open (the Edge engines')
+  }),
   output: { label: 'Mission plan', extension: 'yaml', language: 'text' },
   outputs: [{ id: 'mission', language: 'text' }], // the files its output function writes, by id
+  keysAt: {
+    // where its keys are declared and read: the inspector's hint on a property it doesn't read
+    file: 'packages/lib/src/engines/mission/definition.ts',
+    lists: { goal: 'properties.goal', task: 'properties.task' },
+    mapper: 'packages/lib/src/engines/mission/mapper.ts',
+  },
   // options: missionOptions,            its template's knobs (§3.8; none: no options menu)
   // projectResources: missionResources,  a parser per kind the definition declares (§3.6)
   // analyses: missionAnalyses,           an analysis engine (§3.7): no file
@@ -800,15 +818,26 @@ export const missionEngine = defineEngine({
   // pool: missionPool,                   its files share one definition pool (definition-pool.md)
   // fileKinds: true,                    its models declare its dialect's extension's kinds (importers.md)
   // intendedDefaults: ['goal.priority'], generates on despite an error there: the default is meant (below)
+  // readKeys: { goal: MISSION_KEYS },     keys it reads that its dialect doesn't declare (GRL's, #105)
 });
 ```
 
+**`run`: how the workbench reads a model for it, and what it does with the reading** (`engines/run.ts`). The workbench's transform and analysis (`services/transform.ts`, `services/analyze.ts`) name no engine: they parse the model, read it as `run` says, and call its steps.
+
+- `onTree(mapper, steps)`: the model validated (each actor's root as the mapper's dialect reads it) and read into the mapper's tree, typed by kind; a failure there is the engine's (`Tree conversion failed: …`). With a `reduce` option (`reduceOption`, §3.8), the single-child goals go first when it is on.
+- `onModel(read, steps)`: validated, then `read` into an IR of the engine's own (kaosdoc's `kaosdocGoalModel`).
+- `onGraph(steps)`: as parsed, with the kinds its file declares, no root nor tree (iStar-DT's writer; an analysis engine's).
+
+Its `steps`: `generate(reading, { modelName, model, options, variables, previousOutput })` returns the engine's files (`options` are the values asked for, by key, unchecked: `optionOr(options, key, default)` reads one with the engine's default); `problems(reading, model)` what it finds wrong across elements (`elementInMessage: true` when only the message names the node); `variables(reading)` the variables its output leaves open; `log(modelName)` the log a generation writes to (default: lib's Edge logger). Without a `run`, an analysis engine reads the model as parsed (`onGraph()`) and another its mapper's tree (`onTree(mapper)`), with nothing generated.
+
 `defineEngine` freezes the object and, at definition time, rejects:
+
 - a check that a property names but `checks` lacks;
 - a project resource without a parser, or a parser for a resource the definition doesn't declare;
 - an analysis that reads a resource the definition doesn't declare;
 - analyses without an `analysisModel`, or an `analysisModel` without analyses;
 - an output id declared twice;
+- an analysis engine with a `run.generate` (it writes no file);
 - `fileKinds` on an engine whose dialect names no `extension` (§2.6);
 - checks or parsers on an engine without a dialect (SLEEC's case);
 - an `intendedDefaults` entry that is not `<owner>.<key>` of a property its dialect declares.
@@ -869,29 +898,50 @@ type KindModel = {
   the model with its framework's root (`parsePistar(text, { metamodel: KAOS
   })`), as kaosdoc's `readKaosModel` does.
 
-## 4. Step 3: wire the UI (`packages/ui`), ~12 small edits
+## 4. Step 3: register it in the workbench (`packages/ui`), one entry
 
-| #   | File | Edit |
-| --- | --- | --- |
-| 1   | `lib/types.ts` | add `'mission'` to `TransformEngine` and `TRANSFORM_ENGINES` |
-| 2   | `lib/workbench/engineDialects.ts` | the one place an engine is registered: import `missionEngine` and add it to `registerEngines(…)`, at the place the UI should offer it. `ENGINE_DIALECTS`, `ENGINE_CHECKS`, `ENGINE_PROJECT_RESOURCES`, `ENGINE_POOLS`, `ENGINE_MAPPERS`, `ENGINE_OPTIONS` (its `options`, §3.8; `[]` for none), `ENGINE_LABEL`, `ENGINES`, `ENGINE_ANALYSES` and `ENGINE_FILE_KINDS` are derived from the engine objects, typed per engine, and so are `dialectOf`, `hasOptions` and `outputExtensionOf` |
-| 3   | `lib/models/knownProperties.ts` | `mission: definedKeys(ENGINE_DIALECTS.mission)` |
-| 4   | `services/goalModel.ts` | `parseForMission(json, options) { return this.parseWith(json, missionEngineMapper, options) }` |
-| 5   | `services/transform.ts` | its branch: `GoalModel.parseForMission(…)`, then `({ files } = missionOutput(tree, { modelName, … }))`: the pane shows a tab per file, "Download all" zips them, and "Save the output in the project" writes them under `out/` |
-| 6   | `services/analyze.ts` | its branch in `parsed`; the problems its template finds across elements (MutRoSe's variable scoping) go to `response.problems` |
-| 7   | `components/workbench/engines/mission/MissionDiagram.tsx` | `<WorkbenchCanvas extensions={[rtNumbering, missionPalette]} />` (problem badges come from the diagnostics store; nothing to add): the palette offers the kinds your definition lists (copy `mutrose/MutroseDiagram.tsx`); its rules (`oneActorOnly(message)` if it reads one actor) go in the guard registry, below, not here |
-| 8   | `components/workbench/engines/mission/MissionInspector.tsx` | `return <DefinitionInspector engine='mission' />` (that's the whole file) |
-| 9   | `engines/ModelDiagram.tsx`, `engines/ModelInspector.tsx`, `engines/pistar/PistarDiagram.tsx` | its `case` (the last: its palette for piStar mode's toggle, or `null`) |
-| 10  | `lib/workbench/pistar.ts` | `ENGINE_READS.mission`: the iStar kinds a model converted to it may have (new elements get its definition's id prefixes) |
-| 11  | `components/workbench/engines/shared/inspector.tsx` | `ENGINE_KEYS.mission`: where its keys are declared and read (the inspector's "add it to …" hint for unread properties) |
-| 12  | `services/examples.ts` | `EXAMPLE_ENGINES`: `mission: 'mission'`, so `examples/mission/` opens for it (a project folder with a `project.json` opens with its `dialect`) |
+An engine is registered in one place, `lib/workbench/engineDialects.ts`: import its engine object and add it to `registerEngines(…)`, where the UI should offer it (the order of registration is the order of the engine menu; the first is the default engine). That is the whole step for an engine with nothing special:
+
+```ts
+export const ENGINE_LIST = registerEngines(
+  // …
+  workbench(missionEngine),
+);
+```
+
+Everything else is derived from the registry: `TransformEngine` (`lib/types.ts`) and `isTransformEngine`, the modes (`pistar.ts`), `ENGINE_DIALECTS`, `ENGINE_CHECKS`, `ENGINE_PROJECT_RESOURCES`, `ENGINE_POOLS`, `ENGINE_MAPPERS`, `ENGINE_OPTIONS` (its `options`, §3.8; `[]` for none), `ENGINE_LABEL`, `ENGINES`, `ENGINE_ANALYSES`, `ENGINE_FILE_KINDS`, the keys it reads (`KNOWN_PROPERTIES`: its dialect's, and its `readKeys`), its inspector's specs (`PROPERTY_SPECS`), the services' dispatch (its `run`, §3.9: generation, problems, variables), its diagram and inspector (`components/workbench/engines/engineViews.tsx`), the inspector's hint (its `keysAt`), its examples' folder and its editing rules. A test registers a made-up engine and checks it shows in each of these (`test/workbench/engineRegistration.test.tsx`), and another that no other source file names an engine (`test/workbench/engineIdLiterals.test.ts`).
+
+What only the workbench knows of an engine goes in the second argument of `workbench(engine, view)`, its `EngineView`, each field with a default:
+
+```ts
+workbench(missionEngine, {
+  // its canvas's extensions (palette, numbering, drawing), the default export of a module of
+  // components/workbench/engines/mission/; also piStar mode's toggle (default: the whole iStar palette)
+  palette: () => import('@/components/workbench/engines/mission/palette'),
+  // noPistarPalette: true,  piStar mode's toggle offers nothing for it (SLEEC)
+  // what a model converted to it may have (default: what its metamodel has); new elements get
+  // its definition's id prefixes
+  converts: {
+    elements: ['istar.Actor', 'istar.Goal', 'istar.Task'],
+    links: ['istar.AndRefinementLink', 'istar.OrRefinementLink'],
+  },
+  // examples: 'mission',  its examples' folder, examples/<folder>/ (default: its id)
+  // group: 'the Edge engines',  how conversion speaks of it with engines it shares its reading with
+  rules: {
+    postGuards: [oneActorOnly(MISSION_ACTOR)],
+    describe: [MISSION_ACTOR],
+  },
+}),
+```
+
+A palette is a lazy import: the registry is data, read by the workers and the services, which never load React; `engineViews.tsx` loads it on the client. Keep a palette module clear of `WorkbenchContext.tsx` (it starts the workers that read the registry, a cycle the dev server's compile hangs on). Its inspector follows from its dialect: the one built from it (`DefinitionInspector`), or, for an engine without one (SLEEC), names, links and properties (`shared/PlainInspector.tsx`). Copy `mutrose/palette.tsx` for a palette (problem badges come from the diagnostics store; nothing to add). A project folder with a `project.json` opens with its `dialect`, whatever its folder.
 
 ### Your engine's own editing rules
 
 A mode's rules (`oneActorOnly`, edgeV2's resource-bounds check) are not a
-canvas prop: they are entries in the guard registry,
-`lib/workbench/modeGuards.ts`, keyed by `wb.mode`. Add `mission` to
-`MODE_GUARDS` there:
+canvas prop: they are the engine's `rules` in its registration, made of the
+guards in `lib/workbench/guards.ts`; `lib/workbench/modeGuards.ts` builds
+them by `wb.mode` (`guardsForMode`). An engine's `rules` has:
 
 - **`guards`** (istar-ts `ActionGuard`s) run before an operation applies and
   can reject it outright: nothing reaches the model.
@@ -899,7 +949,7 @@ canvas prop: they are entries in the guard registry,
   model that results, and return diagnostics instead of rejecting — the
   edit stands, but a problem is reported alongside it. Prefer a post-guard
   whenever the Inspector can only reach a valid state one field at a time:
-  `edgeV2ResourceBoundsGuard` (also in `lib/workbench/modeGuards.ts`) reports a
+  `resourceBoundsGuard` (in `lib/workbench/guards.ts`, edgeV2's) reports a
   `severity: 'warning'`, not an error, because an `int` resource's
   `lowerBound`/`initialValue`/`upperBound` only ever land in a consistent
   combination after several single-property edits — a guard would reject
@@ -909,17 +959,17 @@ canvas prop: they are entries in the guard registry,
   rejection message), read by M6's agent so it knows the mode's constraints
   before it edits.
 
-These guards are not a `MissionDiagram` concern: the dispatcher lives in
+These guards are not the diagram's concern: the dispatcher lives in
 the model worker (`lib/workbench/modelWorkerHost.ts`, goal-controller#434),
 and the workbench sends it the mode (`session.setMode`, `WorkbenchContext.tsx`),
 from which the worker builds `guardsForMode(mode)` itself (a function can't
-cross `postMessage`, so keep `modeGuards.ts` and what it imports free of
-React and the DOM). The same rules apply to every surface that can
+cross `postMessage`, so keep `guards.ts`, the registry and what they import
+free of React and the DOM). The same rules apply to every surface that can
 change the model under that mode — the canvas, the Inspector, the Source
 tab's JSON editing, the MCP tool calls in a live session
 (`lib/workbench/agent/glspSession.ts`), and the agent. A diagram-level
 `rejectEdit` prop existed before the istar-ts migration (goal-controller#412)
-and is gone; nothing in `MissionDiagram.tsx` itself needs to know its rules.
+and is gone; nothing in its palette needs to know its rules.
 
 **A raw write (an import, a conversion, ModelSettings) is not a dispatch**
 (goal-controller#471), so it reaches the model by another path — decide
@@ -950,31 +1000,30 @@ which of the two your caller is:
 
 ### 4.1 An engine of another framework
 
-Most of the twelve edits are the same. These differ:
+The registration is the same, `workbench(missionEngine)`, and so is the rest;
+the registry places it by its dialect's framework:
 
-- **#2**: nothing more to do. The registry puts the engine in
-  `FRAMEWORK_ENGINE_DIALECTS` (`isFrameworkEngine`), not in `ENGINE_DIALECTS`,
-  so the iStar notation editors never read its dialect. `dialectOf` reads
-  both, so `frameworkOfMode` places the engine in its framework, and the
-  settings dialog shows its card under that framework.
-- **#3**: `frameworkKeys(FRAMEWORK_ENGINE_DIALECTS.<id>)`, the root's kinds' keys.
-- **#7, #8**: the diagram is the framework's (`<FrameworkDiagram mode=…>`,
-  with istar-ts's inspector beside it), and `ModelInspector` returns null.
+- It goes in `FRAMEWORK_ENGINE_DIALECTS` (`isFrameworkEngine`), not in
+  `ENGINE_DIALECTS`, so the iStar notation editors never read its dialect.
+  `dialectOf` reads both, so `frameworkOfMode` places the engine in its
+  framework, and the settings dialog shows its card under that framework.
+- Its keys are its root's kinds' (`KNOWN_PROPERTIES`), none on iStar's kinds.
+- Its diagram is the framework's (`<FrameworkDiagram mode=…>`, with
+  istar-ts's inspector beside it), and it has no inspector panel of its own.
   `frameworkEditorOf(mode)` gives the engine its framework's editor: the
   canvas, the Notation tab in the engine's dialect (`FrameworkNotationView`),
   `frameworkProblems` instead of the iStar notation checks, and no piStar
-  mode.
-- **#9**: the piStar palette is null.
-- **#10**: no `ENGINE_READS` entry. Conversion stays within the framework
+  mode (no palette in piStar mode's toggle).
+- It needs no `converts`: conversion stays within the framework
   (`frameworkMismatch`), so a model that reaches the engine already has the
   root's kinds.
-- **#4–#6**: an engine that reads more than the trees takes the IR, as
-  kaosdoc does (`GoalModel.parseForKaosdoc`). An analysis engine's model is
-  read in its framework (`parseAsGraph`, `parseModel`).
-- **#12**: a framework's seeds open in its modelling mode (`examples/kaos/`,
+- An engine that reads more than the trees takes the IR with `onModel`, as
+  kaosdoc does (`onModel(kaosdocGoalModel, …)`). An analysis engine's model is
+  read as parsed, in its framework.
+- A framework's seeds open in its modelling mode (`examples/kaos/`,
   `examples/nfr/`); from there, Convert offers the framework's engines.
 
-Adding `'mission'` to `TransformEngine` makes the type-checker flag #2 (the registry must register every `TransformEngine`, and only those), #3, #9 and #11; the others fall back silently (`services/transform.ts` and `analyze.ts` to another engine, `pistar.ts` to piStar's own kinds), so do them from this list. Engine options (the top bar's menu, the settings modal) are rendered from `ENGINE_OPTIONS` (#2): nothing to add in the UI but #5's arguments.
+Engine options (the top bar's menu, the settings modal) are rendered from `ENGINE_OPTIONS`: nothing to add in the UI; its `run.generate` reads their values.
 
 The **Notation tab** appears automatically (`modelTabs.tsx` offers it for every engine in `ENGINE_DIALECTS`), with highlighting, lint, completion and selection sync from the goal language (its tokens, its parser and its validator, given the definition). **The language server needs nothing from you.** It is dialect-agnostic, and the client sends it your definition and the model in `goal/context`. Its worker (`lib/workbench/goalWorker.ts`) takes the named checks from `ENGINE_CHECKS` (#2), so the Notation view and the inspector's fields get its diagnostics, completion, hover and F12 for the new engine. Without a worker, the local support gives the same diagnostics and completion. See `packages/goal-language/docs/lsp.md`.
 
@@ -1029,7 +1078,7 @@ each element in Problems, and drawn as the canvas's badges.
 
 **Library (code):** `types.ts` · `mapper.ts` with keys from `propertyKeys()` and `dialect: <definition>` · `checks.ts`: the registry, the one place check names are written, and the properties typed with its names (`property.for<…>()`) · `template/` (reads `executionDetail.ids`, `.modifiers`) · `engine.ts`: `defineEngine` · exports. No parser, no error reporting, no construct priority, no reshaping of the reading.
 
-**UI (wiring):** the 12 edits in §4 (the registry is one import and one entry) · palette extension · engine options (§3.8) if any.
+**UI (wiring):** one entry in the registry, `workbench(missionEngine, view?)` (§4) · its palette module, if it has one · engine options (§3.8) if any.
 
 **Evidence:** examples · expected outputs · mapper/template tests · round-trip/differential tests.
 
@@ -1037,7 +1086,7 @@ each element in Problems, and drawn as the canvas's badges.
 
 ### 7.1 Reimplementing SLEEC with a definition (what it would look like)
 
-SLEEC today has a mapper and template but **no definition** (its inspector is the generic one, and `KNOWN_PROPERTIES.sleec` comes from the mapper; it reads goal texts with Edge's reader). A definition would be: no `notation`; `properties.goal` = `Type` (enum achieve/maintain), `Source`, `Class`, `NormPrinciple`, `Proxy`, `AddedValue`, `Condition`, `Event`, `ContextEvent` (text, with `help`); `properties.task` = `PreCond`, `TriggeringEvent`, `PostCond`, `TemporalConstraint` (all `required: 'always'`, which the mapper enforces today with its `REQUIRED_TASK_KEYS` throw), `Obstacle`; `properties.quality` = `NormPrinciple`, `Proxy`. Checks: one named check for the required-task-keys rule, so the inspector flags it before generation. Then replace `SleecInspector` with `<DefinitionInspector engine='sleec' />`, write it in `packages/lib/src/engines/sleec/definition.ts`, and give it to `sleecEngine` as its `dialect` (`ENGINE_DIALECTS` derives from it). Everything else (mapper, template) stays. Effort: a day.
+SLEEC today has a mapper and template but **no definition** (its inspector is the generic one, and `KNOWN_PROPERTIES.sleec` comes from the mapper; it reads goal texts with Edge's reader). A definition would be: no `notation`; `properties.goal` = `Type` (enum achieve/maintain), `Source`, `Class`, `NormPrinciple`, `Proxy`, `AddedValue`, `Condition`, `Event`, `ContextEvent` (text, with `help`); `properties.task` = `PreCond`, `TriggeringEvent`, `PostCond`, `TemporalConstraint` (all `required: 'always'`, which the mapper enforces today with its `REQUIRED_TASK_KEYS` throw), `Obstacle`; `properties.quality` = `NormPrinciple`, `Proxy`. Checks: one named check for the required-task-keys rule, so the inspector flags it before generation. Then write it in `packages/lib/src/engines/sleec/definition.ts`, and give it to `sleecEngine` as its `dialect` (`ENGINE_DIALECTS` derives from it, and the inspector built from it takes the plain one's place). Everything else (mapper, template) stays. Effort: a day.
 
 ### 7.2 Reimplementing EDGE (the full case)
 

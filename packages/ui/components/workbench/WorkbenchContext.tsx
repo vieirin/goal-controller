@@ -5,6 +5,7 @@ import {
   useServiceDiagnostics,
 } from '@/lib/workbench/diagnosticsStore';
 import {
+  DEFAULT_ENGINE,
   ENGINE_ANALYSES,
   ENGINE_LABEL,
   generatesFiles,
@@ -829,7 +830,7 @@ function WorkbenchState({
 
   // ---- engine & options ----------------------------------------------------
   const [engineState, setEngineState] = useState<TransformEngine>(
-    lockedEngine ?? initial.current?.engine ?? 'edgev2',
+    lockedEngine ?? initial.current?.engine ?? DEFAULT_ENGINE,
   );
   const engine = lockedEngine ?? engineState;
   const setEngine = useCallback(

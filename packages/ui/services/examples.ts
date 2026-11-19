@@ -6,6 +6,7 @@ import {
   type ProjectIndexEntry,
 } from '../lib/project';
 import { isTransformEngine, type TransformEngine } from '../lib/types';
+import { ENGINE_EXAMPLES } from '../lib/workbench/engineDialects';
 import {
   isModellingMode,
   type ModellingMode,
@@ -45,17 +46,12 @@ export const listExamplePreviews = async (): Promise<
   return response.json();
 };
 
-/** examples/<group>/: the engine, or the dialect, its models are for */
+/**
+ * examples/<group>/: the engine, or the dialect, its models are for (an
+ * engine's folder is its registration's, `examples`)
+ */
 const EXAMPLE_ENGINES: Record<string, TransformEngine | ModellingMode> = {
-  edge: 'edge',
-  edgeV2: 'edgev2',
-  sleec: 'sleec',
-  mutrose: 'mutrose',
-  goda: 'goda',
-  grl: 'grl',
-  istardt: 'istardt',
-  tropos4as: 'tropos4as',
-  cgm: 'cgm',
+  ...ENGINE_EXAMPLES,
   'pistar-ext': 'pistarext',
   // DSM3-goals' own files, which record neither: their framework's mode
   kaos: 'kaos',

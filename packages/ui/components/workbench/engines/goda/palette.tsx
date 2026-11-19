@@ -3,7 +3,6 @@
 import { ENGINE_DIALECTS } from '@/lib/workbench/engineDialects';
 import { nextRtId } from '@/lib/workbench/pistar';
 import type { IstarExtension } from '@istar-ts/react';
-import WorkbenchCanvas from '../shared/WorkbenchCanvas';
 
 const { goda } = ENGINE_DIALECTS;
 
@@ -37,9 +36,10 @@ const godaPalette: IstarExtension = {
   },
 };
 
-/** What piStar mode's palette toggle adds for a file recorded for GODA. */
-export const GODA_PALETTE: readonly IstarExtension[] = [godaPalette];
+/**
+ * GODA's canvas extensions (the registry's `palette`): its diagram's, and
+ * what piStar mode's palette toggle adds for a file recorded for it.
+ */
+const GODA_PALETTE: readonly IstarExtension[] = [godaPalette];
 
-export default function GodaDiagram() {
-  return <WorkbenchCanvas extensions={GODA_PALETTE} />;
-}
+export default GODA_PALETTE;

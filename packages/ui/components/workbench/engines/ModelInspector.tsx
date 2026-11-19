@@ -3,15 +3,7 @@
 import { frameworkEditorOf } from '@/lib/workbench/frameworkModes';
 import { isEngineMode, type ModelMode } from '@/lib/workbench/pistar';
 import { useWorkbench } from '../WorkbenchContext';
-import EdgeInspector from './edge/EdgeInspector';
-import EdgeV2Inspector from './edgeV2/EdgeV2Inspector';
-import GodaInspector from './goda/GodaInspector';
-import GrlInspector from './grl/GrlInspector';
-import IstardtInspector from './istardt/IstardtInspector';
-import MutroseInspector from './mutrose/MutroseInspector';
-import SleecInspector from './sleec/SleecInspector';
-import Tropos4asInspector from './tropos4as/Tropos4asInspector';
-import CgmInspector from './cgm/CgmInspector';
+import { EngineInspector } from './engineViews';
 
 /**
  * Whether the workbench shows a mode's inspector in its own panel (or sheet):
@@ -29,36 +21,7 @@ export const hasModelInspector = (mode: ModelMode): boolean =>
  */
 export default function ModelInspector() {
   const wb = useWorkbench();
-  switch (wb.mode) {
-    case 'pistar':
-    case 'pistarext':
-    case 'kaos':
-    case 'nfr':
-    case 'kaosdoc':
-    case 'kaoslts':
-    case 'kaosprop':
-    case 'kaosexpert':
-    case 'kaosres':
-    case 'kaossim':
-    case 'nfrprop':
-      return null;
-    case 'edge':
-      return <EdgeInspector />;
-    case 'edgev2':
-      return <EdgeV2Inspector />;
-    case 'sleec':
-      return <SleecInspector />;
-    case 'mutrose':
-      return <MutroseInspector />;
-    case 'goda':
-      return <GodaInspector />;
-    case 'grl':
-      return <GrlInspector />;
-    case 'istardt':
-      return <IstardtInspector />;
-    case 'tropos4as':
-      return <Tropos4asInspector />;
-    case 'cgm':
-      return <CgmInspector />;
-  }
+  return hasModelInspector(wb.mode) && isEngineMode(wb.mode) ? (
+    <EngineInspector key={wb.mode} engine={wb.mode} />
+  ) : null;
 }
