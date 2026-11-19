@@ -1,3 +1,8 @@
+import { onGraph, optionOr } from '../run';
+import { istardtProblems } from './checks';
+import { istardtAnalysisModel } from './mapper';
+import { readIstardtModel } from './model';
+import { istardtOutput } from './template';
 import { defineEngine } from '../engine';
 import { istardtCheckRegistry } from './checks';
 import { istardt } from './definition';
@@ -15,7 +20,29 @@ export const istardtEngine = defineEngine({
   dialect: istardt,
   checks: istardtCheckRegistry,
   mapper: istardtEngineMapper,
+  // the model as a graph: its effects, conditions and precedences are links
+  // and kinds goal-tree's tree doesn't keep (#125)
+  run: onGraph({
+    generate: (model, { modelName, options }) =>
+      istardtOutput(istardtAnalysisModel(model), {
+        modelName,
+        continuous: optionOr(options, 'continuous', true),
+      }),
+    // what crosses the extension's kinds, which no property check sees (#117 D7)
+    problems: (model) =>
+      istardtProblems(readIstardtModel(istardtAnalysisModel(model))),
+  }),
   // the decision-theoretic Golog program; Prolog is highlighted as text
+  // where its keys are declared and read (the inspector's hint)
+  keysAt: {
+    file: 'packages/lib/src/engines/istardt/definition.ts',
+    lists: {
+      goal: 'properties.goal',
+      task: 'properties.task',
+      quality: 'properties.quality',
+    },
+    mapper: 'packages/lib/src/engines/istardt/mapper.ts',
+  },
   output: { label: 'DT-Golog', extension: 'pl', language: 'text' },
   outputs: [{ id: 'dtgolog', language: 'prolog' }],
   options: istardtOptions,

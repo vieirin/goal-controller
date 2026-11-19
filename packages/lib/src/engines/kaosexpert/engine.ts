@@ -16,6 +16,12 @@ export const kaosexpertEngine = defineEngine({
   help: "Cailliau and van Lamsweerde's handling of knowledge uncertainty (RE'15): the experts' estimates combined by Cooke's model, each goal's probability of satisfaction sampled by Monte Carlo over its obstacles' BDD, with its violation uncertainty and uncertainty spread against its required rate, and the critical obstacles",
   dialect: kaosexpert,
   mapper: kaosexpertEngineMapper,
+  // where its keys are declared and read (the inspector's hint)
+  keysAt: {
+    file: 'packages/lib/src/engines/kaosexpert/definition.ts',
+    lists: {},
+    mapper: 'packages/lib/src/engines/kaosexpert/mapper.ts',
+  },
   output: { label: 'Uncertainty', extension: 'json', language: 'text' },
   analyses: kaosexpertAnalyses,
   analysisModel: kaosexpertAnalysisModel<string, string>,

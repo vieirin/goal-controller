@@ -1,18 +1,8 @@
 import {
-  edgeOutput,
-  edgeV2Output,
-  GODA_DEFAULT_VARIANT,
-  godaGoalModel,
-  godaOutput,
-  kaosdocOutput,
-  kaosltsOutput,
-  istardtAnalysisModel,
-  istardtOutput,
+  engineLabel,
   initLogger,
-  initEdgeV2Logger,
-  mutroseOutput,
   refuseOnPropertyErrors,
-  sleecOutput,
+  runOf,
   type EngineOutputFile,
   type LoggerReport,
 } from '@goal-controller/lib';
@@ -24,6 +14,7 @@ import type {
   GodaVariant,
   TransformEngine,
 } from '../lib/types';
+import { takesOption } from '../lib/workbench/engineDialects';
 
 export type TransformOptions = {
   modelJson: string;
@@ -68,102 +59,36 @@ export const transform = (
   const {
     modelJson,
     engine,
-    clean = false,
-    generateDecisionVars = true,
-    achievabilitySpace = 4,
-    generateFluents = true,
     fileName,
     variables,
-    taskLayout = 'taskModules',
-    discretisation = 10,
     reduce = false,
     previousOutput,
-    variant = GODA_DEFAULT_VARIANT,
-    runtimeFormulas = false,
-    continuous = true,
+    ...asked
   } = options;
-
-  const logger =
-    engine === 'edgev2'
-      ? initEdgeV2Logger(fileName || 'model', false, true)
-      : initLogger(fileName || 'model', false, true);
+  const definition = ENGINE_LIST.find(({ id }) => id === engine);
+  if (!definition) throw new Error(`No engine ${engine}`);
+  const run = runOf(definition);
+  const modelName = fileName || 'model';
+  const logger = run.log?.(modelName) ?? initLogger(modelName, false, true);
 
   try {
-    const modelName = fileName || 'model';
     // what the dialect reports wrong on a property the engine reads stops it (#274)
     const istar = readModel(modelJson);
-    const definition = ENGINE_LIST.find(({ id }) => id === engine);
-    if (istar && definition) refuseOnPropertyErrors(definition, istar);
-    let files: EngineOutputFile[];
-    if (engine === 'edge') {
-      const parseResult = GoalModel.parseForEdge(modelJson, { reduce });
-      if (!parseResult.success) throw new Error(parseResult.error);
-      ({ files } = edgeOutput({
-        gm: parseResult.tree,
-        fileName: modelName,
-        clean,
-        variables,
-        generateDecisionVars,
-        achievabilitySpace,
-        previousOutput,
-        writeReport: false,
-      }));
-    } else if (engine === 'edgev2') {
-      const parseResult = GoalModel.parseForEdgeV2(modelJson, { reduce });
-      if (!parseResult.success) throw new Error(parseResult.error);
-      ({ files } = edgeV2Output({
-        gm: parseResult.tree,
-        fileName: modelName,
-        clean,
-        variables,
-        generateDecisionVars,
-        achievabilitySpace,
-        taskLayout,
-        discretisation,
-        previousOutput,
-        writeReport: false,
-      }));
-    } else if (engine === 'sleec') {
-      const parseResult = GoalModel.parseForSleec(modelJson, { reduce });
-      if (!parseResult.success) throw new Error(parseResult.error);
-      ({ files } = sleecOutput(parseResult.tree, {
-        modelName,
-        generateFluents,
-      }));
-    } else if (engine === 'goda') {
-      // GODA reads the model as written, and names its MDP after the actor
-      const parseResult = GoalModel.parseForGoda(modelJson);
-      if (!parseResult.success) throw new Error(parseResult.error);
-      ({ files } = godaOutput(godaGoalModel(parseResult.model), {
-        modelName,
-        variant,
-        runtimeFormulas,
-      }));
-    } else if (engine === 'kaosdoc') {
-      // KAOS's document reads the model's IR: its hubs, agents and conflicts too
-      const parseResult = GoalModel.parseForKaosdoc(modelJson);
-      if (!parseResult.success) throw new Error(parseResult.error);
-      ({ files } = kaosdocOutput(parseResult.goalModel, { modelName }));
-    } else if (engine === 'kaoslts') {
-      // KAOS's operations as FSP read the model's elements and links (#209)
-      const parseResult = GoalModel.parseForKaoslts(modelJson);
-      if (!parseResult.success) throw new Error(parseResult.error);
-      ({ files } = kaosltsOutput(parseResult.goalModel, { modelName }));
-    } else if (engine === 'istardt') {
-      // iStar-DT reads the model as a graph: its effects, conditions and
-      // precedences are links and kinds goal-tree's tree doesn't keep (#125)
-      const parseResult = GoalModel.parseAsGraph(modelJson);
-      if (!parseResult.success) throw new Error(parseResult.error);
-      ({ files } = istardtOutput(istardtAnalysisModel(parseResult.model), {
-        modelName,
-        continuous,
-      }));
-    } else {
-      // MutRoSe reads the model as written: no single-child goals removed
-      const parseResult = GoalModel.parseForMutrose(modelJson);
-      if (!parseResult.success) throw new Error(parseResult.error);
-      ({ files } = mutroseOutput(parseResult.tree, { modelName }));
-    }
+    if (istar) refuseOnPropertyErrors(definition, istar);
+    if (!run.generate)
+      throw new Error(`${engineLabel(definition)} generates no file`);
+    // the model without its single-child goals, for an engine that offers it
+    const parseResult = GoalModel.parseFor(definition, modelJson, {
+      reduce: reduce && takesOption(engine, 'reduce'),
+    });
+    if (!parseResult.success) throw new Error(parseResult.error);
+    const { files } = run.generate(parseResult.reading as never, {
+      modelName,
+      model: parseResult.model,
+      options: asked,
+      variables,
+      previousOutput,
+    });
 
     const report = logger.getReport();
     return { files, report };

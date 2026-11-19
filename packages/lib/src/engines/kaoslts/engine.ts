@@ -1,3 +1,6 @@
+import { onModel } from '../run';
+import { kaosltsGoalModel } from './mapper';
+import { kaosltsOutput } from './template';
 import { kaos } from '../../dialects/kaos';
 import { defineEngine } from '../engine';
 import { kaosltsEngineMapper } from './mapper';
@@ -14,6 +17,17 @@ export const kaosltsEngine = defineEngine({
   help: "The operation model as FSP for LTSA, KAOS2LTSA's derivation: fluents, domain and required conditions as constraints, one composition per agent and the system; and each requirement's operationalisation checked for completeness",
   dialect: kaos,
   mapper: kaosltsEngineMapper,
+  // the operations as FSP read the model's elements and links (#209)
+  run: onModel(kaosltsGoalModel, {
+    generate: (goalModel, { modelName }) =>
+      kaosltsOutput(goalModel, { modelName }),
+  }),
+  // where its keys are declared and read (the inspector's hint)
+  keysAt: {
+    file: 'packages/lib/src/dialects/kaos/index.ts',
+    lists: {},
+    mapper: 'packages/lib/src/engines/kaoslts/mapper.ts',
+  },
   output: { label: 'FSP for LTSA', extension: 'lts', language: 'text' },
   // and one file per agent, `agent-<id>`
   outputs: [

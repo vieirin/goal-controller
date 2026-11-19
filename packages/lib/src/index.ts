@@ -396,6 +396,7 @@ export { nfr, nfrAgentContext } from './dialects/nfr';
 export * from './engines/agentContext';
 // One object per engine (goal-controller#124): what the workbench registers
 export * from './engines/engine';
+export * from './engines/run';
 export { edgeEngine } from './engines/edge/engine';
 export { edgeV2Engine } from './engines/edgeV2/engine';
 export { sleecEngine } from './engines/sleec/engine';

@@ -23,6 +23,7 @@ import {
   goalView,
   type AnyModel,
   type KindEngineMapper,
+  type RootReading,
 } from '@goal-controller/goal-tree';
 import {
   analysesProblems,
@@ -33,6 +34,7 @@ import { engineContextOf, type EngineContext } from './agentContext';
 import type { Check } from './checks';
 import type { PoolRegistration } from './definitionPool';
 import type { ProjectResourceParsers } from './projectResources';
+import { onGraph, onTree, type EngineRun } from './run';
 
 /** How an engine's output is highlighted: PRISM, MutRoSe's runtime annotation, or plain. */
 export type OutputLanguage = 'prism' | 'rannot' | 'text';
@@ -47,8 +49,24 @@ export type EngineOutputInfo = {
 /** A file an engine writes, by the id its output gives it (`model`, `reliability`). */
 export type EngineOutputDeclaration = { id: string; language?: string };
 
-/** What the workbench reads of an engine's mapper. */
-type MapperOf = Partial<Pick<KindEngineMapper, 'allowLeafGoals'>>;
+/** What the workbench reads of an engine's mapper: its roots' reading, too. */
+type MapperOf = Partial<Pick<KindEngineMapper, 'allowLeafGoals'>> & {
+  dialect?: RootReading;
+};
+
+/** An iStar element kind whose properties the workbench lists. */
+export type KeyedKind = 'goal' | 'task' | 'resource' | 'quality';
+
+/**
+ * Where an engine's keys are declared and read, for the inspector's hint on a
+ * property it doesn't read: the file that declares them, the list in it per
+ * kind (none: it skips that kind), and its mapper's file.
+ */
+export type EngineKeysAt = {
+  file: string;
+  lists: Partial<Record<KeyedKind, string>>;
+  mapper: string;
+};
 
 /** An engine, as `defineEngine` takes it. */
 export type EngineDefinition = {
@@ -60,6 +78,21 @@ export type EngineDefinition = {
   help: string;
   /** the definition its editors read (none: SLEEC) */
   dialect?: AnyDialect;
+  /**
+   * what the workbench does with a model for it (`onTree`, `onModel`,
+   * `onGraph`): how it reads it, generates from it, and what it finds wrong
+   * across elements. Default: an analysis engine's model as parsed
+   * (`onGraph()`), another's tree as its mapper reads it (`onTree(mapper)`),
+   * with nothing generated
+   */
+  run?: EngineRun;
+  /**
+   * keys it reads that its dialect doesn't declare (GRL's elements', #105),
+   * by kind: they stand for its dialect's keys on that kind
+   */
+  readKeys?: Readonly<Partial<Record<KeyedKind, readonly string[]>>>;
+  /** where its keys are declared and read (the inspector's hint) */
+  keysAt?: EngineKeysAt;
   /** the checks its dialect's properties name, by name */
   checks?: Readonly<Record<string, Check>>;
   /** how goal-tree reads a model for it (what it rejects, too) */
@@ -154,6 +187,9 @@ const engineProblems = (engine: EngineDefinition): string[] => {
     ...(engine.analysisModel && !engine.analyses
       ? ['an analysisModel without analyses']
       : []),
+    ...(engine.analyses && engine.run?.generate
+      ? ['analyses and a generate: an analysis engine writes no file']
+      : []),
     ...ids.flatMap((id, i) =>
       ids.indexOf(id) === i ? [] : [`output ${id} is declared twice`],
     ),
@@ -207,6 +243,14 @@ export type Engine = Readonly<EngineDefinition>;
 /** An engine's name, as people see it: its own label, or its dialect's name. */
 export const engineLabel = (engine: Engine): string =>
   engine.label ?? engine.dialect?.name ?? engine.id;
+
+/**
+ * What the workbench does with a model for an engine: its own `run`, or by
+ * default an analysis engine's model as parsed, another's mapper's tree.
+ */
+export const runOf = (engine: Engine): EngineRun =>
+  engine.run ??
+  (engine.analyses ? onGraph() : onTree(engine.mapper as KindEngineMapper));
 
 /** The engines a workbench offers, in its order: each id once. */
 export const registerEngines = <const L extends readonly Engine[]>(

@@ -14,6 +14,12 @@ export const kaospropEngine = defineEngine({
   help: "Cailliau and van Lamsweerde's probabilistic obstacle analysis (RE'12): each obstacle's probability and each goal's estimated probability of satisfaction against its required rate, step by step, and the critical obstacle combinations",
   dialect: kaosprop,
   mapper: kaospropEngineMapper,
+  // where its keys are declared and read (the inspector's hint)
+  keysAt: {
+    file: 'packages/lib/src/engines/kaosprop/definition.ts',
+    lists: {},
+    mapper: 'packages/lib/src/engines/kaosprop/mapper.ts',
+  },
   output: { label: 'Probabilities', extension: 'json', language: 'text' },
   analyses: kaospropAnalyses,
   analysisModel: kaospropAnalysisModel,

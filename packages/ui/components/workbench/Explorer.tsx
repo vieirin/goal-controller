@@ -10,7 +10,6 @@ import {
   SlidersHorizontal,
 } from 'lucide-react';
 import { useRef, useState } from 'react';
-import { isPrismEngine } from '@/lib/types';
 import {
   sourceLabel,
   type ProjectIndexEntry,
@@ -19,7 +18,10 @@ import {
 import { resourceTabId } from '@/lib/workbench/projectResources';
 import { frameworkOfEntry } from '@/lib/workbench/frameworkOpen';
 import { FRAMEWORK_LABEL } from '@/lib/workbench/frameworks';
-import { outputExtensionOf } from '@/lib/workbench/engineDialects';
+import {
+  isPrismEngine,
+  outputExtensionOf,
+} from '@/lib/workbench/engineDialects';
 import type { RecentFile } from '@/lib/workbench/storage';
 import { listExamples, openExample as readExample } from '@/services/examples';
 import { useWorkbench } from './WorkbenchContext';

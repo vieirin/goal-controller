@@ -22,6 +22,7 @@ import {
   mutroseEngine,
   nfrpropEngine,
   registerEngines,
+  runOf,
   sleecEngine,
   type Analyses,
   type AnalysisModel,
@@ -232,6 +233,17 @@ export const ENGINES: readonly EngineInfo[] = ENGINE_LIST.map(
   }),
 );
 
+/** A registered engine's object, by id. */
+export const engineOf = (engine: TransformEngine): Engine =>
+  ENGINE_LIST.find(({ id }) => id === engine)!;
+
+/**
+ * Whether an engine's output leaves variables open (the Edge engines' PRISM
+ * constants): the workbench lists them and asks for their values.
+ */
+export const isPrismEngine = (engine: TransformEngine): boolean =>
+  runOf(engineOf(engine)).variables !== undefined;
+
 const infoOf = (engine: TransformEngine): EngineInfo =>
   ENGINES.find((info) => info.id === engine)!;
 /** What an engine generates: `PRISM`. */
@@ -243,6 +255,9 @@ export const outputLanguageOf = (engine: TransformEngine): OutputLanguage =>
 /** Whether an engine generates files (an analysis engine draws values instead). */
 export const generatesFiles = (engine: TransformEngine): boolean =>
   infoOf(engine).generates !== false;
+/** Whether an engine takes a generation option (`reduce`). */
+export const takesOption = (engine: TransformEngine, key: string): boolean =>
+  ENGINE_OPTIONS[engine].some((option) => option.key === key);
 /** Whether an engine takes generation options. */
 export const hasOptions = (engine: TransformEngine): boolean =>
   ENGINE_OPTIONS[engine].length > 0;

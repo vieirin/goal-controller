@@ -5,7 +5,8 @@
 import * as assert from 'assert';
 import { describe, it } from 'mocha';
 import { defineDialect } from '@goal-controller/dialect';
-import { defineEngine, registerEngines } from '../../src/engines/engine';
+import { defineEngine, registerEngines, runOf } from '../../src/engines/engine';
+import { onGraph, onModel, optionOr } from '../../src/engines/run';
 import {
   edgeEngine,
   edgeV2Engine,
@@ -123,6 +124,16 @@ describe('defineEngine', () => {
       /^Error: toy: fileKinds without an extension \(its dialect declares none\)$/,
     ));
 
+  it('rejects an analysis engine that generates a file', () =>
+    assert.throws(
+      define({
+        analyses: { sum: { label: 'Sum', run: () => ({ cases: [] }) } },
+        analysisModel: () => ({ actors: [], elements: [], links: [] }),
+        run: onGraph({ generate: () => ({ files: [] }) }),
+      }),
+      /^Error: toy: analyses and a generate: an analysis engine writes no file$/,
+    ));
+
   it('rejects checks or parsers without a dialect', () => {
     assert.throws(
       define({ dialect: undefined, projectResources: undefined }),
@@ -154,4 +165,40 @@ describe('registerEngines', () => {
       () => registerEngines(edgeEngine, godaEngine, edgeEngine),
       /^Error: engine edge is registered twice$/,
     ));
+});
+
+describe('runOf', () => {
+  it("is an engine's own run", () => {
+    const run = onModel(() => 'read', { generate: () => ({ files: [] }) });
+    assert.strictEqual(
+      runOf((defineEngine as (e: unknown) => never)({ ...base, run })),
+      run,
+    );
+  });
+
+  it("reads an analysis engine's model as parsed, another's mapper's tree, by default", () => {
+    assert.strictEqual(runOf(grlEngine).reads, 'graph');
+    assert.strictEqual(
+      runOf({ ...base, mapper: sleecEngine.mapper } as never).reads,
+      'model',
+    );
+  });
+
+  it("dispatches every engine lib's workbench generates with", () => {
+    for (const engine of [
+      edgeEngine,
+      edgeV2Engine,
+      sleecEngine,
+      mutroseEngine,
+      godaEngine,
+    ])
+      assert.ok(runOf(engine).generate, engine.id);
+    assert.strictEqual(runOf(grlEngine).generate, undefined);
+  });
+
+  it("reads an option as asked, else the engine's default", () => {
+    assert.strictEqual(optionOr({ n: 3 }, 'n', 4), 3);
+    assert.strictEqual(optionOr({ n: false }, 'n', true), false);
+    assert.strictEqual(optionOr({}, 'n', 4), 4);
+  });
 });

@@ -14,6 +14,12 @@ export const nfrpropEngine = defineEngine({
   help: "The NFR Framework's label propagation (Chung et al.): each softgoal satisficed, denied, in conflict or undecided, step by step, drawn on the model",
   dialect: nfrprop,
   mapper: nfrpropEngineMapper,
+  // where its keys are declared and read (the inspector's hint)
+  keysAt: {
+    file: 'packages/lib/src/engines/nfrprop/definition.ts',
+    lists: {},
+    mapper: 'packages/lib/src/engines/nfrprop/mapper.ts',
+  },
   output: { label: 'Labels', extension: 'json', language: 'text' },
   analyses: nfrpropAnalyses,
   // a model of any framework, as the workbench parses it: the function at

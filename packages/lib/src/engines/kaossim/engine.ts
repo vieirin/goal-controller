@@ -16,6 +16,12 @@ export const kaossimEngine = defineEngine({
   help: "Letier and van Lamsweerde's partial goal satisfaction (FSE'04), simulated as Heaven and Letier do (RE'11): quality variables, refinement equations and leaf estimates, each design's objective functions by Monte Carlo, and the Pareto-optimal designs, by every design or by NSGA-II",
   dialect: kaossim,
   mapper: kaossimEngineMapper,
+  // where its keys are declared and read (the inspector's hint)
+  keysAt: {
+    file: 'packages/lib/src/engines/kaossim/definition.ts',
+    lists: {},
+    mapper: 'packages/lib/src/engines/kaossim/mapper.ts',
+  },
   output: { label: 'Designs', extension: 'json', language: 'text' },
   analyses: kaossimAnalyses,
   analysisModel: kaossimAnalysisModel,

@@ -15,6 +15,16 @@ export const tropos4asEngine = defineEngine({
   dialect: tropos4as,
   checks: tropos4asCheckRegistry,
   mapper: tropos4asEngineMapper,
+  // where its keys are declared and read (the inspector's hint)
+  keysAt: {
+    file: 'packages/lib/src/engines/tropos4as/definition.ts',
+    lists: {
+      goal: 'properties.goal',
+      task: 'properties.task',
+      quality: 'properties.quality',
+    },
+    mapper: 'packages/lib/src/engines/tropos4as/mapper.ts',
+  },
   output: { label: 'Lifecycle', extension: 'txt', language: 'text' },
   analyses: tropos4asAnalyses,
   // a model of any framework, as the workbench parses it: the function at

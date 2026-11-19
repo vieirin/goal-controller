@@ -33,6 +33,7 @@ import {
 import type { AnalyzeResponse } from '@/lib/workbench/types';
 import {
   ENGINE_LABEL,
+  engineOf,
   notationDefinitionOf,
 } from '@/lib/workbench/engineDialects';
 import { nodeTone } from '@/lib/workbench/pistar';
@@ -114,136 +115,17 @@ const KIND_PLURAL: Record<NodeKindKey, string> = {
 const listKinds = (kinds: NodeKindKey[]): string =>
   kinds.map((k) => KIND_PLURAL[k]).join(kinds.length === 2 ? ' and ' : ', ');
 
-/** Where each engine declares the properties it reads, per element kind. */
-type EngineKeys = {
-  /** where the keys are declared */
-  file: string;
-  lists: Partial<Record<NodeKindKey, string>>;
-  /** where they are read */
-  mapper: string;
-};
-
-const ENGINE_KEYS: Record<TransformEngine, EngineKeys> = {
-  ...(Object.fromEntries(
-    (['edge', 'edgev2'] as const).map((engine) => [
-      engine,
-      {
-        file: 'packages/lib/src/engines/edgeFamily/properties.ts',
-        lists: {
-          goal: 'edgeProperties.goal',
-          task: 'edgeProperties.task',
-          resource: 'edgeProperties.resource',
-          quality: 'edgeProperties.quality',
-        },
-        mapper: `packages/lib/src/engines/${engine === 'edge' ? 'edge' : 'edgeV2'}/mapper.ts`,
-      },
-    ]),
-  ) as Record<'edge' | 'edgev2', EngineKeys>),
-  mutrose: {
-    file: 'packages/lib/src/engines/mutrose/definition.ts',
-    lists: { goal: 'goalProperties', task: 'taskProperties' },
-    mapper: 'packages/lib/src/engines/mutrose/mapper.ts',
-  },
-  goda: {
-    file: 'packages/lib/src/engines/goda/definition.ts',
-    lists: { goal: 'goalProperties', task: 'taskProperties' },
-    mapper: 'packages/lib/src/engines/goda/mapper.ts',
-  },
-  grl: {
-    // an element's keys are read, not declarable yet (#105): the workbench
-    // knows them from the mapper's GRL_ELEMENT_KEYS; GRL ignores resources
-    file: 'packages/lib/src/engines/grl/mapper.ts',
-    lists: {
-      goal: 'GRL_ELEMENT_KEYS',
-      task: 'GRL_ELEMENT_KEYS',
-      quality: 'GRL_ELEMENT_KEYS',
-    },
-    mapper: 'packages/lib/src/engines/grl/mapper.ts',
-  },
-  istardt: {
-    file: 'packages/lib/src/engines/istardt/definition.ts',
-    // a kind's keys are its definition's `properties.<kind>`; resources are ignored
-    lists: {
-      goal: 'properties.goal',
-      task: 'properties.task',
-      quality: 'properties.quality',
-    },
-    mapper: 'packages/lib/src/engines/istardt/mapper.ts',
-  },
-  tropos4as: {
-    file: 'packages/lib/src/engines/tropos4as/definition.ts',
-    // a kind's keys are its definition's `properties.<kind>`; resources are ignored
-    lists: {
-      goal: 'properties.goal',
-      task: 'properties.task',
-      quality: 'properties.quality',
-    },
-    mapper: 'packages/lib/src/engines/tropos4as/mapper.ts',
-  },
-  cgm: {
-    file: 'packages/lib/src/engines/cgm/definition.ts',
-    // a kind's keys are its definition's `properties.<kind>`; resources are ignored
-    lists: {
-      goal: 'properties.goal',
-      task: 'properties.task',
-      quality: 'properties.quality',
-    },
-    mapper: 'packages/lib/src/engines/cgm/mapper.ts',
-  },
-  // the frameworks' engines read their kinds' keys, by kind (goal-controller#171, #187)
-  kaosdoc: {
-    file: 'packages/lib/src/dialects/kaos/index.ts',
-    lists: {},
-    mapper: 'packages/lib/src/engines/kaosdoc/mapper.ts',
-  },
-  kaoslts: {
-    file: 'packages/lib/src/dialects/kaos/index.ts',
-    lists: {},
-    mapper: 'packages/lib/src/engines/kaoslts/mapper.ts',
-  },
-  kaosprop: {
-    file: 'packages/lib/src/engines/kaosprop/definition.ts',
-    lists: {},
-    mapper: 'packages/lib/src/engines/kaosprop/mapper.ts',
-  },
-  kaosexpert: {
-    file: 'packages/lib/src/engines/kaosexpert/definition.ts',
-    lists: {},
-    mapper: 'packages/lib/src/engines/kaosexpert/mapper.ts',
-  },
-  kaosres: {
-    file: 'packages/lib/src/engines/kaosres/definition.ts',
-    lists: {},
-    mapper: 'packages/lib/src/engines/kaosres/mapper.ts',
-  },
-  kaossim: {
-    file: 'packages/lib/src/engines/kaossim/definition.ts',
-    lists: {},
-    mapper: 'packages/lib/src/engines/kaossim/mapper.ts',
-  },
-  nfrprop: {
-    file: 'packages/lib/src/engines/nfrprop/definition.ts',
-    lists: {},
-    mapper: 'packages/lib/src/engines/nfrprop/mapper.ts',
-  },
-  sleec: {
-    file: 'packages/lib/src/engines/sleec/mapper.ts',
-    lists: {
-      goal: 'SLEEC_GOAL_KEYS',
-      task: 'SLEEC_TASK_KEYS',
-      quality: 'SLEEC_QUALITY_KEYS',
-    },
-    mapper: 'packages/lib/src/engines/sleec/mapper.ts',
-  },
-};
-
 /** What to change so the engine reads a property on this kind of element. */
 const howToAccept = (
   key: string,
   kind: NodeKindKey,
   engine: TransformEngine,
 ): string => {
-  const { file, lists, mapper } = ENGINE_KEYS[engine];
+  // where its keys are declared and read (its lib engine object's `keysAt`)
+  const at = engineOf(engine).keysAt;
+  if (!at)
+    return `To make ${ENGINE_LABEL[engine]} read it here, declare '${key}' on ${KIND_PLURAL[kind]} in its dialect.`;
+  const { file, lists, mapper } = at;
   const list = lists[kind];
   if (list) {
     return `To make ${ENGINE_LABEL[engine]} read it here, add '${key}' to ${list} in ${file}.`;
@@ -963,8 +845,7 @@ export function PropertiesField({
   // what the engine reads: independent of the model, so also known in the piStar view (no analysis)
   const knownProperties =
     KNOWN_PROPERTIES[engine] ?? wb.analysis?.knownProperties;
-  const allKnown: Record<TransformEngine, AnalyzeResponse['knownProperties']> =
-    KNOWN_PROPERTIES;
+  const allKnown = KNOWN_PROPERTIES;
   const known = useMemo(
     () => knownProperties?.[node.kind] ?? [],
     [knownProperties, node.kind],

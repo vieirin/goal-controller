@@ -9,6 +9,7 @@ import {
   ENGINE_LABEL,
   generatesFiles,
   isDialectEngine,
+  isPrismEngine,
 } from '@/lib/workbench/engineDialects';
 import type { Analysis, AnyModel, LoggerReport } from '@goal-controller/lib';
 import {
@@ -27,7 +28,7 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from 'react';
-import { isPrismEngine, type TransformEngine } from '@/lib/types';
+import type { TransformEngine } from '@/lib/types';
 import {
   generationProblems,
   jsonProblem,
